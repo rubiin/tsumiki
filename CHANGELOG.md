@@ -2,49 +2,45 @@
 
 ## [4.8.0](https://github.com/rubiin/tsumiki/compare/v4.7.0...v4.8.0) (2026-09-06)
 
-
 ### 🚀 New Features
 
-* add LabeledSlider widget and corresponding styles ([bce236b](https://github.com/rubiin/tsumiki/commit/bce236b86526e37decb761a6f28077b4117804f4))
-* add option to filter displayed repositories by ownership ([edfccc6](https://github.com/rubiin/tsumiki/commit/edfccc6c8abd26266c1f80e2dc2cf5a287acfd20))
-* add tooltip to close button and update font family for cheatsheet key ([76d65e4](https://github.com/rubiin/tsumiki/commit/76d65e4808414b92837ac6834fb8a526647389ea))
-* add UI/UX audit findings document ([6cb5e8b](https://github.com/rubiin/tsumiki/commit/6cb5e8bffe48e7f2cc12666b3cfd2ea064a8035c))
-* log item addition in SystemTrayWidget for better tracking ([17e3f99](https://github.com/rubiin/tsumiki/commit/17e3f994398a88c6eb95165176062d8b006d51f3))
-
+- add LabeledSlider widget and corresponding styles ([bce236b](https://github.com/rubiin/tsumiki/commit/bce236b86526e37decb761a6f28077b4117804f4))
+- add option to filter displayed repositories by ownership ([edfccc6](https://github.com/rubiin/tsumiki/commit/edfccc6c8abd26266c1f80e2dc2cf5a287acfd20))
+- add tooltip to close button and update font family for cheatsheet key ([76d65e4](https://github.com/rubiin/tsumiki/commit/76d65e4808414b92837ac6834fb8a526647389ea))
+- add UI/UX audit findings document ([6cb5e8b](https://github.com/rubiin/tsumiki/commit/6cb5e8bffe48e7f2cc12666b3cfd2ea064a8035c))
+- log item addition in SystemTrayWidget for better tracking ([17e3f99](https://github.com/rubiin/tsumiki/commit/17e3f994398a88c6eb95165176062d8b006d51f3))
 
 ### 🐛 Bug Fixes
 
-* adjust close button dimensions for consistency ([6e21271](https://github.com/rubiin/tsumiki/commit/6e212710efa1e011ceacd1fa587443267e9fd9cf))
-* **deps:** update all non-major dependencies ([5305e1b](https://github.com/rubiin/tsumiki/commit/5305e1b5e1e258e6c4901c20909bfe21ffa842dc))
-* **deps:** update all non-major dependencies ([031d516](https://github.com/rubiin/tsumiki/commit/031d516bef3b3ff086352122ea195da0e561be0e))
-* remove python version file ([45fda41](https://github.com/rubiin/tsumiki/commit/45fda41cd5b0fa4eea7e7d8a11ead7fc11393660))
-* rename urgent_show to show_urgent in configuration files ([a68477d](https://github.com/rubiin/tsumiki/commit/a68477d0251176208b02d97e994bd935c5540f84))
-* update fabric dependency to a specific commit reference ([b398bab](https://github.com/rubiin/tsumiki/commit/b398bab6a3bf2c2dfd43b8060b6170e25cce4657))
-* uv lint issues ([fe9422c](https://github.com/rubiin/tsumiki/commit/fe9422c22e03611b895fcd56b9d2e321d7646c94))
-
+- adjust close button dimensions for consistency ([6e21271](https://github.com/rubiin/tsumiki/commit/6e212710efa1e011ceacd1fa587443267e9fd9cf))
+- **deps:** update all non-major dependencies ([5305e1b](https://github.com/rubiin/tsumiki/commit/5305e1b5e1e258e6c4901c20909bfe21ffa842dc))
+- **deps:** update all non-major dependencies ([031d516](https://github.com/rubiin/tsumiki/commit/031d516bef3b3ff086352122ea195da0e561be0e))
+- remove python version file ([45fda41](https://github.com/rubiin/tsumiki/commit/45fda41cd5b0fa4eea7e7d8a11ead7fc11393660))
+- rename urgent_show to show_urgent in configuration files ([a68477d](https://github.com/rubiin/tsumiki/commit/a68477d0251176208b02d97e994bd935c5540f84))
+- update fabric dependency to a specific commit reference ([b398bab](https://github.com/rubiin/tsumiki/commit/b398bab6a3bf2c2dfd43b8060b6170e25cce4657))
+- uv lint issues ([fe9422c](https://github.com/rubiin/tsumiki/commit/fe9422c22e03611b895fcd56b9d2e321d7646c94))
 
 ### ⚙️ Chores
 
-* **deps:** lock file maintenance ([#389](https://github.com/rubiin/tsumiki/issues/389)) ([bd8fa4b](https://github.com/rubiin/tsumiki/commit/bd8fa4bf18fa362dbd270023d02e2a2807760904))
-* **deps:** update dependency node to v24.20.0 ([1b24e62](https://github.com/rubiin/tsumiki/commit/1b24e62f01718cfcad89d5dcf34823c45152e13e))
-* **deps:** update dependency node to v24.20.0 ([9f2b590](https://github.com/rubiin/tsumiki/commit/9f2b5902d0173ee0e510ab72d121fc4f237f25f3))
-
+- **deps:** lock file maintenance ([#389](https://github.com/rubiin/tsumiki/issues/389)) ([bd8fa4b](https://github.com/rubiin/tsumiki/commit/bd8fa4bf18fa362dbd270023d02e2a2807760904))
+- **deps:** update dependency node to v24.20.0 ([1b24e62](https://github.com/rubiin/tsumiki/commit/1b24e62f01718cfcad89d5dcf34823c45152e13e))
+- **deps:** update dependency node to v24.20.0 ([9f2b590](https://github.com/rubiin/tsumiki/commit/9f2b5902d0173ee0e510ab72d121fc4f237f25f3))
 
 ### ♻️ Code Refactoring
 
-* adjust background colors and border radius for improved theme consistency ([f02746c](https://github.com/rubiin/tsumiki/commit/f02746c2d9940c17175d12bfe83c505caa4b8ba9))
-* clean up docstrings and remove unnecessary comments in GitHub tray modules ([54f2bdb](https://github.com/rubiin/tsumiki/commit/54f2bdbe569e977c811fd9ff446dad0c26e0f1d9))
-* code structure for improved readability and maintainability ([6d0cdc8](https://github.com/rubiin/tsumiki/commit/6d0cdc8e2a5dbc0550391051ae8f6eda27070f96))
-* code structure for improved readability and maintainability ([776e900](https://github.com/rubiin/tsumiki/commit/776e900ce1424157d15e962cd1d06f97a986084c))
-* enhance color interpolation for battery percentage using HLS for smoother transitions ([6c57a4b](https://github.com/rubiin/tsumiki/commit/6c57a4b408aeecfdefb38342563c63865ac5b059))
-* remove github_tray from middle_section layout ([3143281](https://github.com/rubiin/tsumiki/commit/314328191c4f8039c5bb89532e7563eebcba1d53))
-* remove privacy indicator widget and related configurations ([648f84c](https://github.com/rubiin/tsumiki/commit/648f84cb38e623a4e732351bf7391782aa7435ac))
-* replace direct signal connections with bulk_connect for improved readability ([05c70b4](https://github.com/rubiin/tsumiki/commit/05c70b49cf8dda01521ceddc4fe6102cb7d046ea))
-* replace hardcoded font sizes with variable references for consistency ([4c209d7](https://github.com/rubiin/tsumiki/commit/4c209d777697a0edbf3c0e568be72939cdb586d8))
-* replace hardcoded opacity values with variable references for consistency ([afd22e6](https://github.com/rubiin/tsumiki/commit/afd22e64c1f6d739f2589aa5b6af3e58f2f1162b))
-* update GitHub tray widget styles and functionality for improved UI and UX ([f887513](https://github.com/rubiin/tsumiki/commit/f8875131d2762b33e68afc518d0b377a42d7562a))
-* update hover color for WeatherWidget to improve UI contrast ([ff74ce5](https://github.com/rubiin/tsumiki/commit/ff74ce56eade0281a2c4add016172945aa76176b))
-* update SCSS styles to use variables for transitions and border radii ([6cb5e8b](https://github.com/rubiin/tsumiki/commit/6cb5e8bffe48e7f2cc12666b3cfd2ea064a8035c))
+- adjust background colors and border radius for improved theme consistency ([f02746c](https://github.com/rubiin/tsumiki/commit/f02746c2d9940c17175d12bfe83c505caa4b8ba9))
+- clean up docstrings and remove unnecessary comments in GitHub tray modules ([54f2bdb](https://github.com/rubiin/tsumiki/commit/54f2bdbe569e977c811fd9ff446dad0c26e0f1d9))
+- code structure for improved readability and maintainability ([6d0cdc8](https://github.com/rubiin/tsumiki/commit/6d0cdc8e2a5dbc0550391051ae8f6eda27070f96))
+- code structure for improved readability and maintainability ([776e900](https://github.com/rubiin/tsumiki/commit/776e900ce1424157d15e962cd1d06f97a986084c))
+- enhance color interpolation for battery percentage using HLS for smoother transitions ([6c57a4b](https://github.com/rubiin/tsumiki/commit/6c57a4b408aeecfdefb38342563c63865ac5b059))
+- remove github_tray from middle_section layout ([3143281](https://github.com/rubiin/tsumiki/commit/314328191c4f8039c5bb89532e7563eebcba1d53))
+- remove privacy indicator widget and related configurations ([648f84c](https://github.com/rubiin/tsumiki/commit/648f84cb38e623a4e732351bf7391782aa7435ac))
+- replace direct signal connections with bulk_connect for improved readability ([05c70b4](https://github.com/rubiin/tsumiki/commit/05c70b49cf8dda01521ceddc4fe6102cb7d046ea))
+- replace hardcoded font sizes with variable references for consistency ([4c209d7](https://github.com/rubiin/tsumiki/commit/4c209d777697a0edbf3c0e568be72939cdb586d8))
+- replace hardcoded opacity values with variable references for consistency ([afd22e6](https://github.com/rubiin/tsumiki/commit/afd22e64c1f6d739f2589aa5b6af3e58f2f1162b))
+- update GitHub tray widget styles and functionality for improved UI and UX ([f887513](https://github.com/rubiin/tsumiki/commit/f8875131d2762b33e68afc518d0b377a42d7562a))
+- update hover color for WeatherWidget to improve UI contrast ([ff74ce5](https://github.com/rubiin/tsumiki/commit/ff74ce56eade0281a2c4add016172945aa76176b))
+- update SCSS styles to use variables for transitions and border radii ([6cb5e8b](https://github.com/rubiin/tsumiki/commit/6cb5e8bffe48e7f2cc12666b3cfd2ea064a8035c))
 
 ## [4.7.0](https://github.com/rubiin/tsumiki/compare/v4.6.0...v4.7.0) (2026-08-30)
 
