@@ -2,16 +2,14 @@
 
 ## [4.9.0](https://github.com/rubiin/tsumiki/compare/v4.8.0...v4.9.0) (2026-09-07)
 
-
 ### 🚀 New Features
 
-* add COPY action for one-time codes and show relative timestamps in notifications ([6a24ed7](https://github.com/rubiin/tsumiki/commit/6a24ed7881605099f20ff968e11fabbe6c6f2fa6))
-
+- add COPY action for one-time codes and show relative timestamps in notifications ([6a24ed7](https://github.com/rubiin/tsumiki/commit/6a24ed7881605099f20ff968e11fabbe6c6f2fa6))
 
 ### ⚙️ Chores
 
-* **deps:** lock file maintenance ([1161118](https://github.com/rubiin/tsumiki/commit/11611187aa80ed1b683ed0abbdbbc99042bea998))
-* **deps:** lock file maintenance ([432b1f8](https://github.com/rubiin/tsumiki/commit/432b1f889c244a3e6ce4ed865e951a3ce4ba4c0a))
+- **deps:** lock file maintenance ([1161118](https://github.com/rubiin/tsumiki/commit/11611187aa80ed1b683ed0abbdbbc99042bea998))
+- **deps:** lock file maintenance ([432b1f8](https://github.com/rubiin/tsumiki/commit/432b1f889c244a3e6ce4ed865e951a3ce4ba4c0a))
 
 ## [4.8.0](https://github.com/rubiin/tsumiki/compare/v4.7.0...v4.8.0) (2026-09-06)
 
