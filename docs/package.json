@@ -16,17 +16,17 @@
     "fmt:check": "oxfmt --check"
   },
   "dependencies": {
-    "@astrojs/starlight": "^0.41.11",
-    "astro": "^7.3.1",
+    "@astrojs/starlight": "^0.42.0",
+    "astro": "^7.3.2",
     "sharp": "^0.35.4"
   },
   "devDependencies": {
-    "oxfmt": "^0.66.0",
-    "oxlint": "^1.81.0",
+    "oxfmt": "^0.67.0",
+    "oxlint": "^1.82.0",
     "tslib": "^2.8.1",
     "typescript": "^7.0.2"
   },
   "engines": {
-    "node": ">=24.19.0"
+    "node": ">=24.21.0"
   }
 }
