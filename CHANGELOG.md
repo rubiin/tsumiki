@@ -1,5 +1,27 @@
 # Changelog
 
+## [4.8.1](https://github.com/rubiin/tsumiki/compare/v4.8.0...v4.8.1) (2026-09-10)
+
+
+### 🚀 New Features
+
+* add COPY action for one-time codes and show relative timestamps in notifications ([6a24ed7](https://github.com/rubiin/tsumiki/commit/6a24ed7881605099f20ff968e11fabbe6c6f2fa6))
+* enhance notification handling and grouping ([f9487ec](https://github.com/rubiin/tsumiki/commit/f9487ec3a33090d90b3a7231dee07ee24a3f64c0))
+
+
+### 🐛 Bug Fixes
+
+* **deps:** update all non-major npm dependencies ([#403](https://github.com/rubiin/tsumiki/issues/403)) ([3675f2e](https://github.com/rubiin/tsumiki/commit/3675f2e37498ed3583439200a23f61f226b12040))
+
+
+### ⚙️ Chores
+
+* **deps:** lock file maintenance ([#405](https://github.com/rubiin/tsumiki/issues/405)) ([d9fd036](https://github.com/rubiin/tsumiki/commit/d9fd0362eb2e159de756d40832fc8157759bc639))
+* **deps:** update dependency node to v24.21.0 ([#401](https://github.com/rubiin/tsumiki/issues/401)) ([c024e61](https://github.com/rubiin/tsumiki/commit/c024e617d69b7fb81ad50c4242c2d17bcefa6b7d))
+* **deps:** update dependency pnpm to v11.26.0 ([#402](https://github.com/rubiin/tsumiki/issues/402)) ([752b2ca](https://github.com/rubiin/tsumiki/commit/752b2ca737da288f905003d2ce647e9ec229fda1))
+* **deps:** update dependency pnpm to v12 ([#404](https://github.com/rubiin/tsumiki/issues/404)) ([c64342b](https://github.com/rubiin/tsumiki/commit/c64342b922b45fabce33c9be56934e001a7d6b51))
+* release 4.8.1 ([e9bc7e8](https://github.com/rubiin/tsumiki/commit/e9bc7e872acc6ac33717c36d0b2e6b43f7dfe897))
+
 ## [4.8.0](https://github.com/rubiin/tsumiki/compare/v4.7.0...v4.8.0) (2026-09-06)
 
 ### 🚀 New Features
