@@ -1,5 +1,14 @@
 # Changelog
 
+## [4.8.2](https://github.com/rubiin/tsumiki/compare/v4.8.1...v4.8.2) (2026-09-12)
+
+### ⚙️ Chores
+
+- **deps:** update dependency pnpm to v12.4.1 ([9bac240](https://github.com/rubiin/tsumiki/commit/9bac2405ae76dd2a1b19228c1e84578bc6ed3c5e))
+- **deps:** update dependency pnpm to v12.4.1 ([edd9a7a](https://github.com/rubiin/tsumiki/commit/edd9a7a4a2ad42887b49251b73332e44fa14d099))
+- **deps:** update dependency ruff to &gt;=0.16.7 ([699b0eb](https://github.com/rubiin/tsumiki/commit/699b0ebf038430e0b313369c3ddb060fffbe4245))
+- **deps:** update dependency ruff to &gt;=0.16.7 ([2f87559](https://github.com/rubiin/tsumiki/commit/2f87559b70018bd35f945248af5cdeb25b3a0925))
+
 ## [4.8.1](https://github.com/rubiin/tsumiki/compare/v4.8.0...v4.8.1) (2026-09-10)
 
 ### 🚀 New Features
