@@ -171,7 +171,9 @@ class PlayerBox(Box):
             )
 
         # ─── Progress Bar ───
-        self.progress_bar = SineWaveSlider(name="player-slider", h_expand=True)
+        self.progress_bar = SineWaveSlider(
+            name="player-slider", h_expand=True, value=0.0
+        )
 
         # ─── Bottom Controls Row ───
         prev_icon = nerd_font_icon(
@@ -273,6 +275,12 @@ class PlayerBox(Box):
                 "notify::shuffle": self.on_shuffle_change,
             },
         )
+
+        # Seed the seekbar/time label with the current playback state so the
+        # bar starts at the track position instead of mid-widget, then keep
+        # ticking; on_metadata restarts this timer on track changes.
+        self._move_seekbar()
+        self._seekbar_timer_id = GLib.timeout_add(1000, self._move_seekbar)
 
     # ─── Metadata ─────────────────────────────────────────────────────────────
 
