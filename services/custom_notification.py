@@ -116,9 +116,7 @@ class CustomNotifications(Notifications):
             # Restore the sync-hint map from persisted entries so the mapping
             # survives restarts.
             self._synchronous_ids = {
-                n["sync-key"]: n["id"]
-                for n in valid_notifications
-                if n.get("sync-key")
+                n["sync-key"]: n["id"] for n in valid_notifications if n.get("sync-key")
             }
 
             del valid_notifications

@@ -1188,7 +1188,7 @@ radius = "16px"
 width = "1px"
 
 [styling.bar.widgets.system_tray]
-spacing = "0.3em"
+spacing = "0.65em"
 
 [styling.bar.widgets.system_tray.border]
 enabled = false

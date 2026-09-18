@@ -84,9 +84,7 @@ class MprisPlayer(Service):
                 "/org/freedesktop/DBus",
                 "org.freedesktop.DBus",
                 "NameHasOwner",
-                GLib.Variant(
-                    "(s)", (f"org.mpris.MediaPlayer2.{self._player_name}",)
-                ),
+                GLib.Variant("(s)", (f"org.mpris.MediaPlayer2.{self._player_name}",)),
                 None,
                 Gio.DBusCallFlags.NONE,
                 -1,
