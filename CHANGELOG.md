@@ -1,5 +1,51 @@
 # Changelog
 
+## [4.8.2](https://github.com/rubiin/tsumiki/compare/v4.8.1...v4.8.2) (2026-09-19)
+
+
+### 🚀 New Features
+
+* add flake.nix for development environment setup and improve system tray styles ([74aa148](https://github.com/rubiin/tsumiki/commit/74aa148f2da604cd4711150b969eb1cb97d07703))
+* enhance artwork handling with dark scrim for text readability and improve icon resolver documentation ([c2aeae0](https://github.com/rubiin/tsumiki/commit/c2aeae02ec958c203b5720d5a6454f2a09aa7c16))
+* enhance icon handling in notifications by integrating IconResolver and updating image widget usage ([d25ca0c](https://github.com/rubiin/tsumiki/commit/d25ca0cd4979cf0e613043559daf2ec32a1aac48))
+* enhance MprisWidget artwork handling with temporary file management and improve artwork update logic ([8d27263](https://github.com/rubiin/tsumiki/commit/8d272638af62263f7af1c30c233bfe384f4b29ef))
+* implement artwork luminance analysis for text contrast adjustment and add unit tests ([cbcad9c](https://github.com/rubiin/tsumiki/commit/cbcad9cf394f6f85c971730f1760ff830223db1e))
+* initialize progress bar with default value and sync seekbar with playback state ([fc5f391](https://github.com/rubiin/tsumiki/commit/fc5f3912a652553920e72012ee4de2c8214904e8))
+* refactor icon resolution by consolidating resolve_icon_pixbuf usage and removing duplicates ([d5fc355](https://github.com/rubiin/tsumiki/commit/d5fc3558faa0151e9e32f57f55f5121a7169e71b))
+
+
+### 🐛 Bug Fixes
+
+* add commit and PR style guidelines to AGENTS.md and update config.toml to hide MPRIS widget when no player is active ([a363bee](https://github.com/rubiin/tsumiki/commit/a363bee9a983d4d70a0b874dbc41bc89065e6708))
+* icon handling across various widgets with fallback options for improved visual consistency ([85115db](https://github.com/rubiin/tsumiki/commit/85115db332ed11839e41e47cfe5e103d03138fa8))
+* seek functionality in PlayerBox and add dragging state to SineWaveSlider ([cfabe93](https://github.com/rubiin/tsumiki/commit/cfabe939a63abbe9bc34e29e22a2ac00ec58802d))
+* update icons in various components for improved visual consistency and add fallback options ([9643d9c](https://github.com/rubiin/tsumiki/commit/9643d9ced4e2eea7fba637da2bcfe20ff84539f7))
+
+
+### 📚 Documentation
+
+* Refactor code structure for improved readability and maintainability ([d511f56](https://github.com/rubiin/tsumiki/commit/d511f561285c67405f47098ef018bbadec618906))
+
+
+### 🎨 Code Style
+
+* adjust spacing and formatting in system tray and notification handling ([3f40c66](https://github.com/rubiin/tsumiki/commit/3f40c6662e4f14fa928be52f6230c06370d4581b))
+
+
+### ⚙️ Chores
+
+* **deps:** lock file maintenance ([7eac98c](https://github.com/rubiin/tsumiki/commit/7eac98c4f1f8efa6036a72badf8446b20dd471f9))
+* **deps:** lock file maintenance ([610954f](https://github.com/rubiin/tsumiki/commit/610954fc7ca0cc96a0797856370f8bae6c7ed966))
+* **deps:** update dependency pnpm to v12.4.1 ([9bac240](https://github.com/rubiin/tsumiki/commit/9bac2405ae76dd2a1b19228c1e84578bc6ed3c5e))
+* **deps:** update dependency pnpm to v12.4.1 ([edd9a7a](https://github.com/rubiin/tsumiki/commit/edd9a7a4a2ad42887b49251b73332e44fa14d099))
+* **deps:** update dependency pnpm to v12.4.2 ([664e807](https://github.com/rubiin/tsumiki/commit/664e807e3b7330778882a76dffd1e70b698e4294))
+* **deps:** update dependency pnpm to v12.4.2 ([ba257a9](https://github.com/rubiin/tsumiki/commit/ba257a939e5eb271452fab01908525453c6ba395))
+* **deps:** update dependency ruff to &gt;=0.16.7 ([699b0eb](https://github.com/rubiin/tsumiki/commit/699b0ebf038430e0b313369c3ddb060fffbe4245))
+* **deps:** update dependency ruff to &gt;=0.16.7 ([2f87559](https://github.com/rubiin/tsumiki/commit/2f87559b70018bd35f945248af5cdeb25b3a0925))
+* **deps:** update dependency ruff to &gt;=0.16.8 ([7acbe93](https://github.com/rubiin/tsumiki/commit/7acbe930e9bc1d67312320013154adaac2690ccb))
+* **deps:** update dependency ruff to &gt;=0.16.8 ([403b5a8](https://github.com/rubiin/tsumiki/commit/403b5a8c75a0886076a19aea51110ca90dfe3418))
+* release 4.8.2 ([5ebae77](https://github.com/rubiin/tsumiki/commit/5ebae7799ed6866f71515dd1ed401ac89eb8f7d6))
+
 ## [4.8.1](https://github.com/rubiin/tsumiki/compare/v4.8.0...v4.8.1) (2026-09-10)
 
 ### 🚀 New Features
