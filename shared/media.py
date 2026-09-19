@@ -381,6 +381,16 @@ class PlayerBox(Box):
         idle_add(self._update_art, local_arturl)
 
     def _update_art(self, image_path):
+        if self.exit:
+            if self._last_temp_art_path and os.path.exists(self._last_temp_art_path):
+                try:
+                    os.remove(self._last_temp_art_path)
+                except OSError:
+                    logger.debug(
+                        f"[Media] Failed to remove temp: {self._last_temp_art_path}"
+                    )
+                self._last_temp_art_path = None
+            return
         has_art = bool(image_path) and os.path.isfile(image_path)
         art_path = image_path if has_art else self.fallback_cover_path
         light_art = self._classify_art(art_path)
@@ -414,9 +424,18 @@ class PlayerBox(Box):
         return luminance > _LIGHT_ART_LUMINANCE_THRESHOLD
 
     def update_dots(self, count: int, active_index: int):
-        """Rebuild dot navigation for player switching."""
-        self.dot_box.children = []
-        for i in range(count):
+        """Update dot navigation for player switching in place."""
+        current_dots = list(self.dot_box.get_children())
+
+        # Remove excess dots
+        while len(current_dots) > count:
+            dot = current_dots.pop()
+            dot.destroy()
+            self.dot_box.remove(dot)
+
+        # Add new dots if needed
+        while len(current_dots) < count:
+            i = len(current_dots)
             dot = HoverButton(
                 name="player-stack-button",
                 style_classes="active" if i == active_index else [],
@@ -424,25 +443,28 @@ class PlayerBox(Box):
                     self.parent.switch_to_player(idx) if self.parent else None
                 ),
             )
+            current_dots.append(dot)
             self.dot_box.add(dot)
+
+        # Update style classes in place
+        for i, dot in enumerate(current_dots):
+            if i == active_index:
+                dot.add_style_class("active")
+            else:
+                dot.remove_style_class("active")
+
         self.dot_box.set_visible(count > 1)
 
     # ─── Playback Controls ──────────────────────────────────────────────────
 
     def _on_seek(self, value: float) -> None:
         """Seek when the user drags the seekbar (press or motion)."""
-        if not self.player or not self._alive_or_none():
+        if not self.player:
             return
         length = self.player.length
         if not length:
             return
         self.player.position = int(value * length)
-
-    def _alive_or_none(self) -> bool:
-        try:
-            return self.player._alive()
-        except Exception:
-            return False
 
     def on_shuffle_change(self, *_):
         if self.player.shuffle:

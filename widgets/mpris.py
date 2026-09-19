@@ -1,4 +1,8 @@
-from fabric.utils import GLib, bulk_connect, logger
+import os
+import tempfile
+import urllib.parse
+
+from fabric.utils import GLib, bulk_connect, idle_add, logger
 from fabric.widgets.box import Box
 
 from services.mpris import MprisPlayer, MprisPlayerManager
@@ -8,7 +12,7 @@ from shared.scrollable_text import ScrollingLabel
 from shared.widget_container import ButtonWidget
 from utils.colors import Colors
 from utils.constants import ASSETS_DIR, NEWLINE_RE
-from utils.functions import char_limit_to_px, safe_disconnect
+from utils.functions import char_limit_to_px, get_http_client, safe_disconnect
 from utils.i18n import _
 
 
@@ -56,6 +60,8 @@ class MprisWidget(ButtonWidget, PopoverMixin):
         )
 
         self._last_progress_pct: float | None = None
+        self._last_temp_art_path: str | None = None
+        self.exit = False
         self._set_default_values()
         self.container_box.children = [self.cover, self.meta_box]
 
@@ -125,6 +131,7 @@ class MprisWidget(ButtonWidget, PopoverMixin):
         if self._progress_timer_id is None:
             return
         GLib.source_remove(self._progress_timer_id)
+        self._unregister_repeater(self._progress_timer_id)
         self._progress_timer_id = None
 
     def _on_progress_tick(self):
@@ -224,7 +231,59 @@ class MprisWidget(ButtonWidget, PopoverMixin):
         self.label.on_leave_notify()
         return False
 
+    def _set_artwork(self, art_url):
+        if self.exit:
+            return
+        parsed = urllib.parse.urlparse(art_url)
+        if parsed.scheme == "file":
+            local_path = urllib.parse.unquote(parsed.path)
+            self._update_art(local_path)
+        elif parsed.scheme in ("http", "https"):
+            GLib.Thread.new("download-artwork", self._download_artwork, art_url)
+        else:
+            self._update_art(art_url)
+
+    def _download_artwork(self, art_url):
+        try:
+            suffix = urllib.parse.urlparse(art_url).path.rsplit(".", 1)[-1] or ".png"
+            response = get_http_client().get(art_url, timeout=5)
+            old_temp_path = self._last_temp_art_path
+            with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tf:
+                tf.write(response.content)
+                local_path = tf.name
+            self._last_temp_art_path = local_path
+            if (
+                old_temp_path
+                and old_temp_path != local_path
+                and os.path.exists(old_temp_path)
+            ):
+                try:
+                    os.remove(old_temp_path)
+                except OSError:
+                    logger.debug(f"[Mpris] Failed to remove temp file: {old_temp_path}")
+        except Exception:
+            local_path = self.default_cover
+        idle_add(self._update_art, local_path)
+
+    def _update_art(self, image_path):
+        if self.exit:
+            if self._last_temp_art_path and os.path.exists(self._last_temp_art_path):
+                try:
+                    os.remove(self._last_temp_art_path)
+                except OSError:
+                    logger.debug(
+                        f"[Mpris] Failed to remove temp: {self._last_temp_art_path}"
+                    )
+                self._last_temp_art_path = None
+            return
+        has_art = bool(image_path) and os.path.isfile(image_path)
+        art_path = image_path if has_art else self.default_cover
+        safe_url = art_path.replace("\\", "\\\\").replace("'", "\\'")
+        self.cover.set_style(f"background-image: url('{safe_url}');")
+
     def get_current(self):
+        if self.exit:
+            return
         playback_status = self.player.playback_status if self.player else None
         if playback_status not in {"playing", "paused"}:
             self._set_default_values()
@@ -234,17 +293,19 @@ class MprisWidget(ButtonWidget, PopoverMixin):
         title = NEWLINE_RE.sub(" ", self.player.title or "").strip()
         bar_label = title or _("widget.mpris.nothing_playing")
 
-        label_text = self.label_format.format(
-            title=title,
-            artist=self.player.artist or "",
-            album=self.player.album or "",
-            name=self.player.player_name or "",
-        )
+        try:
+            label_text = self.label_format.format(
+                title=title,
+                artist=self.player.artist or "",
+                album=self.player.album or "",
+                name=self.player.player_name or "",
+            )
+        except (KeyError, ValueError, IndexError):
+            label_text = title
         self.label.set_text(label_text)
 
         art_url = getattr(self.player, "arturl", None) or self.default_cover
-        safe_url = art_url.replace("\\", "\\\\").replace("'", "\\'")
-        self.cover.set_style(f"background-image: url('{safe_url}');")
+        self._set_artwork(art_url)
 
         self._update_progress()
 
@@ -263,4 +324,13 @@ class MprisWidget(ButtonWidget, PopoverMixin):
     def destroy(self):
         self._stop_progress_timer()
         self._unbind_player_updates()
+        self.exit = True
+        if self._last_temp_art_path and os.path.exists(self._last_temp_art_path):
+            try:
+                os.remove(self._last_temp_art_path)
+            except OSError:
+                logger.debug(
+                    f"[Mpris] Failed to remove temp file: {self._last_temp_art_path}"
+                )
+            self._last_temp_art_path = None
         return super().destroy()

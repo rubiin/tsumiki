@@ -25,6 +25,8 @@ class SineWaveSlider(Gtk.DrawingArea, Widget):
     """SineWaveSlider: an interactive slider with an animated sine wave, also has
     active and inactive state management
 
+    # Throttle DBus SetPosition calls during drag to ~100ms to avoid flooding.
+
     example CSS:
 
         #player-slider {
@@ -111,6 +113,7 @@ class SineWaveSlider(Gtk.DrawingArea, Widget):
         self._phase = 0.0
         self._dragging = False
         self._hover = False
+        self._last_fire_time = 0
 
         self._morph = 1.0 if active else 0.0
         self._morph_target = self._morph
@@ -417,7 +420,7 @@ class SineWaveSlider(Gtk.DrawingArea, Widget):
         if self._dragging:
             styles = self.do_resolve_style()
             self._value = self._x_to_value(event.x, styles["handle_length"])
-            self._fire_change()
+            self._throttled_fire_change()
             self.queue_draw()
 
     def _on_enter(self, widget: Gtk.Widget, event: Gdk.EventCrossing) -> None:
@@ -438,6 +441,13 @@ class SineWaveSlider(Gtk.DrawingArea, Widget):
     def _fire_change(self) -> None:
         if self._on_change:
             self._on_change(self._value)
+
+    def _throttled_fire_change(self) -> None:
+        """Fire change callback throttled to ~100ms to avoid flooding DBus."""
+        current_time = GLib.get_monotonic_time()
+        if current_time - self._last_fire_time >= 100_000:  # 100ms in microseconds
+            self._last_fire_time = current_time
+            self._fire_change()
 
     def destroy(self) -> None:
         self._stop_animation()

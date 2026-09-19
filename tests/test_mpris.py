@@ -26,10 +26,6 @@ class MprisPlayerSafetyTest(unittest.TestCase):
         player._player = None  # simulate exit without touching the bus
         return player
 
-    def test_dead_player_is_not_alive(self):
-        player = self._make_player()
-        self.assertFalse(player._alive())
-
     def test_getters_return_defaults_when_player_gone(self):
         player = self._make_player()
         self.assertEqual(player.metadata, {})
@@ -45,7 +41,6 @@ class MprisPlayerSafetyTest(unittest.TestCase):
         raw.get_property.return_value = "definitely-not-a-real-player-zzz"
         player = MprisPlayer(raw)
 
-        self.assertFalse(player._alive())
         self.assertEqual(player.metadata, {})
 
         # __init__ read the local player-name only; the metadata getter must

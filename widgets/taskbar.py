@@ -250,7 +250,9 @@ class TaskBarWidget(BoxWidget):
         client_button = Button(
             style_classes=list(_BUTTON_BASE_CLASSES),
             image=client_image,
-            on_button_press_event=lambda _, event: client.activate(),
+            on_button_press_event=lambda _, event, addr=address: self._activate_client(
+                addr
+            ),
         )
         client_button.set_tooltip_text(
             client.get_title() if self.config.get("tooltip", True) else None
@@ -264,6 +266,12 @@ class TaskBarWidget(BoxWidget):
             "client": client,
         }
         self.add(client_button)
+
+    def _activate_client(self, address: str):
+        """Activate a client by address at click time (avoids stale closure)."""
+        client = self._clients_by_address.get(address)
+        if client:
+            client.activate()
 
     def _apply_active_state(self, active_address: str | None):
         self._active_address = active_address

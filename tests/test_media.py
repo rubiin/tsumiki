@@ -47,10 +47,9 @@ class AverageLuminanceTest(unittest.TestCase):
 
     def test_alpha_only_pixbuf_returns_none(self):
         # Fewer than 3 channels cannot be classified.
-        pixbuf = GdkPixbuf.Pixbuf.new(
-            GdkPixbuf.Colorspace.RGB, False, 8, 4, 4
-        )
+        pixbuf = GdkPixbuf.Pixbuf.new(GdkPixbuf.Colorspace.RGB, False, 8, 4, 4)
         pixbuf.fill(0xFFFFFFFF)
+
         # Simulate a 1-channel buffer by asserting None from a stub.
         class _Stub:
             def get_n_channels(self):

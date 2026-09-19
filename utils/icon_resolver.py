@@ -60,17 +60,7 @@ class IconResolver:
         if pixmap is None:
             return self.get_icon_pixbuf(app_id, icon_size)
         try:
-            return (
-                pixmap.as_pixbuf(icon_size, GdkPixbuf.InterpType.HYPER)
-                if pixmap is not None
-                else Gtk.IconTheme()
-                .get_default()
-                .load_icon(
-                    icon_name,
-                    icon_size,
-                    Gtk.IconLookupFlags.FORCE_SIZE,
-                )
-            )
+            return pixmap.as_pixbuf(icon_size, GdkPixbuf.InterpType.HYPER)
         except GLib.GError:
             return self.get_icon_pixbuf(app_id, icon_size)
 
