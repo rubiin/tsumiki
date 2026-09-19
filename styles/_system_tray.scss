@@ -5,15 +5,15 @@
 
 /* system tray widget*/
 #system_tray {
-  @include common.widget-border(variable.$bar-widgets-system_tray-border-radius,
+  @include common.widget-border(
+    variable.$bar-widgets-system_tray-border-radius,
     variable.$bar-widgets-system_tray-border-enabled,
-    variable.$bar-widgets-system_tray-border-width );
+    variable.$bar-widgets-system_tray-border-width
+  );
 
   padding: 0 variable.$bar-widgets-system_tray-spacing;
 
-
   &:hover {
-
     #system_tray-box {
       button {
         image {
@@ -21,7 +21,6 @@
         }
       }
     }
-
   }
 
   .toggle-icon,
@@ -44,7 +43,7 @@
     background-color: theme.$background-alt;
 
     grid {
-      &>button {
+      & > button {
         margin: 0 0.1em;
         padding: 0 0.15em;
         border-radius: variable.$radius-large;
