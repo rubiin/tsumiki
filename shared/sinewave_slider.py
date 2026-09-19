@@ -232,6 +232,10 @@ class SineWaveSlider(Gtk.DrawingArea, Widget):
     def get_active(self) -> bool:
         return self._morph_target == 1.0
 
+    def get_dragging(self) -> bool:
+        """Whether the user is currently holding a drag on the slider."""
+        return self._dragging
+
     def set_active(self, active: bool) -> None:
         target = 1.0 if active else 0.0
         if self._morph_target == target:

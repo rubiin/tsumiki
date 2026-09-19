@@ -219,7 +219,10 @@ class PlayerBox(Box):
 
         # ─── Progress Bar ───
         self.progress_bar = SineWaveSlider(
-            name="player-slider", h_expand=True, value=0.0
+            name="player-slider",
+            h_expand=True,
+            value=0.0,
+            on_change=self._on_seek,
         )
 
         # ─── Bottom Controls Row ───
@@ -426,6 +429,21 @@ class PlayerBox(Box):
 
     # ─── Playback Controls ──────────────────────────────────────────────────
 
+    def _on_seek(self, value: float) -> None:
+        """Seek when the user drags the seekbar (press or motion)."""
+        if not self.player or not self._alive_or_none():
+            return
+        length = self.player.length
+        if not length:
+            return
+        self.player.position = int(value * length)
+
+    def _alive_or_none(self) -> bool:
+        try:
+            return self.player._alive()
+        except Exception:
+            return False
+
     def on_shuffle_change(self, *_):
         if self.player.shuffle:
             self.shuffle_btn.add_style_class("active")
@@ -445,6 +463,9 @@ class PlayerBox(Box):
         if self.player is None or self.exit:
             self._seekbar_timer_id = None
             return False
+        # Don't fight the user's hand while they are dragging the seekbar.
+        if self.progress_bar.get_dragging():
+            return True
         pos = self.player.position
         length = self.player.length
         if length:
