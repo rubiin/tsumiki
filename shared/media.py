@@ -1,7 +1,7 @@
 import tempfile
 import urllib.parse
 
-from fabric.utils import GLib, GObject, bulk_connect, idle_add, logger, os
+from fabric.utils import GdkPixbuf, GLib, GObject, bulk_connect, idle_add, logger, os
 from fabric.widgets.box import Box
 from fabric.widgets.image import Image
 from fabric.widgets.label import Label
@@ -28,6 +28,35 @@ def _format_seconds(micro_seconds: int) -> str:
 
 def _format_time_combined(position_us: int, length_us: int) -> str:
     return f"{_format_seconds(position_us)} / {_format_seconds(length_us)}"
+
+
+# Luminance threshold above which artwork is considered light and dark text
+# is needed for readability.
+_LIGHT_ART_LUMINANCE_THRESHOLD = 0.5
+
+
+def _average_luminance(pixbuf: GdkPixbuf.Pixbuf) -> float | None:
+    """Average perceptual luminance of a pixbuf, normalized to 0..1."""
+    n_channels = pixbuf.get_n_channels()
+    if n_channels < 3:
+        return None
+    width = pixbuf.get_width()
+    height = pixbuf.get_height()
+    rowstride = pixbuf.get_rowstride()
+    pixels = pixbuf.get_pixels()
+    total = 0.0
+    count = 0
+    for y in range(height):
+        row = y * rowstride
+        for x in range(width):
+            offset = row + x * n_channels
+            total += (
+                0.2126 * pixels[offset]
+                + 0.7152 * pixels[offset + 1]
+                + 0.0722 * pixels[offset + 2]
+            )
+            count += 1
+    return total / count / 255 if count else None
 
 
 class PlayerBoxStack(Box):
@@ -349,6 +378,29 @@ class PlayerBox(Box):
             else f"url('{self.fallback_cover_path}')"
         )
         self.set_style(f"background-image: {url};")
+        self._update_art_contrast(image_path)
+
+    def _update_art_contrast(self, image_path):
+        """Toggle text color overrides based on artwork brightness.
+
+        Text colors come from the theme (generated from the wallpaper), so
+        they can clash with light album art. Classify the artwork and let
+        SCSS pick readable text colors via ``on-light-art``/``on-dark-art``.
+        """
+        if not image_path or not os.path.isfile(image_path):
+            return
+        try:
+            pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(image_path, 16, 16)
+            luminance = _average_luminance(pixbuf)
+        except Exception:
+            logger.debug(f"[Media] Failed to compute art luminance: {image_path}")
+            return
+        if luminance is None:
+            return
+        light_art = luminance > _LIGHT_ART_LUMINANCE_THRESHOLD
+        for cls in ("on-light-art", "on-dark-art"):
+            self.remove_style_class(cls)
+        self.add_style_class("on-light-art" if light_art else "on-dark-art")
 
     def update_dots(self, count: int, active_index: int):
         """Rebuild dot navigation for player switching."""

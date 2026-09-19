@@ -100,6 +100,41 @@
     margin-top: 8px;
   }
 
+  // Artwork is light: switch to dark text/icons for readability.
+  &.on-light-art {
+    #player-title {
+      color: rgba(0, 0, 0, 0.9);
+    }
+
+    #player-artist {
+      color: rgba(0, 0, 0, 0.75);
+    }
+
+    #player-time {
+      color: rgba(0, 0, 0, 0.6);
+    }
+
+    #player-controls-row {
+      #player-prev,
+      #player-next,
+      #player-shuffle {
+        .player-icon-sm {
+          color: rgba(0, 0, 0, 0.85);
+        }
+      }
+
+      #player-shuffle.active {
+        .player-icon-sm {
+          color: color.mix(black, theme.$accent-teal, 50%);
+        }
+      }
+    }
+
+    #player-stack-button.active {
+      background-color: rgba(0, 0, 0, 0.75);
+    }
+  }
+
   #player-main-row {
     #player-meta-col {
       min-width: 0;
