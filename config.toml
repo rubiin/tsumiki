@@ -305,6 +305,7 @@ show_icon = true
 [widgets.mpris]
 truncation_size = 10
 tooltip = false
+hide_when_no_player = true
 label_format = "{title} - {artist}"
 
 [widgets.ocr]
