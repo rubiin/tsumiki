@@ -6,6 +6,7 @@ from fabric.widgets.box import Box
 from fabric.widgets.button import Button
 from fabric.widgets.datetime import DateTime
 from fabric.widgets.eventbox import EventBox
+from fabric.widgets.image import Image
 from fabric.widgets.label import Label
 from fabric.widgets.revealer import Revealer
 from fabric.widgets.scrolledwindow import ScrolledWindow
@@ -20,9 +21,9 @@ from shared.list import ListBox
 from shared.mixins import PopoverMixin
 from shared.widget_container import ButtonWidget
 from utils.i18n import _
+from utils.icon_resolver import IconResolver
 from utils.icons import get_text_icon
 from utils.widget_utils import (
-    get_icon,
     get_notification_image_pixbuf,
     nerd_font_icon,
 )
@@ -76,9 +77,14 @@ class DateMenuNotification(Box):
             del image_pixbuf
 
         if icon_widget is None:
-            icon_widget = get_icon(notification.app_icon)
+            icon_widget = Image(
+                    pixbuf=IconResolver().resolve_icon(
+                        None, notification.app_icon, notification.app_name, 25
+                    ),
+                    size=25,
+                    v_align="start",
+                )
 
-        icon_widget.set_valign(Gtk.Align.START)
         self.add(icon_widget)
 
         # Right: vertical content (header row + body)
@@ -526,7 +532,12 @@ class DateNotificationMenu(Box):
             spacing=6,
             visible=expanded,
             children=(
-                get_icon(notifications[0].app_icon),
+                Image(
+                    pixbuf=IconResolver().resolve_icon(
+                        None, notifications[0].app_icon, notifications[0].app_name, 25
+                    ),
+                    size=25,
+                ),
                 Label(
                     label=app_name,
                     h_expand=True,

@@ -9,7 +9,6 @@ from typing import Literal
 
 import psutil
 from fabric.utils import Gdk, GdkPixbuf, GLib, Gtk, bulk_connect, cairo
-from fabric.widgets.image import Image
 from fabric.widgets.label import Label
 from fabric.widgets.scale import ScaleMark
 from fabric.widgets.widget import Widget
@@ -222,41 +221,6 @@ def resolve_icon_pixbuf(
         pixbuf = IconResolver().get_icon_pixbuf("image-missing", size)
 
     return _scale_pixbuf_to_size(pixbuf, size) if pixbuf else None
-
-
-# Function to get the system stats using
-def get_icon(app_icon, size=25) -> Image:
-    icon_size = size - 5
-    try:
-        match app_icon:
-            case str(x) if "file://" in x:
-                return Image(
-                    name="app-icon",
-                    pixbuf=GdkPixbuf.Pixbuf.new_from_file_at_size(
-                        app_icon[7:], size, size
-                    ),
-                    size=size,
-                )
-            case str(x) if len(x) > 0 and x[0] == "/":
-                return Image(
-                    name="app-icon",
-                    pixbuf=GdkPixbuf.Pixbuf.new_from_file_at_size(app_icon, size, size),
-                    size=size,
-                )
-            case _:
-                return Image(
-                    name="app-icon",
-                    icon_name=app_icon
-                    if app_icon
-                    else symbolic_icons["fallback"]["notification"],
-                    icon_size=icon_size,
-                )
-    except GLib.GError:
-        return Image(
-            name="app-icon",
-            icon_name=symbolic_icons["fallback"]["notification"],
-            icon_size=icon_size,
-        )
 
 
 # Function to resolve a notification image to a pixbuf, safely

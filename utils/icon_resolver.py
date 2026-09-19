@@ -53,6 +53,8 @@ class IconResolver:
         return new_icon
 
     def resolve_icon(self, pixmap, icon_name: str, app_id: str, icon_size: int = 16):
+        if pixmap is None:
+            return self.get_icon_pixbuf(app_id, icon_size)
         try:
             return (
                 pixmap.as_pixbuf(icon_size, GdkPixbuf.InterpType.HYPER)

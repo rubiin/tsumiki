@@ -18,6 +18,7 @@ from fabric.widgets.box import Box
 from fabric.widgets.button import Button
 from fabric.widgets.eventbox import EventBox
 from fabric.widgets.grid import Grid
+from fabric.widgets.image import Image
 from fabric.widgets.label import Label
 from fabric.widgets.revealer import Revealer
 from fabric.widgets.widget import Widget
@@ -29,9 +30,10 @@ from shared.buttons import HoverButton
 from shared.circle_image import CircularImage
 from shared.widget_container import BaseWindow
 from utils.colors import Colors
+from utils.icon_resolver import IconResolver
 from utils.icons import get_text_icon
 from utils.widget_settings import BarConfig
-from utils.widget_utils import get_icon, get_notification_image_pixbuf, nerd_font_icon
+from utils.widget_utils import get_notification_image_pixbuf, nerd_font_icon
 
 # Swipe threshold for dismissing notifications (normalized: 0.0 to 1.0)
 _SWIPE_DISMISS_THRESHOLD = 0.35
@@ -281,7 +283,12 @@ class NotificationWidget(EventBox):
         )
 
         header_container.children = (
-            get_icon(notification.app_icon),
+            Image(
+                pixbuf=IconResolver().resolve_icon(
+                    None, notification.app_icon, notification.app_name, 25
+                ),
+                size=25,
+            ),
             Label(
                 markup=helpers.parse_markup(
                     self._notification.summary
