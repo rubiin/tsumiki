@@ -25,14 +25,14 @@ class AudioSlider(SettingSlider):
 
         # Initialize with default values first
         super().__init__(
-            icon_name=get_text_icon("volume.high"),
+            icon_name=get_text_icon("volume.high", "󰕾"),
             start_value=0,
             pixel_size=20,
         )
 
         if show_chevron:
             self.chevron_icon = nerd_font_icon(
-                icon=get_text_icon("chevron.right"),
+                icon=get_text_icon("chevron.right", ""),
                 props={"style_classes": ["chevron-icon"]},
             )
 
@@ -113,9 +113,9 @@ class AudioSlider(SettingSlider):
             is_visible = parent.audio_submenu.toggle_reveal()
 
             self.chevron_icon.set_label(
-                get_text_icon("chevron.down")
+                get_text_icon("chevron.down", "")
                 if is_visible
-                else get_text_icon("chevron.right")
+                else get_text_icon("chevron.right", "")
             )
 
     def on_mute_click(self, *_):

@@ -45,7 +45,7 @@ class AudioSubMenu(QuickSubMenu):
         # Initialize parent with our components
         super().__init__(
             title=_("widget.quick_settings.audio.title"),
-            title_icon=get_text_icon("volume.high"),
+            title_icon=get_text_icon("volume.high", "󰕾"),
             scan_button=self.scan_button,
             child=Box(orientation="v", children=[self.child]),
             h_expand=True,

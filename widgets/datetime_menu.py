@@ -95,7 +95,7 @@ class DateMenuNotification(Box):
             v_align="center",
             style_classes="close-button",
             child=nerd_font_icon(
-                icon=get_text_icon("ui.window_close"),
+                icon=get_text_icon("ui.window_close", ""),
                 props={"style_classes": ["panel-font-icon", "close-icon"]},
             ),
             on_clicked=on_close or self.remove_notification,
@@ -217,7 +217,7 @@ class DateNotificationMenu(Box):
                 visible=len(self.all_notifications) == 0,
                 children=(
                     nerd_font_icon(
-                        icon=get_text_icon("notifications.checked"),
+                        icon=get_text_icon("notifications.checked", "󱇥"),
                         props={
                             "style_classes": ["panel-font-icon", "placeholder-icon"],
                         },
@@ -247,9 +247,9 @@ class DateNotificationMenu(Box):
 
             self.clear_icon = nerd_font_icon(
                 name="clear-icon",
-                icon=get_text_icon("trash.empty")
+                icon=get_text_icon("trash.empty", "")
                 if len(self.all_notifications) == 0
-                else get_text_icon("trash.full"),
+                else get_text_icon("trash.full", ""),
                 props={"style_classes": ["panel-font-icon"]},
             )
 
@@ -339,7 +339,7 @@ class DateNotificationMenu(Box):
         self.loaded_count = 0
 
         notification_service.clear_all_notifications()
-        self.clear_icon.set_label(get_text_icon("trash.empty"))
+        self.clear_icon.set_label(get_text_icon("trash.empty", ""))
 
     def _notification_id(self, notification: Notification) -> int | None:
         """Get notification ID for both serialized and deserialized objects."""
@@ -450,9 +450,9 @@ class DateNotificationMenu(Box):
         self.placeholder.set_visible(not has_notifications)
         self.notifications_listbox.set_visible(has_notifications)
         self.clear_icon.set_label(
-            get_text_icon("trash.full")
+            get_text_icon("trash.full", "")
             if has_notifications
-            else get_text_icon("trash.empty")
+            else get_text_icon("trash.empty", "")
         )
 
     def _bake_group_deck(
@@ -500,7 +500,7 @@ class DateNotificationMenu(Box):
             name="notification-group-collapse-button",
             v_align="center",
             child=nerd_font_icon(
-                icon=get_text_icon("ui.fold"),
+                icon=get_text_icon("ui.fold", ""),
                 props={"style_classes": ["panel-font-icon"]},
             ),
             on_clicked=_toggle_group,
@@ -511,7 +511,7 @@ class DateNotificationMenu(Box):
             v_align="center",
             style_classes="close-button",
             child=nerd_font_icon(
-                icon=get_text_icon("ui.window_close"),
+                icon=get_text_icon("ui.window_close", ""),
                 props={"style_classes": ["panel-font-icon", "close-icon"]},
             ),
             on_clicked=_close_group,
@@ -682,7 +682,7 @@ class DateNotificationMenu(Box):
         self.grouped_entries.clear()
         self._app_expand_state.clear()
         self.loaded_count = 0
-        self.clear_icon.set_label(get_text_icon("trash.empty"))
+        self.clear_icon.set_label(get_text_icon("trash.empty", ""))
         self.placeholder.set_visible(True)
         self.notifications_listbox.set_visible(False)
         self.notifications_listbox.remove_all()
@@ -753,7 +753,7 @@ class DateTimeWidget(ButtonWidget, PopoverMixin):
 
         if notification_config.get("enabled", True):
             self.notification_indicator = nerd_font_icon(
-                icon=get_text_icon("notifications.noisy"),
+                icon=get_text_icon("notifications.noisy", "󰂜"),
                 name="notification-indicator",
                 props={
                     "style_classes": ["panel-font-icon"],
@@ -821,10 +821,10 @@ class DateTimeWidget(ButtonWidget, PopoverMixin):
     def on_dnd_switch(self, _, value, *args):
         if value:
             self.notification_indicator.set_label(
-                get_text_icon("notifications.silent"),
+                get_text_icon("notifications.silent", "󰪑"),
             )
 
         else:
             self.notification_indicator.set_label(
-                get_text_icon("notifications.noisy"),
+                get_text_icon("notifications.noisy", "󰂜"),
             )

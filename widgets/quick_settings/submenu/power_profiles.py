@@ -88,7 +88,7 @@ class PowerProfileSubMenu(QuickSubMenu):
 
         super().__init__(
             title=_("widget.quick_settings.power_profiles.title"),
-            title_icon=get_text_icon("powerprofiles.power-saver"),
+            title_icon=get_text_icon("powerprofiles.power-saver", "󰌪"),
             scan_button=self.scan_button,
             child=self.profile_box,
             **kwargs,
@@ -142,7 +142,7 @@ class PowerProfileToggle(QSChevronButton):
         **kwargs,
     ):
         super().__init__(
-            action_icon=get_text_icon("powerprofiles.power-saver"),
+            action_icon=get_text_icon("powerprofiles.power-saver", "󰌪"),
             action_label=_("widget.quick_settings.power_profiles.saver"),
             submenu_factory=submenu_factory,
             **kwargs,

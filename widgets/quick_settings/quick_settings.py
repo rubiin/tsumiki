@@ -38,10 +38,10 @@ from .togglers import (
     NotificationQuickSetting,
 )
 
-_WIFI_GENERIC_ICON = get_text_icon("wifi.generic")
-_ETHERNET_ICON = get_text_icon("ethernet")
-_BRIGHTNESS_MEDIUM_ICON = get_text_icon("brightness.medium")
-_HOURGLASS_ICON = get_text_icon("hourglass")
+_WIFI_GENERIC_ICON = get_text_icon("wifi.generic", "󰤬")
+_ETHERNET_ICON = get_text_icon("ethernet", "󰈀")
+_BRIGHTNESS_MEDIUM_ICON = get_text_icon("brightness.medium", "󰃟")
+_HOURGLASS_ICON = get_text_icon("hourglass", "")
 
 _DEFAULT_TOGGLES = [
     "wifi",
@@ -478,7 +478,7 @@ class QuickSettingsButtonWidget(ButtonWidget, PopoverMixin):
         self.popup = None
 
         self.audio_icon = nerd_font_icon(
-            icon=get_text_icon("volume.medium"),
+            icon=get_text_icon("volume.medium", "󰖀"),
             props={"style_classes": ["panel-font-icon"]},
         )
 

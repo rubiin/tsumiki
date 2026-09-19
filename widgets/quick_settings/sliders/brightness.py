@@ -15,7 +15,7 @@ class BrightnessSlider(SettingSlider):
         self.client = BrightnessService()
         super().__init__(
             pixel_size=20,
-            icon_name=get_text_icon("brightness.medium"),
+            icon_name=get_text_icon("brightness.medium", "󰃟"),
             start_value=self.client.screen_brightness_percentage,
         )
 

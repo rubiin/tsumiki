@@ -461,7 +461,7 @@ class NotificationWidget(EventBox):
             self.expand_button.get_child().set_label(get_text_icon("chevron.up", ""))
         else:
             self.body_label.set_lines(collapsed_lines)
-            self.expand_button.get_child().set_label(get_text_icon("chevron.down"))
+            self.expand_button.get_child().set_label(get_text_icon("chevron.down", ""))
 
     def on_close_button_clicked(self, *_):
         self._notification.close("dismissed-by-user")

@@ -53,8 +53,8 @@ class HyprIdleQuickSetting(QuickSettingToggler):
     def __init__(self, popup, **kwargs):
         super().__init__(
             command="hypridle",
-            enabled_icon=get_text_icon("idle.enabled"),
-            disabled_icon=get_text_icon("idle.disabled"),
+            enabled_icon=get_text_icon("idle.enabled", ""),
+            disabled_icon=get_text_icon("idle.disabled", ""),
             name="quicksettings-togglebutton",
             **kwargs,
         )
@@ -76,7 +76,7 @@ class NotificationQuickSetting(HoverButton):
         self.popup = popup
 
         self.row = _toggle_row(
-            get_text_icon("notifications.noisy"),
+            get_text_icon("notifications.noisy", "󰂜"),
             _("widget.quick_settings.notifications.noisy"),
         )
 
@@ -112,13 +112,13 @@ class NotificationQuickSetting(HoverButton):
             self.notification_label.set_label(
                 _("widget.quick_settings.notifications.quiet")
             )
-            self.notification_icon.set_label(get_text_icon("notifications.silent"))
+            self.notification_icon.set_label(get_text_icon("notifications.silent", "󰪑"))
 
         else:
             self.notification_label.set_label(
                 _("widget.quick_settings.notifications.noisy")
             )
-            self.notification_icon.set_label(get_text_icon("notifications.noisy"))
+            self.notification_icon.set_label(get_text_icon("notifications.noisy", "󰂜"))
 
 
 def _wifi_device():
@@ -152,7 +152,10 @@ class FlightModeToggle(HoverButton):
 
         self.popup = popup
 
-        self.row = _toggle_row(get_text_icon("flight.disabled"), _("common.disabled"))
+        self.row = _toggle_row(
+            get_text_icon("flight.disabled", "󰗔"),
+            _("common.disabled"),
+        )
 
         self.flight_icon = self.row.icon
         self.flight_label = self.row.label
@@ -211,7 +214,7 @@ class DarkModeToggle(HoverButton):
         self.popup = popup
 
         self.row = _toggle_row(
-            get_text_icon("color.dark"), _("widget.quick_settings.dark_mode.dark")
+            get_text_icon("color.dark", "󰖔"), _("widget.quick_settings.dark_mode.dark")
         )
 
         self.mode_icon = self.row.icon

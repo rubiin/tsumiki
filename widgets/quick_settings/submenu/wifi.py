@@ -57,7 +57,7 @@ class WifiSubMenu(QuickSubMenu):
 
         super().__init__(
             title=_("widget.quick_settings.network.title"),
-            title_icon=get_text_icon("wifi.generic"),
+            title_icon=get_text_icon("wifi.generic", "󰤬"),
             scan_button=self.scan_button,
             child=self.child,
             **kwargs,
@@ -199,7 +199,7 @@ class WifiSubMenu(QuickSubMenu):
         ssid = ap.get("ssid")
         icon_name = ap.get("icon-name")
         is_secured = ap.get("secured")
-        security_label = get_text_icon("ui.lock") if is_secured else ""
+        security_label = get_text_icon("ui.lock", "") if is_secured else ""
 
         ap_container = CenterBox(
             orientation="h",
@@ -210,7 +210,7 @@ class WifiSubMenu(QuickSubMenu):
         ap_row = QuickSettingsIconLabelRow(
             icon=network_icon_to_text_icons.get(
                 icon_name,
-                get_text_icon("wifi.generic"),
+                get_text_icon("wifi.generic", "󰤬"),
             ),
             label=ssid,
             icon_size=16,
@@ -281,7 +281,7 @@ class WifiToggle(QSChevronButton):
         **kwargs,
     ):
         super().__init__(
-            action_icon=get_text_icon("wifi.generic"),
+            action_icon=get_text_icon("wifi.generic", "󰤬"),
             action_label=_("widget.quick_settings.wifi.disabled"),
             submenu_factory=submenu_factory,
             **kwargs,
@@ -315,7 +315,7 @@ class WifiToggle(QSChevronButton):
                     GObject.BindingFlags.DEFAULT,
                     lambda _, x: network_icon_to_text_icons.get(
                         x,
-                        get_text_icon("wifi.generic"),
+                        get_text_icon("wifi.generic", "󰤬"),
                     ),
                 )
                 wifi.bind_property("ssid", self.action_label, "label")
@@ -323,7 +323,7 @@ class WifiToggle(QSChevronButton):
             self.action_icon.set_label(
                 network_icon_to_text_icons.get(
                     wifi.get_property("icon-name"),
-                    get_text_icon("wifi.generic"),
+                    get_text_icon("wifi.generic", "󰤬"),
                 ),
             )
 
@@ -342,6 +342,6 @@ class WifiToggle(QSChevronButton):
         self.action_icon.set_label(
             network_icon_to_text_icons.get(
                 wifi.get_property("icon-name"),
-                get_text_icon("wifi.generic"),
+                get_text_icon("wifi.generic", "󰤬"),
             ),
         )

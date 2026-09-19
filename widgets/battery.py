@@ -56,7 +56,7 @@ class BatteryWidget(ButtonWidget):
         ]
 
         self.battery_icon = nerd_font_icon(
-            icon=get_text_icon("battery.charging"),
+            icon=get_text_icon("battery.charging", "󰠠"),
             props={"style_classes": ["panel-font-icon", "battery-icon"]},
         )
         self.container_box.add(self.battery_icon)
@@ -87,7 +87,7 @@ class BatteryWidget(ButtonWidget):
         if not is_present:
             if self.config.get("hide_when_missing", True):
                 self.set_visible(False)
-            icon = get_text_icon("battery.low")
+            icon = get_text_icon("battery.low", "󰂎")
             self.set_tooltip_text(f"{icon} {_('widget.battery.no_battery')}")
             if self.config.get("label", True):
                 self.battery_icon.set_text("N/A")

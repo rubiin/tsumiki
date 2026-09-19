@@ -177,7 +177,7 @@ class SystemTrayWidget(ButtonWidget, PopoverMixin, BaseSystemTray):
         self.hidden_list = self.config.get("hidden", [])
 
         self.chevron_icon = nerd_font_icon(
-            icon=get_text_icon("chevron.down"),
+            icon=get_text_icon("chevron.down", ""),
             props={
                 "style_classes": ["panel-font-icon", "chevron-icon"],
             },
@@ -221,7 +221,7 @@ class SystemTrayWidget(ButtonWidget, PopoverMixin, BaseSystemTray):
 
     def _on_popover_closed(self, *_):
         self.remove_style_class("active")
-        self.chevron_icon.set_label(get_text_icon("chevron.down"))
+        self.chevron_icon.set_label(get_text_icon("chevron.down", ""))
 
     # show or hide the popup menu
     def on_click(self, *_):
@@ -231,10 +231,10 @@ class SystemTrayWidget(ButtonWidget, PopoverMixin, BaseSystemTray):
 
         if visible:
             self.hide_popover()
-            self.chevron_icon.set_label(get_text_icon("chevron.down"))
+            self.chevron_icon.set_label(get_text_icon("chevron.down", ""))
         else:
             self.show_popover()
-            self.chevron_icon.set_label(get_text_icon("chevron.up"))
+            self.chevron_icon.set_label(get_text_icon("chevron.up", ""))
 
     def update_visibility(self):
         """Update widget visibility based on configuration and item count."""

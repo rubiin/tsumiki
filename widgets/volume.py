@@ -74,7 +74,7 @@ class VolumeWidget(ScrollableProgressWidget):
         if current_stream:
             current_stream.muted = not current_stream.muted
             self.icon.set_text(
-                get_text_icon("volume.muted")
+                get_text_icon("volume.muted", "󰝟")
             ) if current_stream.muted else self.update_volume()
 
     def update_volume(self, *_):

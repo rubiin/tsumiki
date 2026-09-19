@@ -155,11 +155,11 @@ def get_text_icon(name: str, fallback: str = "") -> str:
 
 
 network_icon_to_text_icons = {
-    "network-wireless-signal-excellent-symbolic": get_text_icon("wifi.strength_4"),
-    "network-wireless-signal-good-symbolic": get_text_icon("wifi.strength_3"),
-    "network-wireless-signal-ok-symbolic": get_text_icon("wifi.strength_2"),
-    "network-wireless-signal-weak-symbolic": get_text_icon("wifi.strength_1"),
-    "network-wireless-signal-none-symbolic": get_text_icon("wifi.strength_0"),
+    "network-wireless-signal-excellent-symbolic": get_text_icon("wifi.strength_4", "󰤨"),
+    "network-wireless-signal-good-symbolic": get_text_icon("wifi.strength_3", "󰤥"),
+    "network-wireless-signal-ok-symbolic": get_text_icon("wifi.strength_2", "󰤢"),
+    "network-wireless-signal-weak-symbolic": get_text_icon("wifi.strength_1", "󰤟"),
+    "network-wireless-signal-none-symbolic": get_text_icon("wifi.strength_0", "󰤯"),
 }
 
 

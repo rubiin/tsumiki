@@ -564,7 +564,7 @@ class BreatheWidget(ButtonWidget):
             label=_("widget.breathing.label"), style_classes="breathe-label"
         )
         self.icon = nerd_font_icon(
-            icon=get_text_icon("notifications.noisy"),
+            icon=get_text_icon("notifications.noisy", "󰂜"),
             props={
                 "style_classes": ["panel-font-icon"],
             },

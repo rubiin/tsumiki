@@ -18,14 +18,14 @@ class MicrophoneSlider(SettingSlider):
         self.pixel_size = 16
 
         super().__init__(
-            icon_name=get_text_icon("microphone.medium"),
+            icon_name=get_text_icon("microphone.medium", "󰖂"),
             start_value=0,
             pixel_size=self.pixel_size,
         )
 
         if show_chevron:
             self.chevron_icon = nerd_font_icon(
-                icon=get_text_icon("chevron.right"),
+                icon=get_text_icon("chevron.right", ""),
                 props={"style_classes": ["chevron-icon"]},
             )
             self.chevron_btn = HoverButton(
@@ -88,7 +88,7 @@ class MicrophoneSlider(SettingSlider):
     def _get_icon_name(self):
         """Get the appropriate icon name based on mute state."""
         if not self.audio_stream:
-            return get_text_icon("microphone.high")
+            return get_text_icon("microphone.high", "")
         return get_text_icon(
             f"microphone.{'muted' if self.audio_stream.muted else 'high'}"
         )
@@ -102,9 +102,9 @@ class MicrophoneSlider(SettingSlider):
             is_visible = parent.mic_submenu.toggle_reveal()
 
             self.chevron_icon.set_label(
-                get_text_icon("chevron.down")
+                get_text_icon("chevron.down", "")
                 if is_visible
-                else get_text_icon("chevron.right")
+                else get_text_icon("chevron.right", "")
             )
 
     def on_mute_click(self, *_):

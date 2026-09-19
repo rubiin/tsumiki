@@ -11,8 +11,8 @@ class MicrophoneIndicatorWidget(ButtonWidget):
     def __init__(self, **kwargs):
         super().__init__(name="microphone", **kwargs)
 
-        self.mic_on_icon = get_text_icon("microphone.high")
-        self.mic_off_icon = get_text_icon("microphone.muted")
+        self.mic_on_icon = get_text_icon("microphone.high", "")
+        self.mic_off_icon = get_text_icon("microphone.muted", "")
 
         self.icon = nerd_font_icon(
             icon=self.mic_off_icon,

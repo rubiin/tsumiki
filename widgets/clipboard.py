@@ -138,13 +138,13 @@ class ClipHistoryMenu(Box, TeardownMixin):
                 self.search_entry,
                 Button(
                     name="sync-button",
-                    label=get_text_icon("ui.refresh"),
+                    label=get_text_icon("ui.refresh", ""),
                     tooltip_text=_("widget.clipboard.sync"),
                     on_clicked=self._load_clipboard_items_async,
                 ),
                 Button(
                     name="clear-button",
-                    label=get_text_icon("trash.empty"),
+                    label=get_text_icon("trash.empty", ""),
                     tooltip_text=_("widget.clipboard.clear"),
                     on_clicked=self.clear_history,
                 ),

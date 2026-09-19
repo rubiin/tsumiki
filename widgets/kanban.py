@@ -41,14 +41,17 @@ class InlineEditor(Box):
 
         confirm_btn = Button(
             name="kanban-btn",
-            child=Label(name="kanban-btn-label", markup=get_text_icon("ui.tick")),
+            child=Label(name="kanban-btn-label", markup=get_text_icon("ui.tick", "")),
             on_clicked=self.on_confirm,
             style_classes="flat",
         )
 
         cancel_btn = Button(
             name="kanban-btn",
-            child=Label(name="kanban-btn-neg", markup=get_text_icon("ui.window_close")),
+            child=Label(
+                name="kanban-btn-neg",
+                markup=get_text_icon("ui.window_close", ""),
+            ),
             style_classes="flat",
             on_clicked=self.on_cancel,
         )

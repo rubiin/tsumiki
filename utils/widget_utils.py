@@ -290,22 +290,22 @@ def get_bar_graph(usage: Number | str) -> str:
 def get_brightness_icon_name(level: int) -> dict[Literal["icon_text", "icon"], str]:
     if level <= 0:
         return {
-            "icon_text": get_text_icon("brightness.off"),
+            "icon_text": get_text_icon("brightness.off", "󰃞"),
             "icon": symbolic_icons["brightness"]["off"],
         }
 
     if level <= 32:
         return {
-            "icon_text": get_text_icon("brightness.low"),
+            "icon_text": get_text_icon("brightness.low", "󰃝"),
             "icon": symbolic_icons["brightness"]["low"],
         }
     if level <= 66:
         return {
-            "icon_text": get_text_icon("brightness.medium"),
+            "icon_text": get_text_icon("brightness.medium", "󰃟"),
             "icon": symbolic_icons["brightness"]["medium"],
         }
     return {
-        "icon_text": get_text_icon("brightness.high"),
+        "icon_text": get_text_icon("brightness.high", "󰃠"),
         "icon": symbolic_icons["brightness"]["high"],
     }
 
