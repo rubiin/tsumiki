@@ -40,12 +40,15 @@ class MprisPlayerSafetyTest(unittest.TestCase):
         raw = mock.Mock()
         raw.get_property.return_value = "definitely-not-a-real-player-zzz"
         player = MprisPlayer(raw)
+        player._player = None  # simulate exit without touching the bus
 
         self.assertEqual(player.metadata, {})
+        self.assertEqual(player.title, "")
+        self.assertEqual(player.artist, "")
 
-        # __init__ read the local player-name only; the metadata getter must
-        # not have triggered any further playerctl calls.
-        self.assertEqual(raw.get_property.call_count, 1)
+        # When _player is None, getters must not call back into the raw
+        # playerctl proxy at all.
+        self.assertEqual(raw.get_property.call_count, 0)
 
 
 if __name__ == "__main__":

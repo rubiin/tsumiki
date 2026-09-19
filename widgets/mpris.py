@@ -187,6 +187,11 @@ class MprisWidget(ButtonWidget, PopoverMixin):
             self.progress_fill.set_style(f"min-width: {fill_px}px;")
         else:
             self.progress_fill.set_style("")
+            # Widget not yet allocated -- retry on next idle so the bar
+            # appears as soon as the layout pass assigns a width.
+            # Reset the sentinel so the retry isn't short-circuited.
+            self._last_progress_pct = None
+            GLib.idle_add(self._update_progress)
 
     def _unbind_player_updates(self):
         if self.player is None:
@@ -244,6 +249,8 @@ class MprisWidget(ButtonWidget, PopoverMixin):
             self._update_art(art_url)
 
     def _download_artwork(self, art_url):
+        if self.exit:
+            return
         try:
             suffix = urllib.parse.urlparse(art_url).path.rsplit(".", 1)[-1] or ".png"
             response = get_http_client().get(art_url, timeout=5)

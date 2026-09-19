@@ -32,7 +32,7 @@ class ScrollableProgressWidget(EventBoxWidget):
         )
 
         self.icon = nerd_font_icon(
-            icon=get_text_icon(icon_name),
+            icon=get_text_icon(icon_name, ""),
             props={"style_classes": icon_style_classes},
         )
 

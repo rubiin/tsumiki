@@ -308,7 +308,7 @@ class NotificationWidget(EventBox):
             self.expand_button = Button(
                 style_classes="expand-button",
                 child=nerd_font_icon(
-                    icon=get_text_icon("chevron.down"),
+                    icon=get_text_icon("chevron.down", ""),
                     props={"style_classes": ["panel-font-icon", "expand-icon"]},
                 ),
                 on_clicked=lambda *_: self._toggle_expand(
@@ -322,7 +322,7 @@ class NotificationWidget(EventBox):
             style_classes="close-button",
             tooltip_text="Dismiss notification",
             child=nerd_font_icon(
-                icon=get_text_icon("ui.window_close"),
+                icon=get_text_icon("ui.window_close", ""   ),
                 props={"style_classes": ["panel-font-icon", "close-icon"]},
             ),
             on_clicked=self.on_close_button_clicked,
@@ -458,7 +458,7 @@ class NotificationWidget(EventBox):
         self._is_expanded = not self._is_expanded
         if self._is_expanded:
             self.body_label.set_lines(expanded_lines)
-            self.expand_button.get_child().set_label(get_text_icon("chevron.up"))
+            self.expand_button.get_child().set_label(get_text_icon("chevron.up", ""))
         else:
             self.body_label.set_lines(collapsed_lines)
             self.expand_button.get_child().set_label(get_text_icon("chevron.down"))

@@ -13,7 +13,7 @@ class BlueToothWidget(ButtonWidget):
     def __init__(self, **kwargs):
         super().__init__(name="bluetooth", **kwargs)
 
-        self.icons = get_text_icon("bluetooth")
+        self.icons = get_text_icon("bluetooth", "")
 
         self.bluetooth_icon = nerd_font_icon(
             icon=self.icons["enabled"],

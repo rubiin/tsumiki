@@ -15,7 +15,7 @@ class SettingSlider(Box, BaseWidget):
         min: float = 0,
         max: float = 100,
         start_value: float = 50,
-        icon_name: str = get_text_icon("fallback"),
+        icon_name: str = get_text_icon("fallback", ""),
         pixel_size: int = 18,
         **kwargs,
     ):

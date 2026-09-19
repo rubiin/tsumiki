@@ -1142,7 +1142,7 @@ def get_distro_icon() -> str:
     distro_id = GLib.get_os_info("ID")
 
     # Search for the icon in the list
-    return get_text_icon(f"distro.{distro_id}") or ""
+    return get_text_icon(f"distro.{distro_id}", "") or ""
 
 
 # Function to check if an executable exists

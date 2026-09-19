@@ -72,7 +72,7 @@ class QSToggleButton(Box, BaseWidget):
     def __init__(
         self,
         action_label: str = "My Label",
-        action_icon: str = get_text_icon("ui.package"),
+        action_icon: str = get_text_icon("ui.package", ""),
         pixel_size: int = 18,
         **kwargs,
     ):

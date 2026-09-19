@@ -143,15 +143,15 @@ text_nerd_icons = {
 }
 
 
-def get_path(d, path, sep="."):
+def get_path(d, path, sep=".", fallback=""):
     for key in path.split(sep):
         d = d.get(key, {})
-    return d or None
+    return d or fallback
 
 
-def get_text_icon(name: str) -> str:
+def get_text_icon(name: str, fallback: str = "") -> str:
 
-    return get_path(text_nerd_icons, name)
+    return get_path(text_nerd_icons, name, fallback=fallback)
 
 
 network_icon_to_text_icons = {
