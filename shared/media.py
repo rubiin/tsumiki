@@ -118,7 +118,9 @@ class PlayerBoxStack(Box):
             return
         self.set_visible(True)
         player_box = PlayerBox(
-            player=MprisPlayer(player), config=self.config, parent=self,
+            player=MprisPlayer(player),
+            config=self.config,
+            parent=self,
             player_name=player_name,
         )
         player_box.connect("destroy", lambda *_: self._sync_dots())
@@ -157,8 +159,12 @@ class PlayerBox(Box):
     """Glassmorphism player card: metadata, waveform, playback."""
 
     def __init__(
-        self, player: MprisPlayer, config: dict, parent=None,
-        player_name: str = "", **kwargs,
+        self,
+        player: MprisPlayer,
+        config: dict,
+        parent=None,
+        player_name: str = "",
+        **kwargs,
     ):
         super().__init__(
             name="player-box",
@@ -243,7 +249,7 @@ class PlayerBox(Box):
         self.player.bind_property("can_go_previous", self.prev_btn, "sensitive")
 
         next_icon = nerd_font_icon(
-            icon=get_text_icon("mpris.next",""),
+            icon=get_text_icon("mpris.next", ""),
             props={"style_classes": ["player-icon-sm"]},
         )
         self.next_btn = HoverButton(
@@ -482,14 +488,10 @@ class PlayerBox(Box):
     def on_playback_change(self, player, _status):
         status = player.get_property("playback-status")
         if status == "paused":
-            self.play_pause_icon.set_label(
-                get_text_icon("mpris.playing", "")
-            )
+            self.play_pause_icon.set_label(get_text_icon("mpris.playing", ""))
             self.progress_bar.set_active(False)
         elif status == "playing":
-            self.play_pause_icon.set_label(
-                get_text_icon("mpris.paused", "")
-            )
+            self.play_pause_icon.set_label(get_text_icon("mpris.paused", ""))
             self.progress_bar.set_active(True)
 
     def _move_seekbar(self, *_):

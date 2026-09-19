@@ -322,7 +322,7 @@ class NotificationWidget(EventBox):
             style_classes="close-button",
             tooltip_text="Dismiss notification",
             child=nerd_font_icon(
-                icon=get_text_icon("ui.window_close", ""   ),
+                icon=get_text_icon("ui.window_close", ""),
                 props={"style_classes": ["panel-font-icon", "close-icon"]},
             ),
             on_clicked=self.on_close_button_clicked,
