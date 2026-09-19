@@ -780,6 +780,11 @@
                   "default": true,
                   "description": "Determines whether to show the artist information."
                 },
+                "show_player_icon": {
+                  "type": "boolean",
+                  "default": true,
+                  "description": "Determines whether to show the media player's application icon next to the track title."
+                },
                 "show_time": {
                   "type": "boolean",
                   "default": true,
@@ -797,6 +802,7 @@
                 "truncation_size",
                 "show_album",
                 "show_artist",
+                "show_player_icon",
                 "show_time",
                 "show_time_tooltip"
               ]

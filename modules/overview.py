@@ -13,8 +13,9 @@ from shared.popup import PopupWindow
 from utils.app import AppUtils
 from utils.functions import safe_disconnect
 from utils.hyprland import HyprlandClient, hyprland_service
+from utils.icon_resolver import resolve_icon_pixbuf
 from utils.widget_settings import BarConfig
-from utils.widget_utils import create_surface_from_widget, resolve_icon_pixbuf
+from utils.widget_utils import create_surface_from_widget
 
 SCALE = 0.14
 TARGET = [Gtk.TargetEntry.new("text/plain", Gtk.TargetFlags.SAME_APP, 0)]

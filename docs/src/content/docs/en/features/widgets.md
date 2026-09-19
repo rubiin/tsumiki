@@ -616,6 +616,7 @@ ignore = []
 truncation_size = 30
 show_album = true
 show_artist = true
+show_player_icon = true
 show_time = true
 show_time_tooltip = true
 

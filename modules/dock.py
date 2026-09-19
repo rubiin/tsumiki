@@ -20,8 +20,8 @@ from utils.functions import (
     write_json_file,
 )
 from utils.hyprland import HyprlandClient, hyprland_service
+from utils.icon_resolver import resolve_icon_pixbuf
 from utils.widget_settings import BarConfig
-from utils.widget_utils import resolve_icon_pixbuf
 
 # DnD target for dock app reordering
 DOCK_DND_TARGET = [Gtk.TargetEntry.new("dock-app", Gtk.TargetFlags.SAME_APP, 0)]

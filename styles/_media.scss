@@ -104,6 +104,13 @@
     #player-meta-col {
       min-width: 0;
 
+      #player-title-row {
+        #player-icon {
+          min-width: 20px;
+          min-height: 20px;
+        }
+      }
+
       #player-title {
         font-weight: 600;
         font-size: variable.$font-size-lg;

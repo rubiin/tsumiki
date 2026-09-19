@@ -13,10 +13,9 @@ from fabric.widgets.label import Label
 from fabric.widgets.scale import ScaleMark
 from fabric.widgets.widget import Widget
 
-from utils.functions import ttl_lru_cache
-
 from .config import tsumiki_config
 from .constants import NOTIFICATION_IMAGE_SIZE
+from .icon_resolver import _scale_pixbuf_to_size
 from .icons import get_text_icon, symbolic_icons
 
 storage_config = tsumiki_config.get("widgets", {}).get("storage", {})
@@ -169,58 +168,6 @@ def setup_cursor_hover(
             "leave-notify-event": lambda *_: on_leave_notify_event(cursor, widget),
         },
     )
-
-
-def _scale_pixbuf_to_size(
-    pixbuf: GdkPixbuf.Pixbuf, size: int
-) -> GdkPixbuf.Pixbuf | None:
-    """Scale ``pixbuf`` to a square ``size`` x ``size`` if not already."""
-    if pixbuf.get_width() == size and pixbuf.get_height() == size:
-        return pixbuf
-    return pixbuf.scale_simple(size, size, GdkPixbuf.InterpType.BILINEAR)
-
-
-@ttl_lru_cache(seconds_to_live=3600, maxsize=256)
-def resolve_icon_pixbuf(
-    app_id: str,
-    size: int,
-    desktop_app=None,
-) -> GdkPixbuf.Pixbuf | None:
-    """Resolve an application icon pixbuf.
-
-    Strategy (matching the overview module's proven approach):
-      1. If *desktop_app* is given, try its ``get_icon_pixbuf`` directly.
-      2. Otherwise look up the app via ``AppUtils.find_app`` (XDG desktop
-         app database — most reliable for Hyprland window classes).
-      3. Fall back to ``IconResolver`` (GTK icon theme lookup).
-      4. Final fallback: ``image-missing``.
-    """
-    from .app import AppUtils
-    from .icon_resolver import IconResolver
-
-    pixbuf = None
-
-    # Try DesktopApp first
-    if desktop_app is None:
-        with contextlib.suppress(Exception):
-            desktop_app = AppUtils().find_app(app_id)
-    if desktop_app:
-        try:
-            pixbuf = desktop_app.get_icon_pixbuf(size=size)
-        except Exception:
-            pixbuf = None
-
-    # Fall back to IconResolver
-    if not pixbuf:
-        pixbuf = IconResolver().get_icon_pixbuf(app_id, size)
-    if not pixbuf:
-        pixbuf = IconResolver().get_icon_pixbuf(
-            "application-x-executable-symbolic", size
-        )
-    if not pixbuf:
-        pixbuf = IconResolver().get_icon_pixbuf("image-missing", size)
-
-    return _scale_pixbuf_to_size(pixbuf, size) if pixbuf else None
 
 
 # Function to resolve a notification image to a pixbuf, safely

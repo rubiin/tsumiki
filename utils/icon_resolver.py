@@ -1,3 +1,5 @@
+import contextlib
+
 from fabric.utils import GdkPixbuf, GLib, Gtk, logger, os, re
 
 from utils.functions import read_json_file, ttl_lru_cache, write_json_file
@@ -162,3 +164,54 @@ class IconResolver:
             if desktop_file
             else symbolic_icons["fallback"]["executable"]
         )
+
+
+def _scale_pixbuf_to_size(
+    pixbuf: GdkPixbuf.Pixbuf, size: int
+) -> GdkPixbuf.Pixbuf | None:
+    """Scale ``pixbuf`` to a square ``size`` x ``size`` if not already."""
+    if pixbuf.get_width() == size and pixbuf.get_height() == size:
+        return pixbuf
+    return pixbuf.scale_simple(size, size, GdkPixbuf.InterpType.BILINEAR)
+
+
+@ttl_lru_cache(seconds_to_live=3600, maxsize=256)
+def resolve_icon_pixbuf(
+    app_id: str,
+    size: int,
+    desktop_app=None,
+) -> GdkPixbuf.Pixbuf | None:
+    """Resolve an application icon pixbuf.
+
+    Strategy (matching the overview module's proven approach):
+      1. If *desktop_app* is given, try its ``get_icon_pixbuf`` directly.
+      2. Otherwise look up the app via ``AppUtils.find_app`` (XDG desktop
+         app database — most reliable for Hyprland window classes).
+      3. Fall back to ``IconResolver`` (GTK icon theme lookup).
+      4. Final fallback: ``image-missing``.
+    """
+    from .app import AppUtils
+
+    pixbuf = None
+
+    # Try DesktopApp first
+    if desktop_app is None:
+        with contextlib.suppress(Exception):
+            desktop_app = AppUtils().find_app(app_id)
+    if desktop_app:
+        try:
+            pixbuf = desktop_app.get_icon_pixbuf(size=size)
+        except Exception:
+            pixbuf = None
+
+    # Fall back to the resolver's theme lookup
+    if not pixbuf:
+        pixbuf = IconResolver().get_icon_pixbuf(app_id, size)
+    if not pixbuf:
+        pixbuf = IconResolver().get_icon_pixbuf(
+            "application-x-executable-symbolic", size
+        )
+    if not pixbuf:
+        pixbuf = IconResolver().get_icon_pixbuf("image-missing", size)
+
+    return _scale_pixbuf_to_size(pixbuf, size) if pixbuf else None

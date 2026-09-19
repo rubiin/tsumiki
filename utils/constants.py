@@ -121,6 +121,7 @@ DEFAULT_CONFIG = {
                 "truncation_size": 30,
                 "show_album": True,
                 "show_artist": True,
+                "show_player_icon": True,
                 "show_time": True,
                 "show_time_tooltip": True,
             },

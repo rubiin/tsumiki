@@ -704,6 +704,7 @@ Media = TypedDict(
         "truncation_size": int,
         "show_album": bool,
         "show_artist": bool,
+        "show_player_icon": bool,
         "show_time": bool,
         "show_time_tooltip": bool,
     },

@@ -5,7 +5,7 @@ from fabric.widgets.image import Image
 from shared.widget_container import BoxWidget
 from utils.functions import normalize_address, parse_hyprland_reply
 from utils.hyprland import HyprlandClient, hyprland_service
-from utils.widget_utils import resolve_icon_pixbuf
+from utils.icon_resolver import resolve_icon_pixbuf
 
 SYNC_DEBOUNCE_MS = 60
 

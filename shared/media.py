@@ -3,6 +3,7 @@ import urllib.parse
 
 from fabric.utils import GLib, GObject, bulk_connect, idle_add, logger, os
 from fabric.widgets.box import Box
+from fabric.widgets.image import Image
 from fabric.widgets.label import Label
 from fabric.widgets.stack import Stack
 
@@ -11,6 +12,7 @@ from shared.sinewave_slider import SineWaveSlider
 from utils.constants import APP_DATA_DIRECTORY, ASSETS_DIR, NEWLINE_RE
 from utils.functions import ensure_directory, get_http_client
 from utils.i18n import _
+from utils.icon_resolver import resolve_icon_pixbuf
 from utils.icons import get_text_icon
 from utils.widget_utils import nerd_font_icon
 
@@ -142,6 +144,16 @@ class PlayerBox(Box):
             ellipsization="end",
             h_align="start",
         )
+        self.player_icon = Image(
+            name="player-icon",
+            pixbuf=resolve_icon_pixbuf(player.player_name, 20),
+            visible=self.config.get("show_player_icon", True),
+        )
+        self.title_row = Box(
+            name="player-title-row",
+            spacing=6,
+            children=[self.player_icon, self.title_label],
+        )
         self.artist_label = Label(
             name="player-artist",
             label=_("widget.mpris.no_artist"),
@@ -230,7 +242,7 @@ class PlayerBox(Box):
             v_align="center",
             h_expand=True,
             children=[
-                self.title_label,
+                self.title_row,
                 self.artist_label,
                 self.time_label,
             ],
