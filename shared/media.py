@@ -34,6 +34,12 @@ def _format_time_combined(position_us: int, length_us: int) -> str:
 # is needed for readability.
 _LIGHT_ART_LUMINANCE_THRESHOLD = 0.5
 
+# Subtle dark scrim layered under the artwork so light text stays readable
+# on dark/mid-tone covers. Skipped on light art where dark text is used.
+_ART_SCRIM_GRADIENT = (
+    "linear-gradient(to right, rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.1))"
+)
+
 
 def _average_luminance(pixbuf: GdkPixbuf.Pixbuf) -> float | None:
     """Average perceptual luminance of a pixbuf, normalized to 0..1."""
@@ -372,35 +378,37 @@ class PlayerBox(Box):
         idle_add(self._update_art, local_arturl)
 
     def _update_art(self, image_path):
-        url = (
-            f"url('{image_path}')"
-            if image_path and os.path.isfile(image_path)
-            else f"url('{self.fallback_cover_path}')"
-        )
-        self.set_style(f"background-image: {url};")
-        self._update_art_contrast(image_path)
+        has_art = bool(image_path) and os.path.isfile(image_path)
+        art_path = image_path if has_art else self.fallback_cover_path
+        light_art = self._classify_art(art_path)
+        # Dark scrim under light text on dark/mid-tone art; skipped on light
+        # art where the dark text overrides need no darkening.
+        scrim = "" if light_art else f"{_ART_SCRIM_GRADIENT}, "
+        self.set_style(f"background-image: {scrim}url('{art_path}');")
+        for cls in ("on-light-art", "on-dark-art"):
+            self.remove_style_class(cls)
+        if light_art is not None:
+            self.add_style_class("on-light-art" if light_art else "on-dark-art")
 
-    def _update_art_contrast(self, image_path):
-        """Toggle text color overrides based on artwork brightness.
+    def _classify_art(self, image_path: str | None) -> bool | None:
+        """Classify artwork brightness: True light, False dark, None unknown.
 
         Text colors come from the theme (generated from the wallpaper), so
-        they can clash with light album art. Classify the artwork and let
-        SCSS pick readable text colors via ``on-light-art``/``on-dark-art``.
+        they can clash with the album art. The classification drives the
+        ``on-light-art``/``on-dark-art`` style classes that SCSS uses to
+        pick readable text colors.
         """
         if not image_path or not os.path.isfile(image_path):
-            return
+            return None
         try:
             pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(image_path, 16, 16)
             luminance = _average_luminance(pixbuf)
         except Exception:
             logger.debug(f"[Media] Failed to compute art luminance: {image_path}")
-            return
+            return None
         if luminance is None:
-            return
-        light_art = luminance > _LIGHT_ART_LUMINANCE_THRESHOLD
-        for cls in ("on-light-art", "on-dark-art"):
-            self.remove_style_class(cls)
-        self.add_style_class("on-light-art" if light_art else "on-dark-art")
+            return None
+        return luminance > _LIGHT_ART_LUMINANCE_THRESHOLD
 
     def update_dots(self, count: int, active_index: int):
         """Rebuild dot navigation for player switching."""

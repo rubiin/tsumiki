@@ -44,6 +44,7 @@ class IconResolver:
                 self._icon_dict = {}
 
     def get_icon_name(self, app_id: str):
+        """Return the cached icon name for app_id, resolving on miss."""
         self._ensure_cache_loaded()
         if app_id in self._icon_dict:
             return self._icon_dict[app_id]
@@ -55,6 +56,7 @@ class IconResolver:
         return new_icon
 
     def resolve_icon(self, pixmap, icon_name: str, app_id: str, icon_size: int = 16):
+        """Build a pixbuf from a tray pixmap, falling back to the theme."""
         if pixmap is None:
             return self.get_icon_pixbuf(app_id, icon_size)
         try:
@@ -74,6 +76,7 @@ class IconResolver:
 
     @ttl_lru_cache(seconds_to_live=3600, maxsize=256)
     def get_icon_pixbuf(self, app_id: str, size: int = 16):
+        """Load the app icon as a pixbuf, falling back to image-missing."""
         icon_name = self.get_icon_name(app_id)
         try:
             return Gtk.IconTheme.get_default().load_icon(
@@ -93,6 +96,7 @@ class IconResolver:
             )
 
     def _store_new_icon(self, app_id: str, icon: str):
+        """Record an icon in the cache and schedule a debounced write."""
         self._icon_dict[app_id] = icon
         self._cache_dirty = True
         self._schedule_cache_write()
@@ -119,6 +123,7 @@ class IconResolver:
         return False  # Don't repeat
 
     def _get_icon_from_desktop_file(self, desktop_file_path: str):
+        """Extract the Icon= value from a .desktop file."""
         with open(desktop_file_path, "r") as f:
             for line in f.readlines():
                 stripped = line.strip()
@@ -129,6 +134,7 @@ class IconResolver:
     _app_id_split_re = None
 
     def _get_desktop_file(self, app_id: str) -> str | None:
+        """Find the first .desktop file loosely matching app_id."""
         if self._app_id_split_re is None:
             self.__class__._app_id_split_re = re.compile(r"-|\.|_|\s")
 
@@ -154,6 +160,7 @@ class IconResolver:
         return None
 
     def _compositor_find_icon(self, app_id: str):
+        """Resolve an icon name via the theme, then desktop files."""
         if Gtk.IconTheme.get_default().has_icon(app_id):
             return app_id
         if Gtk.IconTheme.get_default().has_icon(app_id + "-desktop"):

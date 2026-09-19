@@ -135,6 +135,32 @@
     }
   }
 
+  // Artwork is dark: the Python-side scrim darkens it further, so keep text
+  // light even if the theme (matugen light mode) would use dark text.
+  &.on-dark-art {
+    #player-title {
+      color: rgba(255, 255, 255, 0.95);
+    }
+
+    #player-artist {
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    #player-time {
+      color: rgba(255, 255, 255, 0.65);
+    }
+
+    #player-controls-row {
+      #player-prev,
+      #player-next,
+      #player-shuffle {
+        .player-icon-sm {
+          color: rgba(255, 255, 255, 0.9);
+        }
+      }
+    }
+  }
+
   #player-main-row {
     #player-meta-col {
       min-width: 0;
