@@ -139,8 +139,7 @@ class QuickSettingsButtonBox(Box):
             if toggle is not None:
                 built_toggles.append(toggle)
 
-        # Toggles flow left-to-right, two per row; the last odd toggle spans
-        # the full row width so there's no dangling half-width card.
+        # Two per row; the last odd toggle spans the full row.
         for i, toggle in enumerate(built_toggles):
             if i == len(built_toggles) - 1 and len(built_toggles) % 2 == 1:
                 self.grid.attach(toggle, 0, i // 2, 2, 1)
@@ -403,17 +402,19 @@ class QuickSettingsMenu(Box):
         if self.config.get("media", {}).get("enabled", False):
             media_config = self.config.get("media", {})
 
-            box.end_children = (
-                LazyWidgetContainer(
-                    orientation="v",
-                    spacing=10,
-                    style_classes=["section-box", "quicksettings-media-section"],
-                    factory=lambda: lazy_load_class("shared.media", "PlayerBoxStack")(
-                        lazy_load_class("services.mpris", "MprisPlayerManager")(),
-                        config=media_config,
-                    ),
+            # The stack hides the whole section too, so no empty frame is left.
+            media_section = LazyWidgetContainer(
+                orientation="v",
+                spacing=10,
+                style_classes=["section-box", "quicksettings-media-section"],
+                factory=lambda: lazy_load_class("shared.media", "PlayerBoxStack")(
+                    lazy_load_class("services.mpris", "MprisPlayerManager")(),
+                    config=media_config,
+                    section=media_section,
                 ),
             )
+
+            box.end_children = (media_section,)
 
         self.add(box)
 

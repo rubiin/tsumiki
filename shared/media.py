@@ -30,12 +30,10 @@ def _format_time_combined(position_us: int, length_us: int) -> str:
     return f"{_format_seconds(position_us)} / {_format_seconds(length_us)}"
 
 
-# Luminance threshold above which artwork is considered light and dark text
-# is needed for readability.
+# Above this, artwork counts as "light" and needs dark text for readability.
 _LIGHT_ART_LUMINANCE_THRESHOLD = 0.5
 
-# Subtle dark scrim layered under the artwork so light text stays readable
-# on dark/mid-tone covers. Skipped on light art where dark text is used.
+# Dark scrim keeps light text readable on dark art; skipped on light art.
 _ART_SCRIM_GRADIENT = (
     "linear-gradient(to right, rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.1))"
 )
@@ -68,8 +66,12 @@ def _average_luminance(pixbuf: GdkPixbuf.Pixbuf) -> float | None:
 class PlayerBoxStack(Box):
     """Manages multiple player instances with navigation dots inside each PlayerBox."""
 
-    def __init__(self, mpris_manager: MprisPlayerManager, config, **kwargs):
+    def __init__(
+        self, mpris_manager: MprisPlayerManager, config, section=None, **kwargs
+    ):
+        """Create the media stack; ``section`` mirrors the stack's visibility."""
         self.config = config
+        self._section = section
         ensure_directory(f"{APP_DATA_DIRECTORY}/media")
 
         self.player_stack = Stack(
@@ -116,42 +118,52 @@ class PlayerBoxStack(Box):
         player_name = player.props.player_name
         if player_name in self.config.get("ignore", []):
             return
-        self.set_visible(True)
         player_box = PlayerBox(
             player=MprisPlayer(player),
             config=self.config,
             parent=self,
             player_name=player_name,
         )
-        player_box.connect("destroy", lambda *_: self._sync_dots())
+        player_box.connect("destroy", lambda *_: self._refresh_media_state())
         self.player_stack.children = [
             *self.player_stack.children,
             player_box,
         ]
-        self._sync_dots()
+        self._refresh_media_state()
         logger.info(
             f"[PLAYER MANAGER] adding new player: {player.get_property('player-name')}",
         )
 
     def on_lost_player(self, mpris_manager, player_name):
         logger.info(f"[PLAYER_MANAGER] Player Removed {player_name}")
+        self._remove_player_box(player_name)
+        self._refresh_media_state()
+
+    def _remove_player_box(self, player_name: str):
+        """Destroy the card of a vanished player, if it is still shown."""
+        for player_box in list(self.player_stack.get_children()):
+            if player_box.player_name != player_name:
+                continue
+            player_box.destroy()
+            self.player_stack.remove(player_box)
+            break
+
+    def _set_media_visible(self, visible: bool):
+        self.set_visible(visible)
+        if self._section is not None:
+            self._section.set_visible(visible)
+
+    def _refresh_media_state(self):
+        """Re-evaluate cards: fall back to a remaining player or hide."""
         players: list = self.player_stack.get_children()
         if not players:
-            self.hide()
             self.current_stack_pos = 0
+            self._set_media_visible(False)
             return
-        if len(players) == 1 and player_name == players[0].player_name:
-            self.hide()
-            self.current_stack_pos = 0
-            return
-        if (
-            self.current_stack_pos < len(players)
-            and players[self.current_stack_pos].player_name == player_name
-        ):
-            self.current_stack_pos = max(0, self.current_stack_pos - 1)
-            self.player_stack.set_visible_child(
-                self.player_stack.get_children()[self.current_stack_pos],
-            )
+        self._set_media_visible(True)
+        if self.current_stack_pos >= len(players):
+            self.current_stack_pos = len(players) - 1
+        self.player_stack.set_visible_child(players[self.current_stack_pos])
         self._sync_dots()
 
 
@@ -337,9 +349,7 @@ class PlayerBox(Box):
             },
         )
 
-        # Seed the seekbar/time label with the current playback state so the
-        # bar starts at the track position instead of mid-widget, then keep
-        # ticking; on_metadata restarts this timer on track changes.
+        # Seed the seekbar at the track position; on_metadata restarts the timer.
         self._move_seekbar()
         self._seekbar_timer_id = GLib.timeout_add(1000, self._move_seekbar)
 
@@ -407,8 +417,7 @@ class PlayerBox(Box):
         has_art = bool(image_path) and os.path.isfile(image_path)
         art_path = image_path if has_art else self.fallback_cover_path
         light_art = self._classify_art(art_path)
-        # Dark scrim under light text on dark/mid-tone art; skipped on light
-        # art where the dark text overrides need no darkening.
+        # Dark scrim under light text on dark art; skipped on light art.
         scrim = "" if light_art else f"{_ART_SCRIM_GRADIENT}, "
         self.set_style(f"background-image: {scrim}url('{art_path}');")
         for cls in ("on-light-art", "on-dark-art"):
@@ -419,10 +428,8 @@ class PlayerBox(Box):
     def _classify_art(self, image_path: str | None) -> bool | None:
         """Classify artwork brightness: True light, False dark, None unknown.
 
-        Text colors come from the theme (generated from the wallpaper), so
-        they can clash with the album art. The classification drives the
-        ``on-light-art``/``on-dark-art`` style classes that SCSS uses to
-        pick readable text colors.
+        Drives the ``on-light-art``/``on-dark-art`` classes SCSS uses to pick
+        readable text colors against the (theme-generated) album art.
         """
         if not image_path or not os.path.isfile(image_path):
             return None
