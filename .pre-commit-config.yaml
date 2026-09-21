@@ -21,7 +21,7 @@ repos:
 
   # Ruff for linting, formatting, and import sorting
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.16.7
+    rev: v0.16.8
     hooks:
       - id: ruff
         args: ["--fix"]
@@ -40,7 +40,7 @@ repos:
 
   # oxfmt for docs formatting
   - repo: https://github.com/oxc-project/mirrors-oxfmt
-    rev: v0.67.0
+    rev: v0.69.0
     hooks:
       - id: oxfmt
         name: Format docs with oxfmt
