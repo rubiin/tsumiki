@@ -14,10 +14,17 @@ _CACHE_WRITE_DELAY_MS = 2000
 class IconResolver:
     """A class to resolve icons for applications."""
 
-    __slots__ = ("_cache_dirty", "_flush_timer_id", "_icon_dict", "_write_pending")
+    __slots__ = (
+        "_cache_dirty",
+        "_flush_timer_id",
+        "_icon_dict",
+        "_icon_theme",
+        "_write_pending",
+    )
 
     _instance = None
     _initialized = False
+    _app_id_split_re = re.compile(r"-|\.|_|\s")
 
     def __new__(cls):
         if cls._instance is None:
@@ -34,16 +41,24 @@ class IconResolver:
         self._cache_dirty = False
         self._write_pending = False
         self._flush_timer_id = None
+        self._icon_theme = Gtk.IconTheme.get_default()
 
-    def get_icon_theme_icon(self, icon_name: str, icon_size: int = 16):
-        return (
-            Gtk.IconTheme()
-            .get_default()
-            .load_icon(
+    def _load_icon_from_theme(self, icon_name: str, icon_size: int):
+        """Safely load an icon from the theme, returning None on failure."""
+        try:
+            return self._icon_theme.load_icon(
                 icon_name,
                 icon_size,
                 Gtk.IconLookupFlags.FORCE_SIZE,
             )
+        except GLib.GError:
+            return None
+
+    def get_icon_theme_icon(self, icon_name: str, icon_size: int = 16):
+        return self._icon_theme.load_icon(
+            icon_name,
+            icon_size,
+            Gtk.IconLookupFlags.FORCE_SIZE,
         )
 
     def _ensure_cache_loaded(self):
@@ -68,27 +83,33 @@ class IconResolver:
 
     def resolve_icon(self, pixmap, icon_name: str, app_id: str, icon_size: int = 16):
         """Build a pixbuf from a tray pixmap, falling back to the theme."""
+        pixbuf = None
 
         try:
             if icon_name:
-                return self.get_icon_theme_icon(icon_name, icon_size)
+                pixbuf = self._load_icon_from_theme(icon_name, icon_size)
+        except Exception:
+            pixbuf = None
 
-            if pixmap:
-                return pixmap.as_pixbuf(icon_size, GdkPixbuf.InterpType.HYPER)
+        if not pixbuf and pixmap:
+            try:
+                pixbuf = pixmap.as_pixbuf(icon_size, GdkPixbuf.InterpType.HYPER)
+            except Exception:
+                pixbuf = None
 
-            else:
-                return self.get_icon_pixbuf(app_id, icon_size)
-        except GLib.GError:
-            return self.get_icon_pixbuf(app_id, icon_size)
+        if not pixbuf:
+            pixbuf = self.get_icon_pixbuf(app_id, icon_size)
+
+        return pixbuf
 
     @ttl_lru_cache(seconds_to_live=3600, maxsize=256)
     def get_icon_pixbuf(self, app_id: str, size: int = 16):
         """Load the app icon as a pixbuf, falling back to image-missing."""
         icon_name = self.get_icon_name(app_id)
-        try:
-            return self.get_icon_theme_icon(icon_name, size)
-        except GLib.GError:
-            return self.get_icon_theme_icon("image-missing", size)
+        pixbuf = self._load_icon_from_theme(icon_name, size)
+        if not pixbuf:
+            pixbuf = self._load_icon_from_theme("image-missing", size)
+        return pixbuf
 
     def _store_new_icon(self, app_id: str, icon: str):
         """Record an icon in the cache and schedule a debounced write."""
@@ -126,29 +147,24 @@ class IconResolver:
                     return "".join(stripped[5:].split())
             return symbolic_icons["fallback"]["executable"]
 
-    _app_id_split_re = None
-
     def _get_desktop_file(self, app_id: str) -> str | None:
         """Find the first .desktop file loosely matching app_id."""
-        if self._app_id_split_re is None:
-            self.__class__._app_id_split_re = re.compile(r"-|\.|_|\s")
-
         data_dirs = GLib.get_system_data_dirs()
         for data_dir in data_dirs:
             data_dir = data_dir + "/applications/"
             if os.path.exists(data_dir):
                 # Do name resolving here
                 files = os.listdir(data_dir)
+                app_id_norm = "".join(app_id.lower().split())
                 matching = [
-                    s for s in files if "".join(app_id.lower().split()) in s.lower()
+                    s for s in files if app_id_norm and app_id_norm in s.lower()
                 ]
                 if matching:
                     return data_dir + matching[0]
 
-                for word in list(
-                    filter(None, self.__class__._app_id_split_re.split(app_id))
-                ):
-                    matching = [s for s in files if word.lower() in s.lower()]
+                for word in filter(None, self._app_id_split_re.split(app_id)):
+                    word_lower = word.lower()
+                    matching = [s for s in files if word_lower in s.lower()]
                     if matching:
                         return data_dir + matching[0]
 
@@ -156,9 +172,9 @@ class IconResolver:
 
     def _compositor_find_icon(self, app_id: str):
         """Resolve an icon name via the theme, then desktop files."""
-        if Gtk.IconTheme.get_default().has_icon(app_id):
+        if self._icon_theme.has_icon(app_id):
             return app_id
-        if Gtk.IconTheme.get_default().has_icon(app_id + "-desktop"):
+        if self._icon_theme.has_icon(app_id + "-desktop"):
             return app_id + "-desktop"
         desktop_file = self._get_desktop_file(app_id)
         return (
@@ -208,9 +224,5 @@ class IconResolver:
         # Fall back to the resolver's theme lookup
         if not pixbuf:
             pixbuf = self.get_icon_pixbuf(app_id, size)
-        if not pixbuf:
-            pixbuf = self.get_icon_pixbuf("application-x-executable-symbolic", size)
-        if not pixbuf:
-            pixbuf = self.get_icon_pixbuf("image-missing", size)
 
         return self.scale_pixbuf_to_size(pixbuf, size) if pixbuf else None

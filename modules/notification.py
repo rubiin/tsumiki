@@ -284,7 +284,7 @@ class NotificationWidget(EventBox):
 
         header_container.children = (
             Image(
-                pixbuf=IconResolver().resolve_icon(None, notification.app_name, 25),
+                pixbuf=IconResolver().resolve_icon(None, notification.app_icon, notification.app_name, 25),
                 size=25,
             ),
             Label(
