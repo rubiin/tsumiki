@@ -15,7 +15,7 @@ from fabric.widgets.widget import Widget
 
 from .config import tsumiki_config
 from .constants import NOTIFICATION_IMAGE_SIZE
-from .icon_resolver import _scale_pixbuf_to_size
+from .icon_resolver import IconResolver
 from .icons import get_text_icon, symbolic_icons
 
 storage_config = tsumiki_config.get("widgets", {}).get("storage", {})
@@ -170,6 +170,7 @@ def setup_cursor_hover(
     )
 
 
+## TODO: move to icon resolver
 # Function to resolve a notification image to a pixbuf, safely
 def get_notification_image_pixbuf(
     notification, size: int = NOTIFICATION_IMAGE_SIZE
@@ -188,7 +189,7 @@ def get_notification_image_pixbuf(
     # Prefer raw pixmap data when the sender provided it
     if getattr(notification, "image_pixmap", None):
         try:
-            return _scale_pixbuf_to_size(notification.image_pixmap, size)
+            return IconResolver()._scale_pixbuf_to_size(notification.image_pixmap, size)
         except Exception:
             return None
 
@@ -201,7 +202,7 @@ def get_notification_image_pixbuf(
 
     if os.path.isfile(image_file):
         try:
-            return _scale_pixbuf_to_size(
+            return IconResolver()._scale_pixbuf_to_size(
                 GdkPixbuf.Pixbuf.new_from_file(image_file), size
             )
         except GLib.GError:

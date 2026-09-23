@@ -13,7 +13,7 @@ from shared.popup import PopupWindow
 from utils.app import AppUtils
 from utils.functions import safe_disconnect
 from utils.hyprland import HyprlandClient, hyprland_service
-from utils.icon_resolver import resolve_icon_pixbuf
+from utils.icon_resolver import IconResolver
 from utils.widget_settings import BarConfig
 from utils.widget_utils import create_surface_from_widget
 
@@ -45,7 +45,7 @@ class HyprlandWindowButton(Button):
         if app_util is None:
             app_util = AppUtils()
         desktop_app = app_util.find_app(client.get_app_id())
-        icon_pixbuf = resolve_icon_pixbuf(
+        icon_pixbuf = IconResolver().resolve_icon_pixbuf(
             client.get_app_id(), icon_size_main, desktop_app
         )
 
@@ -90,7 +90,7 @@ class HyprlandWindowButton(Button):
     def update_image(self, image):
         # Compute overlay icon size dynamically.
         icon_size_overlay = int(min(self.size) * 0.5)
-        icon_pixbuf = resolve_icon_pixbuf(
+        icon_pixbuf = IconResolver().resolve_icon_pixbuf(
             self.client.get_app_id(),
             icon_size_overlay,
             self.desktop_app,

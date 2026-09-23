@@ -20,7 +20,7 @@ from utils.functions import (
     write_json_file,
 )
 from utils.hyprland import HyprlandClient, hyprland_service
-from utils.icon_resolver import resolve_icon_pixbuf
+from utils.icon_resolver import IconResolver
 from utils.widget_settings import BarConfig
 
 # DnD target for dock app reordering
@@ -590,7 +590,7 @@ class AppBar(BoxWidget):
             client_image.destroy()
             return
         client_image.set_from_pixbuf(
-            resolve_icon_pixbuf(client.get_app_id(), self.icon_size)
+            IconResolver().resolve_icon_pixbuf(client.get_app_id(), self.icon_size)
         )
         client_button.set_tooltip_text(
             client.get_title() if self.config.get("tooltip", True) else None
@@ -703,7 +703,9 @@ class AppBar(BoxWidget):
             return
 
         group["indicator"].set_count(len(clients))
-        group["image"].set_from_pixbuf(resolve_icon_pixbuf(app_id, self.icon_size))
+        group["image"].set_from_pixbuf(
+            IconResolver().resolve_icon_pixbuf(app_id, self.icon_size)
+        )
 
         if self.config.get("tooltip", True):
             active = next((c for c in clients if c.get_activated()), clients[0])
@@ -740,7 +742,7 @@ class AppBar(BoxWidget):
     def _add_ungrouped_client(self, client: HyprlandClient):
         client_image = Image(size=self.icon_size)
         client_image.set_from_pixbuf(
-            resolve_icon_pixbuf(client.get_app_id(), self.icon_size)
+            IconResolver().resolve_icon_pixbuf(client.get_app_id(), self.icon_size)
         )
 
         address = client.get_address_str()
@@ -825,7 +827,9 @@ class AppBar(BoxWidget):
                 entry = self._running_app_boxes[address]
                 entry["client"] = client
                 entry["image"].set_from_pixbuf(
-                    resolve_icon_pixbuf(client.get_app_id(), self.icon_size)
+                    IconResolver().resolve_icon_pixbuf(
+                        client.get_app_id(), self.icon_size
+                    )
                 )
                 entry["button"].set_tooltip_text(
                     client.get_title() if self.config.get("tooltip", True) else None

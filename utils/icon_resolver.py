@@ -35,6 +35,17 @@ class IconResolver:
         self._write_pending = False
         self._flush_timer_id = None
 
+    def get_icon_theme_icon(self, icon_name: str, icon_size: int = 16):
+        return (
+            Gtk.IconTheme()
+            .get_default()
+            .load_icon(
+                icon_name,
+                icon_size,
+                Gtk.IconLookupFlags.FORCE_SIZE,
+            )
+        )
+
     def _ensure_cache_loaded(self):
         """Lazily load the icon cache on first access."""
         if self._icon_dict is None:
@@ -57,10 +68,14 @@ class IconResolver:
 
     def resolve_icon(self, pixmap, icon_name: str, app_id: str, icon_size: int = 16):
         """Build a pixbuf from a tray pixmap, falling back to the theme."""
-        if pixmap is None:
-            return self.get_icon_pixbuf(app_id, icon_size)
+
         try:
-            return pixmap.as_pixbuf(icon_size, GdkPixbuf.InterpType.HYPER)
+            if icon_name:
+                return self.get_icon_theme_icon(icon_name, icon_size)
+
+            if pixmap is None:
+                return self.get_icon_pixbuf(app_id, icon_size)
+                return pixmap.as_pixbuf(icon_size, GdkPixbuf.InterpType.HYPER)
         except GLib.GError:
             return self.get_icon_pixbuf(app_id, icon_size)
 
@@ -69,21 +84,9 @@ class IconResolver:
         """Load the app icon as a pixbuf, falling back to image-missing."""
         icon_name = self.get_icon_name(app_id)
         try:
-            return Gtk.IconTheme.get_default().load_icon(
-                icon_name,
-                size,
-                Gtk.IconLookupFlags.FORCE_SIZE,
-            )
+            return self.get_icon_theme_icon(icon_name, size)
         except GLib.GError:
-            return (
-                Gtk.IconTheme()
-                .get_default()
-                .load_icon(
-                    "image-missing",
-                    size,
-                    Gtk.IconLookupFlags.FORCE_SIZE,
-                )
-            )
+            return self.get_icon_theme_icon("image-missing", size)
 
     def _store_new_icon(self, app_id: str, icon: str):
         """Record an icon in the cache and schedule a debounced write."""
@@ -162,53 +165,50 @@ class IconResolver:
             else symbolic_icons["fallback"]["executable"]
         )
 
+    def _scale_pixbuf_to_size(
+        self, pixbuf: GdkPixbuf.Pixbuf, size: int
+    ) -> GdkPixbuf.Pixbuf | None:
+        """Scale ``pixbuf`` to a square ``size`` x ``size`` if not already."""
+        if pixbuf.get_width() == size and pixbuf.get_height() == size:
+            return pixbuf
+        return pixbuf.scale_simple(size, size, GdkPixbuf.InterpType.BILINEAR)
 
-def _scale_pixbuf_to_size(
-    pixbuf: GdkPixbuf.Pixbuf, size: int
-) -> GdkPixbuf.Pixbuf | None:
-    """Scale ``pixbuf`` to a square ``size`` x ``size`` if not already."""
-    if pixbuf.get_width() == size and pixbuf.get_height() == size:
-        return pixbuf
-    return pixbuf.scale_simple(size, size, GdkPixbuf.InterpType.BILINEAR)
+    @ttl_lru_cache(seconds_to_live=3600, maxsize=256)
+    def resolve_icon_pixbuf(
+        self,
+        app_id: str,
+        size: int,
+        desktop_app=None,
+    ) -> GdkPixbuf.Pixbuf | None:
+        """Resolve an application icon pixbuf.
 
+        Strategy (matching the overview module's proven approach):
+        1. If *desktop_app* is given, try its ``get_icon_pixbuf`` directly.
+        2. Otherwise look up the app via ``AppUtils.find_app`` (XDG desktop
+            app database — most reliable for Hyprland window classes).
+        3. Fall back to ``IconResolver`` (GTK icon theme lookup).
+        4. Final fallback: ``image-missing``.
+        """
+        from .app import AppUtils
 
-@ttl_lru_cache(seconds_to_live=3600, maxsize=256)
-def resolve_icon_pixbuf(
-    app_id: str,
-    size: int,
-    desktop_app=None,
-) -> GdkPixbuf.Pixbuf | None:
-    """Resolve an application icon pixbuf.
+        pixbuf = None
 
-    Strategy (matching the overview module's proven approach):
-      1. If *desktop_app* is given, try its ``get_icon_pixbuf`` directly.
-      2. Otherwise look up the app via ``AppUtils.find_app`` (XDG desktop
-         app database — most reliable for Hyprland window classes).
-      3. Fall back to ``IconResolver`` (GTK icon theme lookup).
-      4. Final fallback: ``image-missing``.
-    """
-    from .app import AppUtils
+        # Try DesktopApp first
+        if desktop_app is None:
+            with contextlib.suppress(Exception):
+                desktop_app = AppUtils().find_app(app_id)
+        if desktop_app:
+            try:
+                pixbuf = desktop_app.get_icon_pixbuf(size=size)
+            except Exception:
+                pixbuf = None
 
-    pixbuf = None
+        # Fall back to the resolver's theme lookup
+        if not pixbuf:
+            pixbuf = self.get_icon_pixbuf(app_id, size)
+        if not pixbuf:
+            pixbuf = self.get_icon_pixbuf("application-x-executable-symbolic", size)
+        if not pixbuf:
+            pixbuf = self.get_icon_pixbuf("image-missing", size)
 
-    # Try DesktopApp first
-    if desktop_app is None:
-        with contextlib.suppress(Exception):
-            desktop_app = AppUtils().find_app(app_id)
-    if desktop_app:
-        try:
-            pixbuf = desktop_app.get_icon_pixbuf(size=size)
-        except Exception:
-            pixbuf = None
-
-    # Fall back to the resolver's theme lookup
-    if not pixbuf:
-        pixbuf = IconResolver().get_icon_pixbuf(app_id, size)
-    if not pixbuf:
-        pixbuf = IconResolver().get_icon_pixbuf(
-            "application-x-executable-symbolic", size
-        )
-    if not pixbuf:
-        pixbuf = IconResolver().get_icon_pixbuf("image-missing", size)
-
-    return _scale_pixbuf_to_size(pixbuf, size) if pixbuf else None
+        return self._scale_pixbuf_to_size(pixbuf, size) if pixbuf else None

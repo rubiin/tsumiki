@@ -12,7 +12,7 @@ from shared.sinewave_slider import SineWaveSlider
 from utils.constants import APP_DATA_DIRECTORY, ASSETS_DIR, NEWLINE_RE
 from utils.functions import ensure_directory, get_http_client
 from utils.i18n import _
-from utils.icon_resolver import resolve_icon_pixbuf
+from utils.icon_resolver import IconResolver
 from utils.icons import get_text_icon
 from utils.widget_utils import nerd_font_icon
 
@@ -204,7 +204,7 @@ class PlayerBox(Box):
         )
         self.player_icon = Image(
             name="player-icon",
-            pixbuf=resolve_icon_pixbuf(player.player_name, 20),
+            pixbuf=IconResolver.resolve_icon_pixbuf(player.player_name, 20),
             visible=self.config.get("show_player_icon", True),
         )
         self.title_row = Box(
