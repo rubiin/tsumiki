@@ -73,9 +73,11 @@ class IconResolver:
             if icon_name:
                 return self.get_icon_theme_icon(icon_name, icon_size)
 
-            if pixmap is None:
-                return self.get_icon_pixbuf(app_id, icon_size)
+            if pixmap:
                 return pixmap.as_pixbuf(icon_size, GdkPixbuf.InterpType.HYPER)
+
+            else:
+                return self.get_icon_pixbuf(app_id, icon_size)
         except GLib.GError:
             return self.get_icon_pixbuf(app_id, icon_size)
 
@@ -165,7 +167,7 @@ class IconResolver:
             else symbolic_icons["fallback"]["executable"]
         )
 
-    def _scale_pixbuf_to_size(
+    def scale_pixbuf_to_size(
         self, pixbuf: GdkPixbuf.Pixbuf, size: int
     ) -> GdkPixbuf.Pixbuf | None:
         """Scale ``pixbuf`` to a square ``size`` x ``size`` if not already."""
@@ -211,4 +213,4 @@ class IconResolver:
         if not pixbuf:
             pixbuf = self.get_icon_pixbuf("image-missing", size)
 
-        return self._scale_pixbuf_to_size(pixbuf, size) if pixbuf else None
+        return self.scale_pixbuf_to_size(pixbuf, size) if pixbuf else None

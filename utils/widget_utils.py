@@ -189,7 +189,7 @@ def get_notification_image_pixbuf(
     # Prefer raw pixmap data when the sender provided it
     if getattr(notification, "image_pixmap", None):
         try:
-            return IconResolver()._scale_pixbuf_to_size(notification.image_pixmap, size)
+            return IconResolver().scale_pixbuf_to_size(notification.image_pixmap, size)
         except Exception:
             return None
 
@@ -202,7 +202,7 @@ def get_notification_image_pixbuf(
 
     if os.path.isfile(image_file):
         try:
-            return IconResolver()._scale_pixbuf_to_size(
+            return IconResolver().scale_pixbuf_to_size(
                 GdkPixbuf.Pixbuf.new_from_file(image_file), size
             )
         except GLib.GError:
