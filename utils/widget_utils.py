@@ -218,7 +218,9 @@ def get_notification_image_pixbuf(
 
 
 # Function to resolve a notification's app icon to a pixbuf, safely
-def resolve_notification_icon(notification, size: int = 25):
+def resolve_notification_icon(
+    notification, size: int = 25, default_icon: str = "dialog-information-symbolic"
+):
     """Resolve a notification's app icon to a pixbuf.
 
     Uses the app icon name when present, falling back to the app id via the
@@ -226,11 +228,13 @@ def resolve_notification_icon(notification, size: int = 25):
     """
     if notification is None:
         return None
+
     return IconResolver().resolve_icon(
         None,
         getattr(notification, "app_icon", None) or "",
         getattr(notification, "app_name", None) or "",
         size,
+        default_icon=default_icon,
     )
 
 

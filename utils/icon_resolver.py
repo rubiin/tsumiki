@@ -69,19 +69,26 @@ class IconResolver:
             else:
                 self._icon_dict = {}
 
-    def get_icon_name(self, app_id: str):
+    def get_icon_name(self, app_id: str, default="application-x-executable"):
         """Return the cached icon name for app_id, resolving on miss."""
         self._ensure_cache_loaded()
         if app_id in self._icon_dict:
             return self._icon_dict[app_id]
-        new_icon = self._compositor_find_icon(app_id)
+        new_icon = self._compositor_find_icon(app_id, default)
         logger.info(
             f"[ICONS] found new icon: '{new_icon}' for app id: '{app_id}', storing."
         )
         self._store_new_icon(app_id, new_icon)
         return new_icon
 
-    def resolve_icon(self, pixmap, icon_name: str, app_id: str, icon_size: int = 16):
+    def resolve_icon(
+        self,
+        pixmap,
+        icon_name: str,
+        app_id: str,
+        icon_size: int = 16,
+        default_icon: str = "image-missing",
+    ):
         """Build a pixbuf from a tray pixmap, falling back to the theme."""
         pixbuf = None
 
@@ -98,17 +105,20 @@ class IconResolver:
                 pixbuf = None
 
         if not pixbuf:
-            pixbuf = self.get_icon_pixbuf(app_id, icon_size)
+            pixbuf = self.get_icon_pixbuf(app_id, icon_size, default_icon=default_icon)
 
         return pixbuf
 
     @ttl_lru_cache(seconds_to_live=3600, maxsize=256)
-    def get_icon_pixbuf(self, app_id: str, size: int = 16):
+    def get_icon_pixbuf(
+        self, app_id: str, size: int = 16, default_icon: str = "image-missing"
+    ):
         """Load the app icon as a pixbuf, falling back to image-missing."""
-        icon_name = self.get_icon_name(app_id)
+        icon_name = self.get_icon_name(app_id, default_icon)
+
         pixbuf = self._load_icon_from_theme(icon_name, size)
         if not pixbuf:
-            pixbuf = self._load_icon_from_theme("image-missing", size)
+            pixbuf = self._load_icon_from_theme(default_icon, size)
         return pixbuf
 
     def _store_new_icon(self, app_id: str, icon: str):
@@ -177,7 +187,7 @@ class IconResolver:
 
         return None
 
-    def _compositor_find_icon(self, app_id: str):
+    def _compositor_find_icon(self, app_id: str, default="application-x-executable"):
         """Resolve an icon name via the theme, then desktop files."""
         if self._icon_theme.has_icon(app_id):
             return app_id
@@ -185,9 +195,7 @@ class IconResolver:
             return app_id + "-desktop"
         desktop_file = self._get_desktop_file(app_id)
         return (
-            self._get_icon_from_desktop_file(desktop_file)
-            if desktop_file
-            else symbolic_icons["fallback"]["executable"]
+            self._get_icon_from_desktop_file(desktop_file) if desktop_file else default
         )
 
     def scale_pixbuf_to_size(

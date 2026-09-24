@@ -221,12 +221,10 @@ class NotificationWidget(EventBox):
             notification, is_long_content, max_collapsed_lines, max_expanded_lines
         )
         body = self._build_body(
-            notification,
             body_text,
             body_image_src,
             is_long_content,
             max_collapsed_lines,
-            max_expanded_lines,
         )
         self.actions_container_grid = self._build_actions(notification, body_text)
 
@@ -287,7 +285,10 @@ class NotificationWidget(EventBox):
 
         header_container.children = (
             Image(
-                pixbuf=resolve_notification_icon(notification, 25),
+                pixbuf=resolve_notification_icon(
+                    notification,
+                    25,
+                ),
                 size=25,
             ),
             Label(
@@ -349,12 +350,10 @@ class NotificationWidget(EventBox):
 
     def _build_body(
         self,
-        notification: Notification,
         body_text: str,
         body_image_src: str | None,
         is_long_content: bool,
         max_collapsed_lines: int,
-        max_expanded_lines: int,
     ) -> Box:
         """Build notification body: optional image and expandable text label."""
         body_container = Box(
