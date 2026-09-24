@@ -28,7 +28,7 @@ import utils.functions as helpers
 from services import notification_service
 from shared.buttons import HoverButton
 from shared.circle_image import CircularImage
-from shared.widget_container import BaseWindow
+from shared.widget_container import BaseWindow, TeardownMixin
 from utils.colors import Colors
 from utils.icons import get_text_icon
 from utils.widget_settings import BarConfig
@@ -156,7 +156,7 @@ class NotificationPopup(BaseWindow):
             helpers.play_sound(self.sound_file)
 
 
-class NotificationWidget(EventBox):
+class NotificationWidget(EventBox, TeardownMixin):
     """A widget to display a notification with swipe-to-dismiss support."""
 
     def __init__(
@@ -236,7 +236,20 @@ class NotificationWidget(EventBox):
         )
         self.add(self.notification_box)
 
-        self._notification.connect("closed", lambda *_: self.stop_timeout())
+        # Stop the countdown whenever the notification closes, whichever path
+        # closed it (swipe, close button, expiry, or the sending app). Tracked
+        # by TeardownMixin so the connection dies with this widget instead of
+        # outliving it on the notification.
+        self._register_handler(
+            self._notification,
+            self._notification.connect("closed", lambda *_: self.stop_timeout()),
+        )
+
+    def destroy(self):
+        # Drop the frame-clock tick while the widget tree is still alive, then
+        # let TeardownMixin release the notification's ``closed`` connection.
+        self.stop_timeout()
+        return super().destroy()
 
     def _wire_events(self):
         """Connect all input event handlers."""
@@ -634,13 +647,30 @@ class NotificationRevealer(Revealer):
 
         self.connect("notify::child-revealed", self.on_child_revealed)
 
-        self._closed_handler_id = self._notification.connect("closed", self.on_resolved)
+        self._bind_closed_handler()
+
+    def _bind_closed_handler(self):
+        """Watch ``closed`` on the current notification, dropping any old link."""
+        self._unbind_closed_handler()
+        self._closed_handler_id = self._notification.connect(
+            "closed", self.on_resolved
+        )
+
+    def _unbind_closed_handler(self):
+        """Disconnect the ``closed`` handler from the current notification."""
+        helpers.safe_disconnect(self._notification, self._closed_handler_id)
+        self._closed_handler_id = None
+
+    def destroy(self):
+        self._unbind_closed_handler()
+        return super().destroy()
 
     def replace_notification(self, notification: Notification):
         config = self.notification_box.config
         self.notification_box.stop_timeout()
         self.notification_box.destroy()
 
+        self._unbind_closed_handler()
         self._notification = notification
         self.notification_box = NotificationWidget(
             config,
@@ -650,7 +680,7 @@ class NotificationRevealer(Revealer):
 
         self.add(self.notification_box)
 
-        self._closed_handler_id = self._notification.connect("closed", self.on_resolved)
+        self._bind_closed_handler()
 
         if not self.get_reveal_child():
             self._is_closing = False

@@ -428,7 +428,7 @@ title_map = []
 fallback = "class"
 
 [widgets.workspaces]
-count = 10
+count = 8
 hide_unoccupied = true
 ignored = []
 reverse_scroll = false

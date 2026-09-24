@@ -17,7 +17,7 @@ class WorkSpacesWidget(BoxWidget):
         self.icon_map = self.config.get("icon_map", {})
         self.label_format = self.config.get("label_format", "{id}")
         self.workspace_count = self.config.get("count", 8)
-        self.hide_unoccupied = self.config.get("hide_unoccupied", False)
+        self.hide_unoccupied = self.config.get("hide_unoccupied", True)
         self.show_special = self.config.get("show_special", False)
         self.show_urgent = self.config.get("show_urgent", False)
         self.style = self.config.get("style", "numbered")
