@@ -10,6 +10,7 @@ try:
     from shared import media as media_module
     from shared.media import (
         _LIGHT_ART_LUMINANCE_THRESHOLD,
+        PlayerBox,
         PlayerBoxStack,
         _average_luminance,
     )
@@ -187,6 +188,116 @@ class PlayerBoxStackLostPlayerTest(unittest.TestCase):
         stack.set_visible.assert_called_with(True)
         section.set_visible.assert_called_with(True)
         self.assertIs(stack.player_stack.visible_child, new_box)
+
+
+@unittest.skipUnless(HAS_GDKPIXBUF, "GdkPixbuf bindings unavailable")
+class PlayerBoxSeekbarTickTest(unittest.TestCase):
+    """The 1 Hz seekbar tick must only run while playback advances."""
+
+    _POSITION = 1_000_000
+    _LENGTH = 10_000_000
+
+    def _make_player(self, status="playing"):
+        player = mock.Mock()
+        player.playback_status = status
+        player.position = self._POSITION
+        player.length = self._LENGTH
+        # on_playback_change reads the status through the GObject property.
+        player.get_property.side_effect = (
+            lambda name: status if name == "playback-status" else None
+        )
+        return player
+
+    def _make_box(self, player):
+        """Build a PlayerBox without touching GTK widget init."""
+        box = PlayerBox.__new__(PlayerBox)
+        box.player = player
+        box.exit = False
+        box._seekbar_timer_id = None
+        box.time_label = mock.Mock()
+        box.progress_bar = mock.Mock()
+        box.progress_bar.get_dragging.return_value = False
+        box.play_pause_icon = mock.Mock()
+        return box
+
+    def test_paused_player_stops_the_tick_without_redrawing(self):
+        box = self._make_box(self._make_player(status="paused"))
+
+        self.assertFalse(box._move_seekbar())
+
+        self.assertIsNone(box._seekbar_timer_id)
+        box.time_label.set_label.assert_not_called()
+        box.progress_bar.set_value.assert_not_called()
+
+    def test_stopped_player_stops_the_tick_without_redrawing(self):
+        box = self._make_box(self._make_player(status="stopped"))
+
+        self.assertFalse(box._move_seekbar())
+
+        self.assertIsNone(box._seekbar_timer_id)
+        box.time_label.set_label.assert_not_called()
+
+    def test_playing_player_keeps_ticking_and_redraws(self):
+        box = self._make_box(self._make_player(status="playing"))
+
+        self.assertTrue(box._move_seekbar())
+
+        box.time_label.set_label.assert_called_once()
+        box.progress_bar.set_value.assert_called_once_with(0.1)
+
+    def test_dragging_player_is_not_redrawn(self):
+        box = self._make_box(self._make_player(status="playing"))
+        box.progress_bar.get_dragging.return_value = True
+
+        self.assertTrue(box._move_seekbar())
+
+        box.time_label.set_label.assert_not_called()
+
+    def test_missing_player_stops_the_tick(self):
+        box = self._make_box(None)
+
+        self.assertFalse(box._move_seekbar())
+
+        self.assertIsNone(box._seekbar_timer_id)
+
+    def test_pause_stops_the_running_tick(self):
+        box = self._make_box(self._make_player(status="paused"))
+        box._seekbar_timer_id = 5
+
+        with mock.patch("shared.media.GLib") as glib:
+            box.on_playback_change(box.player, None)
+
+        glib.source_remove.assert_called_once_with(5)
+        self.assertIsNone(box._seekbar_timer_id)
+
+    def test_resume_restarts_the_tick(self):
+        box = self._make_box(self._make_player(status="playing"))
+
+        with mock.patch("shared.media.GLib") as glib:
+            glib.timeout_add.return_value = 4321
+            box.on_playback_change(box.player, None)
+
+        self.assertEqual(box._seekbar_timer_id, 4321)
+
+    def test_starting_the_tick_is_idempotent(self):
+        box = self._make_box(self._make_player(status="playing"))
+
+        with mock.patch("shared.media.GLib") as glib:
+            glib.timeout_add.return_value = 4321
+            box._start_seekbar_timer()
+            box._start_seekbar_timer()
+
+        glib.timeout_add.assert_called_once()
+
+    def test_tick_is_not_restarted_after_exit(self):
+        box = self._make_box(self._make_player(status="playing"))
+        box.exit = True
+
+        with mock.patch("shared.media.GLib") as glib:
+            box._start_seekbar_timer()
+
+        glib.timeout_add.assert_not_called()
+        self.assertIsNone(box._seekbar_timer_id)
 
 
 if __name__ == "__main__":

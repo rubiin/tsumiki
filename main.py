@@ -46,6 +46,11 @@ def main():
     # Initialize the application
     app = Application(APPLICATION_NAME)
 
+    # Compile and apply the stylesheet before any widget exists. Building the
+    # bars first meant they were mapped unstyled and restyled once the first
+    # async compile landed - a second full style/layout pass and a flash.
+    style_service.refresh_blocking()
+
     # Create status bars
     Bar.create_bars(app, tsumiki_config)
 
@@ -107,8 +112,6 @@ def main():
 
         main_css_file.connect("changed", schedule_css_reload)
         common_css_file.connect("changed", schedule_css_reload)
-
-    style_service.refresh()
 
     logger.info(f"{Colors.INFO}[Main] Starting {APPLICATION_NAME}...")
     logger.info(f"Starting shell... pid:{os.getpid()}")

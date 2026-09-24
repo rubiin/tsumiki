@@ -99,7 +99,8 @@ class MprisWidget(ButtonWidget, PopoverMixin):
         self.setup_popover(
             lambda: PlayerBoxStack(self.mpris_manager, config=self.config),
         )
-        self._start_progress_timer()
+        # The 1 Hz progress tick is started/stopped by get_current() from the
+        # player's playback status, so there is nothing to start here.
 
     def _bind_player_updates(self):
         self._unbind_player_updates()
@@ -119,6 +120,13 @@ class MprisWidget(ButtonWidget, PopoverMixin):
             self._player_update_handlers.append(
                 self.player.connect(signal_name, lambda *_: self.get_current())
             )
+
+    def _sync_progress_timer(self, playback_status):
+        """Run the 1 Hz progress tick only while playback actually advances."""
+        if playback_status == "playing":
+            self._start_progress_timer()
+        else:
+            self._stop_progress_timer()
 
     def _start_progress_timer(self):
         if self._progress_timer_id is not None:
@@ -220,6 +228,8 @@ class MprisWidget(ButtonWidget, PopoverMixin):
             return
         self._unbind_player_updates()
         self.player = None
+        # No player left to advance, so stop the tick until one reappears.
+        self._stop_progress_timer()
 
         for raw_player in self.mpris_manager.players:
             if raw_player.props.player_name in self.config.get("ignore", []):
@@ -292,6 +302,9 @@ class MprisWidget(ButtonWidget, PopoverMixin):
         if self.exit:
             return
         playback_status = self.player.playback_status if self.player else None
+        # A paused/stopped player's position never advances, so the tick would
+        # only re-render an unchanged progress bar.
+        self._sync_progress_timer(playback_status)
         if playback_status not in {"playing", "paused"}:
             self._set_default_values()
             return

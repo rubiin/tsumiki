@@ -368,9 +368,11 @@ class PlayerBox(Box):
             },
         )
 
-        # Seed the seekbar at the track position; on_metadata restarts the timer.
-        self._move_seekbar()
-        self._seekbar_timer_id = GLib.timeout_add(1000, self._move_seekbar)
+        # Seed the seekbar at the track position, then tick it only while
+        # playback advances (see _move_seekbar / on_playback_change).
+        if self.player is not None:
+            self._sync_seekbar()
+        self._start_seekbar_timer()
 
     # ─── Metadata ─────────────────────────────────────────────────────────────
 
@@ -381,7 +383,7 @@ class PlayerBox(Box):
             pos = self.player.position or 0
             self.time_label.set_label(_format_time_combined(pos, length))
         self._stop_seekbar_timer()
-        self._seekbar_timer_id = GLib.timeout_add(1000, self._move_seekbar)
+        self._start_seekbar_timer()
 
     def _set_image(self, *_):
         art_url = self.player.arturl
@@ -516,6 +518,21 @@ class PlayerBox(Box):
             self.play_pause_icon.set_label(get_text_icon("mpris.paused", ""))
             self.progress_bar.set_active(True)
 
+        # Only a running player advances the position, so only then is there a
+        # reason to tick; _move_seekbar stops the timer for anything else.
+        if status == "playing":
+            self._start_seekbar_timer()
+        else:
+            self._stop_seekbar_timer()
+
+    def _sync_seekbar(self):
+        """Push the current position/length into the time label and slider."""
+        pos = self.player.position
+        length = self.player.length
+        if length:
+            self.time_label.set_label(_format_time_combined(pos, length))
+            self.progress_bar.set_value(pos / length if length > 0 else 0.0)
+
     def _move_seekbar(self, *_):
         if self.player is None or self.exit:
             self._seekbar_timer_id = None
@@ -523,12 +540,20 @@ class PlayerBox(Box):
         # Don't fight the user's hand while they are dragging the seekbar.
         if self.progress_bar.get_dragging():
             return True
-        pos = self.player.position
-        length = self.player.length
-        if length:
-            self.time_label.set_label(_format_time_combined(pos, length))
-            self.progress_bar.set_value(pos / length if length > 0 else 0.0)
+        if self.player.playback_status != "playing":
+            # A paused/stopped position does not advance, so there is nothing to
+            # redraw: stop the 1 Hz tick rather than re-measuring the label and
+            # slider every second. Resuming restarts it via on_playback_change.
+            self._seekbar_timer_id = None
+            return False
+        self._sync_seekbar()
         return True
+
+    def _start_seekbar_timer(self):
+        """Start the 1 Hz position tick unless it is already running."""
+        if self._seekbar_timer_id is not None or self.exit:
+            return
+        self._seekbar_timer_id = GLib.timeout_add(1000, self._move_seekbar)
 
     def _stop_seekbar_timer(self):
         if self._seekbar_timer_id is not None:

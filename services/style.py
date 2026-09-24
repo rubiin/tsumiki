@@ -1,5 +1,6 @@
 import json
 import threading
+from collections.abc import Callable
 
 from fabric import Application
 from fabric.core.service import Signal
@@ -14,7 +15,7 @@ from fabric.utils import (
 from utils.colors import Colors
 from utils.config import tsumiki_config
 from utils.constants import CSS_PATH
-from utils.decorators import run_in_thread
+from utils.decorators import thread
 from utils.functions import (
     check_executable_exists,
     exclude_keys,
@@ -50,6 +51,7 @@ class StyleService(SingletonService):
 
         self._compile_lock = threading.Lock()
         self._compiling = False
+        self._compile_pending = False
 
         check_executable_exists("sass")
 
@@ -174,9 +176,34 @@ class StyleService(SingletonService):
         update_styling_mode(mode)
 
     def refresh(self) -> None:
-        """Recompile and re-apply the current CSS without changing the theme."""
-        self._compile_css()
-        self.emit("css_recompiled")
+        """Recompile and re-apply the current CSS without changing the theme.
+
+        Concurrent requests coalesce rather than being dropped: a refresh that
+        lands while a compile is in flight is remembered, and the worker runs
+        once more when it finishes, so the newest SCSS always ends up applied.
+        ``css_recompiled`` is emitted only once the CSS has actually been
+        applied (see ``_finish_compile``).
+        """
+        with self._compile_lock:
+            self._compile_pending = True
+            if self._compiling:
+                logger.info(
+                    f"{Colors.INFO}[Theme] CSS compile in flight; queued another pass"
+                )
+                return
+            self._compiling = True
+        thread(self._compile_worker)
+
+    def refresh_blocking(self) -> None:
+        """Compile and apply CSS synchronously on the calling thread.
+
+        Used on the startup path, before any widget exists, so the whole tree
+        is built and laid out already styled. Going through the async path
+        instead meant widgets were mapped unstyled and then restyled once the
+        first compile landed - a second full style/layout pass and a visible
+        flash. Must not be called while a compile is in flight.
+        """
+        self._compile_and_apply(self._finish_compile)
 
     # ── Internal helpers ───────────────────────────────────────
 
@@ -312,40 +339,53 @@ class StyleService(SingletonService):
         except Exception as e:
             logger.exception(f"{Colors.ERROR}[Theme] Error applying CSS to app: {e}")
 
-    @run_in_thread
-    def _compile_css(self):
-        """Run ``sass`` to compile SCSS into CSS (skips concurrent runs)."""
-        with self._compile_lock:
-            if self._compiling:
-                logger.info(f"{Colors.INFO}[Theme] CSS compilation already in progress")
-                return
-            self._compiling = True
-
+    def _compile_worker(self) -> None:
+        """Compile while refreshes are queued, applying each result in turn."""
         try:
-            logger.info(f"{Colors.INFO}[Theme] Recompiling CSS")
-            # ``--no-charset``: dart-sass emits ``@charset "UTF-8";`` when the
-            # compiled CSS contains non-ASCII bytes, and GTK3's CSS provider
-            # rejects that at-rule (``unknown @ rule``), failing the whole
-            # stylesheet. Unicode inside values/comments is still fine — we
-            # just skip the declaration.
-            output = exec_shell_command(
-                f"sass styles/main.scss {CSS_PATH} --no-source-map --no-charset"
-            )
-
-            if output == "":
-                logger.info(f"{Colors.INFO}[Main] CSS applied")
-                idle_add(lambda: self._apply_css_to_app(get_relative_path(CSS_PATH)))
-            else:
-                logger.exception(f"{Colors.ERROR}[Main]Failed to compile sass!")
-                logger.exception(f"{Colors.ERROR}[Main] {output}")
-
-                idle_add(lambda: self._apply_css_to_app(""))
-
-        except Exception as e:
-            logger.exception(f"{Colors.ERROR}[Theme] Error recompiling CSS: {e}")
-        finally:
+            while True:
+                with self._compile_lock:
+                    if not self._compile_pending:
+                        self._compiling = False
+                        return
+                    self._compile_pending = False
+                self._compile_and_apply(idle_add)
+        except Exception as exc:
+            # Never leave the flag set: a stuck flag would silently drop every
+            # later refresh, which is the bug this worker exists to fix.
             with self._compile_lock:
                 self._compiling = False
+                self._compile_pending = False
+            logger.exception(f"{Colors.ERROR}[Theme] CSS compile worker failed: {exc}")
+
+    def _compile_and_apply(self, dispatch: Callable[[str], None]) -> None:
+        """Run ``sass`` once and route the result through *dispatch*.
+
+        *dispatch* is ``idle_add`` off the main thread (defer the apply) or a
+        direct call on it (the startup path, where waiting is the point).
+        """
+        logger.info(f"{Colors.INFO}[Theme] Recompiling CSS")
+        # ``--no-charset``: dart-sass emits ``@charset "UTF-8";`` when the
+        # compiled CSS contains non-ASCII bytes, and GTK3's CSS provider
+        # rejects that at-rule (``unknown @ rule``), failing the whole
+        # stylesheet. Unicode inside values/comments is still fine — we
+        # just skip the declaration.
+        output = exec_shell_command(
+            f"sass styles/main.scss {CSS_PATH} --no-source-map --no-charset"
+        )
+
+        if output == "":
+            logger.info(f"{Colors.INFO}[Theme] CSS compiled")
+            dispatch(get_relative_path(CSS_PATH))
+            return
+
+        logger.exception(f"{Colors.ERROR}[Main]Failed to compile sass!")
+        logger.exception(f"{Colors.ERROR}[Main] {output}")
+        dispatch("")
+
+    def _finish_compile(self, css_file: str) -> None:
+        """Apply the compiled stylesheet, then announce it as applied."""
+        self._apply_css_to_app(css_file)
+        self.emit("css_recompiled")
 
     def write_settings_css(self):
         logger.info("[CONFIG] Generating settings css...")
