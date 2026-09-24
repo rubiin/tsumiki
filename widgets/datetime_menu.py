@@ -124,6 +124,19 @@ class DateMenuNotification(Box):
         )
         header_row.pack_end(self.close_button, False, False, 0)
 
+        body_label = Label(
+            markup=helpers.parse_markup(self._notification.body or ""),
+            v_align="start",
+            h_align="start",
+            name="date-menu-notification-body",
+            line_wrap="word-char",
+            ellipsization="end",
+            chars_width=20,
+            max_chars_width=45,
+        )
+        # Cap the body at two lines so long notifications don't blow up the row.
+        body_label.set_lines(2)
+
         content_box = Box(
             orientation="v",
             h_expand=True,
@@ -133,15 +146,7 @@ class DateMenuNotification(Box):
         )
         content_box.children = (
             header_row,
-            Label(
-                markup=helpers.parse_markup(self._notification.body or ""),
-                v_align="start",
-                h_align="start",
-                name="date-menu-notification-body",
-                line_wrap="word-char",
-                chars_width=20,
-                max_chars_width=45,
-            ),
+            body_label,
         )
 
         self.add(content_box)
