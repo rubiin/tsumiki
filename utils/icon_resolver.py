@@ -147,26 +147,33 @@ class IconResolver:
                     return "".join(stripped[5:].split())
             return symbolic_icons["fallback"]["executable"]
 
+    _desktop_files_cache: dict[str, tuple[str, ...]] | None = None
+
     def _get_desktop_file(self, app_id: str) -> str | None:
         """Find the first .desktop file loosely matching app_id."""
-        data_dirs = GLib.get_system_data_dirs()
-        for data_dir in data_dirs:
-            data_dir = data_dir + "/applications/"
-            if os.path.exists(data_dir):
-                # Do name resolving here
-                files = os.listdir(data_dir)
-                app_id_norm = "".join(app_id.lower().split())
-                matching = [
-                    s for s in files if app_id_norm and app_id_norm in s.lower()
-                ]
-                if matching:
-                    return data_dir + matching[0]
+        if IconResolver._desktop_files_cache is None:
+            IconResolver._desktop_files_cache = {}
+            for data_dir in GLib.get_system_data_dirs():
+                apps_dir = data_dir + "/applications/"
+                try:
+                    files = tuple(
+                        s for s in os.listdir(apps_dir) if s.endswith(".desktop")
+                    )
+                except OSError:
+                    continue
+                IconResolver._desktop_files_cache[apps_dir] = files
 
-                for word in filter(None, self._app_id_split_re.split(app_id)):
-                    word_lower = word.lower()
-                    matching = [s for s in files if word_lower in s.lower()]
-                    if matching:
-                        return data_dir + matching[0]
+        app_id_norm = "".join(app_id.lower().split())
+        for apps_dir, files in IconResolver._desktop_files_cache.items():
+            matching = [s for s in files if app_id_norm and app_id_norm in s.lower()]
+            if matching:
+                return apps_dir + matching[0]
+
+            for word in filter(None, self._app_id_split_re.split(app_id)):
+                word_lower = word.lower()
+                matching = [s for s in files if word_lower in s.lower()]
+                if matching:
+                    return apps_dir + matching[0]
 
         return None
 

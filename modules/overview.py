@@ -45,7 +45,8 @@ class HyprlandWindowButton(Button):
         if app_util is None:
             app_util = AppUtils()
         desktop_app = app_util.find_app(client.get_app_id())
-        icon_pixbuf = IconResolver().resolve_icon_pixbuf(
+        self._icon_resolver = IconResolver()
+        icon_pixbuf = self._icon_resolver.resolve_icon_pixbuf(
             client.get_app_id(), icon_size_main, desktop_app
         )
 
@@ -90,7 +91,7 @@ class HyprlandWindowButton(Button):
     def update_image(self, image):
         # Compute overlay icon size dynamically.
         icon_size_overlay = int(min(self.size) * 0.5)
-        icon_pixbuf = IconResolver().resolve_icon_pixbuf(
+        icon_pixbuf = self._icon_resolver.resolve_icon_pixbuf(
             self.client.get_app_id(),
             icon_size_overlay,
             self.desktop_app,

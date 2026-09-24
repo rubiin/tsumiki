@@ -30,10 +30,13 @@ from shared.buttons import HoverButton
 from shared.circle_image import CircularImage
 from shared.widget_container import BaseWindow
 from utils.colors import Colors
-from utils.icon_resolver import IconResolver
 from utils.icons import get_text_icon
 from utils.widget_settings import BarConfig
-from utils.widget_utils import get_notification_image_pixbuf, nerd_font_icon
+from utils.widget_utils import (
+    get_notification_image_pixbuf,
+    nerd_font_icon,
+    resolve_notification_icon,
+)
 
 # Swipe threshold for dismissing notifications (normalized: 0.0 to 1.0)
 _SWIPE_DISMISS_THRESHOLD = 0.35
@@ -284,9 +287,7 @@ class NotificationWidget(EventBox):
 
         header_container.children = (
             Image(
-                pixbuf=IconResolver().resolve_icon(
-                    None, notification.app_icon, notification.app_name, 25
-                ),
+                pixbuf=resolve_notification_icon(notification, 25),
                 size=25,
             ),
             Label(

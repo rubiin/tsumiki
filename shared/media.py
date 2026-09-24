@@ -1,5 +1,6 @@
 import tempfile
 import urllib.parse
+from functools import lru_cache
 
 from fabric.utils import GdkPixbuf, GLib, GObject, bulk_connect, idle_add, logger, os
 from fabric.widgets.box import Box
@@ -61,6 +62,24 @@ def _average_luminance(pixbuf: GdkPixbuf.Pixbuf) -> float | None:
             )
             count += 1
     return total / count / 255 if count else None
+
+
+@lru_cache(maxsize=64)
+def _classify_art_cached(image_path: str, mtime: float) -> bool | None:
+    """Decode + classify artwork once per (path, mtime); None on failure.
+
+    Keyed by mtime so replaced artwork files are re-classified without
+    re-decoding the same file on every track change.
+    """
+    try:
+        pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(image_path, 16, 16)
+        luminance = _average_luminance(pixbuf)
+    except Exception:
+        logger.debug(f"[Media] Failed to compute art luminance: {image_path}")
+        return None
+    if luminance is None:
+        return None
+    return luminance > _LIGHT_ART_LUMINANCE_THRESHOLD
 
 
 class PlayerBoxStack(Box):
@@ -204,7 +223,7 @@ class PlayerBox(Box):
         )
         self.player_icon = Image(
             name="player-icon",
-            pixbuf=IconResolver.resolve_icon_pixbuf(player.player_name, 20),
+            pixbuf=IconResolver().resolve_icon_pixbuf(player.player_name, 20),
             visible=self.config.get("show_player_icon", True),
         )
         self.title_row = Box(
@@ -434,14 +453,10 @@ class PlayerBox(Box):
         if not image_path or not os.path.isfile(image_path):
             return None
         try:
-            pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(image_path, 16, 16)
-            luminance = _average_luminance(pixbuf)
-        except Exception:
-            logger.debug(f"[Media] Failed to compute art luminance: {image_path}")
+            mtime = os.path.getmtime(image_path)
+        except OSError:
             return None
-        if luminance is None:
-            return None
-        return luminance > _LIGHT_ART_LUMINANCE_THRESHOLD
+        return _classify_art_cached(image_path, mtime)
 
     def update_dots(self, count: int, active_index: int):
         """Update dot navigation for player switching in place."""

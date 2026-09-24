@@ -190,9 +190,11 @@ class EmojiPickerMenu(Box):
         )
 
         self._page_cache: dict[int, Box] = {}
-        # Build all pages into cache so navigation just switches stack children
-        for page_idx in range(self.total_pages):
-            self._build_page(page_idx)
+        # Build only the first page eagerly; remaining pages are built lazily
+        # on navigation. Rebuilding ~60 button trees on every keystroke caused
+        # heavy style/layout churn while typing in the search box.
+        if self.total_pages > 0:
+            self._build_page(0)
         # Show first page
         if self.total_pages > 0:
             self.stack.set_visible_child_name("page-0")

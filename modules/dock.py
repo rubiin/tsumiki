@@ -142,6 +142,7 @@ class AppBar(BoxWidget):
         self._running_app_count = 0
         self._sync_scheduled_id = None
         self._sync_in_progress = False
+        self._icon_resolver = IconResolver()
 
         # Determine orientation for boxes
         is_vertical = self.orientation == "vertical"
@@ -590,7 +591,7 @@ class AppBar(BoxWidget):
             client_image.destroy()
             return
         client_image.set_from_pixbuf(
-            IconResolver().resolve_icon_pixbuf(client.get_app_id(), self.icon_size)
+            self._icon_resolver.resolve_icon_pixbuf(client.get_app_id(), self.icon_size)
         )
         client_button.set_tooltip_text(
             client.get_title() if self.config.get("tooltip", True) else None
@@ -704,7 +705,7 @@ class AppBar(BoxWidget):
 
         group["indicator"].set_count(len(clients))
         group["image"].set_from_pixbuf(
-            IconResolver().resolve_icon_pixbuf(app_id, self.icon_size)
+            self._icon_resolver.resolve_icon_pixbuf(app_id, self.icon_size)
         )
 
         if self.config.get("tooltip", True):
@@ -742,7 +743,7 @@ class AppBar(BoxWidget):
     def _add_ungrouped_client(self, client: HyprlandClient):
         client_image = Image(size=self.icon_size)
         client_image.set_from_pixbuf(
-            IconResolver().resolve_icon_pixbuf(client.get_app_id(), self.icon_size)
+            self._icon_resolver.resolve_icon_pixbuf(client.get_app_id(), self.icon_size)
         )
 
         address = client.get_address_str()
@@ -827,7 +828,7 @@ class AppBar(BoxWidget):
                 entry = self._running_app_boxes[address]
                 entry["client"] = client
                 entry["image"].set_from_pixbuf(
-                    IconResolver().resolve_icon_pixbuf(
+                    self._icon_resolver.resolve_icon_pixbuf(
                         client.get_app_id(), self.icon_size
                     )
                 )

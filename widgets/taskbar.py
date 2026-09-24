@@ -32,6 +32,7 @@ class TaskBarWidget(BoxWidget):
         self._current_workspace_id: int | None = None
         self._sync_scheduled_id: int | None = None
         self._sync_in_progress = False
+        self._icon_resolver = IconResolver()
 
         events = {
             "event::openwindow": self._on_window_event,
@@ -234,7 +235,7 @@ class TaskBarWidget(BoxWidget):
 
     def _update_button_visuals(self, entry: dict, client: HyprlandClient):
         entry["image"].set_from_pixbuf(
-            IconResolver().resolve_icon_pixbuf(
+            self._icon_resolver.resolve_icon_pixbuf(
                 client.get_app_id(), self.config.get("icon_size", 22)
             )
         )
@@ -246,7 +247,7 @@ class TaskBarWidget(BoxWidget):
     def _add_client_button(self, address: str, client: HyprlandClient):
         client_image = Image()
         client_image.set_from_pixbuf(
-            IconResolver().resolve_icon_pixbuf(
+            self._icon_resolver.resolve_icon_pixbuf(
                 client.get_app_id(), self.config.get("icon_size", 22)
             )
         )

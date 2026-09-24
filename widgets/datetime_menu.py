@@ -21,11 +21,11 @@ from shared.list import ListBox
 from shared.mixins import PopoverMixin
 from shared.widget_container import ButtonWidget
 from utils.i18n import _
-from utils.icon_resolver import IconResolver
 from utils.icons import get_text_icon
 from utils.widget_utils import (
     get_notification_image_pixbuf,
     nerd_font_icon,
+    resolve_notification_icon,
 )
 from widgets.extended_datetime import ExtendedDateTime
 
@@ -78,9 +78,7 @@ class DateMenuNotification(Box):
 
         if icon_widget is None:
             icon_widget = Image(
-                pixbuf=IconResolver().resolve_icon(
-                    None, notification.app_icon, notification.app_name, 25
-                ),
+                pixbuf=resolve_notification_icon(notification, 25),
                 size=25,
                 v_align="start",
             )
@@ -533,9 +531,7 @@ class DateNotificationMenu(Box):
             visible=expanded,
             children=(
                 Image(
-                    pixbuf=IconResolver().resolve_icon(
-                        None, notifications[0].app_icon, notifications[0].app_name, 25
-                    ),
+                    pixbuf=resolve_notification_icon(notifications[0], 25),
                     size=25,
                 ),
                 Label(

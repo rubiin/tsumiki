@@ -143,16 +143,27 @@ class GpuWidget(FabricatorBoundWidget, StatDisplayMixin):
 
         self._gpu_request_in_flight = True
         self._last_gpu_poll = now
+        self._poll_gpu_stats()
+
+        return True
+
+    @helpers.run_in_thread
+    def _poll_gpu_stats(self):
+        """Poll ``nvtop -s`` off the main thread and post results back."""
         try:
             out = exec_shell_command("nvtop -s")
             data = json.loads(out)
-            self._on_gpu_stats_received(json.dumps(data[0]))
+            value = json.dumps(data[0])
         except Exception as e:
             logger.error(f"Error parsing JSON: {e}")
-        finally:
-            self._gpu_request_in_flight = False
+            value = None
+        idle_add(self._finish_gpu_poll, value)
 
-        return True
+    def _finish_gpu_poll(self, value):
+        """Main-thread continuation: clear the in-flight guard, then update UI."""
+        self._gpu_request_in_flight = False
+        if value is not None:
+            self._on_gpu_stats_received(value)
 
     def _on_gpu_stats_received(self, value: str):
         """Handle GPU stats received from async command."""

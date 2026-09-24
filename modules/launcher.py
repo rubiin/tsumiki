@@ -24,6 +24,7 @@ from fabric.widgets.scrolledwindow import ScrolledWindow
 from shared.popup import PopupWindow
 from utils.app import AppUtils
 from utils.decorators import thread
+from utils.functions import ttl_lru_cache
 from utils.plugin_manager import (
     PluginResult,
     get_plugin_manager,
@@ -35,6 +36,46 @@ _PLUGIN_DEBOUNCE_MS = 150
 
 #: Minimum SequenceMatcher ratio for a fuzzy (non-substring) app match.
 _FUZZY_MATCH_THRESHOLD = 0.6
+
+
+@ttl_lru_cache(seconds_to_live=3600, maxsize=4096)
+def _score_app_match(app: DesktopApp, query_lower: str) -> float:
+    """Return a match score for *app* against a lowercased query.
+
+    ``0.0`` means no match. Substring matches score highest (with a bonus
+    for word-boundary prefixes); otherwise an ordered subsequence match
+    via :func:`difflib.SequenceMatcher` is accepted above a similarity
+    threshold, so "ffx" still finds Firefox but "xyz" doesn't.
+
+    TTL-cached per (app, query): the same query is re-scored on every
+    Tab-autocomplete step and on repeat viewport arrangements, so caching
+    avoids recomputing SequenceMatcher ratios over all apps each time.
+    """
+    if not query_lower:
+        return 0.0
+    text = (
+        (app.display_name or "")
+        + " "
+        + (app.name or "")
+        + " "
+        + (app.generic_name or "")
+    ).casefold()
+
+    if query_lower in text:
+        idx = text.find(query_lower)
+        if idx == 0 or (idx > 0 and text[idx - 1].isspace()):
+            return 110.0  # starts a word (e.g. "fire" finds "Firefox")
+        return 100.0
+
+    # Fuzzy fallback: per-field, so long generic names don't dilute it.
+    best = 0.0
+    for field in (app.display_name, app.name, app.generic_name):
+        if not field:
+            continue
+        ratio = SequenceMatcher(None, query_lower, field.casefold()).ratio()
+        if ratio >= _FUZZY_MATCH_THRESHOLD:
+            best = max(best, ratio)
+    return best * 100.0
 
 
 class LauncherConfig:
@@ -504,36 +545,9 @@ class Launcher(PopupWindow):
     def _match_score(app: DesktopApp, query_lower: str) -> float:
         """Return a match score for *app* against a lowercased query.
 
-        ``0.0`` means no match. Substring matches score highest (with a bonus
-        for word-boundary prefixes); otherwise an ordered subsequence match
-        via :func:`difflib.SequenceMatcher` is accepted above a similarity
-        threshold, so "ffx" still finds Firefox but "xyz" doesn't.
+        Thin wrapper over the TTL-cached :func:`_score_app_match`.
         """
-        if not query_lower:
-            return 0.0
-        text = (
-            (app.display_name or "")
-            + " "
-            + (app.name or "")
-            + " "
-            + (app.generic_name or "")
-        ).casefold()
-
-        if query_lower in text:
-            idx = text.find(query_lower)
-            if idx == 0 or (idx > 0 and text[idx - 1].isspace()):
-                return 110.0  # starts a word (e.g. "fire" finds "Firefox")
-            return 100.0
-
-        # Fuzzy fallback: per-field, so long generic names don't dilute it.
-        best = 0.0
-        for field in (app.display_name, app.name, app.generic_name):
-            if not field:
-                continue
-            ratio = SequenceMatcher(None, query_lower, field.casefold()).ratio()
-            if ratio >= _FUZZY_MATCH_THRESHOLD:
-                best = max(best, ratio)
-        return best * 100.0
+        return _score_app_match(app, query_lower)
 
     def _filter_applications(self, query: str) -> tuple[Iterator[DesktopApp], bool]:
         """Filter applications by query and return iterator + resize hint.

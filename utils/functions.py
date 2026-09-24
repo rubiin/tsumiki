@@ -793,13 +793,6 @@ def convert_seconds_to_milliseconds(seconds: int) -> int:
     return seconds * 1000
 
 
-# Function to check if an icon exists, otherwise use a fallback icon
-def check_icon_exists(icon_name: str, fallback_icon: str) -> str:
-    if Gtk.IconTheme.get_default().has_icon(icon_name):
-        return icon_name
-    return fallback_icon
-
-
 # Set the scale's adjustment
 def set_scale_adjustment(
     scale, min_value: float = 0, max_value: float = 100, steps: float = 1
@@ -849,10 +842,6 @@ def char_limit_to_px(label_widget, char_limit: int) -> int:
 ## Function to execute a shell command asynchronously
 def kill_process(process_name: str):
     exec_shell_command_async(f"pkill {process_name}", lambda *_: None)
-
-
-def add_style_class_lazy(widget: Gtk.Widget, class_name: str | Iterable[str]) -> int:
-    return GLib.timeout_add(50, lambda: widget.add_style_class(class_name) or False)
 
 
 def lazy_load_class(module_name: str, class_name: str):
@@ -1233,6 +1222,7 @@ def ensure_directory(path: str):
 
 
 # Function to check if an app is running
+@ttl_lru_cache(seconds_to_live=2, maxsize=32)
 def is_app_running(app_name: str) -> bool:
     return bool(exec_shell_command(f"pidof {app_name}"))
 

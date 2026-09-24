@@ -217,6 +217,23 @@ def get_notification_image_pixbuf(
         return None
 
 
+# Function to resolve a notification's app icon to a pixbuf, safely
+def resolve_notification_icon(notification, size: int = 25):
+    """Resolve a notification's app icon to a pixbuf.
+
+    Uses the app icon name when present, falling back to the app id via the
+    shared ``IconResolver`` (single source of truth for the fallback chain).
+    """
+    if notification is None:
+        return None
+    return IconResolver().resolve_icon(
+        None,
+        getattr(notification, "app_icon", None) or "",
+        getattr(notification, "app_name", None) or "",
+        size,
+    )
+
+
 # Function to get the widget class dynamically
 def lazy_load_widget(widget_name: str, widgets_list):
     if widget_name in widgets_list:
