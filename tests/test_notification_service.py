@@ -1,3 +1,4 @@
+import json
 import os
 import tempfile
 import unittest
@@ -40,6 +41,11 @@ def make_notification(
         hints[sync_hint] = GLib.Variant("s", sync_value)
     notification._hints = GLib.Variant("a{sv}", hints)
     return notification
+
+
+def run_inline(func, *args, **kwargs):
+    """Run a thread-pool submission synchronously so tests stay deterministic."""
+    return func(*args, **kwargs)
 
 
 class CustomNotificationsTest(unittest.TestCase):
@@ -101,17 +107,20 @@ class CustomNotificationsTest(unittest.TestCase):
         self.assertEqual(self.service._synchronous_ids["progress-key"], 1)
 
     def test_private_sync_hint_keys_also_replace(self):
-        for hint in ("private-synchronous", "x-canonical-private-synchronous"):
-            with self.subTest(hint=hint):
-                service = CustomNotifications()
-                service.cache_notification(
-                    {}, make_notification(sync_hint=hint, summary="old"), 100
-                )
-                service.cache_notification(
-                    {}, make_notification(sync_hint=hint, summary="new"), 100
-                )
-                self.assertEqual(len(service.all_notifications), 1)
-                self.assertEqual(service.all_notifications[0]["summary"], "new")
+        # Writes are drained inline so the service rebuilt on each iteration sees
+        # the previously persisted entry.
+        with mock.patch("services.custom_notification.thread", side_effect=run_inline):
+            for hint in ("private-synchronous", "x-canonical-private-synchronous"):
+                with self.subTest(hint=hint):
+                    service = CustomNotifications()
+                    service.cache_notification(
+                        {}, make_notification(sync_hint=hint, summary="old"), 100
+                    )
+                    service.cache_notification(
+                        {}, make_notification(sync_hint=hint, summary="new"), 100
+                    )
+                    self.assertEqual(len(service.all_notifications), 1)
+                    self.assertEqual(service.all_notifications[0]["summary"], "new")
 
     def test_replacement_does_not_advance_count(self):
         self.service.cache_notification({}, make_notification(summary="old"), 100)
@@ -157,11 +166,13 @@ class CustomNotificationsTest(unittest.TestCase):
         self.assertEqual(self.service.count, 1)
 
     def test_sync_map_restored_from_cache(self):
-        self.service.cache_notification(
-            {}, make_notification(sync_hint="synchronous", summary="old"), 100
-        )
-
-        restored = CustomNotifications()
+        # Persistence is off-thread, so drain queued writes before rebuilding
+        # the service from the cache file.
+        with mock.patch("services.custom_notification.thread", side_effect=run_inline):
+            self.service.cache_notification(
+                {}, make_notification(sync_hint="synchronous", summary="old"), 100
+            )
+            restored = CustomNotifications()
         self.assertEqual(restored._synchronous_ids, {"progress-key": 1})
 
         restored.cache_notification(
@@ -194,6 +205,73 @@ class CustomNotificationsTest(unittest.TestCase):
 
         self.assertNotIn(1, self.service._notifications)
         self.assertEqual(len(self.service.all_notifications), 1)
+
+    def test_cache_notification_does_not_deserialize_history(self):
+        """Adding a notification must not re-deserialize the whole history."""
+        self.service.cache_notification({}, make_notification(summary="first"), 100)
+
+        with mock.patch.object(
+            self.service,
+            "_deserialize_notification",
+            wraps=self.service._deserialize_notification,
+        ) as deserialize:
+            self.service.cache_notification(
+                {}, make_notification(summary="second"), 100
+            )
+
+        deserialize.assert_not_called()
+
+    def test_persistence_is_off_thread_and_coalesced(self):
+        submitted = []
+
+        def fake_thread(target, *args, **kwargs):
+            submitted.append(target)
+            return mock.Mock()
+
+        with mock.patch("services.custom_notification.thread", side_effect=fake_thread):
+            for summary in ("a", "b", "c"):
+                self.service.cache_notification(
+                    {}, make_notification(summary=summary), 100
+                )
+
+        # One writer is queued and nothing was written on the calling thread.
+        self.assertEqual(len(submitted), 1)
+        self.assertFalse(os.path.exists(self._cache_file))
+
+        # Draining the writer persists the newest snapshot in order.
+        submitted[0]()
+        with open(self._cache_file, encoding="utf-8") as handle:
+            persisted = json.load(handle)
+        self.assertEqual([n["summary"] for n in persisted], ["a", "b", "c"])
+
+    def test_persist_failure_does_not_wedge_writer(self):
+        """A failed write must not disable persistence for good."""
+        submitted = []
+
+        def capture(target, *args, **kwargs):
+            submitted.append(target)
+            return mock.Mock()
+
+        with (
+            mock.patch(
+                "services.custom_notification.json.dump",
+                side_effect=ValueError("bad"),
+            ),
+            mock.patch("services.custom_notification.thread", side_effect=capture),
+        ):
+            self.service.cache_notification({}, make_notification(summary="a"), 100)
+            # Invoke the worker directly, the way the pool would: an escaping
+            # error would leave the running flag set and drop later writes.
+            submitted[0]()
+
+        self.assertFalse(self.service._persist_running)
+
+        with mock.patch("services.custom_notification.thread", side_effect=run_inline):
+            self.service.cache_notification({}, make_notification(summary="b"), 100)
+
+        with open(self._cache_file, encoding="utf-8") as handle:
+            persisted = json.load(handle)
+        self.assertEqual([n["summary"] for n in persisted], ["a", "b"])
 
 
 if __name__ == "__main__":

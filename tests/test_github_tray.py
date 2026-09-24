@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import tempfile
 import time
@@ -260,7 +261,7 @@ class MenuCacheTests(unittest.TestCase):
 
     def test_save_then_read_within_ttl(self):
         now = time.time()
-        tray_state.save_menu_cache(self.cache_path, self.payload, now=now)
+        tray_state.save_menu_cache(self.cache_path, self.payload, now=now).result()
         cached = tray_state.read_menu_cache(self.cache_path, ttl=3600, now=now + 60)
         self.assertIsNotNone(cached)
         payload, age = cached
@@ -269,14 +270,14 @@ class MenuCacheTests(unittest.TestCase):
 
     def test_read_after_ttl_returns_none(self):
         now = time.time()
-        tray_state.save_menu_cache(self.cache_path, self.payload, now=now)
+        tray_state.save_menu_cache(self.cache_path, self.payload, now=now).result()
         self.assertIsNone(
             tray_state.read_menu_cache(self.cache_path, ttl=3600, now=now + 3601)
         )
 
     def test_ttl_zero_disables_cache(self):
         now = time.time()
-        tray_state.save_menu_cache(self.cache_path, self.payload, now=now)
+        tray_state.save_menu_cache(self.cache_path, self.payload, now=now).result()
         self.assertIsNone(
             tray_state.read_menu_cache(self.cache_path, ttl=0, now=now + 1)
         )
@@ -287,12 +288,21 @@ class MenuCacheTests(unittest.TestCase):
             handle.write("not json")
         self.assertIsNone(tray_state.read_menu_cache(self.cache_path, ttl=3600))
         # Fresh file without a valid payload is ignored too.
-        tray_state.save_state_file(self.cache_path, {"cached_at": time.time()})
+        tray_state.save_state_file(self.cache_path, {"cached_at": time.time()}).result()
         self.assertIsNone(tray_state.read_menu_cache(self.cache_path, ttl=3600))
+
+    def test_save_state_file_is_offloaded_to_thread_pool(self):
+        """Widget state writes must not run on the caller's thread."""
+        with mock.patch("widgets.github_tray.state.thread") as pooled:
+            future = tray_state.save_state_file(self.cache_path, {"a": 1})
+
+        pooled.assert_called_once()
+        self.assertIs(future, pooled.return_value)
+        self.assertFalse(os.path.exists(self.cache_path))
 
     def test_clock_skew_backwards_is_not_fresh(self):
         now = time.time()
-        tray_state.save_menu_cache(self.cache_path, self.payload, now=now)
+        tray_state.save_menu_cache(self.cache_path, self.payload, now=now).result()
         # A cache stamped in the future must never be treated as fresh.
         self.assertIsNone(
             tray_state.read_menu_cache(self.cache_path, ttl=3600, now=now - 60)

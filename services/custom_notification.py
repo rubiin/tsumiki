@@ -10,6 +10,7 @@ from utils.constants import (
     NOTIFICATION_CACHE_FILE,
     NOTIFICATION_IMAGE_SIZE,
 )
+from utils.decorators import thread
 from utils.functions import read_json_file, write_json_file
 from utils.widget_utils import get_notification_image_pixbuf
 
@@ -69,6 +70,11 @@ class CustomNotifications(Notifications):
         self._pixbuf_cache: dict[int, dict[int, GdkPixbuf.Pixbuf]] = {}
         # Sync-hint map: {sync key: last notification id} (SwayNC parity).
         self._synchronous_ids: dict[str, int] = {}
+        # Coalesced background persistence: history is large and rewritten on
+        # every change, so the write never runs on the caller's thread.
+        self._persist_lock = threading.Lock()
+        self._persist_pending = False
+        self._persist_running = False
         self._load_notifications()
 
     def _load_notifications(self):
@@ -222,8 +228,6 @@ class CustomNotifications(Notifications):
         persisted history.
         """
         with self._lock:
-            self._cleanup_invalid_notifications()
-
             target_id = self._replacement_target_id(data)
             if target_id is not None:
                 self._replace_notification_in_place(target_id, data)
@@ -312,32 +316,6 @@ class CustomNotifications(Notifications):
         self.cache_pixbuf_from_notification(target_id, data)
         self._persist_and_emit()
 
-    def _cleanup_invalid_notifications(self):
-        """Remove any invalid notifications."""
-
-        valid_notifications = []
-        invalid_count = 0
-
-        for notification in self.all_notifications:
-            try:
-                self._deserialize_notification(notification)
-                valid_notifications.append(notification)
-            except Exception as e:
-                msg = f"[Notification] Removing invalid: {str(e)[:50]}"
-                logger.exception(msg)
-                invalid_id = notification.get("id", 0)
-                self.emit("notification-closed", invalid_id, "dismissed-by-limit")
-                invalid_count += 1
-
-        if invalid_count > 0:
-            self.all_notifications = valid_notifications
-            self._persist_and_emit()
-            del valid_notifications
-            logger.info(
-                f"{Colors.INFO}[Notification] Cleaned "
-                f"{invalid_count} invalid notifications"
-            )
-
     def _create_serialized_notification(self, data: Notification) -> dict:
         """Generate a new notification with a unique ID."""
         self._count += 1
@@ -386,13 +364,53 @@ class CustomNotifications(Notifications):
         return Notification.deserialize(notification)
 
     def _persist_and_emit(self):
-        """Persist notifications synchronously, then emit signals."""
-        try:
-            with open(NOTIFICATION_CACHE_FILE, "w") as f:
-                json.dump(self.all_notifications, f, indent=4, ensure_ascii=False)
-        except (IOError, OSError, TypeError) as e:
-            logger.exception(f"Failed to persist notifications: {e}")
+        """Queue a background write of the history, then emit signals.
+
+        The write is coalesced: notification bursts (e.g. progress updates that
+        replace each other) only mark the snapshot dirty instead of stacking up
+        one full-history rewrite per notification.
+        """
+        self._schedule_persist()
         self.emit("notification_count", len(self.all_notifications))
+
+    def _schedule_persist(self):
+        """Start the writer thread unless one is already draining the queue."""
+        with self._persist_lock:
+            self._persist_pending = True
+            if self._persist_running:
+                return
+            self._persist_running = True
+        try:
+            thread(self._persist_loop)
+        except Exception as e:
+            # Submission can fail once the pool is shut down (interpreter
+            # exit); releasing the flag keeps later writes from being dropped.
+            with self._persist_lock:
+                self._persist_running = False
+            logger.exception(f"Failed to schedule notifications persist: {e}")
+
+    def _persist_loop(self):
+        """Write the latest snapshot, looping while newer writes are queued.
+
+        Running on a single worker keeps the file's final content in sync with
+        the newest in-memory state, even under bursts.
+        """
+        while True:
+            with self._persist_lock:
+                if not self._persist_pending:
+                    self._persist_running = False
+                    return
+                self._persist_pending = False
+                # Entries are replaced wholesale, never mutated in place, so a
+                # shallow copy is a stable snapshot for the write below.
+                snapshot = list(self.all_notifications)
+            try:
+                with open(NOTIFICATION_CACHE_FILE, "w") as f:
+                    json.dump(snapshot, f, indent=4, ensure_ascii=False)
+            except Exception as e:
+                # A failed write must never escape: the flag reset below only
+                # happens on ``return``, so escaping would wedge persistence.
+                logger.exception(f"Failed to persist notifications: {e}")
 
     def clear_all_notifications(self):
         """Empty the notifications (thread-safe)."""

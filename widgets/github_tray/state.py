@@ -6,7 +6,10 @@ semantics, repository sorting, mapping parsing and alert diffing.
 from __future__ import annotations
 
 import json
+from concurrent.futures import Future
 from datetime import datetime, timezone
+
+from utils.decorators import thread
 
 # Nerd Font (Material Design) glyphs referenced by codepoint so they survive
 # editors/tooling that strip private-use characters.
@@ -394,7 +397,7 @@ def load_state_file(path: str) -> dict:
         return {}
 
 
-def save_state_file(path: str, data: dict) -> None:
+def _write_state_file(path: str, data: dict) -> None:
     import os
 
     try:
@@ -406,13 +409,18 @@ def save_state_file(path: str, data: dict) -> None:
         pass
 
 
-def save_menu_cache(path: str, payload: dict, now: float | None = None) -> None:
+def save_state_file(path: str, data: dict) -> Future[None]:
+    """Queue a state write on the thread pool so callers never block on disk."""
+    return thread(_write_state_file, path, data)
+
+
+def save_menu_cache(path: str, payload: dict, now: float | None = None) -> Future[None]:
     """Persist a menu payload (profile + repos) tagged with the current time."""
     import time
 
     if now is None:
         now = time.time()
-    save_state_file(path, {"cached_at": now, "payload": payload})
+    return save_state_file(path, {"cached_at": now, "payload": payload})
 
 
 def read_menu_cache(
