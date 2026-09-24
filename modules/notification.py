@@ -652,9 +652,7 @@ class NotificationRevealer(Revealer):
     def _bind_closed_handler(self):
         """Watch ``closed`` on the current notification, dropping any old link."""
         self._unbind_closed_handler()
-        self._closed_handler_id = self._notification.connect(
-            "closed", self.on_resolved
-        )
+        self._closed_handler_id = self._notification.connect("closed", self.on_resolved)
 
     def _unbind_closed_handler(self):
         """Disconnect the ``closed`` handler from the current notification."""

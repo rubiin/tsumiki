@@ -498,7 +498,7 @@ command = "firefox"
 **Implementation layers (all must be kept in sync):**
 
 1. **Schema** (`tsumiki.schema.json`): Patterns use `^@type:[\\w-]+$` to accept both numeric and string ids. Each collection item has an optional `"id"` string property.
-2. **Python validation** (`utils/functions.py` and `utils/validation.py`): `_validate_indexed_reference()` checks `identifier.isdigit()` first for backward compat, then falls back to id lookup for supported collection names.
+2. **Python validation** (`utils/validation.py`): `_validate_indexed_reference()` does string `id` lookup first for the id-supporting collection names (so all-digit ids like `"2024"` resolve), then falls back to numeric index interpretation.
 3. **Runtime resolution** (`utils/widget_factory.py`): `IndexedWidgetHelper.validate_and_get_index()` does generic id lookup for all types without collection-name restriction.
 4. **TypedDict** (`utils/widget_settings.py`): Each indexed type's TypedDict includes an optional `"id": str` field.
 5. **Config examples** (`config.toml`, `example/config.toml`): Should include `id` fields in collection items and use string references in layout sections.

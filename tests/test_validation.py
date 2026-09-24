@@ -14,6 +14,7 @@ from utils.validation import (
     _schema_type_matches,
     _validate_indexed_reference,
     _validate_schema_enums,
+    validate_config_enums,
     validate_format_strings,
     validate_widget_reference,
     validate_widgets,
@@ -452,6 +453,46 @@ class ValidateWidgetsTest(unittest.TestCase):
         }
         with self.assertRaises(ValueError):
             validate_widgets(parsed, self.DEFAULT)
+
+
+class SingleSourceTest(unittest.TestCase):
+    """Validation must live in exactly one place.
+
+    ``utils/config.py`` used to import its validators from ``utils.functions``
+    while this suite imported them from ``utils.validation``, so the two copies
+    drifted and the tests covered a module the application never loaded.
+    """
+
+    VALIDATION_NAMES: ClassVar[tuple[str, ...]] = (
+        "validate_config_enums",
+        "validate_widgets",
+        "validate_widget_reference",
+        "validate_format_strings",
+        "_validate_schema_enums",
+        "_validate_indexed_reference",
+        "_get_config_collection",
+        "_has_named_custom_widget",
+        "_get_named_format_keys",
+        "_resolve_schema_ref",
+        "_schema_type_matches",
+    )
+
+    def test_config_uses_this_module(self):
+        """The application must validate with the implementation tested here."""
+        import utils.config as config
+
+        self.assertIs(config.validate_config_enums, validate_config_enums)
+        self.assertIs(config.validate_widgets, validate_widgets)
+
+    def test_functions_module_holds_no_validation(self):
+        """``utils.functions`` must not define or re-export validators."""
+        import utils.functions as functions
+
+        for name in self.VALIDATION_NAMES:
+            self.assertFalse(
+                hasattr(functions, name),
+                f"utils.functions.{name} duplicates utils.validation.{name}",
+            )
 
 
 if __name__ == "__main__":

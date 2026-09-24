@@ -195,16 +195,31 @@ def _validate_indexed_reference(
 ) -> int:
     """Helper function to validate indexed references (groups, buttons, etc.).
 
-    Supports both numeric indices and string-based ``id`` lookup for
-    collapsible groups.  When *collection_name* is ``"collapsible group"``
-    and the identifier is not a digit, it searches for an item whose
-    ``id`` property matches.
+    Supports both numeric indices and string-based ``id`` lookup.  For
+    supported collection types, string ``id`` matching takes priority over
+    numeric index interpretation so that all-digit ids like ``"2024"``
+    resolve correctly when a matching ``id`` field exists.
     """
+    if not isinstance(collection, list):
+        raise ValueError(f"{collection_name} must be an array")
+
+    # For supported collection types, try string id lookup first. This takes
+    # priority over numeric index interpretation so that all-digit ids
+    # (e.g. id = "2024") work correctly.
+    supports_id_lookup = collection_name in (
+        "collapsible group",
+        "custom widget",
+        "custom button",
+        "widget group",
+    )
+    if supports_id_lookup:
+        for idx, item in enumerate(collection):
+            if isinstance(item, dict) and item.get("id") == identifier:
+                return idx
+
+    # Fall back to numeric index lookup
     if identifier.isdigit():
         idx = int(identifier)
-
-        if not isinstance(collection, list):
-            raise ValueError(f"{collection_name} must be an array")
 
         if not (0 <= idx < len(collection)):
             raise ValueError(
@@ -215,17 +230,7 @@ def _validate_indexed_reference(
 
         return idx
 
-    # String-based id lookup (supported for collapsible groups, custom widgets,
-    # custom buttons, and widget groups)
-    if collection_name in (
-        "collapsible group",
-        "custom widget",
-        "custom button",
-        "widget group",
-    ):
-        for idx, item in enumerate(collection):
-            if isinstance(item, dict) and item.get("id") == identifier:
-                return idx
+    if supports_id_lookup:
         raise ValueError(
             f"No {collection_name} with id '{identifier}' found in section {section}."
         )
@@ -410,7 +415,10 @@ def validate_widgets(parsed_data, default_config):
         if isinstance(groups, list):
             for idx, group in enumerate(groups):
                 if isinstance(group, dict) and "widgets" in group:
-                    for widget in group["widgets"]:
+                    widgets = group["widgets"]
+                    if not isinstance(widgets, (list, tuple)):
+                        continue
+                    for widget in widgets:
                         validate_widget_reference(
                             widget, parsed_data, default_config, f"{group_type}[{idx}]"
                         )

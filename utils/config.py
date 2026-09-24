@@ -1,11 +1,14 @@
 from fabric.utils import get_relative_path, logger, os
 
+from utils.validation import (
+    validate_config_enums,
+    validate_widgets,
+)
+
 from .constants import APPLICATION_NAME, DEFAULT_CONFIG
 from .functions import (
     deep_merge,
     read_toml_file,
-    validate_config_enums,
-    validate_widgets,
 )
 from .widget_settings import BarConfig
 
