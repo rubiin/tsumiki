@@ -6,12 +6,11 @@ from fabric.widgets.box import Box
 from fabric.widgets.button import Button
 from fabric.widgets.centerbox import CenterBox
 from fabric.widgets.label import Label
-from fabric.widgets.scrolledwindow import ScrolledWindow
 
 from services import bluetooth_service
 from shared.buttons import HoverButton, QSChevronButton, ScanButton
 from shared.list import ListBox
-from shared.submenu import QuickSubMenu
+from shared.submenu import QuickSubMenu, scrolled_list_content
 from utils.i18n import _
 from utils.icons import get_text_icon
 from utils.widget_utils import nerd_font_icon
@@ -148,19 +147,15 @@ class BluetoothSubMenu(QuickSubMenu):
         self.scan_button = ScanButton()
         self.scan_button.connect("clicked", self.on_scan_toggle)
 
-        self.child = ScrolledWindow(
-            min_content_size=(-1, 120),
-            max_content_size=(-1, 260),
-            # propagate_width=False keeps long device names from widening the popup.
-            propagate_width=False,
-            propagate_height=True,
-            child=Box(
+        self.child = scrolled_list_content(
+            Box(
                 orientation="v",
                 children=[
                     self.paired_devices_container,
                     self.available_devices_container,
                 ],
             ),
+            min_height=120,
         )
 
         super().__init__(

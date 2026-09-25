@@ -2,9 +2,35 @@ from fabric.widgets.box import Box
 from fabric.widgets.button import Button
 from fabric.widgets.label import Label
 from fabric.widgets.revealer import Revealer
+from fabric.widgets.scrolledwindow import ScrolledWindow
 from fabric.widgets.widget import Widget
 
 from utils.widget_utils import nerd_font_icon
+
+
+def scrolled_list_content(
+    child: Widget,
+    *,
+    min_height: int = -1,
+    max_height: int = 260,
+    v_expand: bool = False,
+) -> ScrolledWindow:
+    """Wrap a submenu's list content in the shared scroll configuration.
+
+    ``propagate_width=False`` plus an automatic horizontal policy is what keeps
+    long labels from widening the popup - GTK3 ignores the policy entirely when
+    it is set to "never", so it has to stay "automatic".
+    """
+    return ScrolledWindow(
+        min_content_size=(-1, min_height),
+        max_content_size=(-1, max_height),
+        propagate_width=False,
+        propagate_height=True,
+        v_expand=v_expand,
+        h_scrollbar_policy="automatic",
+        v_scrollbar_policy="automatic",
+        child=child,
+    )
 
 
 class QuickSubMenu(Box):

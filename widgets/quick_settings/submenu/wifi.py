@@ -6,12 +6,11 @@ from fabric.utils import GObject, Gtk, bulk_connect, logger
 from fabric.widgets.button import Button
 from fabric.widgets.centerbox import CenterBox
 from fabric.widgets.label import Label
-from fabric.widgets.scrolledwindow import ScrolledWindow
 
 from services.network import NetworkService, Wifi
 from shared.buttons import QSChevronButton, ScanButton
 from shared.list import ListBox
-from shared.submenu import QuickSubMenu
+from shared.submenu import QuickSubMenu, scrolled_list_content
 from utils.exceptions import NetworkManagerNotFoundError
 from utils.i18n import _
 from utils.icons import get_text_icon, network_icon_to_text_icons
@@ -42,17 +41,8 @@ class WifiSubMenu(QuickSubMenu):
             sensitive=False,
         )
 
-        self.child = ScrolledWindow(
-            min_content_size=(-1, 120),
-            max_content_size=(-1, 260),
-            # propagate_width=False keeps long SSIDs from widening the popup.
-            # Policy must stay "automatic": GTK3 ignores it when "never".
-            propagate_width=False,
-            propagate_height=True,
-            v_expand=True,
-            v_scrollbar_policy="automatic",
-            h_scrollbar_policy="automatic",
-            child=self.available_networks_listbox,
+        self.child = scrolled_list_content(
+            self.available_networks_listbox, min_height=120, v_expand=True
         )
 
         super().__init__(

@@ -2,11 +2,10 @@ from fabric.utils import Gtk
 from fabric.widgets.box import Box
 from fabric.widgets.image import Image
 from fabric.widgets.label import Label
-from fabric.widgets.scrolledwindow import ScrolledWindow
 
 from services import audio_service
 from shared.list import ListBox
-from shared.submenu import QuickSubMenu
+from shared.submenu import QuickSubMenu, scrolled_list_content
 from utils.i18n import _
 from utils.icons import get_text_icon, symbolic_icons
 from widgets.quick_settings.sliders.audio import AudioSlider
@@ -28,19 +27,9 @@ class AudioSubMenu(QuickSubMenu):
             style_classes="menu",
         )
 
-        # Wrap in scrolled window sized to its content, so the sliders fit
-        # without a scrollbar until there are many apps.
-        self.child = ScrolledWindow(
-            min_content_size=(-1, -1),
-            max_content_size=(-1, 320),
-            propagate_width=False,
-            propagate_height=True,
-            # AUTOMATIC + propagate_width=False keeps long app names from
-            # widening the popup (rows ellipsize instead).
-            h_scrollbar_policy="automatic",
-            v_scrollbar_policy="automatic",
-            child=self.app_list,
-        )
+        # Sized to its content, so the sliders fit without a scrollbar until
+        # there are many apps.
+        self.child = scrolled_list_content(self.app_list, max_height=320)
 
         # Initialize parent with our components
         super().__init__(
