@@ -3,10 +3,10 @@ from contextlib import suppress
 from typing import Callable, Optional
 
 import httpx
-from fabric.utils import idle_add, logger, os, time
+from fabric.utils import logger, os, time
 
 from utils.constants import WEATHER_CACHE_FILE
-from utils.decorators import thread
+from utils.decorators import run_worker_with_idle
 from utils.functions import convert_to_12hr_format, read_json_file, write_json_file
 
 from .base import SingletonService
@@ -338,16 +338,6 @@ class WeatherService(SingletonService):
 
         return weather
 
-    def _weather_worker(
-        self,
-        location: str,
-        ttl: int,
-        refresh: bool,
-        callback: Callable[[Optional[dict]], None],
-    ):
-        result = self.get_weather(location, ttl=ttl, refresh=refresh)
-        idle_add(callback, result)
-
     def get_weather_async(
         self,
         location: str,
@@ -355,7 +345,9 @@ class WeatherService(SingletonService):
         ttl: int = 3600,
         refresh: bool = False,
     ):
-        thread(self._weather_worker, location, ttl, refresh, callback)
+        run_worker_with_idle(
+            self.get_weather, callback, location, ttl=ttl, refresh=refresh
+        )
 
     def set_provider(self, provider: str):
         """Set the weather API provider ('open-meteo' or 'wttr')."""

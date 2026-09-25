@@ -1,9 +1,10 @@
 import random
 from typing import Callable, Optional
 
-from fabric.utils import idle_add, logger, os, time
+from fabric.utils import logger, os, time
 
 from utils.constants import QUOTES_CACHE_FILE
+from utils.decorators import run_worker_with_idle
 from utils.functions import read_json_file, write_json_file
 
 from .base import SingletonService
@@ -54,14 +55,8 @@ class QuotesService(SingletonService):
 
         return random.choice(quotes) if quotes else None
 
-    def _quotes_worker(self, callback: Callable[[Optional[dict]], None]):
-        result = self.get_quotes()
-        idle_add(callback, result)
-
     def get_quotes_async(
         self,
         callback: Callable[[Optional[dict]], None],
     ):
-        from utils.decorators import thread
-
-        thread(self._quotes_worker, callback)
+        run_worker_with_idle(self.get_quotes, callback)

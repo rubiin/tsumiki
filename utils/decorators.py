@@ -86,6 +86,31 @@ def thread(target: Callable[..., T], *args: Any, **kwargs: Any) -> Any:
     return _get_thread_pool().submit(target, *args, **kwargs)
 
 
+def run_worker_with_idle(
+    worker: Callable[..., T],
+    callback: Callable[[T], Any],
+    *args: Any,
+    **kwargs: Any,
+) -> Any:
+    """Run *worker* on the thread pool and deliver its return value to *callback*.
+
+    The result is handed over with ``GLib.idle_add`` because a worker thread
+    must not touch widgets. Returns the Future, so a caller that needs to wait
+    on the work can still do so.
+
+    Only for workers that just compute a value. A worker that has to report
+    failure, or that finishes by scheduling its own completion callback, needs
+    to keep its own ``idle_add`` calls.
+    """
+
+    def _run() -> T:
+        result = worker(*args, **kwargs)
+        GLib.idle_add(callback, result)
+        return result
+
+    return thread(_run)
+
+
 def run_in_thread(func: Callable[..., T]) -> Callable[..., Any]:
     """
     Decorator to run the decorated function in the thread pool.
