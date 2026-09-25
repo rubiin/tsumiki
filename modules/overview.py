@@ -1,6 +1,6 @@
 from contextlib import suppress
 
-from fabric.utils import Gdk, GLib, Gtk, logger
+from fabric.utils import Gdk, Gtk, logger
 from fabric.widgets.box import Box
 from fabric.widgets.button import Button
 from fabric.widgets.eventbox import EventBox
@@ -10,8 +10,8 @@ from fabric.widgets.label import Label
 from fabric.widgets.overlay import Overlay
 
 from shared.popup import PopupWindow
+from shared.widget_container import TeardownMixin
 from utils.app import AppUtils
-from utils.functions import safe_disconnect
 from utils.hyprland import HyprlandClient, hyprland_service
 from utils.icon_resolver import IconResolver
 from utils.widget_settings import BarConfig
@@ -160,8 +160,10 @@ class WorkspaceEventBox(EventBox):
             fixed.show_all()
 
 
-class OverviewMenu(Box):
+class OverviewMenu(Box, TeardownMixin):
     """A widget to show the overview of all workspaces and windows."""
+
+    _UPDATE_TIMER = "update"
 
     def __init__(self, **kwargs):
         # Initialize as a Box instead of a PopupWindow.
@@ -170,7 +172,6 @@ class OverviewMenu(Box):
         self.workspace_overlays: dict[int, WorkspaceEventBox] = {}
         self.clients: dict[str, HyprlandWindowButton] = {}
         self._client_meta: dict[str, tuple] = {}
-        self._update_source_id: int | None = None
         self._update_generation: int = 0
         self._destroyed: bool = False
         self._fetched_monitors: dict = {}
@@ -178,13 +179,15 @@ class OverviewMenu(Box):
         self._service = hyprland_service
         self._app_util = None  # Lazy-load on first access
         self._app_cache_dirty = False
-        self._handler_ids: list[int] = []
 
-        self._handler_ids = [
-            self._service.connect("event::openwindow", self._schedule_update),
-            self._service.connect("event::closewindow", self._schedule_update),
-            self._service.connect("event::movewindow", self._schedule_update),
-        ]
+        self._register_handlers(
+            self._service,
+            {
+                "event::openwindow": self._schedule_update,
+                "event::closewindow": self._schedule_update,
+                "event::movewindow": self._schedule_update,
+            },
+        )
 
         self.connect("destroy", self._on_destroy)
         self._init_grid()
@@ -215,16 +218,10 @@ class OverviewMenu(Box):
 
     def _on_destroy(self, *_):
         self._destroyed = True
-        # A pending debounce outlives the widget and would rebuild a destroyed
-        # grid, so drop the source rather than let it fire.
-        if self._update_source_id is not None:
-            GLib.source_remove(self._update_source_id)
-            self._update_source_id = None
         # Bump the generation so a fetch already in flight is treated as stale
-        # and never reaches the torn-down widgets.
+        # and never reaches the torn-down widgets. The pending debounce and the
+        # Hyprland connections are dropped by TeardownMixin.
         self._update_generation += 1
-        for hid in self._handler_ids:
-            safe_disconnect(self._service.connection, hid)
 
     @property
     def app_util(self) -> AppUtils:
@@ -240,12 +237,9 @@ class OverviewMenu(Box):
             self._app_cache_dirty = False
 
     def _schedule_update(self, *_):
-        if self._update_source_id is not None:
-            return
-        self._update_source_id = GLib.timeout_add(200, self._run_scheduled_update)
+        self._schedule_timeout(self._UPDATE_TIMER, 200, self._run_scheduled_update)
 
     def _run_scheduled_update(self):
-        self._update_source_id = None
         self.update(signal_update=True)
         return False
 

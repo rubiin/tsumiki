@@ -1,6 +1,6 @@
 from typing import Literal
 
-from fabric.utils import GLib, idle_add, remove_handler
+from fabric.utils import idle_add
 from fabric.widgets.box import Box
 from fabric.widgets.image import Image
 from fabric.widgets.label import Label
@@ -71,13 +71,15 @@ class GenericOSDContainer(Box, BaseWidget):
 class OSDContainer(BaseWindow):
     """A widget to display the OSD for audio and brightness."""
 
+    _HIDE_TIMER = "hide"
+    _FINALIZE_TIMER = "finalize-hide"
+
     def __init__(
         self,
         config: BarConfig,
         keyboard_mode: Keyboard_Mode = "none",
         **kwargs,
     ):
-        self.hide_timer_id = None
         self.config = config.get("modules", {}).get("osd", {})
 
         osds = self.config.get("osds", ["brightness", "volume"])
@@ -159,30 +161,22 @@ class OSDContainer(BaseWindow):
         self.set_visible(True)
 
         # Reset hide timer and pending finalize
-        if self.hide_timer_id is not None:
-            remove_handler(self.hide_timer_id)
-            self.hide_timer_id = None
-        if getattr(self, "_finalize_hide_id", None) is not None:
-            remove_handler(self._finalize_hide_id)
-            self._finalize_hide_id = None
+        self._cancel_timeout(self._HIDE_TIMER)
+        self._cancel_timeout(self._FINALIZE_TIMER)
 
         # Delay reveal to ensure animation plays
         idle_add(lambda: self.revealer.set_reveal_child(True))
 
-        self.hide_timer_id = GLib.timeout_add(self.timeout, self._hide)
+        self._schedule_timeout(self._HIDE_TIMER, self.timeout, self._hide)
 
     def _hide(self):
         self.revealer.set_reveal_child(False)  # Trigger hide animation
 
         # Wait for the animation to finish before hiding the window completely
         duration = self.revealer.get_transition_duration()
-        self._finalize_hide_id = self._register_repeater(
-            GLib.timeout_add(duration, self._finalize_hide)
-        )
+        self._schedule_timeout(self._FINALIZE_TIMER, duration, self._finalize_hide)
         return False
 
     def _finalize_hide(self):
         self.set_visible(False)
-        self.hide_timer_id = None
-        self._finalize_hide_id = None
         return False

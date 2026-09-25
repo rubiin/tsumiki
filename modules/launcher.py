@@ -262,6 +262,8 @@ class HandlerManager:
 class Launcher(PopupWindow):
     """Launcher widget for launching applications and commands."""
 
+    _PLUGIN_QUERY_TIMER = "plugin-query"
+
     def __init__(self, config: dict, **kwargs):
         # Initialize configuration with validation
         self.config = LauncherConfig(config)
@@ -288,7 +290,6 @@ class Launcher(PopupWindow):
         self._plugin_rows: list[Button] = []
         self._plugin_selected = 0
         self._plugin_gen = 0
-        self._plugin_query_timer = 0
         # Cancel the running plugin worker when a newer query supersedes it.
         self._active_plugin = None
 
@@ -665,13 +666,11 @@ class Launcher(PopupWindow):
 
     def _schedule_plugin_query(self, plugin, args: str, gen: int):
         """Debounce plugin dispatch; use the plugin's ``debounce_ms`` override."""
-        self._cancel_plugin_query_timer()
         # A newer query is superseding whatever is still in flight — cancel
         # it now so its subprocess/request is killed rather than wasted.
         self._cancel_active_plugin()
 
         def _fire() -> bool:
-            self._plugin_query_timer = 0
             plugin._reset_cancel()
             self._active_plugin = plugin
             thread(self._plugin_worker, plugin, args, gen)
@@ -682,13 +681,11 @@ class Launcher(PopupWindow):
             if plugin.debounce_ms and plugin.debounce_ms > 0
             else _PLUGIN_DEBOUNCE_MS
         )
-        self._plugin_query_timer = GLib.timeout_add(delay, _fire)
+        self._schedule_timeout(self._PLUGIN_QUERY_TIMER, delay, _fire, replace=True)
 
     def _cancel_plugin_query_timer(self):
         """Cancel a pending debounced plugin query, if any."""
-        if self._plugin_query_timer:
-            GLib.source_remove(self._plugin_query_timer)
-            self._plugin_query_timer = 0
+        self._cancel_timeout(self._PLUGIN_QUERY_TIMER)
 
     def _cancel_active_plugin(self):
         """Kill the in-flight plugin worker, if any."""

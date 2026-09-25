@@ -8,38 +8,61 @@ Built via ``__new__`` and stubs: real widget construction needs a display.
 import unittest
 from unittest import mock
 
-from modules import overview as overview_module
 from modules.overview import OverviewMenu
+from shared import widget_container as container
 
 
 def make_menu() -> OverviewMenu:
     """Build a bare OverviewMenu with only the teardown state initialised."""
     menu = OverviewMenu.__new__(OverviewMenu)
     menu._destroyed = False
-    menu._update_source_id = None
     menu._update_generation = 0
-    menu._handler_ids = []
+    menu._repeaters = []
+    menu._handlers = []
+    menu._timeouts = {}
     menu._service = mock.Mock()
     return menu
 
 
 class OverviewTeardownTest(unittest.TestCase):
     """Teardown must cancel the debounce and invalidate in-flight work."""
+
+    def test_schedule_update_arms_a_keyed_debounce(self):
+        menu = make_menu()
+
+        with mock.patch.object(container.GLib, "timeout_add", return_value=4242) as add:
+            menu._schedule_update()
+
+        add.assert_called_once()
+        self.assertEqual(200, add.call_args[0][0])
+        self.assertTrue(menu._has_timeout(OverviewMenu._UPDATE_TIMER))
+
+    def test_repeated_events_coalesce_into_one_debounce(self):
+        """Four window events must not queue four grid rebuilds."""
+        menu = make_menu()
+
+        with mock.patch.object(container.GLib, "timeout_add", return_value=4242) as add:
+            for _ in range(4):
+                menu._schedule_update()
+
+        add.assert_called_once()
+
     def test_pending_debounce_is_cancelled(self):
         menu = make_menu()
-        menu._update_source_id = 4242
+        with mock.patch.object(container.GLib, "timeout_add", return_value=4242):
+            menu._schedule_update()
 
-        with mock.patch.object(overview_module.GLib, "source_remove") as remove:
-            menu._on_destroy()
+        with mock.patch.object(container.GLib, "source_remove") as remove:
+            menu._teardown()
 
         remove.assert_called_once_with(4242)
-        self.assertIsNone(menu._update_source_id)
+        self.assertFalse(menu._has_timeout(OverviewMenu._UPDATE_TIMER))
 
     def test_no_source_remove_when_nothing_is_pending(self):
         menu = make_menu()
 
-        with mock.patch.object(overview_module.GLib, "source_remove") as remove:
-            menu._on_destroy()
+        with mock.patch.object(container.GLib, "source_remove") as remove:
+            menu._teardown()
 
         remove.assert_not_called()
 
@@ -62,15 +85,6 @@ class OverviewTeardownTest(unittest.TestCase):
             menu.update()
 
         refresh.assert_not_called()
-
-    def test_service_handlers_are_still_disconnected(self):
-        menu = make_menu()
-        menu._handler_ids = [1, 2]
-
-        with mock.patch.object(overview_module, "safe_disconnect") as disconnect:
-            menu._on_destroy()
-
-        self.assertEqual(2, disconnect.call_count)
 
 
 if __name__ == "__main__":

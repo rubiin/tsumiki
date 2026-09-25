@@ -10,6 +10,7 @@ from unittest import mock
 
 from modules import dock as dock_module
 from modules.dock import AppBar
+from shared import widget_container as container
 
 
 class FakeClient:
@@ -203,6 +204,62 @@ class DockEntryTest(unittest.TestCase):
 
         self.assertEqual({}, bar._running_app_boxes)
         bar.add.assert_not_called()
+
+
+class SyncSchedulingTest(unittest.TestCase):
+    """A pending debounce must win over an immediate sync request."""
+
+    def make_dock(self) -> AppBar:
+        dock = AppBar.__new__(AppBar)
+        dock._repeaters = []
+        dock._handlers = []
+        dock._timeouts = {}
+        dock._sync_clients = mock.Mock()
+        return dock
+
+    def test_an_event_arms_a_debounced_sync(self):
+        dock = self.make_dock()
+
+        with mock.patch.object(container.GLib, "timeout_add", return_value=7) as add:
+            dock._schedule_sync_clients()
+
+        add.assert_called_once()
+        self.assertEqual(dock_module.DOCK_SYNC_DEBOUNCE_MS, add.call_args[0][0])
+        dock._sync_clients.assert_not_called()
+
+    def test_zero_delay_syncs_immediately(self):
+        dock = self.make_dock()
+
+        with mock.patch.object(container.GLib, "timeout_add") as add:
+            dock._schedule_sync_clients(delay_ms=0)
+
+        add.assert_not_called()
+        dock._sync_clients.assert_called_once_with()
+
+    def test_zero_delay_does_not_duplicate_a_pending_debounce(self):
+        """_on_active_window_event asks for an immediate sync; the debounce
+        already armed will deliver the same thing."""
+        dock = self.make_dock()
+
+        with mock.patch.object(container.GLib, "timeout_add", return_value=7):
+            dock._schedule_sync_clients()
+            dock._schedule_sync_clients(delay_ms=0)
+
+        dock._sync_clients.assert_not_called()
+        self.assertTrue(dock._has_timeout(AppBar._SYNC_TIMER))
+
+    def test_the_debounce_fires_once_and_frees_the_key(self):
+        dock = self.make_dock()
+
+        with mock.patch.object(container.GLib, "timeout_add", return_value=7) as add:
+            dock._schedule_sync_clients()
+            dock._schedule_sync_clients()  # coalesces
+
+        add.assert_called_once()
+        add.call_args[0][1]()  # the main loop runs it
+
+        dock._sync_clients.assert_called_once_with()
+        self.assertFalse(dock._has_timeout(AppBar._SYNC_TIMER))
 
 
 if __name__ == "__main__":

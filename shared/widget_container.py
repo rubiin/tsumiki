@@ -55,14 +55,69 @@ class TeardownMixin:
             for signal, callback in signal_map.items()
         ]
 
+    def _timeout_store(self) -> dict[str, int]:
+        if not hasattr(self, "_timeouts"):
+            self._timeouts = {}
+        return self._timeouts
+
+    def _has_timeout(self, key: str) -> bool:
+        """True while a timer armed under *key* has not fired yet."""
+        return key in self._timeout_store()
+
+    def _schedule_timeout(
+        self,
+        key: str,
+        delay_ms: int,
+        callback: Callable[[], bool],
+        *,
+        replace: bool = False,
+    ) -> bool:
+        """Arm a one-shot timer under *key*; return whether it was armed.
+
+        A pending timer for the same key is left alone by default, which is
+        what a debounce wants: repeated events collapse into the one already
+        armed. Pass ``replace=True`` for a timer that must count from the
+        latest call.
+
+        The timer is tracked for teardown, so a widget cannot leak one by
+        forgetting to cancel it. A repeating poll re-arms itself from inside the
+        callback; *key* is free by then.
+        """
+        if self._has_timeout(key) and not replace:
+            return False
+        self._cancel_timeout(key)
+        self._timeout_store()[key] = GLib.timeout_add(
+            delay_ms, self._fire_timeout(key, callback)
+        )
+        return True
+
+    def _fire_timeout(self, key: str, callback: Callable[[], bool]):
+        def fire() -> bool:
+            # The source is spent once it fires: drop the key before running so
+            # a callback that re-arms the same key is not clobbered.
+            self._timeout_store().pop(key, None)
+            return callback()
+
+        return fire
+
+    def _cancel_timeout(self, key: str) -> None:
+        """Cancel a timer armed by :meth:`_schedule_timeout`, if one is pending."""
+        store = getattr(self, "_timeouts", None) or {}
+        if key in store:
+            GLib.source_remove(store.pop(key))
+
     def _teardown(self, *_):
         for repeater_id in getattr(self, "_repeaters", []):
             if repeater_id:
                 GLib.source_remove(repeater_id)
+        for timeout_id in getattr(self, "_timeouts", {}).values():
+            if timeout_id:
+                GLib.source_remove(timeout_id)
         for source, handler_id in getattr(self, "_handlers", []):
             safe_disconnect(source, handler_id)
         self._repeaters = []
         self._handlers = []
+        self._timeouts = {}
 
     def toggle(self):
         """Toggle the visibility of this widget/window."""

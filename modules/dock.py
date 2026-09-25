@@ -2,7 +2,7 @@ import json
 from functools import partial
 
 from fabric.hyprland import HyprlandReply
-from fabric.utils import Gdk, GLib, Gtk, bulk_connect, logger, truncate
+from fabric.utils import Gdk, Gtk, bulk_connect, logger, truncate
 from fabric.widgets.box import Box
 from fabric.widgets.button import Button
 from fabric.widgets.centerbox import CenterBox
@@ -96,6 +96,8 @@ class DotIndicator(Gtk.DrawingArea):
 class AppBar(BoxWidget):
     """A simple app bar widget for the dock."""
 
+    _SYNC_TIMER = "sync-clients"
+
     @property
     def app_util(self) -> AppUtils:
         """Lazy-load AppUtils on first access."""
@@ -141,7 +143,6 @@ class AppBar(BoxWidget):
         self._running_app_boxes = {}
         self._active_address = None
         self._running_app_count = 0
-        self._sync_scheduled_id = None
         self._sync_in_progress = False
         self._icon_resolver = IconResolver()
 
@@ -200,8 +201,6 @@ class AppBar(BoxWidget):
                 "event::windowtitle": self._on_hyprland_event,
             },
         )
-
-        self.connect("destroy", self._on_destroy)
 
         if self._hyprland_connection.ready:
             self._sync_clients()
@@ -282,24 +281,20 @@ class AppBar(BoxWidget):
         self._apply_active_state(active_address)
 
     def _schedule_sync_clients(self, delay_ms: int = DOCK_SYNC_DEBOUNCE_MS):
-        if self._sync_scheduled_id is not None:
+        # A pending debounce wins over an immediate request: syncing now would
+        # duplicate the sync that is already armed to run.
+        if self._has_timeout(self._SYNC_TIMER):
             return
 
         if delay_ms <= 0:
             self._sync_clients()
             return
 
-        self._sync_scheduled_id = GLib.timeout_add(delay_ms, self._run_scheduled_sync)
+        self._schedule_timeout(self._SYNC_TIMER, delay_ms, self._run_scheduled_sync)
 
     def _run_scheduled_sync(self):
-        self._sync_scheduled_id = None
         self._sync_clients()
         return False
-
-    def _on_destroy(self, *_):
-        if self._sync_scheduled_id is not None:
-            GLib.source_remove(self._sync_scheduled_id)
-            self._sync_scheduled_id = None
 
     def _get_active_address(self, callback):
         """Fetch active window address asynchronously."""

@@ -1,7 +1,7 @@
 import importlib
 
 from fabric import Application
-from fabric.utils import GLib, exec_shell_command_async, logger
+from fabric.utils import exec_shell_command_async, logger
 from fabric.widgets.box import Box
 from fabric.widgets.centerbox import CenterBox
 from fabric.widgets.eventbox import EventBox
@@ -129,6 +129,8 @@ LAZY_WIDGETS_LIST = {
 class Bar(BaseWindow):
     """A widget to display the status bar panel."""
 
+    _HIDE_TIMER = "auto-hide"
+
     def __init__(self, config: BarConfig, **kwargs):
         # Use lazy widget loading - classes are imported on first use
         self.widgets_list = LazyWidgetDict(LAZY_WIDGETS_LIST)
@@ -140,7 +142,6 @@ class Bar(BaseWindow):
         # Auto-hide configuration
         self._auto_hide = bar_config.get("auto_hide", False)
         self._auto_hide_timeout = bar_config.get("auto_hide_timeout", 3000)
-        self._hide_timer_id = None
         self._is_hovered = False
 
         # Main bar content (back to original CenterBox layout)
@@ -206,8 +207,6 @@ class Bar(BaseWindow):
             **kwargs,
         )
 
-        self.connect("destroy", self._on_destroy)
-
         # Start auto-hide timer if enabled
         if self._auto_hide:
             self._start_hide_timer()
@@ -234,28 +233,22 @@ class Bar(BaseWindow):
 
     def _start_hide_timer(self):
         """Start the timer to hide the bar after inactivity."""
-        self._cancel_hide_timer()
-        self._hide_timer_id = self._register_repeater(
-            GLib.timeout_add(self._auto_hide_timeout, self._hide_bar)
+        self._schedule_timeout(
+            self._HIDE_TIMER,
+            self._auto_hide_timeout,
+            self._hide_bar,
+            replace=True,
         )
 
     def _cancel_hide_timer(self):
         """Cancel any pending hide timer."""
-        if self._hide_timer_id is not None:
-            GLib.source_remove(self._hide_timer_id)
-            self._hide_timer_id = None
+        self._cancel_timeout(self._HIDE_TIMER)
 
     def _hide_bar(self):
         """Hide the bar if not hovered."""
         if not self._is_hovered:
             self.revealer.set_reveal_child(False)
-        self._hide_timer_id = None
         return False  # Don't repeat the timeout
-
-    def _on_destroy(self, *_):
-        """Ensure no pending hide timer survives teardown."""
-        self._cancel_hide_timer()
-        BaseWindow._teardown(self)
 
     def make_layout(self, config: BarConfig):
         """assigns the three sections their respective widgets"""

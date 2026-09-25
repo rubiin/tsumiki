@@ -3,6 +3,7 @@
 import sys
 import unittest
 from pathlib import Path
+from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
@@ -92,6 +93,97 @@ class TeardownMixinTests(unittest.TestCase):
         widget._on_destroy()
 
         self.assertEqual(source.live, set())
+
+
+class TimeoutTests(unittest.TestCase):
+    """_schedule_timeout is a debounce by default and a restart on replace."""
+
+    def setUp(self):
+        from shared import widget_container as container
+
+        self.container = container
+        self.armed: list[tuple[int, object]] = []
+        self.removed: list[int] = []
+        self.next_id = 100
+        patcher_add = mock.patch.object(
+            container.GLib, "timeout_add", side_effect=self._fake_timeout_add
+        )
+        patcher_remove = mock.patch.object(
+            container.GLib, "source_remove", side_effect=self.removed.append
+        )
+        self.addCleanup(patcher_add.stop)
+        self.addCleanup(patcher_remove.stop)
+        patcher_add.start()
+        patcher_remove.start()
+        self.widget = Widget()
+
+    def _fake_timeout_add(self, delay_ms, callback):
+        self.next_id += 1
+        self.armed.append((delay_ms, callback))
+        return self.next_id
+
+    def fire(self, index: int = -1):
+        """Run a pending callback, as the main loop would."""
+        return self.armed[index][1]()
+
+    def test_a_pending_timer_blocks_a_second_arm(self):
+        fired = []
+        self.assertTrue(
+            self.widget._schedule_timeout("hide", 200, lambda: fired.append(1) or False)
+        )
+        self.assertFalse(
+            self.widget._schedule_timeout("hide", 200, lambda: fired.append(1) or False)
+        )
+        self.assertEqual(1, len(self.armed))
+
+    def test_replace_restarts_from_the_latest_call(self):
+        self.widget._schedule_timeout("hide", 200, lambda: False)
+        self.assertTrue(
+            self.widget._schedule_timeout("hide", 900, lambda: False, replace=True)
+        )
+        self.assertEqual([101], self.removed)
+        self.assertEqual(200, self.armed[0][0])
+        self.assertEqual(900, self.armed[1][0])
+
+    def test_different_keys_do_not_collide(self):
+        self.widget._schedule_timeout("hide", 200, lambda: False)
+        self.assertTrue(self.widget._schedule_timeout("finalize", 200, lambda: False))
+        self.assertEqual([], self.removed)
+
+    def test_the_key_is_free_once_the_timer_fires(self):
+        fired = []
+        self.widget._schedule_timeout("hide", 200, lambda: fired.append(1) or False)
+        self.assertTrue(self.widget._has_timeout("hide"))
+
+        self.assertFalse(self.fire())
+        self.assertFalse(self.widget._has_timeout("hide"))
+        # A poll re-arming under the same key must not be clobbered.
+        self.assertTrue(
+            self.widget._schedule_timeout("hide", 200, lambda: fired.append(1) or False)
+        )
+        self.assertEqual(1, len(fired))
+
+    def test_cancel_removes_only_the_named_timer(self):
+        self.widget._schedule_timeout("hide", 200, lambda: False)
+        self.widget._schedule_timeout("finalize", 200, lambda: False)
+
+        self.widget._cancel_timeout("hide")
+
+        self.assertFalse(self.widget._has_timeout("hide"))
+        self.assertTrue(self.widget._has_timeout("finalize"))
+        self.assertEqual([101], self.removed)
+
+    def test_cancel_is_a_noop_when_nothing_is_pending(self):
+        self.widget._cancel_timeout("hide")
+        self.assertEqual([], self.removed)
+
+    def test_teardown_drops_a_pending_timer(self):
+        self.widget._schedule_timeout("hide", 200, lambda: False)
+
+        self.widget._on_destroy()
+
+        self.assertEqual([101], self.removed)
+        self.assertEqual({}, self.widget._timeouts)
 
 
 if __name__ == "__main__":
