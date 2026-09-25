@@ -10,10 +10,16 @@ from .icons import symbolic_icons
 # Debounce delay for batching icon cache writes (ms)
 _CACHE_WRITE_DELAY_MS = 2000
 
-# Single source of truth for the fallbacks, so a missing icon renders the same
-# way no matter which resolver path reached it.
+# Single source of truth for the fallback glyph, so a missing icon renders the
+# same way no matter which resolver path reached it.
 _FALLBACK_MISSING = symbolic_icons["missing"]
-_FALLBACK_EXECUTABLE = symbolic_icons["fallback"]["executable"]
+
+# A cached value equal to one of these means discovery failed, not that the app
+# has that icon. They are never written to the cache, and existing entries are
+# dropped on load, so a failure can never pin an app to a placeholder.
+_PLACEHOLDER_ICONS = frozenset(
+    {symbolic_icons["missing"], *symbolic_icons["fallback"].values()}
+)
 
 
 class IconResolver:
@@ -67,24 +73,56 @@ class IconResolver:
             return None
 
     def _ensure_cache_loaded(self):
-        """Lazily load the icon cache on first access."""
+        """Lazily load the icon cache on first access.
+
+        Entries that hold a placeholder are dropped rather than trusted: they
+        mean a previous lookup gave up, and keeping them would stop the app
+        from ever resolving a real icon.
+        """
         if self._icon_dict is None:
             if os.path.exists(ICON_CACHE_FILE):
                 self._icon_dict = read_json_file(ICON_CACHE_FILE) or {}
             else:
                 self._icon_dict = {}
 
-    def get_icon_name(self, app_id: str, default: str = _FALLBACK_EXECUTABLE):
-        """Return the cached icon name for app_id, resolving on miss."""
+            stale = [
+                app_id
+                for app_id, icon in self._icon_dict.items()
+                if icon in _PLACEHOLDER_ICONS
+            ]
+            if stale:
+                for app_id in stale:
+                    del self._icon_dict[app_id]
+                logger.info(
+                    f"[ICONS] dropped {len(stale)} placeholder icon entries: {stale}"
+                )
+                # Rewrite the file so the placeholders do not come back.
+                self._cache_dirty = True
+                self._schedule_cache_write()
+
+    def get_icon_name(self, app_id: str) -> str | None:
+        """Return the cached icon name for app_id, resolving on miss.
+
+        Returns ``None`` when no real icon can be found - deciding what to show
+        instead is the caller's job, because the answer belongs to the surface
+        (panel, notification, tray), not to discovery. Only a resolved name is
+        cached, so a caller-supplied fallback can never be persisted as an
+        app's icon.
+        """
         self._ensure_cache_loaded()
         if app_id in self._icon_dict:
             return self._icon_dict[app_id]
-        new_icon = self._compositor_find_icon(app_id, default)
+
+        icon_name = self._compositor_find_icon(app_id)
+        if icon_name is None:
+            logger.info(f"[ICONS] no icon found for app id: '{app_id}'")
+            return None
+
         logger.info(
-            f"[ICONS] found new icon: '{new_icon}' for app id: '{app_id}', storing."
+            f"[ICONS] found new icon: '{icon_name}' for app id: '{app_id}', storing."
         )
-        self._store_new_icon(app_id, new_icon)
-        return new_icon
+        self._store_new_icon(app_id, icon_name)
+        return icon_name
 
     def resolve_icon(
         self,
@@ -113,7 +151,7 @@ class IconResolver:
         self, app_id: str, size: int = 16, default_icon: str = _FALLBACK_MISSING
     ):
         """Load the app icon as a pixbuf, falling back to the missing glyph."""
-        icon_name = self.get_icon_name(app_id, default_icon)
+        icon_name = self.get_icon_name(app_id) or default_icon
 
         pixbuf = self.get_icon_theme_icon(icon_name, size)
         if not pixbuf:
@@ -147,14 +185,14 @@ class IconResolver:
             logger.info("[ICONS] Flushed icon cache to disk")
         return False  # Don't repeat
 
-    def _get_icon_from_desktop_file(self, desktop_file_path: str):
-        """Extract the Icon= value from a .desktop file."""
+    def _get_icon_from_desktop_file(self, desktop_file_path: str) -> str | None:
+        """Extract the Icon= value from a .desktop file, or None if it has none."""
         with open(desktop_file_path, "r") as f:
             for line in f.readlines():
                 stripped = line.strip()
                 if stripped.startswith("Icon="):
                     return "".join(stripped[5:].split())
-            return symbolic_icons["fallback"]["executable"]
+        return None
 
     _desktop_files_cache: dict[str, tuple[str, ...]] | None = None
 
@@ -186,16 +224,16 @@ class IconResolver:
 
         return None
 
-    def _compositor_find_icon(self, app_id: str, default: str = _FALLBACK_EXECUTABLE):
-        """Resolve an icon name via the theme, then desktop files."""
+    def _compositor_find_icon(self, app_id: str) -> str | None:
+        """Resolve an icon name via the theme, then desktop files, else None."""
         if self._icon_theme.has_icon(app_id):
             return app_id
         if self._icon_theme.has_icon(app_id + "-desktop"):
             return app_id + "-desktop"
         desktop_file = self._get_desktop_file(app_id)
-        return (
-            self._get_icon_from_desktop_file(desktop_file) if desktop_file else default
-        )
+        if desktop_file:
+            return self._get_icon_from_desktop_file(desktop_file)
+        return None
 
     def scale_pixbuf_to_size(
         self, pixbuf: GdkPixbuf.Pixbuf, size: int
