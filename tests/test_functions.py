@@ -30,6 +30,7 @@ from utils.functions import (
     rgb_to_hex,
     tint_color,
     unique_list,
+    write_json_file,
 )
 from utils.validation import (
     validate_config_enums,
@@ -414,6 +415,30 @@ class ReadJsonFileTest(unittest.TestCase):
             mock.patch("builtins.open", side_effect=PermissionError("denied")),
         ):
             self.assertIsNone(read_json_file("/tmp/unreadable.json"))
+
+
+class WriteJsonFileTest(unittest.TestCase):
+    """The JSON writer can run inline for callers that need completion."""
+
+    def test_sync_mode_writes_before_returning(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = Path(tmpdir) / "data.json"
+            payload = {"key": "value"}
+
+            result = write_json_file(str(path), payload, sync=True)
+
+            self.assertIsNone(result)
+            self.assertEqual(json.loads(path.read_text(encoding="utf-8")), payload)
+
+    def test_default_mode_returns_a_future(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = Path(tmpdir) / "data.json"
+            payload = {"key": "value"}
+
+            future = write_json_file(str(path), payload)
+            future.result()
+
+            self.assertEqual(json.loads(path.read_text(encoding="utf-8")), payload)
 
 
 if __name__ == "__main__":

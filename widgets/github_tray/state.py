@@ -10,7 +10,7 @@ from concurrent.futures import Future
 from datetime import datetime, timezone
 
 from utils.decorators import thread
-from utils.functions import read_json_file
+from utils.functions import ensure_directory, read_json_file, write_json_file
 
 # Nerd Font (Material Design) glyphs referenced by codepoint so they survive
 # editors/tooling that strip private-use characters.
@@ -395,13 +395,10 @@ def load_state_file(path: str) -> dict:
 
 
 def _write_state_file(path: str, data: dict) -> None:
-    import os
-
     try:
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        with open(path, "w", encoding="utf-8") as handle:
-            json.dump(data, handle, ensure_ascii=False)
-        os.chmod(path, 0o600)
+        ensure_directory(path)
+        write_json_file(path, data)
+
     except OSError:
         pass
 

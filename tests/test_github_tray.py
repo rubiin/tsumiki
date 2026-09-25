@@ -291,6 +291,12 @@ class MenuCacheTests(unittest.TestCase):
         tray_state.save_state_file(self.cache_path, {"cached_at": time.time()}).result()
         self.assertIsNone(tray_state.read_menu_cache(self.cache_path, ttl=3600))
 
+    def test_state_writer_uses_shared_json_writer(self):
+        with mock.patch.object(tray_state, "write_json_file") as writer:
+            tray_state._write_state_file(self.cache_path, {"a": 1})
+
+        writer.assert_called_once_with(self.cache_path, {"a": 1}, sync=True)
+
     def test_save_state_file_is_offloaded_to_thread_pool(self):
         """Widget state writes must not run on the caller's thread."""
         with mock.patch("widgets.github_tray.state.thread") as pooled:

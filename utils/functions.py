@@ -774,10 +774,13 @@ def send_notification(
     return True
 
 
-@run_in_thread
-def write_json_file(path: str, data: dict):
+def write_json_file(path: str, data: dict, *, sync: bool = False):
+    """Write JSON off-thread by default, or inline when *sync* is true."""
+    if not sync:
+        return thread(write_json_file, path, data, sync=True)
+
     try:
-        with open(path, "w") as f:
+        with open(path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=4, ensure_ascii=False)
     except (IOError, OSError, TypeError) as e:
         logger.exception(f"Failed to write json: {e}")

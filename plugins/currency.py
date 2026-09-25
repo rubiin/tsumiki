@@ -4,7 +4,6 @@ Rates are fetched from Frankfurter (keyless) into a per-day local cache,
 so the API is hit at most once per day.
 """
 
-import json
 import os
 import threading
 import time
@@ -12,7 +11,7 @@ from datetime import date
 from typing import ClassVar
 
 from utils.constants import FX_RATES_CACHE_FILE
-from utils.functions import read_json_file
+from utils.functions import ensure_directory, read_json_file, write_json_file
 from utils.plugin_manager import (
     LauncherPlugin,
     PluginCancelledError,
@@ -156,9 +155,8 @@ def _read_cache() -> dict | None:
 def _write_cache(payload: dict) -> None:
     """Persist the daily rates snapshot (best-effort)."""
     try:
-        os.makedirs(os.path.dirname(FX_RATES_CACHE_FILE) or ".", exist_ok=True)
-        with open(FX_RATES_CACHE_FILE, "w", encoding="utf-8") as file:
-            json.dump(payload, file)
+        ensure_directory(FX_RATES_CACHE_FILE)
+        write_json_file(FX_RATES_CACHE_FILE, payload)
     except OSError:
         pass  # caching is best-effort; conversions still work this session
 

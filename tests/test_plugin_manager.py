@@ -380,6 +380,16 @@ class CurrencyPluginTest(unittest.TestCase):
         self.assertEqual(rates["JPY"], 183.91)
         self.assertEqual(rates["EUR"], 1.0)
 
+    def test_write_cache_uses_shared_json_writer(self):
+        payload = self._SAMPLE_RATES
+
+        with unittest.mock.patch.object(
+            self.currency_module, "write_json_file"
+        ) as writer:
+            self.currency_module._write_cache(payload)
+
+        writer.assert_called_once_with(self.cache_file, payload, sync=True)
+
     def test_load_rates_reads_fresh_cache_without_network(self):
         self._write_cache()
         with unittest.mock.patch(
