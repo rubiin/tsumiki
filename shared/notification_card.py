@@ -62,11 +62,16 @@ def close_button(
     on_clicked: Callable,
     tooltip_text: str | None = None,
     style_classes: Iterable[str] = ("close-button",),
+    name: str = "close-button",
     **props,
 ) -> Button:
-    """Return the header's dismiss control."""
+    """Return the header's dismiss control.
+
+    *name* is overridable so a control that needs its own CSS selector (the
+    date-menu group deck) can still share this construction.
+    """
     return Button(
-        name="close-button",
+        name=name,
         v_align="center",
         h_align="center",
         style_classes=list(style_classes),

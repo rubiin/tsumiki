@@ -491,15 +491,10 @@ class DateNotificationMenu(Box):
             on_clicked=_toggle_group,
         )
 
-        close_all_button = Button(
+        # Shares the shared builder; the name keeps the group-deck styling.
+        close_all_button = close_button(
+            _close_group,
             name="notification-group-close-all-button",
-            v_align="center",
-            style_classes="close-button",
-            child=nerd_font_icon(
-                icon=get_text_icon("ui.window_close", ""),
-                props={"style_classes": ["panel-font-icon", "close-icon"]},
-            ),
-            on_clicked=_close_group,
         )
 
         count = len(notifications)
