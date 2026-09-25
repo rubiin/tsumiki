@@ -16,7 +16,7 @@ import utils.functions as helpers
 from services import notification_service
 from shared.buttons import HoverButton
 from shared.circle_image import CircularImage
-from shared.list import ListBox
+from shared.list import ListBox, near_list_end, next_batch_size
 from shared.mixins import PopoverMixin
 from shared.notification_card import (
     app_icon,
@@ -619,9 +619,8 @@ class DateNotificationMenu(Box):
 
         self.loading = True
 
-        items_to_add = min(
-            self.batch_size,
-            len(self.grouped_entries) - self.loaded_count,
+        items_to_add = next_batch_size(
+            self.loaded_count, len(self.grouped_entries), self.batch_size
         )
         for i in range(self.loaded_count, self.loaded_count + items_to_add):
             app_name, notifications = self.grouped_entries[i]
@@ -640,11 +639,7 @@ class DateNotificationMenu(Box):
 
     def on_scroll(self, adjustment: Gtk.Adjustment):
         """Load more notifications when user scrolls near the bottom."""
-        value = adjustment.get_value()
-        upper = adjustment.get_upper()
-        page_size = adjustment.get_page_size()
-
-        if value + page_size >= upper - 50:
+        if near_list_end(adjustment):
             self._load_next_batch()
 
     def on_dnd_switch_toggled(self, switch: Gtk.Switch, state):

@@ -9,7 +9,7 @@ from fabric.widgets.label import Label
 
 from services.network import NetworkService, Wifi
 from shared.buttons import QSChevronButton, ScanButton
-from shared.list import ListBox
+from shared.list import ListBox, near_list_end, next_batch_size
 from shared.submenu import QuickSubMenu, scrolled_list_content
 from utils.exceptions import NetworkManagerNotFoundError
 from utils.i18n import _
@@ -88,7 +88,9 @@ class WifiSubMenu(QuickSubMenu):
 
         self.loading = True
 
-        items_to_add = min(self.batch_size, self.max_items - self.items_loaded)
+        items_to_add = next_batch_size(
+            self.items_loaded, self.max_items, self.batch_size
+        )
 
         for i in range(self.items_loaded, self.items_loaded + items_to_add):
             notification_item = self.make_button_from_ap(aps[i])
@@ -101,11 +103,7 @@ class WifiSubMenu(QuickSubMenu):
         if self.wifi_device is None:
             return
 
-        value = adjustment.get_value()
-        upper = adjustment.get_upper()
-        page_size = adjustment.get_page_size()
-
-        if value + page_size >= upper - 50:
+        if near_list_end(adjustment):
             self._load_next_batch(self.wifi_device.access_points)
 
     def on_scan(self, _, value, *args):

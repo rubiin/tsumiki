@@ -24,7 +24,7 @@ from fabric.widgets.image import Image
 from fabric.widgets.label import Label
 from fabric.widgets.scrolledwindow import ScrolledWindow
 
-from shared.list import ListBox
+from shared.list import ListBox, near_list_end, next_batch_size
 from shared.mixins import PopoverMixin
 from shared.widget_container import ButtonWidget, TeardownMixin
 from utils.i18n import _
@@ -172,7 +172,9 @@ class ClipHistoryMenu(Box, TeardownMixin):
             return
         self.loading = True
 
-        items_to_add = min(self.batch_size, self.max_items - self.items_loaded)
+        items_to_add = next_batch_size(
+            self.items_loaded, self.max_items, self.batch_size
+        )
 
         for i in range(self.items_loaded, self.items_loaded + items_to_add):
             self.viewport.add(self.create_clipboard_item(self.filtered_items[i]))
@@ -203,12 +205,8 @@ class ClipHistoryMenu(Box, TeardownMixin):
         if self.loading or self.max_items == 0 or self.items_loaded >= self.max_items:
             return
 
-        value = adjustment.get_value()
-        upper = adjustment.get_upper()
-        page_size = adjustment.get_page_size()
-
-        # Trigger load when within 100px of bottom
-        if value + page_size >= upper - 100:
+        # This list prefetches earlier than the others: its rows are tall.
+        if near_list_end(adjustment, threshold=100):
             self._load_next_batch()
 
     def on_search_text_changed(self, entry, pspec):
