@@ -1,4 +1,4 @@
-from fabric.utils import GLib, bulk_connect, logger
+from fabric.utils import GLib, logger
 from fabric.widgets.button import Button
 from fabric.widgets.image import Image
 
@@ -43,19 +43,16 @@ class TaskBarWidget(BoxWidget):
         if self._show_current_workspace_only:
             events["event::workspace"] = self._on_workspace_event
 
-        for hid in bulk_connect(self._hyprland_connection, events):
-            self._register_handler(self._hyprland_connection, hid)
+        self._register_handlers(self._hyprland_connection, events)
 
         self.connect("destroy", self._on_destroy)
 
         if self._hyprland_connection.ready:
             self._sync_clients()
         else:
-            self._register_handler(
+            self._register_handlers(
                 self._hyprland_connection,
-                self._hyprland_connection.connect(
-                    "event::ready", lambda *_: self._schedule_sync(delay_ms=0)
-                ),
+                {"event::ready": lambda *_: self._schedule_sync(delay_ms=0)},
             )
 
     def _on_destroy(self, *_):

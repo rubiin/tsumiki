@@ -464,16 +464,14 @@ class QuickSettingsButtonWidget(ButtonWidget, PopoverMixin):
 
         self.brightness_service = BrightnessService()
 
-        self._register_handler(
+        self._register_handlers(
             self.brightness_service,
-            self.brightness_service.connect(
-                "brightness_changed", self.update_brightness
-            ),
+            {"brightness_changed": self.update_brightness},
         )
 
-        self._register_handler(
+        self._register_handlers(
             self.network_service,
-            self.network_service.connect("device-ready", self._get_network_icon),
+            {"device-ready": self._get_network_icon},
         )
 
         self.popup = None
@@ -507,13 +505,13 @@ class QuickSettingsButtonWidget(ButtonWidget, PopoverMixin):
             )
         )
 
-        self._register_handler(
+        self._register_handlers(
             self.audio_service,
-            self.audio_service.connect("notify::speaker", self.on_speaker_changed),
+            {"notify::speaker": self.on_speaker_changed},
         )
-        self._register_handler(
+        self._register_handlers(
             self.audio_service,
-            self.audio_service.connect("changed", self.check_mute),
+            {"changed": self.check_mute},
         )
 
         self.setup_popover(

@@ -1,4 +1,4 @@
-from fabric.utils import bulk_connect, logger
+from fabric.utils import logger
 from fabric.widgets.label import Label
 
 from shared.widget_container import ButtonWidget
@@ -16,7 +16,7 @@ class WindowCountWidget(ButtonWidget):
         self.count_label = Label(label="0", style_classes="panel-text")
         self.container_box.add(self.count_label)
 
-        for hid in bulk_connect(
+        self._register_handlers(
             self._service.connection,
             {
                 "event::workspace": self._get_window_count,
@@ -25,8 +25,7 @@ class WindowCountWidget(ButtonWidget):
                 "event::closewindow": self._get_window_count,
                 "event::movewindow": self._get_window_count,
             },
-        ):
-            self._register_handler(self._service.connection, hid)
+        )
 
         # all aboard...
         self._service.on_ready(lambda: self.on_ready(None))

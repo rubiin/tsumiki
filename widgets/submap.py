@@ -28,9 +28,9 @@ class SubMapWidget(ButtonWidget):
             )
             self.container_box.add(self.icon)
 
-        self._register_handler(
-            hyprland_service.connection,
-            hyprland_service.connect("event::submap", self.on_submap_event),
+        self._register_handlers(
+            hyprland_service,
+            {"event::submap": self.on_submap_event},
         )
 
         # all aboard...

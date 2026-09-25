@@ -293,9 +293,9 @@ class DnsSwitcherWidget(ButtonWidget, PopoverMixin):
 
         self.set_tooltip_if_enabled(_("widget.dns_switcher.tooltip"), default=True)
 
-        self._register_handler(
+        self._register_handlers(
             self._service,
-            self._service.connect("notify::current", self._on_current_changed),
+            {"notify::current": self._on_current_changed},
         )
 
         self.setup_popover(lambda: DnsSwitcherPopover(parent=self))

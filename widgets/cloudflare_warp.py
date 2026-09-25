@@ -135,9 +135,9 @@ class CloudflareWarpWidget(ButtonWidget, PopoverMixin):
                 props={"style_classes": ["panel-font-icon"]},
             )
             self.set_tooltip_text(_("widget.cloudflare_warp.tooltip"))
-            self._register_handler(
+            self._register_handlers(
                 self._service,
-                self._service.connect("changed", self._on_status_changed),
+                {"changed": self._on_status_changed},
             )
             # Pause background polling when widget is hidden, resume when shown
             self.connect("map", lambda *_: self._service.resume_polling())

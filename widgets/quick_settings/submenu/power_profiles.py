@@ -153,12 +153,9 @@ class PowerProfileToggle(QSChevronButton):
         self.set_active_style(True)
         self.action_button.set_sensitive(False)
 
-        self._register_handler(
+        self._register_handlers(
             power_pfl_service,
-            power_pfl_service.connect(
-                "changed",
-                self.update_action_button,
-            ),
+            {"changed": self.update_action_button},
         )
 
     def unslug(self, text: str) -> str:

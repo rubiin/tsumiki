@@ -1,4 +1,3 @@
-import contextlib
 from typing import ClassVar
 
 from fabric.utils import GObject, logger
@@ -24,7 +23,6 @@ class LockkeysOSDContainer(GenericOSDContainer):
         self.config = config
         self.previous_capslock = None
         self.previous_numlock = None
-        self._event_handler_id = None
 
         # Create text display for locks
         from fabric.widgets.label import Label
@@ -38,9 +36,12 @@ class LockkeysOSDContainer(GenericOSDContainer):
         # Replace scale with lock display
         self.children = (self.icon, self.lock_label)
 
-        # Subscribe to Hyprland event — fires on keyboard layout changes
-        self._event_handler_id = hyprland_service.connect(
-            "event::activelayout", self._on_activelayout
+        # Subscribe to Hyprland event — fires on keyboard layout changes.
+        # Tracked by TeardownMixin, which the OSD base already wires to
+        # "destroy", so this needs no cleanup() of its own.
+        self._register_handlers(
+            hyprland_service,
+            {"event::activelayout": self._on_activelayout},
         )
 
         # Initial query
@@ -99,15 +100,3 @@ class LockkeysOSDContainer(GenericOSDContainer):
 
         label_text = " | ".join(status_parts) if status_parts else "No locks"
         self.lock_label.set_label(label_text)
-
-    def cleanup(self):
-        """Clean up signal handlers on destroy."""
-        if self._event_handler_id is not None:
-            with contextlib.suppress(Exception):
-                hyprland_service.disconnect(self._event_handler_id)
-            self._event_handler_id = None
-
-    def do_destroy(self):
-        """Called when widget destroyed."""
-        self.cleanup()
-        super().do_destroy()

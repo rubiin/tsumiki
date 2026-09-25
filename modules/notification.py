@@ -245,9 +245,9 @@ class NotificationWidget(EventBox, TeardownMixin):
         # closed it (swipe, close button, expiry, or the sending app). Tracked
         # by TeardownMixin so the connection dies with this widget instead of
         # outliving it on the notification.
-        self._register_handler(
+        self._register_handlers(
             self._notification,
-            self._notification.connect("closed", lambda *_: self.stop_timeout()),
+            {"closed": lambda *_: self.stop_timeout()},
         )
 
     def destroy(self):

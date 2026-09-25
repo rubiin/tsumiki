@@ -7,7 +7,7 @@ set are the only things that differ.
 
 from typing import ClassVar
 
-from fabric.utils import bulk_connect, cooldown
+from fabric.utils import cooldown
 
 from services import audio_service
 
@@ -47,7 +47,7 @@ class AudioDeviceOSDContainer(GenericOSDContainer):
 
         self.config = config
 
-        bulk_connect(
+        self._register_handlers(
             self.audio_service,
             {
                 f"notify::{self.device_attribute}": self.on_device_changed,

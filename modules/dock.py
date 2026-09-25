@@ -189,7 +189,7 @@ class AppBar(BoxWidget):
         self._pinned_app_buttons = {}  # app_id -> Button widget
         self._populate_pinned_apps(self.pinned_apps)
 
-        for hid in bulk_connect(
+        self._register_handlers(
             self._hyprland_connection,
             {
                 "event::openwindow": self._on_hyprland_event,
@@ -199,19 +199,16 @@ class AppBar(BoxWidget):
                 "event::activewindowv2": self._on_active_window_event,
                 "event::windowtitle": self._on_hyprland_event,
             },
-        ):
-            self._register_handler(self._hyprland_connection, hid)
+        )
 
         self.connect("destroy", self._on_destroy)
 
         if self._hyprland_connection.ready:
             self._sync_clients()
         else:
-            self._register_handler(
+            self._register_handlers(
                 self._hyprland_connection,
-                self._hyprland_connection.connect(
-                    "event::ready", self._on_hyprland_ready
-                ),
+                {"event::ready": self._on_hyprland_ready},
             )
 
     def _on_hyprland_ready(self, *_):
@@ -955,7 +952,7 @@ class Dock(BaseWindow):
         ):
             self._hyprland_connection = hyprland_service.connection
 
-            bulk_connect(
+            self._register_handlers(
                 self._hyprland_connection,
                 {
                     "event::workspace": self._check_for_windows,

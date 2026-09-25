@@ -72,8 +72,9 @@ class BatteryWidget(ButtonWidget):
         self.discharging_notified = False
         self.initialized = False
 
-        self._register_handler(
-            self.client, self.client.connect("changed", self._update_ui)
+        self._register_handlers(
+            self.client,
+            {"changed": self._update_ui},
         )
 
         self._update_ui()

@@ -85,9 +85,9 @@ class NotificationQuickSetting(HoverButton):
 
         self.children = self.row
 
-        self._register_handler(
+        self._register_handlers(
             notification_service,
-            notification_service.connect("dnd", self.toggle_notification),
+            {"dnd": self.toggle_notification},
         )
 
         self.connect("clicked", self.on_click)
@@ -222,9 +222,9 @@ class DarkModeToggle(HoverButton):
 
         self.children = self.row
 
-        self._register_handler(
+        self._register_handlers(
             style_service,
-            style_service.connect("theme_changed", self.update_state),
+            {"theme_changed": self.update_state},
         )
 
         self.connect("clicked", self.on_click)

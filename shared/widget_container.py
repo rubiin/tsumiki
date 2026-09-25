@@ -1,4 +1,4 @@
-from typing import Iterable
+from typing import Callable, Iterable
 
 from fabric.utils import GLib, bulk_connect
 from fabric.widgets.box import Box
@@ -35,12 +35,25 @@ class TeardownMixin:
         with contextlib.suppress(ValueError):
             getattr(self, "_repeaters", []).remove(repeater_id)
 
-    def _register_handler(self, source, handler_id) -> None:
+    def _register_handler(self, source, handler_id) -> int:
         if not hasattr(self, "_repeaters"):
             self._repeaters = []
             self._handlers = []
             self.connect("destroy", self._teardown)
         self._handlers.append((source, handler_id))
+        return handler_id
+
+    def _register_handlers(self, source, signal_map: dict[str, Callable]) -> list[int]:
+        """Connect every signal in *signal_map* on *source*, tracked for teardown.
+
+        This is the tracked counterpart of fabric's ``bulk_connect``. The plain
+        call returns the handler ids and throws them away, which is what lets
+        those connections outlive the widget; here they all go to ``_teardown``.
+        """
+        return [
+            self._register_handler(source, source.connect(signal, callback))
+            for signal, callback in signal_map.items()
+        ]
 
     def _teardown(self, *_):
         for repeater_id in getattr(self, "_repeaters", []):
