@@ -1,4 +1,5 @@
 import json
+from functools import partial
 
 from fabric.hyprland import HyprlandReply
 from fabric.utils import Gdk, GLib, Gtk, bulk_connect, logger, truncate
@@ -616,46 +617,79 @@ class AppBar(BoxWidget):
         active_idx = next((i for i, c in enumerate(clients) if c.get_activated()), -1)
         clients[(active_idx + 1) % len(clients)].activate()
 
-    def _create_app_group(self, app_id: str, clients: list[HyprlandClient]):
+    def _bake_entry(
+        self,
+        image: Image,
+        indicator,
+        drag_id: str,
+        on_press,
+        on_release,
+    ) -> tuple[Box, Button]:
+        """Build one dock entry: an indicator plus a button, wired for DnD.
+
+        The image and indicator are supplied because a group shows a multi-dot
+        indicator and fills in its icon later, while a lone client shows a single
+        dot with the icon already set. Callers keep their own press/release
+        behaviour, drag id and bookkeeping.
+        """
         is_vertical = self.orientation == "vertical"
-        indicator = MultiDotIndicator(
-            count=max(1, len(clients)),
-            size=5,
-            spacing=3,
-            orientation="vertical" if is_vertical else "horizontal",
-        )
-        # Center indicator within the group box
+        # Center indicator within the entry box
         if is_vertical:
             indicator.set_valign(Gtk.Align.CENTER)
         else:
             indicator.set_halign(Gtk.Align.CENTER)
 
-        client_image = Image(size=self.icon_size)
-        client_button = self._bake_button(image=client_image)
+        button = self._bake_button(image=image)
 
         if is_vertical:
             box = Box(
                 orientation="horizontal",
                 spacing=0,
                 h_align="center",
-                children=[indicator, client_button],
+                children=[indicator, button],
             )
         else:
             box = Box(
                 orientation="vertical",
                 spacing=4,
                 v_align="center",
-                children=[client_button, indicator],
+                children=[button, indicator],
             )
 
-        box._dock_app_id = app_id
-        self._app_groups[app_id] = {
-            "box": box,
-            "button": client_button,
-            "indicator": indicator,
-            "image": client_image,
-            "clients": clients,
-        }
+        # One bulk_connect: the drag handlers each need different trailing
+        # arguments, so bind them rather than passing one shared arg tuple.
+        # partial matches the previous ``connect(sig, handler, *args)`` exactly -
+        # the bound values land after the arguments GTK itself supplies.
+        bulk_connect(
+            button,
+            {
+                "button-press-event": on_press,
+                "button-release-event": on_release,
+                "drag-begin": partial(self._on_drag_begin, box, image),
+                "drag-data-get": partial(self._on_drag_data_get, drag_id),
+                "drag-end": partial(self._on_drag_end, box),
+            },
+        )
+
+        button.drag_source_set(
+            start_button_mask=Gdk.ModifierType.BUTTON1_MASK,
+            targets=DOCK_DND_TARGET,
+            actions=Gdk.DragAction.MOVE,
+        )
+
+        box.drag_dest_set(Gtk.DestDefaults.ALL, DOCK_DND_TARGET, Gdk.DragAction.MOVE)
+        box.connect("drag-data-received", self._on_drag_data_received)
+
+        return box, button
+
+    def _create_app_group(self, app_id: str, clients: list[HyprlandClient]):
+        client_image = Image(size=self.icon_size)
+        indicator = MultiDotIndicator(
+            count=max(1, len(clients)),
+            size=5,
+            spacing=3,
+            orientation="vertical" if self.orientation == "vertical" else "horizontal",
+        )
 
         def on_button_press(_widget, event):
             if event.button != 3:
@@ -672,25 +706,17 @@ class AppBar(BoxWidget):
                 return True
             return False
 
-        bulk_connect(
-            client_button,
-            {
-                "button-press-event": on_button_press,
-                "button-release-event": on_button_release,
-            },
+        box, client_button = self._bake_entry(
+            client_image, indicator, app_id, on_button_press, on_button_release
         )
 
-        client_button.drag_source_set(
-            start_button_mask=Gdk.ModifierType.BUTTON1_MASK,
-            targets=DOCK_DND_TARGET,
-            actions=Gdk.DragAction.MOVE,
-        )
-        client_button.connect("drag-begin", self._on_drag_begin, box, client_image)
-        client_button.connect("drag-data-get", self._on_drag_data_get, app_id)
-        client_button.connect("drag-end", self._on_drag_end, box)
-
-        box.drag_dest_set(Gtk.DestDefaults.ALL, DOCK_DND_TARGET, Gdk.DragAction.MOVE)
-        box.connect("drag-data-received", self._on_drag_data_received)
+        self._app_groups[app_id] = {
+            "box": box,
+            "button": client_button,
+            "indicator": indicator,
+            "image": client_image,
+            "clients": clients,
+        }
 
         self._refresh_group_visuals(app_id)
         self.add(box)
@@ -750,52 +776,13 @@ class AppBar(BoxWidget):
         if not address:
             return
 
-        client_button = self._bake_button(image=client_image)
-
-        indicator = DotIndicator()
-        is_vertical = self.orientation == "vertical"
-        # Center indicator within the group box
-        if is_vertical:
-            indicator.set_valign(Gtk.Align.CENTER)
-        else:
-            indicator.set_halign(Gtk.Align.CENTER)
-
-        if is_vertical:
-            box = Box(
-                orientation="horizontal",
-                spacing=0,
-                h_align="center",
-                children=[indicator, client_button],
-            )
-        else:
-            box = Box(
-                orientation="vertical",
-                spacing=4,
-                v_align="center",
-                children=[client_button, indicator],
-            )
-
-        box._dock_client_address = address
-        client_button.connect(
-            "button-press-event",
+        box, client_button = self._bake_entry(
+            client_image,
+            DotIndicator(),
+            address,
             lambda w, e, addr=address: self._on_button_press(w, e, addr),
-        )
-        client_button.connect(
-            "button-release-event",
             lambda w, e, addr=address: self._on_button_release(w, e, addr),
         )
-
-        client_button.drag_source_set(
-            start_button_mask=Gdk.ModifierType.BUTTON1_MASK,
-            targets=DOCK_DND_TARGET,
-            actions=Gdk.DragAction.MOVE,
-        )
-        client_button.connect("drag-begin", self._on_drag_begin, box, client_image)
-        client_button.connect("drag-data-get", self._on_drag_data_get, address)
-        client_button.connect("drag-end", self._on_drag_end, box)
-
-        box.drag_dest_set(Gtk.DestDefaults.ALL, DOCK_DND_TARGET, Gdk.DragAction.MOVE)
-        box.connect("drag-data-received", self._on_drag_data_received)
 
         self._running_app_boxes[address] = {
             "box": box,
