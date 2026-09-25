@@ -1,6 +1,5 @@
 """Config schema and widget validation utilities."""
 
-import json
 import re
 import string
 from functools import lru_cache
@@ -10,6 +9,7 @@ from fabric.utils import logger
 
 from utils.colors import Colors
 from utils.constants import GROUP_TYPES, SPECIAL_WIDGET_TYPES
+from utils.functions import read_json_file
 
 
 def _resolve_schema_ref(schema_node: Any, schema_root: dict) -> Any:
@@ -173,8 +173,10 @@ def _load_schema(schema_file_path: str) -> dict:
     re-parsing the ~122 KB file on every validation (e.g. each
     ``reload_config``) is pure waste.
     """
-    with open(schema_file_path, "r") as file:
-        return json.load(file)
+    schema = read_json_file(schema_file_path)
+    if not isinstance(schema, dict):
+        raise ValueError(f"Invalid JSON schema file: {schema_file_path}")
+    return schema
 
 
 def validate_config_enums(config_data: dict, schema_file_path: str) -> None:

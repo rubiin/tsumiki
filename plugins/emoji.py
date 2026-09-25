@@ -1,10 +1,10 @@
 """Launcher slash command: /emoji — search the bundled emoji database."""
 
-import json
 from functools import lru_cache
 from typing import ClassVar
 
 from utils.constants import ASSETS_DIR
+from utils.functions import read_json_file
 from utils.plugin_manager import LauncherPlugin, PluginResult, copy_to_clipboard
 
 _MAX_RESULTS = 24
@@ -13,11 +13,8 @@ _MAX_RESULTS = 24
 @lru_cache(maxsize=1)
 def load_emojis() -> dict:
     """Return the bundled emoji database as {emoji_char: info} (cached)."""
-    try:
-        with open(f"{ASSETS_DIR}/emoji.json", "r", encoding="utf-8") as file:
-            return json.load(file)
-    except (OSError, ValueError):
-        return {}
+    data = read_json_file(f"{ASSETS_DIR}/emoji.json")
+    return data if isinstance(data, dict) else {}
 
 
 def search_emojis(query: str, limit: int = _MAX_RESULTS) -> list[tuple[str, dict]]:

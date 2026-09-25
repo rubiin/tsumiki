@@ -1,3 +1,5 @@
+import json
+import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -23,6 +25,7 @@ from utils.functions import (
     is_valid_gjs_color,
     mix_colors,
     parse_markup,
+    read_json_file,
     rgb_to_css,
     rgb_to_hex,
     tint_color,
@@ -378,6 +381,39 @@ class FindExecutableTest(unittest.TestCase):
         ):
             self.assertIsNone(find_executable("fe-expiry-probe"))
         self.assertEqual(lookup.call_count, 2)
+
+
+class ReadJsonFileTest(unittest.TestCase):
+    """The shared JSON reader handles missing, invalid, and unreadable files."""
+
+    def test_reads_json_object(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = Path(tmpdir) / "data.json"
+            payload = {"key": "café"}
+            path.write_text(
+                json.dumps(payload, ensure_ascii=False),
+                encoding="utf-8",
+            )
+
+            self.assertEqual(read_json_file(str(path)), payload)
+
+    def test_missing_file_returns_none(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            self.assertIsNone(read_json_file(str(Path(tmpdir) / "missing.json")))
+
+    def test_invalid_json_returns_none(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = Path(tmpdir) / "invalid.json"
+            path.write_text("not json", encoding="utf-8")
+
+            self.assertIsNone(read_json_file(str(path)))
+
+    def test_file_read_error_returns_none(self):
+        with (
+            mock.patch.object(functions.os.path, "exists", return_value=True),
+            mock.patch("builtins.open", side_effect=PermissionError("denied")),
+        ):
+            self.assertIsNone(read_json_file("/tmp/unreadable.json"))
 
 
 if __name__ == "__main__":

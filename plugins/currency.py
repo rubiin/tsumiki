@@ -12,6 +12,7 @@ from datetime import date
 from typing import ClassVar
 
 from utils.constants import FX_RATES_CACHE_FILE
+from utils.functions import read_json_file
 from utils.plugin_manager import (
     LauncherPlugin,
     PluginCancelledError,
@@ -134,12 +135,20 @@ def _download_rates(cancelled=None) -> tuple[str, dict[str, float]]:
 
 def _read_cache() -> dict | None:
     """Return the cached {date, fetched, rates} payload, or None."""
-    try:
-        with open(FX_RATES_CACHE_FILE, "r", encoding="utf-8") as file:
-            payload = json.load(file)
-    except (OSError, ValueError):
+    if not os.path.exists(FX_RATES_CACHE_FILE):
         return None
-    if not isinstance(payload, dict) or not isinstance(payload.get("rates"), dict):
+
+    payload = read_json_file(FX_RATES_CACHE_FILE)
+    if not isinstance(payload, dict):
+        return None
+
+    rates = payload.get("rates")
+    if (
+        not isinstance(rates, dict)
+        or not rates
+        or not payload.get("date")
+        or not payload.get("fetched")
+    ):
         return None
     return payload
 

@@ -1,4 +1,3 @@
-import ijson
 from fabric.utils import Gdk, Gio, GLib, idle_add, logger, os, remove_handler
 from fabric.widgets.box import Box
 from fabric.widgets.button import Button
@@ -10,7 +9,7 @@ from shared.mixins import PopoverMixin
 from shared.widget_container import ButtonWidget
 from utils.constants import ASSETS_DIR
 from utils.decorators import run_in_thread
-from utils.functions import ensure_file
+from utils.functions import ensure_file, read_json_file
 from utils.i18n import _
 from utils.widget_utils import nerd_font_icon
 
@@ -103,15 +102,10 @@ class EmojiPickerMenu(Box):
         @run_in_thread
         def _load():
             try:
-                # Use ijson for streaming JSON parsing
-                with open(self._emoji_file_path, "r") as f:
-                    emoji_dict = {
-                        emoji_char: emoji_info
-                        for emoji_char, emoji_info in ijson.kvitems(f, "")
-                    }
-
+                data = read_json_file(self._emoji_file_path)
+                emoji_dict = data if isinstance(data, dict) else {}
                 idle_add(self._on_emoji_load_complete, emoji_dict, callback)
-            except (OSError, ValueError, ijson.IncompleteJSONError) as e:
+            except Exception as e:
                 logger.exception(f"Error loading emoji data: {e}")
                 idle_add(self._on_emoji_load_complete, {}, callback)
 

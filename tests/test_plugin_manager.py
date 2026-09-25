@@ -443,6 +443,19 @@ class CurrencyPluginTest(unittest.TestCase):
         ):
             self.load_rates()
 
+    def test_incomplete_cache_is_not_used_as_fallback(self):
+        self._write_cache({"rates": {"USD": 1.0}})
+
+        with (
+            unittest.mock.patch.object(
+                self.currency_module,
+                "_download_rates",
+                side_effect=RuntimeError("down"),
+            ),
+            self.assertRaises(RuntimeError),
+        ):
+            self.load_rates()
+
     def test_fetch_rate_reads_cross_rates_from_cache(self):
         self._write_cache()
         rate, fx_date = self.fetch_rate("USD", "JPY")

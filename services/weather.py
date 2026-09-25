@@ -7,7 +7,7 @@ from fabric.utils import idle_add, logger, os, time
 
 from utils.constants import WEATHER_CACHE_FILE
 from utils.decorators import thread
-from utils.functions import convert_to_12hr_format, write_json_file
+from utils.functions import convert_to_12hr_format, read_json_file, write_json_file
 
 from .base import SingletonService
 
@@ -303,21 +303,20 @@ class WeatherService(SingletonService):
         if not refresh and os.path.exists(WEATHER_CACHE_FILE):
             try:
                 if now - os.path.getmtime(WEATHER_CACHE_FILE) < ttl:
-                    with open(WEATHER_CACHE_FILE, "r") as f:
-                        cached_data = json.load(f)
-                        # Check if cached provider and location match current ones
-                        cached_provider = cached_data.get("provider")
-                        cached_location = cached_data.get("cached_location")
-                        if (
-                            cached_provider == self.provider
-                            and cached_location == location
-                        ):
-                            return cached_data
-                        else:
-                            # Provider or location mismatch, remove old cache
-                            with suppress(OSError, PermissionError):
-                                os.remove(WEATHER_CACHE_FILE)
-            except (json.JSONDecodeError, OSError, PermissionError) as e:
+                    cached_data = read_json_file(WEATHER_CACHE_FILE)
+                    if not isinstance(cached_data, dict):
+                        raise ValueError("invalid cache payload")
+
+                    # Check if cached provider and location match current ones
+                    cached_provider = cached_data.get("provider")
+                    cached_location = cached_data.get("cached_location")
+                    if cached_provider == self.provider and cached_location == location:
+                        return cached_data
+                    else:
+                        # Provider or location mismatch, remove old cache
+                        with suppress(OSError, PermissionError):
+                            os.remove(WEATHER_CACHE_FILE)
+            except (OSError, PermissionError, ValueError) as e:
                 logger.warning(
                     "Failed to read cache file, will fetch fresh data: %s", e
                 )

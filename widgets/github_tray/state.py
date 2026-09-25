@@ -10,6 +10,7 @@ from concurrent.futures import Future
 from datetime import datetime, timezone
 
 from utils.decorators import thread
+from utils.functions import read_json_file
 
 # Nerd Font (Material Design) glyphs referenced by codepoint so they survive
 # editors/tooling that strip private-use characters.
@@ -389,12 +390,8 @@ def sorted_mappings(mappings_text: str) -> list[dict]:
 
 
 def load_state_file(path: str) -> dict:
-    try:
-        with open(path, encoding="utf-8") as handle:
-            data = json.load(handle)
-            return data if isinstance(data, dict) else {}
-    except (OSError, ValueError):
-        return {}
+    data = read_json_file(path)
+    return data if isinstance(data, dict) else {}
 
 
 def _write_state_file(path: str, data: dict) -> None:

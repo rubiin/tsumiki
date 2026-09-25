@@ -346,12 +346,12 @@ def read_json_file(file_path: str) -> Optional[dict | list]:
         logger.warning(f"JSON file {file_path} does not exist.")
         return None
 
-    with open(file_path, "r") as file:
-        try:
+    try:
+        with open(file_path, "r", encoding="utf-8") as file:
             return json.load(file)
-        except json.JSONDecodeError as e:
-            logger.exception(f"Failed to read JSON file {file_path}: {e}")
-            return None
+    except (OSError, ValueError) as e:
+        logger.exception(f"Failed to read JSON file {file_path}: {e}")
+        return None
 
 
 def read_toml_file(file_path: str) -> Optional[dict]:

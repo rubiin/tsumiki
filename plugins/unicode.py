@@ -1,10 +1,10 @@
 """Launcher slash command: /unicode -- search the bundled Unicode database."""
 
-import json
 from functools import lru_cache
 from typing import ClassVar
 
 from utils.constants import ASSETS_DIR
+from utils.functions import read_json_file
 from utils.plugin_manager import LauncherPlugin, PluginResult, copy_to_clipboard
 
 _MAX_RESULTS = 24
@@ -13,11 +13,8 @@ _MAX_RESULTS = 24
 @lru_cache(maxsize=1)
 def load_unicode_chars() -> dict:
     """Return the bundled Unicode database as {char: info} (cached)."""
-    try:
-        with open(f"{ASSETS_DIR}/unicode.json", "r", encoding="utf-8") as f:
-            return json.load(f)
-    except (OSError, ValueError):
-        return {}
+    data = read_json_file(f"{ASSETS_DIR}/unicode.json")
+    return data if isinstance(data, dict) else {}
 
 
 def search_unicode(query: str, limit: int = _MAX_RESULTS) -> list[tuple[str, dict]]:

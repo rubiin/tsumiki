@@ -521,7 +521,7 @@ class SchemaCacheTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = self._write_schema(tmp)
 
-            with mock.patch("utils.validation.json.load", wraps=json.load) as loader:
+            with mock.patch("utils.functions.json.load", wraps=json.load) as loader:
                 validate_config_enums({"mode": "dark"}, path)
                 validate_config_enums({"mode": "light"}, path)
 

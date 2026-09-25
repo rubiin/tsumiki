@@ -1,6 +1,5 @@
 """Internationalization (i18n) support for Tsumiki."""
 
-import json
 import os
 
 from fabric.utils import logger
@@ -48,6 +47,7 @@ class I18n:
     def _load_language_file(self, lang: str) -> dict[str, str]:
         """Load a language file from assets/i18n/."""
         from utils.constants import ASSETS_DIR
+        from utils.functions import read_json_file
 
         file_path = os.path.join(ASSETS_DIR, "i18n", f"{lang}.json")
 
@@ -55,14 +55,13 @@ class I18n:
             logger.warning(f"[I18n] Language file not found: {file_path}")
             return {}
 
-        try:
-            with open(file_path, "r", encoding="utf-8") as f:
-                data = json.load(f)
-                # Flatten nested keys to dot notation
-                return self._flatten_dict(data)
-        except (json.JSONDecodeError, OSError) as exc:
-            logger.error(f"[I18n] Failed to load {file_path}: {exc}")
+        data = read_json_file(file_path)
+        if not isinstance(data, dict):
+            logger.error(f"[I18n] Failed to load {file_path}: invalid JSON data")
             return {}
+
+        # Flatten nested keys to dot notation
+        return self._flatten_dict(data)
 
     def _flatten_dict(self, d: dict, prefix: str = "") -> dict[str, str]:
         """Flatten a nested dictionary to dot-notation keys."""
