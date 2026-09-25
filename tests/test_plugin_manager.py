@@ -767,15 +767,14 @@ class PluginCacheTest(unittest.TestCase):
         self.assertIs(self.plugin.cache_get("k"), _CACHE_MISS)
 
     def test_cache_expiry(self):
-        import time
-
         from utils.plugin_manager import _CACHE_MISS
 
         self.plugin.cache_put("k", "v")
-        key = next(iter(self.plugin._cache))
-        self.plugin._cache[key] = (time.monotonic() - 1, "v")  # simulate expiry
+        # rewind the entry's deadline rather than sleeping for it
+        self.plugin._cache._entries["k"] = (-1.0, "v")
+
         self.assertIs(self.plugin.cache_get("k"), _CACHE_MISS)
-        self.assertNotIn("k", self.plugin._cache)
+        self.assertNotIn("k", self.plugin._cache._entries)
 
     def test_cache_evicts_oldest_over_cap(self):
         from utils.plugin_manager import _CACHE_MAX_ENTRIES, _CACHE_MISS

@@ -8,7 +8,6 @@ import inspect
 import os
 import sys
 import threading
-import time
 from contextlib import suppress
 from typing import Any, ClassVar
 
@@ -16,6 +15,7 @@ from fabric.utils import Gio, GLib, logger
 
 from utils.functions import copy_to_clipboard as copy_to_clipboard_fn
 from utils.functions import get_http_client
+from utils.ttl_cache import CACHE_MISS, TTLCache
 
 # Module-name prefix used when importing plugin files so that a plugin file
 # can never shadow a stdlib or third-party module.
@@ -144,7 +144,7 @@ def run_subprocess(
 _CACHE_MAX_ENTRIES = 256
 
 #: Sentinel returned by :meth:`LauncherPlugin.cache_get` on a miss.
-_CACHE_MISS = object()
+_CACHE_MISS = CACHE_MISS
 
 
 def cached_handle(ttl: float | None = None):
@@ -208,8 +208,8 @@ class LauncherPlugin:
     def __init__(self) -> None:
         self._cancel_event = threading.Event()
         self._subprocess: Gio.Subprocess | None = None
-        #: Session cache: key -> (expires_at, value).
-        self._cache: dict[Any, tuple[float, Any]] = {}
+        #: Session cache of ``handle()`` results, keyed by args.
+        self._cache = TTLCache(maxsize=_CACHE_MAX_ENTRIES)
 
     def handle(self, args: str) -> list[PluginResult]:
         """Return result rows for the argument string (runs on a worker thread)."""
@@ -282,14 +282,7 @@ class LauncherPlugin:
 
     def cache_get(self, key: Any) -> Any:
         """Return the cached value for *key*, or ``_CACHE_MISS`` if absent/expired."""
-        entry = self._cache.get(key)
-        if entry is None:
-            return _CACHE_MISS
-        expires_at, value = entry
-        if expires_at <= time.monotonic():
-            del self._cache[key]
-            return _CACHE_MISS
-        return value
+        return self._cache.get(key, _CACHE_MISS)
 
     def cache_put(self, key: Any, value: Any, ttl: float | None = None) -> None:
         """Store *value* for *key* under the given *ttl* (or ``cache_ttl_seconds``).
@@ -297,26 +290,15 @@ class LauncherPlugin:
         Expired and oldest entries are evicted once the cache grows past
         ``_CACHE_MAX_ENTRIES``. ``None``/``0`` TTL is a no-op.
         """
-        ttl = ttl if ttl is not None else self.cache_ttl_seconds
-        if ttl is None or ttl <= 0:
-            return
-        self._cache[key] = (time.monotonic() + ttl, value)
-        if len(self._cache) <= _CACHE_MAX_ENTRIES:
-            return
-        now = time.monotonic()
-        for expired in [k for k, (exp, _) in self._cache.items() if exp <= now]:
-            del self._cache[expired]
-        while len(self._cache) > _CACHE_MAX_ENTRIES:
-            self._cache.pop(next(iter(self._cache)))
+        if ttl is None:
+            ttl = self.cache_ttl_seconds
+        self._cache.put(key, value, ttl=ttl)
 
     def cached(self, key: Any, producer, ttl: float | None = None) -> Any:
         """Return the cached value for *key*, producing and storing it on a miss."""
-        value = self.cache_get(key)
-        if value is not _CACHE_MISS:
-            return value
-        value = producer()
-        self.cache_put(key, value, ttl=ttl)
-        return value
+        if ttl is None:
+            ttl = self.cache_ttl_seconds
+        return self._cache.get_or_produce(key, producer, ttl=ttl)
 
     def __repr__(self) -> str:  # pragma: no cover - debug helper
         return f"<{type(self).__name__} name={self.name!r}>"

@@ -47,6 +47,7 @@ from .constants import (
 from .decorators import run_in_thread, thread
 from .exceptions import ExecutableNotFoundError
 from .icons import get_text_icon
+from .ttl_cache import TTLCache
 
 gi.require_version("Pango", "1.0")
 from gi.repository import Pango  # noqa: E402
@@ -957,39 +958,25 @@ def get_http_client():
 
 # ── TTL-cached path existence ─────────────────────────────────
 
-_path_exists_cache: dict[str, tuple[bool, float]] = {}
 _PATH_EXISTS_CACHE_MAX = 500
-_path_exists_cache_lock = threading.Lock()
+_path_exists_cache = TTLCache(maxsize=_PATH_EXISTS_CACHE_MAX)
 
 
 def path_exists_ttl(path: str, ttl: int = 300) -> bool:
     """Check if a filesystem path exists, with TTL and bounded caching (thread-safe).
 
-    Caches ``os.path.exists`` results to avoid redundant syscalls on
-    hot paths (system tray icon checks, device scans, etc.).  The
-    cache is a simple module-level dict capped at ``_PATH_EXISTS_CACHE_MAX``
-    entries; entries live at most *ttl* seconds before a fresh stat
-    is issued.  When the cache exceeds the cap the oldest entry is
-    evicted.
+    Caches ``os.path.exists`` results to avoid redundant syscalls on hot paths
+    (system tray icon checks, device scans, etc.). Entries live at most *ttl*
+    seconds before a fresh stat is issued; past
+    ``_PATH_EXISTS_CACHE_MAX`` the oldest are evicted.
+
+    Eviction is least-recently-inserted, not least-recently-used: a hit does
+    not refresh the entry's position. That is fine for a stat cache, where a
+    hot path is re-stat'ed every *ttl* seconds anyway.
     """
-    with _path_exists_cache_lock:
-        now = time.time()
-        cached = _path_exists_cache.get(path)
-        if cached is not None and now - cached[1] < ttl:
-            return cached[0]
-
-    result = os.path.exists(path)
-
-    with _path_exists_cache_lock:
-        if len(_path_exists_cache) >= _PATH_EXISTS_CACHE_MAX:
-            # Evict oldest entry
-            try:
-                oldest = next(iter(_path_exists_cache))
-                del _path_exists_cache[oldest]
-            except StopIteration:
-                pass
-        _path_exists_cache[path] = (result, now)
-    return result
+    return _path_exists_cache.get_or_produce(
+        path, lambda: os.path.exists(path), ttl=ttl
+    )
 
 
 # Pre-defined log domains tuple (immutable)
