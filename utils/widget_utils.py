@@ -8,7 +8,7 @@ from time import sleep
 from typing import Literal
 
 import psutil
-from fabric.utils import Gdk, GdkPixbuf, GLib, bulk_connect, cairo
+from fabric.utils import Gdk, GdkPixbuf, bulk_connect, cairo
 from fabric.widgets.label import Label
 from fabric.widgets.scale import ScaleMark
 from fabric.widgets.widget import Widget
@@ -17,6 +17,7 @@ from .config import tsumiki_config
 from .constants import NOTIFICATION_IMAGE_SIZE
 from .icon_resolver import IconResolver
 from .icons import get_text_icon, symbolic_icons
+from .pixbuf import load_file_pixbuf
 
 storage_config = tsumiki_config.get("widgets", {}).get("storage", {})
 
@@ -214,12 +215,10 @@ def get_notification_image_pixbuf(
         image_file = image_file[7:]
 
     if os.path.isfile(image_file):
-        try:
-            return IconResolver().scale_pixbuf_to_size(
-                GdkPixbuf.Pixbuf.new_from_file(image_file), size
-            )
-        except GLib.GError:
+        pixbuf = load_file_pixbuf(image_file)
+        if pixbuf is None:
             return None
+        return IconResolver().scale_pixbuf_to_size(pixbuf, size)
 
     # Not a file path - try resolving it as a themed icon name
     return IconResolver().get_icon_theme_icon(image_file, size - 5)

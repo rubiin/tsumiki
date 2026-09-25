@@ -406,15 +406,14 @@ class NotificationWidget(EventBox, TeardownMixin):
             path = path[len("file://") :]
         if not path or not os.path.exists(path):
             return None
-        try:
-            return GdkPixbuf.Pixbuf.new_from_file_at_size(
-                path,
-                constants.NOTIFICATION_IMAGE_SIZE,
-                constants.NOTIFICATION_IMAGE_SIZE,
-            )
-        except Exception:
-            logger.exception(f"[Notification] Failed to load body image: {src}")
-            return None
+        pixbuf = helpers.load_file_pixbuf(
+            path,
+            constants.NOTIFICATION_IMAGE_SIZE,
+            constants.NOTIFICATION_IMAGE_SIZE,
+        )
+        if pixbuf is None:
+            logger.warning(f"[Notification] Failed to load body image: {src}")
+        return pixbuf
 
     def _build_actions(self, notification: Notification, body_text: str) -> Grid:
         """Build the actions grid from notification actions.

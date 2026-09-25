@@ -2,7 +2,6 @@ from fabric.system_tray.service import SystemTray as SystemTrayService
 from fabric.system_tray.service import SystemTrayItem as SystemTrayItemService
 from fabric.utils import (
     Gdk,
-    GdkPixbuf,
     GLib,
     Gtk,
     bulk_connect,
@@ -18,6 +17,7 @@ from shared.widget_container import ButtonWidget
 from utils.functions import path_exists_ttl
 from utils.icon_resolver import IconResolver
 from utils.icons import get_text_icon, symbolic_icons
+from utils.pixbuf import load_file_pixbuf
 from utils.widget_utils import nerd_font_icon
 
 
@@ -68,9 +68,9 @@ class BaseSystemTray:
 
             # for some apps, the icon_name is a path
             if path_exists_ttl(icon_name, ttl=60):
-                return GdkPixbuf.Pixbuf.new_from_file_at_size(
-                    icon_name, width=icon_size, height=icon_size
-                )
+                pixbuf = load_file_pixbuf(icon_name, icon_size, icon_size)
+                if pixbuf is not None:
+                    return pixbuf
             return self._load_default_theme_icon(icon_size, icon_name)
         except (GLib.Error, TypeError, ValueError):
             return self._load_default_theme_icon(icon_size)

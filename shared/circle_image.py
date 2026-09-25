@@ -1,26 +1,12 @@
-from functools import lru_cache
 from typing import Iterable, Literal
 
 from fabric.core.service import Property
 from fabric.utils import Gdk, GdkPixbuf, Gtk, cairo, math
 from fabric.widgets.widget import Widget
 
+from utils.pixbuf import load_file_pixbuf
+
 from .widget_container import BaseWidget
-
-
-@lru_cache(maxsize=64)
-def _load_pixbuf_cached(
-    filepath: str, width: int, height: int
-) -> GdkPixbuf.Pixbuf | None:
-    """Load a pixbuf at target dimensions with caching to avoid re-decode.
-
-    GdkPixbuf.new_from_file_at_size decodes JPEG at reduced resolution
-    when possible, so this avoids both full-resolution decode and
-    repeated disk I/O for the same file+size combination.
-    """
-    if not filepath:
-        return None
-    return GdkPixbuf.Pixbuf.new_from_file_at_size(filepath, width, height)
 
 
 class CircularImage(Gtk.DrawingArea, BaseWidget):
@@ -78,7 +64,7 @@ class CircularImage(Gtk.DrawingArea, BaseWidget):
         self._angle = 0
         self.size = size
         self._image: GdkPixbuf.Pixbuf | None = (
-            _load_pixbuf_cached(image_file, size, size)
+            load_file_pixbuf(image_file, size, size)
             if image_file and size
             else pixbuf
             if pixbuf
@@ -107,7 +93,7 @@ class CircularImage(Gtk.DrawingArea, BaseWidget):
         if new_image_file == "":
             return
         self._image = (
-            _load_pixbuf_cached(new_image_file, -1, self.size) if self.size else None
+            load_file_pixbuf(new_image_file, -1, self.size) if self.size else None
         )
         self.queue_draw()
 

@@ -15,6 +15,7 @@ from utils.functions import ensure_directory, get_http_client
 from utils.i18n import _
 from utils.icon_resolver import IconResolver
 from utils.icons import get_text_icon
+from utils.pixbuf import load_file_pixbuf
 from utils.widget_utils import nerd_font_icon
 
 from .buttons import HoverButton
@@ -66,13 +67,15 @@ def _average_luminance(pixbuf: GdkPixbuf.Pixbuf) -> float | None:
 
 @lru_cache(maxsize=64)
 def _classify_art_cached(image_path: str, mtime: float) -> bool | None:
-    """Decode + classify artwork once per (path, mtime); None on failure.
+    """Classify artwork light-or-dark, cached per (path, mtime); None on failure.
 
-    Keyed by mtime so replaced artwork files are re-classified without
-    re-decoding the same file on every track change.
+    The decode is cached separately by :func:`load_file_pixbuf`, against the
+    file's mtime; this layer only has to redo the cheap luminance pass.
     """
+    pixbuf = load_file_pixbuf(image_path, 16, 16)
+    if pixbuf is None:
+        return None
     try:
-        pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(image_path, 16, 16)
         luminance = _average_luminance(pixbuf)
     except Exception:
         logger.debug(f"[Media] Failed to compute art luminance: {image_path}")
