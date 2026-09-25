@@ -7,6 +7,30 @@ $launcher-transition:
   background-color variable.$duration-fast variable.$ease-standard,
   color variable.$duration-fast variable.$ease-standard;
 
+/// The accent state machine shared by the bar button and the in-popup plugin
+/// rows. They differ only in which child nodes get recoloured, so the selector
+/// list is the parameter and the states themselves are written once.
+@mixin launcher-selection-state($children) {
+  &:hover,
+  &:focus,
+  &.selected {
+    background-color: theme.$accent-purple;
+    color: theme.$background-dark;
+
+    #{$children} {
+      color: theme.$background-dark;
+    }
+  }
+
+  &:active {
+    background-color: color.mix(theme.$accent-purple, black, 15%);
+
+    #{$children} {
+      color: theme.$background-dark;
+    }
+  }
+}
+
 .launcher-button {
   border-radius: variable.$radius-lg;
   transition: $launcher-transition;
@@ -15,24 +39,7 @@ $launcher-transition:
   #icon {
     -gtk-icon-effect: highlight;
   }
-  &:hover,
-  &:focus,
-  &.selected {
-    background-color: theme.$accent-purple;
-    color: theme.$background-dark;
-
-    label {
-      color: theme.$background-dark;
-    }
-  }
-
-  &:active {
-    background-color: color.mix(theme.$accent-purple, black, 15%);
-
-    label {
-      color: theme.$background-dark;
-    }
-  }
+  @include launcher-selection-state("label");
 
   #grid-item {
     padding: 8px;
@@ -129,26 +136,7 @@ $launcher-transition:
       color: theme.$text-muted;
     }
 
-    &:hover,
-    &:focus,
-    &.selected {
-      background-color: theme.$accent-purple;
-      color: theme.$background-dark;
-
-      #launcher-plugin-title,
-      #launcher-plugin-subtitle {
-        color: theme.$background-dark;
-      }
-    }
-
-    &:active {
-      background-color: color.mix(theme.$accent-purple, black, 15%);
-
-      #launcher-plugin-title,
-      #launcher-plugin-subtitle {
-        color: theme.$background-dark;
-      }
-    }
+    @include launcher-selection-state("#launcher-plugin-title, #launcher-plugin-subtitle");
   }
 
   #launcher-plugin-hint {

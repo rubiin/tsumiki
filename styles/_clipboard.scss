@@ -3,6 +3,23 @@
 @use "common";
 @use "variable";
 
+/// The destructive close-button state machine, shared by the clipboard and
+/// emoji popovers. Identical behaviour; only the label selectors differ.
+@mixin destructive-button-state($labels) {
+  &:hover,
+  &:focus {
+    background-color: theme.$surface-highlight;
+  }
+
+  &:active {
+    background-color: theme.$accent-red;
+
+    #{$labels} {
+      color: theme.$background-main;
+    }
+  }
+}
+
 #clipboard {
   @include common.widget_border(
     variable.$bar-widgets-clipboard-border-radius,
@@ -38,19 +55,7 @@
       padding: 2px 8px;
       border-radius: variable.$radius-large;
 
-      &:hover,
-      &:focus {
-        background-color: theme.$surface-highlight;
-      }
-
-      &:active {
-        background-color: theme.$accent-red;
-
-        #close-label,
-        #clear-label {
-          color: theme.$background-main;
-        }
-      }
+      @include destructive-button-state("#close-label, #clear-label");
     }
 
     #close-label,

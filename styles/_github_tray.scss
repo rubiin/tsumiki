@@ -3,6 +3,15 @@
 @use "common";
 @use "variable";
 
+/// The raised panel surface shared by every tray element: a card, a chip, the
+/// tab strip and the toast all sit on the same background-alt fill with the
+/// same hairline border, and differ only in corner radius.
+@mixin tray-surface($radius) {
+  background-color: theme.$background-alt;
+  border: 1px solid theme.$surface-disabled;
+  border-radius: $radius;
+}
+
 #github_tray {
   @include common.widget_border(
     variable.$bar-widgets-github_tray-border-radius,
@@ -84,9 +93,7 @@
 
 .github-tray-chip {
   padding: 2px 6px;
-  border-radius: variable.$radius-lg;
-  background-color: theme.$background-alt;
-  border: 1px solid theme.$surface-disabled;
+  @include tray-surface(variable.$radius-lg);
 }
 
 .github-tray-chip-icon {
@@ -111,9 +118,7 @@
 /* Tabs */
 #github-tray-tabs {
   padding: 3px;
-  border-radius: variable.$radius-4xl;
-  background-color: theme.$background-alt;
-  border: 1px solid theme.$surface-disabled;
+  @include tray-surface(variable.$radius-4xl);
 }
 
 /* Segmented tabs - scoped under the container so the generic card chrome
@@ -173,9 +178,7 @@
 
 /* Cards */
 .github-tray-card {
-  background-color: theme.$background-alt;
-  border: 1px solid theme.$surface-disabled;
-  border-radius: variable.$radius-lg;
+  @include tray-surface(variable.$radius-lg);
   color: theme.$text-main;
   padding: 6px 8px;
 
@@ -456,9 +459,7 @@
 /* Toast */
 #github-tray-toast {
   padding: 4px 10px;
-  border-radius: variable.$radius-lg;
-  background-color: theme.$background-alt;
-  border: 1px solid theme.$surface-disabled;
+  @include tray-surface(variable.$radius-lg);
   color: theme.$text-main;
   font-size: variable.$font-size-sm;
 }

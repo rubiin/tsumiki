@@ -10,6 +10,8 @@ $toggler-radius: variable.$radius * 1.4;
 $qs-active-bg: color.mix(theme.$accent-purple, theme.$background-main, 18%);
 $qs-active-bg-hover: color.mix(theme.$accent-purple, theme.$background-main, 30%);
 $qs-active-fg: theme.$accent-purple;
+$qs-hover-bg: color.adjust(theme.$surface-neutral, $alpha: -0.7);
+$qs-press-bg: color.adjust(theme.$surface-neutral, $alpha: -0.85);
 
 @mixin setting-slider($min-length) {
   @include common.slider(
@@ -98,7 +100,7 @@ $qs-active-fg: theme.$accent-purple;
       min-height: 35px;
 
       &:hover {
-        background-color: color.adjust(theme.$surface-neutral, $alpha: -0.7);
+        background-color: $qs-hover-bg;
       }
 
       &-box {
@@ -328,21 +330,10 @@ $qs-active-fg: theme.$accent-purple;
           margin-left: 0;
         }
 
-        &.active {
-          background-color: $qs-active-bg;
-
-          &:hover {
-            background-color: $qs-active-bg-hover;
-          }
-
-          label {
-            color: $qs-active-fg;
-          }
-
-          image {
-            color: $qs-active-fg;
-          }
-        }
+        /* .active needs no restatement here: every element carrying this
+           class is a #quicksettings-togglebutton, so the block above already
+           applies the same background, hover background and label/image
+           colour - plus the icon and text nodes this one never covered. */
       }
 
       .toggle-revealer {
@@ -350,7 +341,7 @@ $qs-active-fg: theme.$accent-purple;
         padding: common.toEm(10) common.toEm(5);
 
         &:hover {
-          background-color: color.adjust(theme.$surface-neutral, $alpha: -0.7);
+          background-color: $qs-hover-bg;
         }
       }
 
@@ -398,11 +389,11 @@ $qs-active-fg: theme.$accent-purple;
       transition: background-color variable.$duration-normal variable.$ease-standard;
 
       &:hover {
-        background-color: color.adjust(theme.$surface-neutral, $alpha: -0.7);
+        background-color: $qs-hover-bg;
       }
 
       &:active {
-        background-color: color.adjust(theme.$surface-neutral, $alpha: -0.85);
+        background-color: $qs-press-bg;
       }
     }
   }
