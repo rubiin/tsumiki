@@ -11,6 +11,11 @@ from fabric.core.service import Signal
 from fabric.utils import Gdk, Gtk
 
 from .animator import Animator, cubic_bezier
+from .geometry import (
+    fraction_from_position,
+    rounded_rect_path,
+    value_from_fraction,
+)
 from .widget_container import BaseWidget, TeardownMixin
 
 
@@ -118,19 +123,14 @@ class LabeledSlider(Gtk.DrawingArea, BaseWidget, TeardownMixin):
     # ── Input handling ──────────────────────────────────────────────
 
     def _value_from_coord(self, x: float, y: float) -> float:
+        horizontal = self.orientation == "h"
         alloc = (
-            self.get_allocated_width()
-            if self.orientation == "h"
-            else self.get_allocated_height()
+            self.get_allocated_width() if horizontal else self.get_allocated_height()
         )
-        padding = self.knob_radius + 2
-        usable = max(1, alloc - 2 * padding)
-        if self.orientation == "h":
-            frac = (x - padding) / usable
-        else:
-            frac = (y - padding) / usable
-        frac = max(0.0, min(1.0, frac))
-        return self.min_value + frac * (self.max_value - self.min_value)
+        fraction = fraction_from_position(
+            x if horizontal else y, alloc, self.knob_radius + 2
+        )
+        return value_from_fraction(fraction, self.min_value, self.max_value)
 
     def _on_button_press(self, _widget, event):
         if event.button == 1:
@@ -185,7 +185,7 @@ class LabeledSlider(Gtk.DrawingArea, BaseWidget, TeardownMixin):
 
         # Trough background
         self._apply_color(cr, sc, "trough-bg", default="#313244")
-        self._rounded_rect(cr, trough_x, trough_y, trough_w, trough_h, trough_r)
+        rounded_rect_path(cr, trough_x, trough_y, trough_w, trough_h, trough_r)
         cr.fill()
 
         # Filled portion
@@ -193,10 +193,10 @@ class LabeledSlider(Gtk.DrawingArea, BaseWidget, TeardownMixin):
         self._apply_color(cr, sc, "trough-fill", default="#89b4fa")
         if self.orientation == "h":
             fill_w = trough_w * frac
-            self._rounded_rect(cr, trough_x, trough_y, fill_w, trough_h, trough_r)
+            rounded_rect_path(cr, trough_x, trough_y, fill_w, trough_h, trough_r)
         else:
             fill_h = trough_h * frac
-            self._rounded_rect(
+            rounded_rect_path(
                 cr,
                 trough_x,
                 trough_y + trough_h - fill_h,
@@ -244,19 +244,6 @@ class LabeledSlider(Gtk.DrawingArea, BaseWidget, TeardownMixin):
         PangoCairo.show_layout(cr, layout)
 
     # ── Helpers ─────────────────────────────────────────────────────
-
-    @staticmethod
-    def _rounded_rect(cr, x, y, w, h, r):
-        r = min(r, w / 2, h / 2)
-        if r <= 0:
-            cr.rectangle(x, y, w, h)
-            return
-        cr.new_sub_path()
-        cr.arc(x + w - r, y + r, r, -math.pi / 2, 0)
-        cr.arc(x + w - r, y + h - r, r, 0, math.pi / 2)
-        cr.arc(x + r, y + h - r, r, math.pi / 2, math.pi)
-        cr.arc(x + r, y + r, r, math.pi, 3 * math.pi / 2)
-        cr.close_path()
 
     @staticmethod
     def _apply_color(cr, sc, css_class, default="#888888"):

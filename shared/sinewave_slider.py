@@ -5,6 +5,12 @@ from typing import Iterable, Literal, TypedDict
 from fabric.utils import Gdk, GLib, GObject, Gtk, bulk_connect, cairo
 from fabric.widgets.widget import Widget
 
+from .geometry import (
+    fraction_from_position,
+    rounded_rect_path,
+    value_from_fraction,
+)
+
 
 class SineWaveSliderStyle(TypedDict):
     """Style dictionary for SineWaveSlider."""
@@ -279,12 +285,9 @@ class SineWaveSlider(Gtk.DrawingArea, Widget):
         return margin + position * usable
 
     def _x_to_value(self, x: float, handle_length: float) -> float:
-        width = self.get_allocated_width()
         margin = self._margin(handle_length)
-        usable = width - 2 * margin
-        position = (x - margin) / usable
-        clamped = max(0.0, min(1.0, position))
-        return self._min + clamped * (self._max - self._min)
+        fraction = fraction_from_position(x, self.get_allocated_width(), margin)
+        return value_from_fraction(fraction, self._min, self._max)
 
     def _tick(self) -> bool:
         if self._morph < self._morph_target:
@@ -373,26 +376,13 @@ class SineWaveSlider(Gtk.DrawingArea, Widget):
 
         # shadow
         cr.set_source_rgba(0.0, 0.0, 0.0, 0.15)
-        self._rounded_rect(cr, hx + 0.5, hy + 1.5, ht, hl, r)
+        rounded_rect_path(cr, hx + 0.5, hy + 1.5, ht, hl, r)
         cr.fill()
 
         # main handle
         Gdk.cairo_set_source_rgba(cr, hc)
-        self._rounded_rect(cr, hx, hy, ht, hl, r)
+        rounded_rect_path(cr, hx, hy, ht, hl, r)
         cr.fill()
-
-    def _rounded_rect(
-        self, cr: cairo.Context, x: float, y: float, w: float, h: float, r: float
-    ) -> None:
-        if r <= 0:
-            cr.rectangle(x, y, w, h)
-            return
-        cr.new_sub_path()
-        cr.arc(x + w - r, y + r, r, -math.pi / 2, 0)
-        cr.arc(x + w - r, y + h - r, r, 0, math.pi / 2)
-        cr.arc(x + r, y + h - r, r, math.pi / 2, math.pi)
-        cr.arc(x + r, y + r, r, math.pi, 3 * math.pi / 2)
-        cr.close_path()
 
     # ───────────────────────────────────────── min/max
 
