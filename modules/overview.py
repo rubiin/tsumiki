@@ -172,6 +172,7 @@ class OverviewMenu(Box):
         self._client_meta: dict[str, tuple] = {}
         self._update_source_id: int | None = None
         self._update_generation: int = 0
+        self._destroyed: bool = False
         self._fetched_monitors: dict = {}
 
         self._service = hyprland_service
@@ -213,6 +214,15 @@ class OverviewMenu(Box):
         self.grid.attach_flow(children=overlays, columns=5)
 
     def _on_destroy(self, *_):
+        self._destroyed = True
+        # A pending debounce outlives the widget and would rebuild a destroyed
+        # grid, so drop the source rather than let it fire.
+        if self._update_source_id is not None:
+            GLib.source_remove(self._update_source_id)
+            self._update_source_id = None
+        # Bump the generation so a fetch already in flight is treated as stale
+        # and never reaches the torn-down widgets.
+        self._update_generation += 1
         for hid in self._handler_ids:
             safe_disconnect(self._service.connection, hid)
 
@@ -346,6 +356,8 @@ class OverviewMenu(Box):
 
     def update(self, signal_update=False):
         """Update overview asynchronously — fetches monitors then chains clients."""
+        if self._destroyed:
+            return
         self._refresh_app_cache_if_needed()
         self._update_generation += 1
         gen = self._update_generation
