@@ -1,9 +1,11 @@
 import warnings
 
 from fabric.hyprland import Hyprland
-from fabric.utils import Gdk, GLib, bulk_connect, logger
+from fabric.utils import Gdk, bulk_connect, logger
 
+from utils.decorators import cancel_timeout, replace_timeout
 from utils.hyprland import hyprland_service
+from utils.singleton import SingletonMixin
 
 from .constants import MONITOR_HOTPLUG_DELAY_MS
 from .functions import parse_hyprland_reply
@@ -11,15 +13,9 @@ from .functions import parse_hyprland_reply
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 
-class HyprlandWithMonitors(Hyprland):
+class HyprlandWithMonitors(SingletonMixin, Hyprland):
     """A Hyprland class with additional monitor common."""
 
-    _instance = None
-
-    def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-        return cls._instance
 
     def __init__(self, commands_only: bool = False, **kwargs):
         super().__init__(commands_only, **kwargs)
@@ -121,16 +117,12 @@ class MonitorWatcher:
 
     def stop(self):
         """Cancel any pending timer and stop watching."""
-        if self._pending_timer_id is not None:
-            GLib.source_remove(self._pending_timer_id)
-            self._pending_timer_id = None
+        cancel_timeout(self, "_pending_timer_id")
         self.callbacks.clear()
 
     def on_monitor_changed(self, *_):
-        if self._pending_timer_id is not None:
-            GLib.source_remove(self._pending_timer_id)
-        self._pending_timer_id = GLib.timeout_add(
-            MONITOR_HOTPLUG_DELAY_MS, self._notify_callbacks
+        replace_timeout(
+            self, "_pending_timer_id", MONITOR_HOTPLUG_DELAY_MS, self._notify_callbacks
         )
 
     def _notify_callbacks(self):

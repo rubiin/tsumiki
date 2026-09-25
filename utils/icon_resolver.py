@@ -2,7 +2,9 @@ import contextlib
 
 from fabric.utils import GdkPixbuf, GLib, Gtk, logger, os, re
 
+from utils.decorators import replace_timeout
 from utils.functions import read_json_file, ttl_lru_cache, write_json_file
+from utils.singleton import SingletonMixin
 
 from .constants import ICON_CACHE_FILE
 from .icons import symbolic_icons
@@ -22,7 +24,7 @@ _PLACEHOLDER_ICONS = frozenset(
 )
 
 
-class IconResolver:
+class IconResolver(SingletonMixin):
     """A class to resolve icons for applications."""
 
     __slots__ = (
@@ -33,20 +35,11 @@ class IconResolver:
         "_write_pending",
     )
 
-    _instance = None
-    _initialized = False
     _app_id_split_re = re.compile(r"-|\.|_|\s")
 
-    def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-        return cls._instance
-
     def __init__(self):
-        if IconResolver._initialized:
+        if not self._init_once():
             return
-        IconResolver._initialized = True
-
         # Defer icon cache loading until first access
         self._icon_dict = None
         self._cache_dirty = False
@@ -169,10 +162,8 @@ class IconResolver:
         if self._write_pending:
             return  # Already scheduled
         self._write_pending = True
-        if self._flush_timer_id is not None:
-            GLib.source_remove(self._flush_timer_id)
-        self._flush_timer_id = GLib.timeout_add(
-            _CACHE_WRITE_DELAY_MS, self._flush_cache
+        replace_timeout(
+            self, "_flush_timer_id", _CACHE_WRITE_DELAY_MS, self._flush_cache
         )
 
     def _flush_cache(self):

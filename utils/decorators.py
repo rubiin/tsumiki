@@ -98,6 +98,28 @@ def run_in_thread(func: Callable[..., T]) -> Callable[..., Any]:
     return wrapper
 
 
+def replace_timeout(owner, attribute: str, delay_ms: int, callback: Callable[[], bool]):
+    """(Re)arm a one-shot timer stored on *owner*, replacing any pending one.
+
+    The bookkeeping every "remove the old source, then schedule" site repeats.
+    The callback is responsible for clearing *attribute* if it needs to know the
+    timer has already fired - use it for a repeating poll.
+    """
+    existing = getattr(owner, attribute, None)
+    if existing:
+        GLib.source_remove(existing)
+    setattr(owner, attribute, GLib.timeout_add(delay_ms, callback))
+    return getattr(owner, attribute)
+
+
+def cancel_timeout(owner, attribute: str) -> None:
+    """Cancel a timer armed by :func:`replace_timeout`, if one is pending."""
+    existing = getattr(owner, attribute, None)
+    if existing:
+        GLib.source_remove(existing)
+        setattr(owner, attribute, None)
+
+
 def debounce(ms: int):
     """
     Debounce a method. Useful for preventing UI flickering during fast typing.
