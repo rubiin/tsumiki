@@ -28,10 +28,10 @@ class TsumikiConfigSingletonTest(unittest.TestCase):
     """Test singleton behaviour of TsumikiConfig."""
 
     def setUp(self):
-        TsumikiConfig._instance = None
+        TsumikiConfig.reset_instance()
 
     def tearDown(self):
-        TsumikiConfig._instance = None
+        TsumikiConfig.reset_instance()
 
     def test_same_instance(self):
         a = make_tsumiki_config()
@@ -48,10 +48,10 @@ class LoadConfigTest(unittest.TestCase):
     """Test _load_config with mocked file I/O."""
 
     def setUp(self):
-        TsumikiConfig._instance = None
+        TsumikiConfig.reset_instance()
 
     def tearDown(self):
-        TsumikiConfig._instance = None
+        TsumikiConfig.reset_instance()
 
     def test_missing_toml_raises(self):
         with self.assertRaises(FileNotFoundError):

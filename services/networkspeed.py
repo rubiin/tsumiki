@@ -3,8 +3,10 @@ from time import monotonic
 import psutil
 from fabric.utils import logger, re
 
+from utils.singleton import SingletonMixin
 
-class NetworkSpeed:
+
+class NetworkSpeed(SingletonMixin):
     """A service to monitor network speed."""
 
     __slots__ = (
@@ -13,17 +15,11 @@ class NetworkSpeed:
         "last_total_up_bytes",
     )
 
-    _instance = None
     _virtual_iface_re = None
 
-    def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-        return cls._instance
-
     def __init__(self):
-        if hasattr(self, "last_sample_time"):
-            return  # Already initialized
+        if not self._init_once():
+            return
         self.last_total_down_bytes = 0
         self.last_total_up_bytes = 0
         self.last_sample_time = 0.0

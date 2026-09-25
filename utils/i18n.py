@@ -4,26 +4,21 @@ import os
 
 from fabric.utils import logger
 
+from utils.singleton import SingletonMixin
+
 # Default language
 DEFAULT_LANGUAGE = "en"
 
 # Singleton instance
-_instance = None
 
 
-class I18n:
+class I18n(SingletonMixin):
     """Internationalization manager that loads and provides translations."""
 
-    _instance = None
-    __slots__ = ("_fallback", "_initialized", "_language", "_translations")
-
-    def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-        return cls._instance
+    __slots__ = ("_fallback", "_language", "_translations")
 
     def __init__(self):
-        if getattr(self, "_initialized", False):
+        if not self._init_once():
             return
 
         self._translations: dict[str, str] = {}
@@ -118,7 +113,4 @@ def _(key: str, **kwargs) -> str:
 
 def get_i18n() -> I18n:
     """Get the singleton I18n instance."""
-    global _instance
-    if _instance is None:
-        _instance = I18n()
-    return _instance
+    return I18n()

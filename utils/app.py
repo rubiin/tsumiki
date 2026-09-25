@@ -1,25 +1,18 @@
 from fabric.utils import get_desktop_applications
 
 from utils.constants import NORMALIZE_SUFFIXES
+from utils.singleton import SingletonMixin
 
 
-class AppUtils:
+class AppUtils(SingletonMixin):
     """Singleton utility class for managing desktop applications"""
 
     __slots__ = ("_all_applications", "_app_identifiers")
 
-    _instance = None
-    _initialized = False
-
-    def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-        return cls._instance
 
     def __init__(self):
-        if AppUtils._initialized:
+        if not self._init_once():
             return
-        AppUtils._initialized = True
         # Defer loading until first access to save memory at startup
         self._all_applications = None
         self._app_identifiers = None

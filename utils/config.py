@@ -1,5 +1,6 @@
 from fabric.utils import get_relative_path, logger, os
 
+from utils.singleton import SingletonMixin
 from utils.validation import (
     validate_config_enums,
     validate_widgets,
@@ -17,27 +18,19 @@ _EXCLUDED_SCHEMA_KEYS = frozenset(["$schema"])
 _LIST_CONFIG_KEYS = frozenset(["widget_groups", "collapsible_groups"])
 
 
-class TsumikiConfig:
+class TsumikiConfig(SingletonMixin):
     "A class to read the configuration file and return the default configuration"
 
     __slots__ = (
-        "_initialized",
         "config",
         "root_dir",
         "toml_config_file",
     )
 
-    _instance = None
-
-    def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-        return cls._instance
 
     def __init__(self):
-        if getattr(self, "_initialized", False):
+        if not self._init_once():
             return
-
         self.root_dir = get_relative_path("..")
 
         self.toml_config_file = f"{self.root_dir}/config.toml"

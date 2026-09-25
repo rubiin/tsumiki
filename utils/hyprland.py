@@ -2,26 +2,20 @@ from fabric.hyprland.widgets import get_hyprland_connection
 from fabric.utils import logger
 
 from utils.functions import normalize_address, parse_hyprland_reply
+from utils.singleton import SingletonMixin
 
 
-class HyprlandService:
+class HyprlandService(SingletonMixin):
     """Singleton service for all Hyprland IPC interactions.
 
     Centralises connection management, query methods, and dispatch helpers
     so widgets no longer call ``get_hyprland_connection()`` directly.
     """
 
-    _instance = None
-
-    def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-        return cls._instance
 
     def __init__(self):
-        if hasattr(self, "_initialized"):
+        if not self._init_once():
             return
-        self._initialized = True
         self._connection = get_hyprland_connection()
 
     # ── Connection access (for event subscription etc.) ────────────

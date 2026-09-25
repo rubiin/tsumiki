@@ -35,10 +35,8 @@ class IconResolverCacheTest(unittest.TestCase):
 
     def setUp(self):
         # The resolver is a singleton, so each test needs a clean instance.
-        IconResolver._instance = None
-        IconResolver._initialized = False
-        self.addCleanup(setattr, IconResolver, "_instance", None)
-        self.addCleanup(setattr, IconResolver, "_initialized", False)
+        IconResolver.reset_instance()
+        self.addCleanup(IconResolver.reset_instance)
 
         self._tmpdir = tempfile.TemporaryDirectory()
         self.addCleanup(self._tmpdir.cleanup)
