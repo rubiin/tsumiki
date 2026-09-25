@@ -4,48 +4,8 @@ import tempfile
 import unittest
 from unittest import mock
 
-from fabric.notifications import Notification
-from gi.repository import GLib
-
 from services.custom_notification import CustomNotifications
-
-
-def make_notification(
-    *,
-    notification_id: int = 1,
-    replaces_id: int = 0,
-    app_name: str = "test-app",
-    summary: str = "summary",
-    body: str = "body",
-    sync_hint: str | None = None,
-    sync_value: str = "progress-key",
-) -> Notification:
-    """Build a Notification without DBus/GTK, optionally with a sync hint."""
-    data = {
-        "id": notification_id,
-        "replaces-id": replaces_id,
-        "app-name": app_name,
-        "app-icon": "",
-        "summary": summary,
-        "body": body,
-        "timeout": 5000,
-        "urgency": 1,
-        "actions": [],
-        "image-file": None,
-        "image-pixmap": None,
-        "time": 100.0,
-    }
-    notification = Notification.deserialize(data)
-    hints = {}
-    if sync_hint is not None:
-        hints[sync_hint] = GLib.Variant("s", sync_value)
-    notification._hints = GLib.Variant("a{sv}", hints)
-    return notification
-
-
-def run_inline(func, *args, **kwargs):
-    """Run a thread-pool submission synchronously so tests stay deterministic."""
-    return func(*args, **kwargs)
+from tests.helpers import make_notification, notification_data, run_inline
 
 
 class CustomNotificationsTest(unittest.TestCase):
@@ -184,20 +144,7 @@ class CustomNotificationsTest(unittest.TestCase):
     def test_drop_registry_entry_leaves_history_untouched(self):
         self.service._notifications = {1: make_notification()}
         self.service.all_notifications = [
-            {
-                "id": 1,
-                "replaces-id": 0,
-                "app-name": "test-app",
-                "app-icon": "",
-                "summary": "s",
-                "body": "b",
-                "timeout": 5000,
-                "urgency": 1,
-                "actions": [],
-                "image-file": None,
-                "image-pixmap": None,
-                "time": 100.0,
-            }
+            notification_data(summary="s", body="b")
         ]
 
         self.service.drop_registry_entry(1)
@@ -253,7 +200,7 @@ class CustomNotificationsTest(unittest.TestCase):
 
         with (
             mock.patch(
-                "services.custom_notification.json.dump",
+                "services.custom_notification.write_json_file",
                 side_effect=ValueError("bad"),
             ),
             mock.patch("services.custom_notification.thread", side_effect=capture),

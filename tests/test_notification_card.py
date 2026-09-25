@@ -8,29 +8,8 @@ display.
 import unittest
 from unittest import mock
 
-from fabric.notifications import Notification
-
 from shared import notification_card
-
-
-def make_notification(app_name: str = "test-app") -> Notification:
-    """Build a Notification without DBus/GTK."""
-    return Notification.deserialize(
-        {
-            "id": 1,
-            "replaces-id": 0,
-            "app-name": app_name,
-            "app-icon": "",
-            "summary": "summary",
-            "body": "body",
-            "timeout": 5000,
-            "urgency": 1,
-            "actions": [],
-            "image-file": None,
-            "image-pixmap": None,
-            "time": 100.0,
-        }
-    )
+from tests.helpers import make_notification
 
 
 class HeaderTest(unittest.TestCase):

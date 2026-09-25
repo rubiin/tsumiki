@@ -9,6 +9,7 @@ import unittest
 from unittest import mock
 
 from services.style import StyleService
+from tests.helpers import run_inline
 
 
 def _make_service() -> StyleService:
@@ -18,11 +19,6 @@ def _make_service() -> StyleService:
     service._compile_pending = False
     service.emit = mock.Mock()
     return service
-
-
-def _run_inline(func, *args, **kwargs):
-    """Run a pool submission synchronously so tests stay deterministic."""
-    return func(*args, **kwargs)
 
 
 class CompileCoalescingTest(unittest.TestCase):
@@ -42,7 +38,7 @@ class CompileCoalescingTest(unittest.TestCase):
             mock.patch.object(
                 service, "_compile_and_apply", side_effect=fake_compile_and_apply
             ),
-            mock.patch("services.style.thread", side_effect=_run_inline),
+            mock.patch("services.style.thread", side_effect=run_inline),
         ):
             service.refresh()
 
@@ -73,7 +69,7 @@ class CompileCoalescingTest(unittest.TestCase):
             mock.patch.object(
                 service, "_compile_and_apply", side_effect=RuntimeError("boom")
             ),
-            mock.patch("services.style.thread", side_effect=_run_inline),
+            mock.patch("services.style.thread", side_effect=run_inline),
         ):
             service.refresh()
 
@@ -82,7 +78,7 @@ class CompileCoalescingTest(unittest.TestCase):
         # A later refresh must still schedule work.
         with (
             mock.patch.object(service, "_compile_and_apply") as compile_once,
-            mock.patch("services.style.thread", side_effect=_run_inline),
+            mock.patch("services.style.thread", side_effect=run_inline),
         ):
             service.refresh()
 
@@ -159,7 +155,7 @@ class AsyncApplyEmitOrderTest(unittest.TestCase):
             mock.patch(
                 "services.style.get_relative_path", return_value="/tmp/main.css"
             ),
-            mock.patch("services.style.thread", side_effect=_run_inline),
+            mock.patch("services.style.thread", side_effect=run_inline),
         ):
             service.refresh()
 

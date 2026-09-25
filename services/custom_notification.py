@@ -1,4 +1,3 @@
-import json
 import threading
 
 from fabric import Signal
@@ -405,11 +404,14 @@ class CustomNotifications(Notifications):
                 # shallow copy is a stable snapshot for the write below.
                 snapshot = list(self.all_notifications)
             try:
-                with open(NOTIFICATION_CACHE_FILE, "w") as f:
-                    json.dump(snapshot, f, indent=4, ensure_ascii=False)
+                # ``sync=True`` because this already runs on the dedicated
+                # writer thread.
+                write_json_file(NOTIFICATION_CACHE_FILE, snapshot, sync=True)
             except Exception as e:
                 # A failed write must never escape: the flag reset below only
-                # happens on ``return``, so escaping would wedge persistence.
+                # happens on ``return``, so escaping would wedge persistence
+                # for the rest of the session. The helper handles the expected
+                # IO/type failures itself; this catches the rest.
                 logger.exception(f"Failed to persist notifications: {e}")
 
     def clear_all_notifications(self):

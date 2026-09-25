@@ -10,6 +10,11 @@ from .icons import symbolic_icons
 # Debounce delay for batching icon cache writes (ms)
 _CACHE_WRITE_DELAY_MS = 2000
 
+# Single source of truth for the fallbacks, so a missing icon renders the same
+# way no matter which resolver path reached it.
+_FALLBACK_MISSING = symbolic_icons["missing"]
+_FALLBACK_EXECUTABLE = symbolic_icons["fallback"]["executable"]
+
 
 class IconResolver:
     """A class to resolve icons for applications."""
@@ -43,8 +48,15 @@ class IconResolver:
         self._flush_timer_id = None
         self._icon_theme = Gtk.IconTheme.get_default()
 
-    def _load_icon_from_theme(self, icon_name: str, icon_size: int):
-        """Safely load an icon from the theme, returning None on failure."""
+    def get_icon_theme_icon(self, icon_name: str, icon_size: int = 16):
+        """Load an icon from the default theme, or ``None`` when it has none.
+
+        The single theme-lookup entry point: callers handle ``None`` instead of
+        catching ``GLib.GError`` themselves, so a missing icon degrades the same
+        way everywhere.
+        """
+        if not icon_name:
+            return None
         try:
             return self._icon_theme.load_icon(
                 icon_name,
@@ -54,13 +66,6 @@ class IconResolver:
         except GLib.GError:
             return None
 
-    def get_icon_theme_icon(self, icon_name: str, icon_size: int = 16):
-        return self._icon_theme.load_icon(
-            icon_name,
-            icon_size,
-            Gtk.IconLookupFlags.FORCE_SIZE,
-        )
-
     def _ensure_cache_loaded(self):
         """Lazily load the icon cache on first access."""
         if self._icon_dict is None:
@@ -69,7 +74,7 @@ class IconResolver:
             else:
                 self._icon_dict = {}
 
-    def get_icon_name(self, app_id: str, default="application-x-executable"):
+    def get_icon_name(self, app_id: str, default: str = _FALLBACK_EXECUTABLE):
         """Return the cached icon name for app_id, resolving on miss."""
         self._ensure_cache_loaded()
         if app_id in self._icon_dict:
@@ -87,16 +92,10 @@ class IconResolver:
         icon_name: str,
         app_id: str,
         icon_size: int = 16,
-        default_icon: str = "image-missing",
+        default_icon: str = _FALLBACK_MISSING,
     ):
         """Build a pixbuf from a tray pixmap, falling back to the theme."""
-        pixbuf = None
-
-        try:
-            if icon_name:
-                pixbuf = self._load_icon_from_theme(icon_name, icon_size)
-        except Exception:
-            pixbuf = None
+        pixbuf = self.get_icon_theme_icon(icon_name, icon_size)
 
         if not pixbuf and pixmap:
             try:
@@ -111,14 +110,14 @@ class IconResolver:
 
     @ttl_lru_cache(seconds_to_live=3600, maxsize=256)
     def get_icon_pixbuf(
-        self, app_id: str, size: int = 16, default_icon: str = "image-missing"
+        self, app_id: str, size: int = 16, default_icon: str = _FALLBACK_MISSING
     ):
-        """Load the app icon as a pixbuf, falling back to image-missing."""
+        """Load the app icon as a pixbuf, falling back to the missing glyph."""
         icon_name = self.get_icon_name(app_id, default_icon)
 
-        pixbuf = self._load_icon_from_theme(icon_name, size)
+        pixbuf = self.get_icon_theme_icon(icon_name, size)
         if not pixbuf:
-            pixbuf = self._load_icon_from_theme(default_icon, size)
+            pixbuf = self.get_icon_theme_icon(default_icon, size)
         return pixbuf
 
     def _store_new_icon(self, app_id: str, icon: str):
@@ -187,7 +186,7 @@ class IconResolver:
 
         return None
 
-    def _compositor_find_icon(self, app_id: str, default="application-x-executable"):
+    def _compositor_find_icon(self, app_id: str, default: str = _FALLBACK_EXECUTABLE):
         """Resolve an icon name via the theme, then desktop files."""
         if self._icon_theme.has_icon(app_id):
             return app_id
@@ -220,7 +219,7 @@ class IconResolver:
         2. Otherwise look up the app via ``AppUtils.find_app`` (XDG desktop
             app database — most reliable for Hyprland window classes).
         3. Fall back to ``IconResolver`` (GTK icon theme lookup).
-        4. Final fallback: ``image-missing``.
+        4. Final fallback: ``symbolic_icons["missing"]``.
         """
         from .app import AppUtils
 

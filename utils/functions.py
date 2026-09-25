@@ -774,8 +774,12 @@ def send_notification(
     return True
 
 
-def write_json_file(path: str, data: dict, *, sync: bool = False):
-    """Write JSON off-thread by default, or inline when *sync* is true."""
+def write_json_file(path: str, data: dict | list, *, sync: bool = False):
+    """Write JSON off-thread by default, or inline when *sync* is true.
+
+    Write failures are logged, never raised, so a caller on a worker thread
+    cannot be wedged by an unwritable path.
+    """
     if not sync:
         return thread(write_json_file, path, data, sync=True)
 

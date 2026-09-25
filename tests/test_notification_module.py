@@ -12,26 +12,7 @@ from fabric.widgets.revealer import Revealer
 
 from modules import notification as notification_module
 from modules.notification import NotificationRevealer
-
-
-def make_notification(notification_id: int = 1) -> Notification:
-    """Build a Notification without DBus/GTK."""
-    return Notification.deserialize(
-        {
-            "id": notification_id,
-            "replaces-id": 0,
-            "app-name": "test-app",
-            "app-icon": "",
-            "summary": "summary",
-            "body": "body",
-            "timeout": 5000,
-            "urgency": 1,
-            "actions": [],
-            "image-file": None,
-            "image-pixmap": None,
-            "time": 100.0,
-        }
-    )
+from tests.helpers import make_notification
 
 
 class NotificationRevealerClosedHandlerTest(unittest.TestCase):

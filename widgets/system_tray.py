@@ -16,7 +16,8 @@ from shared.buttons import HoverButton
 from shared.mixins import PopoverMixin
 from shared.widget_container import ButtonWidget
 from utils.functions import path_exists_ttl
-from utils.icons import get_text_icon
+from utils.icon_resolver import IconResolver
+from utils.icons import get_text_icon, symbolic_icons
 from utils.widget_utils import nerd_font_icon
 
 
@@ -42,57 +43,45 @@ class BaseSystemTray:
         try:
             if pixmap is not None:
                 return pixmap.as_pixbuf(icon_size, "bilinear")
-            else:
-                icon_name = item.icon_name
-                icon_theme = item.icon_theme
 
-                # Some tray items expose no icon name; use stable fallback.
-                if not icon_name:
-                    return Gtk.IconTheme.get_default().load_icon(
-                        "image-missing",
+            icon_name = item.icon_name
+
+            # Some tray items expose no icon name; use stable fallback.
+            if not icon_name:
+                return self._load_default_theme_icon(icon_size)
+
+            logger.info(
+                f"""[SystemTray] Resolving icon: {icon_name}, size: {icon_size}"""
+            )
+
+            # Use custom theme path if available
+            if item.icon_theme:
+                try:
+                    return item.icon_theme.load_icon(
+                        icon_name,
                         icon_size,
                         Gtk.IconLookupFlags.FORCE_SIZE,
                     )
+                except GLib.Error:
+                    # Fallback to default theme if custom path fails
+                    return self._load_default_theme_icon(icon_size, icon_name)
 
-                logger.info(
-                    f"""[SystemTray] Resolving icon: {icon_name}, size: {icon_size}"""
+            # for some apps, the icon_name is a path
+            if path_exists_ttl(icon_name, ttl=60):
+                return GdkPixbuf.Pixbuf.new_from_file_at_size(
+                    icon_name, width=icon_size, height=icon_size
                 )
-
-                # Use custom theme path if available
-                if icon_theme:
-                    try:
-                        return icon_theme.load_icon(
-                            icon_name,
-                            icon_size,
-                            Gtk.IconLookupFlags.FORCE_SIZE,
-                        )
-                    except GLib.Error:
-                        # Fallback to default theme if custom path fails
-                        return Gtk.IconTheme.get_default().load_icon(
-                            icon_name,
-                            icon_size,
-                            Gtk.IconLookupFlags.FORCE_SIZE,
-                        )
-                else:
-                    if path_exists_ttl(
-                        icon_name, ttl=60
-                    ):  # for some apps, the icon_name is a path
-                        return GdkPixbuf.Pixbuf.new_from_file_at_size(
-                            icon_name, width=icon_size, height=icon_size
-                        )
-                    else:
-                        return Gtk.IconTheme.get_default().load_icon(
-                            icon_name,
-                            icon_size,
-                            Gtk.IconLookupFlags.FORCE_SIZE,
-                        )
+            return self._load_default_theme_icon(icon_size, icon_name)
         except (GLib.Error, TypeError, ValueError):
-            # Fallback to 'image-missing' icon
-            return Gtk.IconTheme.get_default().load_icon(
-                "image-missing",
-                icon_size,
-                Gtk.IconLookupFlags.FORCE_SIZE,
-            )
+            return self._load_default_theme_icon(icon_size)
+
+    @staticmethod
+    def _load_default_theme_icon(icon_size: int, icon_name: str | None = None):
+        """Resolve an icon from the default theme, or the missing glyph."""
+        resolver = IconResolver()
+        return resolver.get_icon_theme_icon(
+            icon_name or symbolic_icons["missing"], icon_size
+        )
 
     def _bake_item_button(self, item: SystemTrayItemService) -> HoverButton:
         button = HoverButton(style_classes="flat")

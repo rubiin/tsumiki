@@ -8,7 +8,7 @@ from time import sleep
 from typing import Literal
 
 import psutil
-from fabric.utils import Gdk, GdkPixbuf, GLib, Gtk, bulk_connect, cairo
+from fabric.utils import Gdk, GdkPixbuf, GLib, bulk_connect, cairo
 from fabric.widgets.label import Label
 from fabric.widgets.scale import ScaleMark
 from fabric.widgets.widget import Widget
@@ -209,17 +209,14 @@ def get_notification_image_pixbuf(
             return None
 
     # Not a file path - try resolving it as a themed icon name
-    try:
-        return Gtk.IconTheme.get_default().load_icon(
-            image_file, size - 5, Gtk.IconLookupFlags.FORCE_SIZE
-        )
-    except GLib.GError:
-        return None
+    return IconResolver().get_icon_theme_icon(image_file, size - 5)
 
 
 # Function to resolve a notification's app icon to a pixbuf, safely
 def resolve_notification_icon(
-    notification, size: int = 25, default_icon: str = "dialog-information-symbolic"
+    notification,
+    size: int = 25,
+    default_icon: str = symbolic_icons["fallback"]["notification"],
 ):
     """Resolve a notification's app icon to a pixbuf.
 
