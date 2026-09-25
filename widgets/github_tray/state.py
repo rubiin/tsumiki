@@ -6,6 +6,7 @@ semantics, repository sorting, mapping parsing and alert diffing.
 from __future__ import annotations
 
 import json
+import os
 from concurrent.futures import Future
 from datetime import datetime, timezone
 
@@ -396,9 +397,11 @@ def load_state_file(path: str) -> dict:
 
 def _write_state_file(path: str, data: dict) -> None:
     try:
-        ensure_directory(path)
-        write_json_file(path, data)
-
+        # Both calls must complete before returning: callers await this future
+        # and then read the file back, and this already runs on a worker
+        # thread, so off-thread writes would race the read.
+        ensure_directory(os.path.dirname(path), sync=True)
+        write_json_file(path, data, sync=True)
     except OSError:
         pass
 

@@ -155,8 +155,11 @@ def _read_cache() -> dict | None:
 def _write_cache(payload: dict) -> None:
     """Persist the daily rates snapshot (best-effort)."""
     try:
-        ensure_directory(FX_RATES_CACHE_FILE)
-        write_json_file(FX_RATES_CACHE_FILE, payload)
+        # Both calls must complete before returning: load_rates() reads this
+        # file back on the next call, and the plugin already runs on a worker
+        # thread, so off-thread writes would race it.
+        ensure_directory(os.path.dirname(FX_RATES_CACHE_FILE), sync=True)
+        write_json_file(FX_RATES_CACHE_FILE, payload, sync=True)
     except OSError:
         pass  # caching is best-effort; conversions still work this session
 

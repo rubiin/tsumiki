@@ -16,11 +16,48 @@ from utils import functions as functions_module
 from utils.functions import (
     CommandError,
     _atomic_write,
+    ensure_directory,
     is_app_running,
+    read_json_file,
     run_command,
     write_json_file,
     write_toml_file,
 )
+
+
+class EnsureDirectoryTest(unittest.TestCase):
+    """ensure_directory is off-thread by default, which callers can race."""
+
+    def setUp(self):
+        self._tmpdir = tempfile.TemporaryDirectory()
+        self.addCleanup(self._tmpdir.cleanup)
+        self.target = os.path.join(self._tmpdir.name, "nested", "deeper")
+
+    def test_sync_creates_the_directory_before_returning(self):
+        ensure_directory(self.target, sync=True)
+
+        self.assertTrue(os.path.isdir(self.target))
+
+    def test_sync_is_repeatable(self):
+        ensure_directory(self.target, sync=True)
+        ensure_directory(self.target, sync=True)
+
+        self.assertTrue(os.path.isdir(self.target))
+
+    def test_the_default_is_off_thread(self):
+        """A caller that writes straight after must ask for sync, or the
+        write can land before the directory exists."""
+        with mock.patch("utils.functions.thread") as pooled:
+            ensure_directory(self.target)
+
+        pooled.assert_called_once()
+
+    def test_a_write_into_a_freshly_made_directory_succeeds(self):
+        ensure_directory(self.target, sync=True)
+        path = os.path.join(self.target, "data.json")
+        write_json_file(path, {"a": 1}, sync=True)
+
+        self.assertEqual({"a": 1}, read_json_file(path))
 
 
 class AtomicWriteTest(unittest.TestCase):

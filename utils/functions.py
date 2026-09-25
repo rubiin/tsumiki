@@ -849,8 +849,16 @@ def ensure_file(path: str):
 
 
 # Function to ensure the directory exists
-@run_in_thread
-def ensure_directory(path: str):
+def ensure_directory(path: str, *, sync: bool = False):
+    """Create the directory *path* and its parents; off-thread unless *sync*.
+
+    Off-thread by default because callers are usually reacting to something on
+    the main loop. A caller that is about to write a file into the directory
+    must pass ``sync=True``, or it can race the mkdir.
+    """
+    if not sync:
+        return thread(ensure_directory, path, sync=True)
+
     if not GLib.file_test(path, GLib.FileTest.EXISTS):
         try:
             Gio.File.new_for_path(path).make_directory_with_parents(None)
