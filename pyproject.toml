@@ -121,7 +121,7 @@ line-ending = "auto"
 "Changelog" = "https://github.com/rubiin/tsumiki/blob/master/CHANGELOG.md"
 
 [dependency-groups]
-dev = ["ruff>=0.16.8"]
+dev = ["ruff>=0.16.9"]
 
 [tool.uv]
 # Tsumiki is an application, not an importable package.
