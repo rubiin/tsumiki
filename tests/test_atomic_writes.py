@@ -10,8 +10,16 @@ import tempfile
 import unittest
 from unittest import mock
 
+import psutil
+
 from utils import functions as functions_module
-from utils.functions import _atomic_write, write_json_file, write_toml_file
+from utils.functions import (
+    _atomic_write,
+    is_app_running,
+    run_command,
+    write_json_file,
+    write_toml_file,
+)
 
 
 class AtomicWriteTest(unittest.TestCase):
@@ -164,6 +172,37 @@ class UpdateConfigKeyTest(unittest.TestCase):
 
         with open(path, encoding="utf-8") as handle:
             self.assertEqual(original, handle.read())
+
+
+class RunCommandTest(unittest.TestCase):
+    """``run_command`` is the one place that reports success reliably.
+
+    Fabric's ``exec_shell_command`` returns the error text on a non-zero exit,
+    so a caller testing it for ``False`` never sees a failure.
+    """
+
+    def test_returns_stdout_on_success(self):
+        self.assertEqual("hello\n", run_command(["echo", "hello"]))
+
+    def test_returns_none_on_failure(self):
+        """The case exec_shell_command reports as a truthy error string."""
+        self.assertIsNone(run_command(["sh", "-c", "echo boom >&2; exit 3"]))
+
+    def test_failure_is_reported_even_with_empty_stderr(self):
+        self.assertIsNone(run_command(["false"]))
+
+    def test_list_arguments_are_not_shell_parsed(self):
+        """A path with a space and a metacharacter must survive verbatim."""
+        self.assertEqual("a b; rm -rf /\n", run_command(["echo", "a b; rm -rf /"]))
+
+    def test_missing_program_is_not_an_exception(self):
+        self.assertIsNone(run_command(["definitely-not-a-real-binary-xyz"]))
+
+    def test_is_app_running_keys_off_the_exit_status(self):
+        # pidof matches the process name, which is versioned in a venv, so ask
+        # about this very process rather than a hardcoded name.
+        self.assertTrue(is_app_running(psutil.Process().name()))
+        self.assertFalse(is_app_running("definitely-not-a-real-binary-xyz"))
 
 
 if __name__ == "__main__":

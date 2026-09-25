@@ -6,9 +6,11 @@ import importlib
 import json
 import re
 import shutil
+import subprocess
 import tempfile
 import threading
 from collections import Counter
+from collections.abc import Sequence
 from datetime import datetime
 from functools import lru_cache
 from io import BytesIO
@@ -23,7 +25,6 @@ from fabric.utils import (
     GLib,
     Gtk,
     cooldown,
-    exec_shell_command,
     exec_shell_command_async,
     get_relative_path,
     idle_add,
@@ -672,8 +673,6 @@ def toggle_command(command: str, full_command: str):
         kill_process(command)
     else:
         # Use subprocess directly so the launched app survives bar restart.
-        import subprocess
-
         subprocess.Popen(
             full_command,
             shell=True,
@@ -837,10 +836,45 @@ def ensure_directory(path: str):
             logger.exception(f"Failed to create directory {path}: {e.message}")
 
 
+def run_command(cmd: str | Sequence[str]) -> str | None:
+    """Run a command and return its stdout, or ``None`` when it failed.
+
+    Fabric's ``exec_shell_command`` returns the *error text* on a non-zero
+    exit, so its result cannot be used to tell success from failure - callers
+    testing it for ``False`` never see an error. This wrapper keys off the
+    exit status instead, which is the only reliable signal.
+
+    A list argument runs without a shell, which is the safe form for any value
+    that came from config, a notification or the filesystem. A string runs via
+    the shell, for commands that genuinely need it.
+    """
+    try:
+        result = subprocess.run(
+            cmd,
+            shell=isinstance(cmd, str),
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except (OSError, subprocess.SubprocessError) as e:
+        logger.exception(f"Failed to run {cmd}: {e}")
+        return None
+
+    if result.returncode != 0:
+        detail = result.stderr.strip()
+        logger.warning(
+            f"Command failed (status {result.returncode}): {cmd}"
+            + (f": {detail}" if detail else "")
+        )
+        return None
+    return result.stdout
+
+
 # Function to check if an app is running
 @ttl_lru_cache(seconds_to_live=2, maxsize=32)
 def is_app_running(app_name: str) -> bool:
-    return bool(exec_shell_command(f"pidof {app_name}"))
+    # pidof exits non-zero when nothing matches, so the status is the answer.
+    return run_command(["pidof", app_name]) is not None
 
 
 # Function to take a memory snapshot
