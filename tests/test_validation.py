@@ -1,5 +1,8 @@
 """Tests for utils/validation.py — schema and widget validation utilities."""
 
+import json
+import os
+import tempfile
 import unittest
 from typing import ClassVar
 from unittest import mock
@@ -10,6 +13,7 @@ from utils.validation import (
     _get_config_collection,
     _get_named_format_keys,
     _has_named_custom_widget,
+    _load_schema,
     _resolve_schema_ref,
     _schema_type_matches,
     _validate_indexed_reference,
@@ -493,6 +497,44 @@ class SingleSourceTest(unittest.TestCase):
                 hasattr(functions, name),
                 f"utils.functions.{name} duplicates utils.validation.{name}",
             )
+
+
+class SchemaCacheTest(unittest.TestCase):
+    """The schema file is static, so it is parsed at most once per path."""
+
+    _SCHEMA: ClassVar[dict] = {
+        "type": "object",
+        "properties": {"mode": {"type": "string", "enum": ["dark", "light"]}},
+    }
+
+    def setUp(self):
+        _load_schema.cache_clear()
+        self.addCleanup(_load_schema.cache_clear)
+
+    def _write_schema(self, directory: str) -> str:
+        path = os.path.join(directory, "schema.json")
+        with open(path, "w", encoding="utf-8") as handle:
+            json.dump(self._SCHEMA, handle)
+        return path
+
+    def test_schema_is_parsed_once_per_path(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self._write_schema(tmp)
+
+            with mock.patch("utils.validation.json.load", wraps=json.load) as loader:
+                validate_config_enums({"mode": "dark"}, path)
+                validate_config_enums({"mode": "light"}, path)
+
+            self.assertEqual(loader.call_count, 1)
+
+    def test_cached_schema_still_rejects_invalid_values(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self._write_schema(tmp)
+
+            validate_config_enums({"mode": "dark"}, path)
+
+            with self.assertRaisesRegex(ValueError, r"config\.mode"):
+                validate_config_enums({"mode": "sepia"}, path)
 
 
 if __name__ == "__main__":

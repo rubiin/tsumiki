@@ -9,7 +9,6 @@ from fabric.widgets.revealer import Revealer
 from fabric.widgets.wayland import WaylandWindow as Window
 from fabric.widgets.widget import Widget
 
-from utils.config import tsumiki_config
 from utils.functions import safe_disconnect
 
 
@@ -79,6 +78,11 @@ class BaseWidget(Widget, TeardownMixin):
         return merged
 
     def _init_widget_settings(self, widget_name: str) -> None:
+        # Imported here rather than at module scope: importing utils.config
+        # parses config.toml and validates it against the ~122 KB schema, a cost
+        # anything that merely imports this shared widget layer should not pay.
+        from utils.config import tsumiki_config
+
         self.config: dict = tsumiki_config.get("widgets", {}).get(widget_name, {})
         self.general_config: dict = tsumiki_config.get("general", {})
         self.tooltips_enabled = self.general_config.get("tooltips", True)

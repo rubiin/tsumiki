@@ -228,8 +228,8 @@ class MprisWidget(ButtonWidget, PopoverMixin):
             return
         self._unbind_player_updates()
         self.player = None
-        # No player left to advance, so stop the tick until one reappears.
-        self._stop_progress_timer()
+        # The fallback below re-evaluates the player, and get_current() syncs
+        # the progress tick to whatever it finds (including no player at all).
 
         for raw_player in self.mpris_manager.players:
             if raw_player.props.player_name in self.config.get("ignore", []):

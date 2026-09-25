@@ -62,6 +62,10 @@ class CustomNotificationsTest(unittest.TestCase):
             ),
             # Avoid owning the real DBus name in tests.
             mock.patch("gi.repository.Gio.bus_own_name", return_value=1),
+            # History writes are dispatched to the shared pool; drain them
+            # inline so a test's temp dir is never removed while a write is
+            # still in flight.
+            mock.patch("services.custom_notification.thread", side_effect=run_inline),
         ]
         for patcher in patchers:
             patcher.start()
@@ -107,20 +111,17 @@ class CustomNotificationsTest(unittest.TestCase):
         self.assertEqual(self.service._synchronous_ids["progress-key"], 1)
 
     def test_private_sync_hint_keys_also_replace(self):
-        # Writes are drained inline so the service rebuilt on each iteration sees
-        # the previously persisted entry.
-        with mock.patch("services.custom_notification.thread", side_effect=run_inline):
-            for hint in ("private-synchronous", "x-canonical-private-synchronous"):
-                with self.subTest(hint=hint):
-                    service = CustomNotifications()
-                    service.cache_notification(
-                        {}, make_notification(sync_hint=hint, summary="old"), 100
-                    )
-                    service.cache_notification(
-                        {}, make_notification(sync_hint=hint, summary="new"), 100
-                    )
-                    self.assertEqual(len(service.all_notifications), 1)
-                    self.assertEqual(service.all_notifications[0]["summary"], "new")
+        for hint in ("private-synchronous", "x-canonical-private-synchronous"):
+            with self.subTest(hint=hint):
+                service = CustomNotifications()
+                service.cache_notification(
+                    {}, make_notification(sync_hint=hint, summary="old"), 100
+                )
+                service.cache_notification(
+                    {}, make_notification(sync_hint=hint, summary="new"), 100
+                )
+                self.assertEqual(len(service.all_notifications), 1)
+                self.assertEqual(service.all_notifications[0]["summary"], "new")
 
     def test_replacement_does_not_advance_count(self):
         self.service.cache_notification({}, make_notification(summary="old"), 100)
@@ -166,13 +167,11 @@ class CustomNotificationsTest(unittest.TestCase):
         self.assertEqual(self.service.count, 1)
 
     def test_sync_map_restored_from_cache(self):
-        # Persistence is off-thread, so drain queued writes before rebuilding
-        # the service from the cache file.
-        with mock.patch("services.custom_notification.thread", side_effect=run_inline):
-            self.service.cache_notification(
-                {}, make_notification(sync_hint="synchronous", summary="old"), 100
-            )
-            restored = CustomNotifications()
+        self.service.cache_notification(
+            {}, make_notification(sync_hint="synchronous", summary="old"), 100
+        )
+
+        restored = CustomNotifications()
         self.assertEqual(restored._synchronous_ids, {"progress-key": 1})
 
         restored.cache_notification(

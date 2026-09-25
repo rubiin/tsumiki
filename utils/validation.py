@@ -3,6 +3,7 @@
 import json
 import re
 import string
+from functools import lru_cache
 from typing import Any
 
 from fabric.utils import logger
@@ -164,12 +165,22 @@ def _validate_schema_enums(
                     )
 
 
+@lru_cache(maxsize=4)
+def _load_schema(schema_file_path: str) -> dict:
+    """Parse a JSON schema file, memoized per path.
+
+    The schema is static for the life of the process, so re-reading and
+    re-parsing the ~122 KB file on every validation (e.g. each
+    ``reload_config``) is pure waste.
+    """
+    with open(schema_file_path, "r") as file:
+        return json.load(file)
+
+
 def validate_config_enums(config_data: dict, schema_file_path: str) -> None:
     """Raise when a config value violates an enum or pattern constraint."""
 
-    with open(schema_file_path, "r") as file:
-        schema = json.load(file)
-
+    schema = _load_schema(schema_file_path)
     _validate_schema_enums(config_data, schema, schema, "config")
 
 

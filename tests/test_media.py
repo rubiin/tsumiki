@@ -203,8 +203,8 @@ class PlayerBoxSeekbarTickTest(unittest.TestCase):
         player.position = self._POSITION
         player.length = self._LENGTH
         # on_playback_change reads the status through the GObject property.
-        player.get_property.side_effect = (
-            lambda name: status if name == "playback-status" else None
+        player.get_property.side_effect = lambda name: (
+            status if name == "playback-status" else None
         )
         return player
 

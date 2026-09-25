@@ -1,6 +1,9 @@
 """Tests for utils/config.py — configuration loading and merging."""
 
+import subprocess
+import sys
 import unittest
+from pathlib import Path
 from unittest import mock
 
 from utils.config import (
@@ -183,6 +186,32 @@ class LoadConfigTest(unittest.TestCase):
         ):
             cfg = TsumikiConfig()
         self.assertIn("general", cfg.config)
+
+
+class ConfigImportIsolationTest(unittest.TestCase):
+    """Importing the shared widget layer must not parse config.toml.
+
+    Runs in a subprocess because this test process has already imported
+    utils.config through other modules.
+    """
+
+    def test_widget_layer_import_does_not_load_config(self):
+        project_root = Path(__file__).resolve().parents[1]
+        code = (
+            "import sys\n"
+            "import shared.widget_container\n"
+            "print('utils.config' in sys.modules)\n"
+        )
+
+        result = subprocess.run(
+            [sys.executable, "-c", code],
+            capture_output=True,
+            text=True,
+            cwd=project_root,
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout.strip(), "False")
 
 
 if __name__ == "__main__":

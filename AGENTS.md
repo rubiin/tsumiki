@@ -532,7 +532,6 @@ https://fabric-development.github.io/fabric-wiki/installing-stubs.html
 - Use the `tdd` skill for feature development.
 - Use the `brainstorm` skill for design discussions.
 
-
 **Testing**
 
 - Write tests after adding new production behavior, and always when adding or changing Sheldon-compatibility behavior (command names, TOML shape, lock format, rendered output).
@@ -553,7 +552,6 @@ https://fabric-development.github.io/fabric-wiki/installing-stubs.html
 - Keep comments concise and valuable: state why, not what. Run the `unslop` skill when writing or rewriting comments.
 - Run the `brainstorming` skill to generate and evaluate ideas before implementing them in code.
 - Use sub-agent-driven development whenever working on multiple independent tasks.
-
 
 ## Commit standards
 

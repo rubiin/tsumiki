@@ -115,8 +115,13 @@ class BlockingRefreshTest(unittest.TestCase):
 
     def test_refresh_blocking_emits_even_when_sass_fails(self):
         service = _make_service()
-        applied = []
-        service._apply_css_to_app = mock.Mock(side_effect=applied.append)
+        events = []
+        service._apply_css_to_app = mock.Mock(
+            side_effect=lambda path: events.append(("apply", path))
+        )
+        service.emit = mock.Mock(
+            side_effect=lambda *args: events.append(("emit", args))
+        )
 
         with (
             mock.patch("services.style.exec_shell_command", return_value="Error: nope"),
@@ -128,8 +133,47 @@ class BlockingRefreshTest(unittest.TestCase):
 
         # A broken compile clears the stylesheet, but listeners are still told
         # the apply ran, so UI keyed off the signal is never left waiting.
-        self.assertEqual(applied, [""])
-        service.emit.assert_called_once_with("css_recompiled")
+        self.assertEqual(events, [("apply", ""), ("emit", ("css_recompiled",))])
+
+
+class AsyncApplyEmitOrderTest(unittest.TestCase):
+    """The async path must announce the apply only after it has run."""
+
+    def test_async_emit_follows_the_applied_stylesheet(self):
+        service = _make_service()
+        events = []
+        service._apply_css_to_app = mock.Mock(
+            side_effect=lambda path: events.append(("apply", path))
+        )
+        service.emit = mock.Mock(
+            side_effect=lambda *args: events.append(("emit", args))
+        )
+        deferred = []
+
+        with (
+            mock.patch("services.style.exec_shell_command", return_value=""),
+            mock.patch(
+                "services.style.idle_add",
+                side_effect=lambda *args: deferred.append(args),
+            ),
+            mock.patch(
+                "services.style.get_relative_path", return_value="/tmp/main.css"
+            ),
+            mock.patch("services.style.thread", side_effect=_run_inline),
+        ):
+            service.refresh()
+
+        # The worker only queues the apply; nothing is announced yet.
+        self.assertEqual(events, [])
+        self.assertEqual(len(deferred), 1)
+
+        callback, *args = deferred[0]
+        callback(*args)
+
+        self.assertEqual(
+            events,
+            [("apply", "/tmp/main.css"), ("emit", ("css_recompiled",))],
+        )
 
 
 if __name__ == "__main__":

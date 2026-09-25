@@ -32,6 +32,15 @@ _MAX_CACHED_THEMES = 64
 _theme_file_cache: dict[str, dict] = {}
 
 
+def _run_inline(callback: Callable[..., None], *args) -> None:
+    """Run *callback* now - the inline counterpart of ``idle_add``.
+
+    Shares ``idle_add``'s ``(callback, *args)`` shape so the compile path can be
+    dispatched either to the main thread or run where it stands.
+    """
+    callback(*args)
+
+
 class StyleService(SingletonService):
     """Centralized service for style/theme management and CSS recompilation."""
 
@@ -203,7 +212,7 @@ class StyleService(SingletonService):
         first compile landed - a second full style/layout pass and a visible
         flash. Must not be called while a compile is in flight.
         """
-        self._compile_and_apply(self._finish_compile)
+        self._compile_and_apply(_run_inline)
 
     # ── Internal helpers ───────────────────────────────────────
 
@@ -357,11 +366,12 @@ class StyleService(SingletonService):
                 self._compile_pending = False
             logger.exception(f"{Colors.ERROR}[Theme] CSS compile worker failed: {exc}")
 
-    def _compile_and_apply(self, dispatch: Callable[[str], None]) -> None:
+    def _compile_and_apply(self, dispatch: Callable[..., None]) -> None:
         """Run ``sass`` once and route the result through *dispatch*.
 
-        *dispatch* is ``idle_add`` off the main thread (defer the apply) or a
-        direct call on it (the startup path, where waiting is the point).
+        *dispatch* takes a callback plus its arguments, like ``idle_add``: the
+        worker passes ``idle_add`` so the apply lands on the main thread, and
+        the startup path passes ``_run_inline`` so it happens where it stands.
         """
         logger.info(f"{Colors.INFO}[Theme] Recompiling CSS")
         # ``--no-charset``: dart-sass emits ``@charset "UTF-8";`` when the
@@ -375,12 +385,12 @@ class StyleService(SingletonService):
 
         if output == "":
             logger.info(f"{Colors.INFO}[Theme] CSS compiled")
-            dispatch(get_relative_path(CSS_PATH))
+            dispatch(self._finish_compile, get_relative_path(CSS_PATH))
             return
 
         logger.exception(f"{Colors.ERROR}[Main]Failed to compile sass!")
         logger.exception(f"{Colors.ERROR}[Main] {output}")
-        dispatch("")
+        dispatch(self._finish_compile, "")
 
     def _finish_compile(self, css_file: str) -> None:
         """Apply the compiled stylesheet, then announce it as applied."""

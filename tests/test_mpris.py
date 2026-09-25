@@ -116,15 +116,33 @@ class MprisProgressTimerTest(unittest.TestCase):
         widget._start_progress_timer.assert_called_once()
         widget._stop_progress_timer.assert_not_called()
 
-    def test_vanished_player_stops_the_tick(self):
+    def test_vanished_player_with_no_fallback_stops_the_tick(self):
         widget = self._make_widget("playing")
         widget.player.player_name = "vlc"
+        widget.config = {"ignore": []}
+        widget.mpris_manager = mock.Mock(players=[])
         widget._unbind_player_updates = mock.Mock()
+        widget._set_default_values = mock.Mock()
 
         widget.on_player_vanished(None, "vlc")
 
         widget._stop_progress_timer.assert_called_once()
         self.assertIsNone(widget.player)
+
+    def test_vanished_player_falls_back_to_the_remaining_player(self):
+        widget = self._make_widget("playing")
+        widget.player.player_name = "vlc"
+        fallback = mock.Mock()
+        fallback.props.player_name = "mpd"
+        widget.config = {"ignore": []}
+        widget.mpris_manager = mock.Mock(players=[fallback])
+        widget._unbind_player_updates = mock.Mock()
+        widget._set_player = mock.Mock()
+
+        widget.on_player_vanished(None, "vlc")
+
+        # _set_player -> get_current re-evaluates the tick for the new player.
+        widget._set_player.assert_called_once_with(fallback)
 
 
 if __name__ == "__main__":
