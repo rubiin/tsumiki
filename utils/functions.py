@@ -316,24 +316,42 @@ def format_relative_timestamp(ts: float | None) -> str:
         return ""
 
 
-def copy_to_clipboard_async(text: str) -> None:
-    """Copy *text* to the system clipboard without blocking the UI thread
-    (wl-copy, falling back to xclip)."""
-    text = text or ""
-    argv: list[str] | None = None
+def _clipboard_argv() -> list[str] | None:
+    """Return the argv of the first available clipboard tool, or None."""
     if find_executable("wl-copy"):
-        argv = ["wl-copy", "--type", "text/plain"]
-    elif find_executable("xclip"):
-        argv = ["xclip", "-selection", "clipboard"]
+        return ["wl-copy", "--type", "text/plain"]
+    if find_executable("xclip"):
+        return ["xclip", "-selection", "clipboard"]
+    return None
+
+
+def copy_to_clipboard(text: str, *, asynchronous: bool = False) -> bool:
+    """Copy *text* to the system clipboard (wl-copy, falling back to xclip).
+
+    Synchronous by default, which reports whether the copy completed. With
+    *asynchronous* the text is handed to the tool and the call returns
+    immediately so the GTK thread is never blocked while it starts; the real
+    outcome then arrives on the completion callback, so the return value only
+    says the copy was dispatched.
+
+    A missing tool or a spawn failure is logged, never raised.
+    """
+    argv = _clipboard_argv()
     if argv is None:
         logger.warning("[CLIPBOARD] No clipboard tool (wl-copy/xclip) found")
-        return
+        return False
+
     try:
         launcher = Gio.SubprocessLauncher.new(Gio.SubprocessFlags.STDIN_PIPE)
         proc = launcher.spawnv(argv)
-        proc.communicate_utf8_async(text, None, _on_clipboard_copy_finished)
+        if asynchronous:
+            proc.communicate_utf8_async(text or "", None, _on_clipboard_copy_finished)
+        else:
+            proc.communicate_utf8(text or "", None)
+        return True
     except Exception:
         logger.exception("[CLIPBOARD] Failed to copy to clipboard")
+        return False
 
 
 def _on_clipboard_copy_finished(proc: Gio.Subprocess, result: Gio.AsyncResult):

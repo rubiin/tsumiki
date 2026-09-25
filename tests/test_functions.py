@@ -12,7 +12,7 @@ from utils.functions import (
     convert_seconds_to_milliseconds,
     convert_to_12hr_format,
     convert_to_percent,
-    copy_to_clipboard_async,
+    copy_to_clipboard,
     deep_merge,
     exclude_keys,
     extract_body_image,
@@ -289,8 +289,8 @@ class FormatRelativeTimestampTest(unittest.TestCase):
             self.assertEqual(format_relative_timestamp(now * 1000), "Now")
 
 
-class CopyToClipboardAsyncTest(unittest.TestCase):
-    """Test clipboard tool selection for the non-blocking copy helper."""
+class CopyToClipboardTest(unittest.TestCase):
+    """Test clipboard tool selection for both copy modes."""
 
     def _make_launcher(self):
         launcher = mock.Mock()
@@ -305,7 +305,7 @@ class CopyToClipboardAsyncTest(unittest.TestCase):
                 functions.Gio.SubprocessLauncher, "new", return_value=launcher
             ),
         ):
-            copy_to_clipboard_async("123456")
+            copy_to_clipboard("123456", asynchronous=True)
         launcher.spawnv.assert_called_once_with(["wl-copy", "--type", "text/plain"])
 
     def test_falls_back_to_xclip(self):
@@ -320,7 +320,7 @@ class CopyToClipboardAsyncTest(unittest.TestCase):
                 functions.Gio.SubprocessLauncher, "new", return_value=launcher
             ),
         ):
-            copy_to_clipboard_async("123456")
+            copy_to_clipboard("123456", asynchronous=True)
         launcher.spawnv.assert_called_once_with(["xclip", "-selection", "clipboard"])
 
     def test_no_tool_is_a_noop(self):
@@ -328,7 +328,7 @@ class CopyToClipboardAsyncTest(unittest.TestCase):
             mock.patch.object(functions, "find_executable", return_value=None),
             mock.patch.object(functions.Gio.SubprocessLauncher, "new") as launcher_new,
         ):
-            copy_to_clipboard_async("123456")
+            copy_to_clipboard("123456", asynchronous=True)
         launcher_new.assert_not_called()
 
 

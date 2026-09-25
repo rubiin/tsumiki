@@ -716,7 +716,8 @@ class CopyCodeButton(HoverButton):
             self.add_style_class("middle-action")
 
     def on_click(self, *_):
-        helpers.copy_to_clipboard_async(self.code)
+        # Async so the GTK thread is not blocked while the tool starts.
+        helpers.copy_to_clipboard(self.code, asynchronous=True)
         if self._notification:
             self._notification.close("dismissed-by-user")
 

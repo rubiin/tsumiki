@@ -14,7 +14,8 @@ from typing import Any, ClassVar
 
 from fabric.utils import Gio, GLib, logger
 
-from utils.functions import find_executable, get_http_client
+from utils.functions import copy_to_clipboard as copy_to_clipboard_fn
+from utils.functions import get_http_client
 
 # Module-name prefix used when importing plugin files so that a plugin file
 # can never shadow a stdlib or third-party module.
@@ -385,26 +386,10 @@ def http_request(
     return _materialize_response(response, b"".join(chunks))
 
 
-def copy_to_clipboard(text: str) -> bool:
-    """Copy *text* to the system clipboard (wl-copy, falling back to xclip)."""
-    text = text or ""
-    try:
-        if find_executable("wl-copy"):
-            proc = Gio.SubprocessLauncher.new(Gio.SubprocessFlags.STDIN_PIPE).spawnv(
-                ["wl-copy", "--type", "text/plain"]
-            )
-            proc.communicate_utf8(text, None)
-            return True
-        if find_executable("xclip"):
-            proc = Gio.SubprocessLauncher.new(Gio.SubprocessFlags.STDIN_PIPE).spawnv(
-                ["xclip", "-selection", "clipboard"]
-            )
-            proc.communicate_utf8(text, None)
-            return True
-        logger.warning("[LauncherPlugin] No clipboard tool (wl-copy/xclip) found")
-    except Exception as exc:
-        logger.exception(f"[LauncherPlugin] Failed to copy to clipboard: {exc}")
-    return False
+# Re-exported for the plugin API: plugins (including out-of-tree ones) import
+# the clipboard helper from here, but it is not plugin infrastructure - the
+# implementation lives with the other shared helpers.
+copy_to_clipboard = copy_to_clipboard_fn
 
 
 class PluginManager:
