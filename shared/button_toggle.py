@@ -92,7 +92,7 @@ class CommandSwitcher(ButtonWidget):
 
         self.icon.set_label(self.enabled_icon if is_running else self.disabled_icon)
 
-        if self.tooltip:
+        if self.tooltip and self.tooltips_enabled:
             self.set_tooltip_text(f"{self.command} {label.lower()}")
 
         return True
