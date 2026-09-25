@@ -1,4 +1,5 @@
 import tempfile
+from collections.abc import Callable, Sequence
 from datetime import datetime
 
 from fabric.core.service import Property, Signal
@@ -94,49 +95,100 @@ class ScreenRecorderService(SingletonService):
         else:
             self.record_and_emit(command)
 
-    def send_screenshot_notification(self, file_path=None):
+    def _open_in_file_manager(self, directory: str) -> None:
+        """Open a directory in the user's file manager.
+
+        A list, not a shell string: the paths are user-configured and must not
+        be re-parsed by a shell.
+        """
+        exec_shell_command_async(["xdg-open", directory])
+
+    def _open_path(self, path: str, *command: str) -> None:
+        """Run ``command path`` without a shell - e.g. ``swappy -f <file>``."""
+        exec_shell_command_async([*command, path])
+
+    def _send_file_notification(
+        self,
+        *,
+        log_tag: str,
+        summary: str,
+        body: str,
+        icon: str,
+        utility: str,
+        icon_hint: str,
+        actions: Sequence[tuple[str, str, Callable[[], None]]],
+    ) -> None:
+        """Show a notification whose buttons run *actions*.
+
+        ``notify-send`` prints the chosen action's key on stdout when one is
+        invoked, so each entry is ``(key, label, handler)`` and the key is what
+        comes back to dispatch on.
+        """
         cmd = ["notify-send"]
+        for key, label, _handler in actions:
+            cmd.extend(["-A", f"{key}={label}"])
         cmd.extend(
             [
-                "-A",
-                "files=Show in Files",
-                "-A",
-                "view=View",
-                "-A",
-                "edit=Edit",
                 "-t",
                 "5000",
                 "-i",
-                symbolic_icons["ui"]["camera"],
+                icon,
                 "-a",
-                f"{APPLICATION_NAME} Screenshot Utility",
+                f"{APPLICATION_NAME} {utility}",
                 "-h",
-                f"STRING:image-path:{file_path}",
-                "Screenshot Saved",
-                f"Saved Screenshot at {file_path}",
+                icon_hint,
+                summary,
+                body,
             ]
-            if file_path
-            else ["Screenshot Sent to Clipboard"]
         )
 
         proc: Gio.Subprocess = Gio.Subprocess.new(cmd, Gio.SubprocessFlags.STDOUT_PIPE)
+        handlers = {key: handler for key, _label, handler in actions}
 
         def _callback(process: Gio.Subprocess, task: Gio.Task):
             try:
                 _, stdout, _stderr = process.communicate_utf8_finish(task)
             except GLib.Error as err:
-                logger.exception(f"[SCREENSHOT] Failed read notification action: {err}")
+                logger.exception(f"[{log_tag}] Failed read notification action: {err}")
                 return
 
-            match stdout.strip("\n"):
-                case "files":
-                    exec_shell_command_async(f"xdg-open {self.screenshot_path}")
-                case "view":
-                    exec_shell_command_async(f"xdg-open {file_path}")
-                case "edit":
-                    exec_shell_command_async(f"swappy -f {file_path}")
+            if (handler := handlers.get(stdout.strip("\n"))) is not None:
+                handler()
 
         proc.communicate_utf8_async(None, None, _callback)
+
+    def send_screenshot_notification(self, file_path=None):
+        if not file_path:
+            # Clipboard capture: there is no file to point at, so no actions,
+            # icon hint or timeout override.
+            proc = Gio.Subprocess.new(
+                ["notify-send", "Screenshot Sent to Clipboard"],
+                Gio.SubprocessFlags.STDOUT_PIPE,
+            )
+            proc.communicate_utf8_async(None, None, None)
+            return
+
+        self._send_file_notification(
+            log_tag="SCREENSHOT",
+            summary="Screenshot Saved",
+            body=f"Saved Screenshot at {file_path}",
+            icon=symbolic_icons["ui"]["camera"],
+            utility="Screenshot Utility",
+            icon_hint=f"STRING:image-path:{file_path}",
+            actions=(
+                (
+                    "files",
+                    "Show in Files",
+                    lambda: self._open_in_file_manager(self.screenshot_path),
+                ),
+                ("view", "View", lambda: self._open_path(file_path, "xdg-open")),
+                (
+                    "edit",
+                    "Edit",
+                    lambda: self._open_path(file_path, "swappy", "-f"),
+                ),
+            ),
+        )
 
     def screenshot(
         self,
@@ -230,44 +282,22 @@ class ScreenRecorderService(SingletonService):
             take_screenshot()
 
     def send_screenrecord_notification(self, file_path: str):
-        cmd = ["notify-send"]
-        cmd.extend(
-            [
-                "-A",
-                "files=Show in Files",
-                "-A",
-                "view=View",
-                "-t",
-                "5000",
-                "-i",
-                symbolic_icons["ui"]["camera-video"],
-                "-a",
-                f"{APPLICATION_NAME} Recording Utility",
-                "Screenrecord Saved",
-                f"Saved Screencast at {file_path}",
-            ]
+        self._send_file_notification(
+            log_tag="SCREENRECORD",
+            summary="Screenrecord Saved",
+            body=f"Saved Screencast at {file_path}",
+            icon=symbolic_icons["ui"]["camera-video"],
+            utility="Recording Utility",
+            icon_hint=f"STRING:image-path:{file_path}",
+            actions=(
+                (
+                    "files",
+                    "Show in Files",
+                    lambda: self._open_in_file_manager(self.screenrecord_path),
+                ),
+                ("view", "View", lambda: self._open_path(file_path, "xdg-open")),
+            ),
         )
-
-        proc: Gio.Subprocess = Gio.Subprocess.new(cmd, Gio.SubprocessFlags.STDOUT_PIPE)
-
-        def _callback(process: Gio.Subprocess, task: Gio.Task):
-            try:
-                _, stdout, _stderr = process.communicate_utf8_finish(task)
-            except GLib.Error as err:
-                logger.exception(
-                    f"[SCREENRECORD] Failed read notification action: {err}"
-                )
-                return
-
-            match stdout.strip("\n"):
-                case "files":
-                    exec_shell_command_async(
-                        f"xdg-open {self.screenrecord_path}", lambda *_: None
-                    )
-                case "view":
-                    exec_shell_command_async(f"xdg-open {file_path}", lambda *_: None)
-
-        proc.communicate_utf8_async(None, None, _callback)
 
     @Property(bool, "readable", default_value=False)
     def is_recording(self):
