@@ -685,9 +685,39 @@ class NotificationRevealer(Revealer):
         self.set_reveal_child(False)
 
 
-class CopyCodeButton(HoverButton):
-    """A button that copies a one-time code from the body to the clipboard,
-    then dismisses the notification (SwayNC-inspired)."""
+class NotificationActionButton(HoverButton):
+    """Base for the notification card's action row.
+
+    Subclasses only supply their label and what a click does; the styling and
+    the position-dependent edge class are identical for every action.
+    """
+
+    def __init__(
+        self,
+        label: str,
+        action_number: int,
+        total_actions: int,
+        on_clicked,
+        **kwargs,
+    ):
+        super().__init__(
+            label=label,
+            h_expand=True,
+            on_clicked=on_clicked,
+            style_classes="notification-action",
+            **kwargs,
+        )
+
+        if action_number == 0:
+            self.add_style_class("start-action")
+        elif action_number == total_actions - 1:
+            self.add_style_class("end-action")
+        else:
+            self.add_style_class("middle-action")
+
+
+class CopyCodeButton(NotificationActionButton):
+    """Copies a one-time code from the body to the clipboard."""
 
     def __init__(
         self,
@@ -698,22 +728,15 @@ class CopyCodeButton(HoverButton):
         **kwargs,
     ):
         super().__init__(
-            label=f'Copy "{code}"',
-            h_expand=True,
+            f'Copy "{code}"',
+            action_number,
+            total_actions,
             on_clicked=self.on_click,
-            style_classes="notification-action",
             **kwargs,
         )
 
         self.code = code
         self._notification = notification
-
-        if action_number == 0:
-            self.add_style_class("start-action")
-        elif action_number == total_actions - 1:
-            self.add_style_class("end-action")
-        else:
-            self.add_style_class("middle-action")
 
     def on_click(self, *_):
         # Async so the GTK thread is not blocked while the tool starts.
@@ -722,8 +745,8 @@ class CopyCodeButton(HoverButton):
             self._notification.close("dismissed-by-user")
 
 
-class ActionButton(HoverButton):
-    """A button widget to represent a notification action."""
+class ActionButton(NotificationActionButton):
+    """Invokes a notification action offered by the sending app."""
 
     def __init__(
         self,
@@ -733,21 +756,14 @@ class ActionButton(HoverButton):
         **kwargs,
     ):
         super().__init__(
-            label=action.label,
-            h_expand=True,
+            action.label,
+            action_number,
+            total_actions,
             on_clicked=self.on_click,
-            style_classes="notification-action",
             **kwargs,
         )
 
         self.action = action
-
-        if action_number == 0:
-            self.add_style_class("start-action")
-        elif action_number == total_actions - 1:
-            self.add_style_class("end-action")
-        else:
-            self.add_style_class("middle-action")
 
     def on_click(self, *_):
         self.action.invoke()
