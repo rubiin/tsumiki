@@ -1,5 +1,87 @@
 # Changelog
 
+## [4.8.3](https://github.com/rubiin/tsumiki/compare/v4.8.2...v4.8.3) (2026-09-25)
+
+### 🚀 New Features
+
+- enhance icon resolution with default fallback options ([f44f908](https://github.com/rubiin/tsumiki/commit/f44f908d9a66cedfe31888df962694eb59757729))
+- enhance style service with inline callback execution and improve widget config loading ([a8a5b56](https://github.com/rubiin/tsumiki/commit/a8a5b564b557c097b78bee100e45434db17bc259))
+- **functions:** give run_command a timeout and a check flag ([8635872](https://github.com/rubiin/tsumiki/commit/86358720c5a792b967289c172ae76bd6291eaf4d))
+- implement asynchronous state file writes and improve notification persistence ([80fbce7](https://github.com/rubiin/tsumiki/commit/80fbce7df8da05567b80f64c70034d7806348fcb))
+- implement synchronous CSS compilation and enhance refresh handling ([37104c7](https://github.com/rubiin/tsumiki/commit/37104c7eb67e7d891850942fc823671666c18153))
+- **settings:** add border and spacing variables for overview and radio player widgets ([93e8691](https://github.com/rubiin/tsumiki/commit/93e8691a71f962c496d4cfe4ce7a872dd8a37c70))
+
+### 🐛 Bug Fixes
+
+- adjust workspace count and visibility settings for better user experience ([77f3424](https://github.com/rubiin/tsumiki/commit/77f34243c75889f2efa7f98abda0f7bb7cb644b7))
+- **config:** write config and cache files atomically ([f997790](https://github.com/rubiin/tsumiki/commit/f9977900da6c84e61ff0f3fecf8c7f8d9097205a))
+- **deps:** update all non-major npm dependencies ([8055df1](https://github.com/rubiin/tsumiki/commit/8055df18b533df4349c35523f2e7ef27ee91f310))
+- **deps:** update all non-major npm dependencies ([6b73823](https://github.com/rubiin/tsumiki/commit/6b73823b21fa412ce59ab78552376b1891524010))
+- **deps:** update dependency @astrojs/starlight to ^0.42.4 ([ceb3a8f](https://github.com/rubiin/tsumiki/commit/ceb3a8ff90983673888a68c62c88acd395c0c48c))
+- **deps:** update dependency @astrojs/starlight to ^0.42.4 ([0f139d4](https://github.com/rubiin/tsumiki/commit/0f139d407d0e74603c3410039eb328b77805899c))
+- **icons:** stop caching fallback glyphs as resolved app icons ([ffee6dc](https://github.com/rubiin/tsumiki/commit/ffee6dc7b42bcb6a85fee63e72cc66f9364b4168))
+- implement shared notification card components and refactor notification widget ([840fbf2](https://github.com/rubiin/tsumiki/commit/840fbf203a1baf09f181c295a93fbd0838d641b9))
+- notification body display with line limit ([9c76403](https://github.com/rubiin/tsumiki/commit/9c764036de5399efebe5bf906315c581efddd3c2))
+- **overview:** cancel the pending update timer when the menu is destroyed ([67b3755](https://github.com/rubiin/tsumiki/commit/67b37559cd38e953930b47deb86ac353eb591caa))
+- **runtime:** add a command runner that reports real exit status ([09dcd0d](https://github.com/rubiin/tsumiki/commit/09dcd0d2c86f402728fd84881e86d2e6c9f1c191))
+- **services:** act on real command status instead of assumed success ([27f242a](https://github.com/rubiin/tsumiki/commit/27f242a972122b4c45fb1bba6f4969e6e77a1488))
+- **services:** share the poller and arm the next run on exit ([5b8e52f](https://github.com/rubiin/tsumiki/commit/5b8e52f9628dc3ffa9046c74a78c1bacd828759a))
+- **shell:** pass every command argument as argv ([5acfe03](https://github.com/rubiin/tsumiki/commit/5acfe03b9e1dd88f65bf5aea5ba28f7d94bc7e0d))
+- **styles:** drop selectors that no widget matches ([3780551](https://github.com/rubiin/tsumiki/commit/37805514fff892e5d2b8a7ad229b281278499cfa))
+- the awaited cache writes were returning before the write happened ([93996cd](https://github.com/rubiin/tsumiki/commit/93996cd269e7566d62efd0099bc3a4f78d63a456))
+
+### 🎨 Code Style
+
+- fold the repeated state blocks into two mixins and two variables ([1bc65bc](https://github.com/rubiin/tsumiki/commit/1bc65bc61c686cdbf7ce6388fe5fd730ba99c680))
+- **settings:** drop three widget variable families with no consumers ([a539e1b](https://github.com/rubiin/tsumiki/commit/a539e1b867bcb2da4ccbf68f6198cbe9a0110811))
+
+### ⚙️ Chores
+
+- **deps:** lock file maintenance ([922a4c2](https://github.com/rubiin/tsumiki/commit/922a4c272b8c7e4ecb10a93766f612b402579eb4))
+- **deps:** lock file maintenance ([b47c13f](https://github.com/rubiin/tsumiki/commit/b47c13f34711281be22024423d432c7a7543e406))
+- **deps:** lock file maintenance ([#429](https://github.com/rubiin/tsumiki/issues/429)) ([801522d](https://github.com/rubiin/tsumiki/commit/801522d59b0f9d170f115e16a43ca840ec15b9e9))
+- **deps:** lock file maintenance ([#434](https://github.com/rubiin/tsumiki/issues/434)) ([e74c60e](https://github.com/rubiin/tsumiki/commit/e74c60eb74b877115ee6632d11f2a2efc5129dd1))
+- **deps:** update dependency pnpm to v12.6.0 ([5f66fb2](https://github.com/rubiin/tsumiki/commit/5f66fb2705e8564091b8447194be22c12faf13b9))
+- **deps:** update dependency pnpm to v12.6.0 ([bf0b96f](https://github.com/rubiin/tsumiki/commit/bf0b96f69ab81719d2db93034a3bbd916730122d))
+- **deps:** update dependency ruff to &gt;=0.16.9 ([acf742f](https://github.com/rubiin/tsumiki/commit/acf742fd78e4043eb554b1a31661eac2a82d0c67))
+- **deps:** update dependency ruff to &gt;=0.16.9 ([a5f4c52](https://github.com/rubiin/tsumiki/commit/a5f4c52460b4e34d748cefc22fc16a9aa208b87f))
+- release 4.8.3 ([6e2b83b](https://github.com/rubiin/tsumiki/commit/6e2b83bbf8dc83565579a538c4ce2f96cfc35ff0))
+
+### ♻️ Code Refactoring
+
+- consolidate IconResolver usage across multiple modules for consistency ([5dda762](https://github.com/rubiin/tsumiki/commit/5dda762560398bb926b473bf3f2129b6becc2cd0))
+- **dock:** build grouped and ungrouped entries through one helper ([1c24941](https://github.com/rubiin/tsumiki/commit/1c24941d45c89de9de7ebb1c039d0f2d0b4b47ca))
+- format resolve_icon method call for improved readability ([8b96652](https://github.com/rubiin/tsumiki/commit/8b9665298a2fa99ce15aaac4f317cfc507c0e912))
+- improve comments and structure in media handling and quick settings ([6ffe828](https://github.com/rubiin/tsumiki/commit/6ffe828d2c4461064a36d0f7c583bebff0b1f8ba))
+- **launcher:** one selectable-row builder for command and result rows ([88b05a1](https://github.com/rubiin/tsumiki/commit/88b05a1b05a88894435e5d5e9fdc880afe022c9a))
+- **modules:** give TeardownMixin keyed timers and route five modules through them ([46f3080](https://github.com/rubiin/tsumiki/commit/46f308047cb166363644dc8b42dffd8a8205f108))
+- **notifications:** give the action row one base class ([ef9ce3d](https://github.com/rubiin/tsumiki/commit/ef9ce3dd763ac92bd6c4b311595098abe0fed311))
+- **notifications:** let the shared close button take a name ([e31b1f6](https://github.com/rubiin/tsumiki/commit/e31b1f689727a43afecb63b83fddfcb74ab51ce5))
+- **osds:** share the audio device OSD between speaker and microphone ([cac5126](https://github.com/rubiin/tsumiki/commit/cac512656ae707f9e91082121be59fe65838c071))
+- **quick-settings:** share the scrolled list wrapper ([a5ddd1b](https://github.com/rubiin/tsumiki/commit/a5ddd1bc18852b5129a35b616388362a296b9407))
+- replace JSON file handling with a shared read_json_file function across multiple modules ([4bdd320](https://github.com/rubiin/tsumiki/commit/4bdd32035ccd75671596b4cd13d4397463ee97fb))
+- replace resolve_icon_pixbuf function calls with IconResolver class methods ([a4e8222](https://github.com/rubiin/tsumiki/commit/a4e822230e2d9267e8a4f83208087548e0090a62))
+- **screen-record:** share one file notification ([279b974](https://github.com/rubiin/tsumiki/commit/279b974bb1ec1bef0f6e7af7ca6882c1a95349c4))
+- **services:** add run_worker_with_idle and use it for weather and quotes ([fa6e65b](https://github.com/rubiin/tsumiki/commit/fa6e65b62db807f3bc94e501dbb05cbe3b1c753f))
+- **settings:** one section builder for the five settings sections ([021fff4](https://github.com/rubiin/tsumiki/commit/021fff4431a437aafced8fa7952d3383a736e72f))
+- **shared:** add TeardownMixin._register_handlers and route 20 sites through it ([cbbe9f2](https://github.com/rubiin/tsumiki/commit/cbbe9f2fca2f1924ae8e5c5ab1160b127c7f5788))
+- **shared:** drop the unused fabricator, reuse the popover and cursor helpers ([3233124](https://github.com/rubiin/tsumiki/commit/32331240ec7bd4a3dbe7bc93b3e3e395f442cb74))
+- **shared:** one rounded-rect path and one pointer mapping ([21855e4](https://github.com/rubiin/tsumiki/commit/21855e47e04e6b78dd44e4e7aa8cfa26575df3da))
+- **shared:** route the tooltip guards through the existing helper ([79eefbe](https://github.com/rubiin/tsumiki/commit/79eefbec94cb677c4c1a09774a6bf277515ae426))
+- streamline notification handler connection and improve validation imports ([d67dace](https://github.com/rubiin/tsumiki/commit/d67dace4ae725f283d00f87ea619b96dedcdbdd3))
+- streamline notification handling and improve test fixtures ([e5da5b8](https://github.com/rubiin/tsumiki/commit/e5da5b87b7076ea4c16950ae863118238ead4d15))
+- unify JSON file writing with shared write_json_file function across modules ([5e91e75](https://github.com/rubiin/tsumiki/commit/5e91e75f6c4437097f5420c8e0e80697051de797))
+- update commit and PR style guidelines for clarity and conciseness ([21ce9f3](https://github.com/rubiin/tsumiki/commit/21ce9f3e809c66ece62e98ce7c28e62f0c031365))
+- update IconResolver method calls for consistency and clarity ([c6a5e4f](https://github.com/rubiin/tsumiki/commit/c6a5e4f88523f05c5e1c75b899be26638911ae15))
+- update resolve_icon method to include app_icon parameter for improved icon resolution ([2086571](https://github.com/rubiin/tsumiki/commit/2086571048f7feba4f14fbec33f4b7dd73b5acc0))
+- **utils:** extract TTLCache from the two hand-rolled caches ([f6edeaa](https://github.com/rubiin/tsumiki/commit/f6edeaae6b2cd1afe11dd401440af36ded3ed176))
+- **utils:** one clipboard helper for both the sync and async paths ([0d75e24](https://github.com/rubiin/tsumiki/commit/0d75e24d3a592ee31ac56c8386e67c600a30a394))
+- **utils:** one helper for replacing a pending timer ([6295278](https://github.com/rubiin/tsumiki/commit/6295278dfbef4dd43310a1837c200d028290fa93))
+- **utils:** one mtime-aware pixbuf loader for six decode sites ([a271af0](https://github.com/rubiin/tsumiki/commit/a271af0221d09f4f17f2002099d9daee77efb4bc))
+- **utils:** one SingletonMixin for the eight hand-rolled singletons ([f7dfd05](https://github.com/rubiin/tsumiki/commit/f7dfd05e944c8b10de5f8f6c41aba9217cdb2fa0))
+- **widgets:** share the batched list arithmetic ([bfd7603](https://github.com/rubiin/tsumiki/commit/bfd7603d57c72e6ff9dcb841e746ba3e6d5cc6cd))
+- **widgets:** share the panel icon and label construction ([b981384](https://github.com/rubiin/tsumiki/commit/b981384c668acfc0acd550be37875dc1b0e2a92a))
+
 ## [4.8.2](https://github.com/rubiin/tsumiki/compare/v4.8.1...v4.8.2) (2026-09-20)
 
 ### 🚀 New Features
