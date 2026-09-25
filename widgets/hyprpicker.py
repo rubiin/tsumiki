@@ -39,18 +39,20 @@ class HyprPickerWidget(ButtonWidget):
         if not self.initialized:
             return  # Early exit if script not available
 
-        base_command = f"{self.script_file}"
+        # A list, not a shell string: the script path is a filesystem path and
+        # must not be re-parsed.
+        base_command = [self.script_file]
         if self.config.get("quiet", False):
-            base_command += " --no-notify"
+            base_command.append("--no-notify")
 
         # Mouse event handler
         if event.type == Gdk.EventType.BUTTON_PRESS:
             if event.button == 1:
                 # Left click: HEX
-                exec_shell_command_async(f"{base_command} -hex", lambda *_: None)
+                exec_shell_command_async([*base_command, "-hex"])
             elif event.button == 2:
                 # Middle click: HSV
-                exec_shell_command_async(f"{base_command} -hsv", lambda *_: None)
+                exec_shell_command_async([*base_command, "-hsv"])
             elif event.button == 3:
                 # Right click: RGB
-                exec_shell_command_async(f"{base_command} -rgb", lambda *_: None)
+                exec_shell_command_async([*base_command, "-rgb"])

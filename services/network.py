@@ -173,7 +173,8 @@ class Wifi(Service):
         if not ssid:
             logger.exception("[NetworkService] SSID cannot be empty")
             return
-        exec_shell_command_async(f"nmcli con down {shlex.quote(ssid)}", self._log_nmcli)
+        # A list, not a shell string: an SSID is a user-chosen name.
+        exec_shell_command_async(["nmcli", "con", "down", ssid], self._log_nmcli)
 
     def _log_nmcli(self, out):
         if out:

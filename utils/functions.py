@@ -713,7 +713,9 @@ def char_limit_to_px(label_widget, char_limit: int) -> int:
 
 ## Function to execute a shell command asynchronously
 def kill_process(process_name: str):
-    exec_shell_command_async(f"pkill {process_name}", lambda *_: None)
+    # A list, not a shell string, and "--" so a name starting with a dash is
+    # not read as an option.
+    exec_shell_command_async(["pkill", "--", process_name])
 
 
 def lazy_load_class(module_name: str, class_name: str):
@@ -747,7 +749,8 @@ def make_qrcode(text: str, size: int = 200) -> GdkPixbuf.Pixbuf:
 # Function to play sound
 @cooldown(1)
 def play_sound(file: str):
-    exec_shell_command_async(f"pw-play {file}", lambda *_: None)
+    # A list, not a shell string: the sound path is user-configured.
+    exec_shell_command_async(["pw-play", file])
 
 
 # Function to get the distro icon

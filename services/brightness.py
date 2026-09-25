@@ -7,8 +7,9 @@ from utils.colors import Colors
 from .base import SingletonService
 
 
-def exec_brightnessctl_async(args: str):
-    exec_shell_command_async(f"brightnessctl {args}", lambda _: None)
+def exec_brightnessctl_async(*args: str) -> None:
+    """Run brightnessctl with argv, so no argument needs shell quoting."""
+    exec_shell_command_async(["brightnessctl", *args])
 
 
 class BrightnessService(SingletonService):
@@ -118,7 +119,7 @@ class BrightnessService(SingletonService):
         if not (0 <= value <= self.max_screen):
             value = max(0, min(value, self.max_screen))
         try:
-            exec_brightnessctl_async(f"--device '{self.screen_device}' set {value}")
+            exec_brightnessctl_async("--device", self.screen_device, "set", str(value))
             self._screen_brightness_cache = value
             percentage = (
                 int((value / self.max_screen) * 100) if self.max_screen > 0 else 0
@@ -155,7 +156,7 @@ class BrightnessService(SingletonService):
         if value < 0 or value > self.max_kbd:
             return
         try:
-            exec_brightnessctl_async(f"--device '{self.kbd}' set {value}")
+            exec_brightnessctl_async("--device", self.kbd, "set", str(value))
         except GLib.Error as e:
             logger.exception(e.message)
         except Exception as e:
