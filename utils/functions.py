@@ -6,6 +6,7 @@ import importlib
 import json
 import re
 import shutil
+import tempfile
 import threading
 from collections import Counter
 from datetime import datetime
@@ -370,14 +371,36 @@ def read_toml_file(file_path: str) -> Optional[dict]:
         return None
 
 
-@run_in_thread
-def write_toml_file(path: str, data: dict) -> Optional[dict]:
+def _atomic_write(path: str, dump: Callable[[Any], None]) -> None:
+    """Write via a temp file beside *path*, then rename it into place.
+
+    A crash or a failed dump leaves the previous file intact instead of a
+    truncated one, so ``config.toml`` and the caches cannot be corrupted. The
+    temp file is removed if the dump raises.
+    """
+    directory = os.path.dirname(path) or "."
+    fd, tmp_path = tempfile.mkstemp(dir=directory, prefix=".tsumiki-", suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as handle:
+            dump(handle)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(tmp_path, path)
+    except BaseException:
+        with contextlib.suppress(OSError):
+            os.unlink(tmp_path)
+        raise
+
+
+def write_toml_file(path: str, data: dict, *, sync: bool = False):
+    """Write TOML off-thread by default, or inline when *sync* is true."""
     import pytomlpp as toml
 
-    try:
-        with open(path, "w") as f:
-            toml.dump(data, f)
+    if not sync:
+        return thread(write_toml_file, path, data, sync=True)
 
+    try:
+        _atomic_write(path, lambda handle: toml.dump(data, handle))
     except (IOError, OSError, ValueError, KeyError, TypeError) as e:
         logger.exception(f"Failed to write toml: {e}")
         return None
@@ -427,9 +450,7 @@ _config_write_lock = threading.Lock()
 
 
 def _update_config_key(key_path: list[str], value: Any) -> None:
-    """Atomically update a single key in config.toml under a lock."""
-    import pytomlpp as toml
-
+    """Update a single key in config.toml under a lock, without truncating it."""
     config_file = get_relative_path("../config.toml")
     with _config_write_lock:
         try:
@@ -442,8 +463,7 @@ def _update_config_key(key_path: list[str], value: Any) -> None:
                 node = node.setdefault(k, {})
             node[key_path[-1]] = value
 
-            with open(config_file, "w") as f:
-                toml.dump(config, f)
+            write_toml_file(config_file, config, sync=True)
         except (IOError, OSError, ValueError, KeyError, TypeError) as e:
             logger.exception(
                 f"{Colors.ERROR}[Config] Error updating {'.'.join(key_path)}: {e}"
@@ -784,8 +804,9 @@ def write_json_file(path: str, data: dict | list, *, sync: bool = False):
         return thread(write_json_file, path, data, sync=True)
 
     try:
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=4, ensure_ascii=False)
+        _atomic_write(
+            path, lambda handle: json.dump(data, handle, indent=4, ensure_ascii=False)
+        )
     except (IOError, OSError, TypeError) as e:
         logger.exception(f"Failed to write json: {e}")
 
