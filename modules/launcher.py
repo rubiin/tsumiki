@@ -2,6 +2,7 @@ import os
 from collections.abc import Iterator
 from contextlib import suppress
 from difflib import SequenceMatcher
+from typing import Callable
 
 from fabric.utils import (
     DesktopApp,
@@ -774,36 +775,59 @@ class Launcher(PopupWindow):
         else:
             self.viewport.add(box)
 
-    def _create_command_row(self, plugin) -> Button:
-        """Create a selectable row for a slash command (browse mode)."""
+    def _create_selectable_row(
+        self,
+        *,
+        item_name: str,
+        icon: str | None,
+        title: str,
+        subtitle: str | None,
+        on_clicked: Callable[[], None],
+        ellipsize: bool = True,
+    ) -> Button:
+        """Build one selectable row: an icon, a title and an optional subtitle.
+
+        *item_name* and *ellipsize* are the only points on which the callers
+        disagree, so both are explicit rather than inferred. The item name
+        keeps command and result rows distinguishable when reading the widget
+        tree; nothing in the stylesheet keys off it. Ellipsizing is on for
+        result rows, whose title is arbitrary result text, and off for command
+        rows, whose title is a short "/name" from the plugin's own metadata.
+        """
         children = []
-        icon = self._plugin_icon_widget(plugin.icon)
-        if icon is not None:
-            children.append(icon)
-        children.append(
-            Box(
-                orientation="v",
-                spacing=1,
-                children=[
-                    Label(
-                        label=f"/{plugin.name}",
-                        h_align="start",
-                        v_align="center",
-                        style_classes="launcher-plugin-title",
-                    ),
-                    Label(
-                        label=plugin.description,
-                        h_align="start",
-                        v_align="center",
-                        style_classes="launcher-plugin-subtitle",
-                    ),
-                ],
+        icon_widget = self._plugin_icon_widget(icon)
+        if icon_widget is not None:
+            children.append(icon_widget)
+
+        def make_label(text: str, style_class: str) -> Label:
+            return Label(
+                label=text,
+                h_align="start",
+                v_align="center",
+                justification="left",
+                ellipsization="end" if ellipsize else None,
+                style_classes=style_class,
             )
-        )
+
+        title_label = make_label(title, "launcher-plugin-title")
+        if subtitle:
+            children.append(
+                Box(
+                    orientation="v",
+                    spacing=1,
+                    children=[
+                        title_label,
+                        make_label(subtitle, "launcher-plugin-subtitle"),
+                    ],
+                )
+            )
+        else:
+            children.append(title_label)
+
         button = Button(
             style_classes=["launcher-plugin-button"],
             child=Box(
-                name="launcher-command-item",
+                name=item_name,
                 orientation="h",
                 spacing=12,
                 style_classes=["launcher-list-item"],
@@ -811,63 +835,29 @@ class Launcher(PopupWindow):
             ),
         )
         # ``on_clicked`` only works as a constructor kwarg — connect explicitly.
-        button.connect(
-            "clicked",
-            lambda *_, p=plugin: self._insert_command(p.name),
-        )
+        button.connect("clicked", lambda *_: on_clicked())
         return button
+
+    def _create_command_row(self, plugin) -> Button:
+        """Create a selectable row for a slash command (browse mode)."""
+        return self._create_selectable_row(
+            item_name="launcher-command-item",
+            icon=plugin.icon,
+            title=f"/{plugin.name}",
+            subtitle=plugin.description,
+            on_clicked=lambda: self._insert_command(plugin.name),
+            ellipsize=False,
+        )
 
     def _create_plugin_result_row(self, plugin, result: PluginResult) -> Button:
         """Create a selectable row for a single plugin result."""
-        children = []
-        icon = self._plugin_icon_widget(result.icon or plugin.icon)
-        if icon is not None:
-            children.append(icon)
-
-        title = Label(
-            label=result.title,
-            h_align="start",
-            v_align="center",
-            justification="left",
-            ellipsization="end",
-            style_classes="launcher-plugin-title",
+        return self._create_selectable_row(
+            item_name="launcher-plugin-item",
+            icon=result.icon or plugin.icon,
+            title=result.title,
+            subtitle=result.subtitle,
+            on_clicked=lambda: self._execute_plugin_result(plugin, result),
         )
-        if result.subtitle:
-            children.append(
-                Box(
-                    orientation="v",
-                    spacing=1,
-                    children=[
-                        title,
-                        Label(
-                            label=result.subtitle,
-                            h_align="start",
-                            v_align="center",
-                            justification="left",
-                            ellipsization="end",
-                            style_classes="launcher-plugin-subtitle",
-                        ),
-                    ],
-                )
-            )
-        else:
-            children.append(title)
-
-        button = Button(
-            style_classes=["launcher-plugin-button"],
-            child=Box(
-                name="launcher-plugin-item",
-                orientation="h",
-                spacing=12,
-                style_classes=["launcher-list-item"],
-                children=children,
-            ),
-        )
-        button.connect(
-            "clicked",
-            lambda *_, p=plugin, r=result: self._execute_plugin_result(p, r),
-        )
-        return button
 
     def _plugin_icon_widget(self, icon: str | None):
         """Build an icon widget from a GTK icon name or a Nerd Font glyph."""
