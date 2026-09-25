@@ -18,15 +18,8 @@
   #overview-menu {
     padding: 5px;
 
-    #overview-window {
-      background-color: color.mix(theme.$general-shadow-color, transparent, 90%);
-      border-radius: variable.$radius-large;
-      padding: common.toEm(10);
-    }
-
     #overview-client-box,
-    #overview-workspace-bg,
-    #overview-frame {
+    #overview-workspace-bg {
       border-radius: variable.$radius;
       transition: background-color 0.1s ease;
     }
