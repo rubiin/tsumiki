@@ -1,7 +1,10 @@
 import re
+from collections.abc import Callable
 
 from fabric.core.service import Property, Signal
-from fabric.utils import GLib, exec_shell_command, exec_shell_command_async, logger
+from fabric.utils import GLib, exec_shell_command_async, logger
+
+from utils.functions import run_command
 
 from .base import SingletonService
 
@@ -84,8 +87,10 @@ class DnsSwitcherService(SingletonService):
             return False
 
         self._first_line_of_poll = True
+        # A list, not a shell string: Fabric runs the argv directly, so a "2>&1"
+        # style redirect would arrive as a literal argument.
         exec_shell_command_async(
-            "nmcli -t -f IP4.DNS con show --active 2>/dev/null",
+            ["nmcli", "-t", "-f", "IP4.DNS", "con", "show", "--active"],
             self._on_dns_line,
         )
         self._poll_timer_id = GLib.timeout_add(self._poll_interval, self._poll)
@@ -137,16 +142,62 @@ class DnsSwitcherService(SingletonService):
 
     def _get_active_connection(self) -> str:
         """Return the UUID of the active connection, or empty string."""
-        try:
-            result = exec_shell_command("nmcli -t -f UUID con show --active")
-            if result is False:
-                return ""
-            lines = [
-                line.strip() for line in result.strip().split("\n") if line.strip()
-            ]
-            return lines[0] if lines else ""
-        except Exception:
+        output = run_command(
+            ["nmcli", "-t", "-f", "UUID", "con", "show", "--active"]
+        )
+        if output is None:
             return ""
+        lines = [line.strip() for line in output.strip().split("\n") if line.strip()]
+        return lines[0] if lines else ""
+
+    def _run_commands(
+        self, commands: list[list[str]], on_finished: Callable[[bool], None]
+    ) -> None:
+        """Run *commands* one after another, then report whether all succeeded.
+
+        A list of commands rather than a ``&&`` chain, because Fabric's
+        ``exec_shell_command_async`` does not use a shell: it splits the string
+        and runs the result directly, so ``&&`` would arrive as a literal
+        argument and every step after the first would be silently dropped.
+        Sequential because each step depends on the previous one.
+        """
+
+        def step(index: int):
+            if index >= len(commands):
+                on_finished(True)
+                return
+
+            argv = commands[index]
+            try:
+                process, _ = exec_shell_command_async(argv)
+            except GLib.Error as e:
+                logger.warning(f"[DNS] {' '.join(argv)} failed to start: {e.message}")
+                on_finished(False)
+                return
+
+            def finished(proc, res, index=index):
+                try:
+                    status = proc.wait_finish(res)
+                except GLib.Error:
+                    status = -1
+                if status != 0:
+                    logger.warning(
+                        f"[DNS] {' '.join(commands[index])} failed (status {status})"
+                    )
+                    on_finished(False)
+                    return
+                step(index + 1)
+
+            process.wait_async(None, finished)
+
+        step(0)
+
+    def _on_switch_finished(self, ok: bool):
+        """Publish a switch only once its commands have actually run."""
+        if not ok:
+            # Nothing was applied. The poller keeps ``current`` honest.
+            return
+        self.emit("changed")
 
     def set_dns(self, primary: str, secondary: str = ""):
         """Switch to the given DNS servers via pkexec nmcli."""
@@ -168,13 +219,28 @@ class DnsSwitcherService(SingletonService):
         if secondary:
             servers = f"{primary} {secondary}"
 
-        cmd = (
-            f"pkexec nmcli con mod {uuid} ipv4.dns '{servers}' && "
-            f"pkexec nmcli con mod {uuid} ipv4.ignore-auto-dns yes && "
-            f"nmcli con down {uuid} && nmcli con up {uuid}"
+        self._run_commands(
+            self._switch_commands(uuid, servers, "yes"),
+            self._on_switch_finished,
         )
-        exec_shell_command_async(cmd, lambda *_: None)
-        self.emit("changed")
+
+    @staticmethod
+    def _switch_commands(uuid: str, servers: str, ignore_auto: str) -> list[list[str]]:
+        """The nmcli steps that set the servers and bounce the connection."""
+        return [
+            ["pkexec", "nmcli", "con", "mod", uuid, "ipv4.dns", servers],
+            [
+                "pkexec",
+                "nmcli",
+                "con",
+                "mod",
+                uuid,
+                "ipv4.ignore-auto-dns",
+                ignore_auto,
+            ],
+            ["nmcli", "con", "down", uuid],
+            ["nmcli", "con", "up", uuid],
+        ]
 
     def switch_provider(self, index: int):
         """Switch to a pre-configured provider by index."""
@@ -189,13 +255,11 @@ class DnsSwitcherService(SingletonService):
             logger.warning("[DNS] No active NetworkManager connection found")
             return
 
-        cmd = (
-            f"pkexec nmcli con mod {uuid} ipv4.dns '' && "
-            f"pkexec nmcli con mod {uuid} ipv4.ignore-auto-dns no && "
-            f"nmcli con down {uuid} && nmcli con up {uuid}"
+        # An empty value clears the list, which is what the shell form '' meant.
+        self._run_commands(
+            self._switch_commands(uuid, "", "no"),
+            self._on_switch_finished,
         )
-        exec_shell_command_async(cmd, lambda *_: None)
-        self.emit("changed")
 
     # ── Teardown ────────────────────────────────────────────────
 

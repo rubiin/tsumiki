@@ -1,5 +1,7 @@
 from fabric.core.service import Signal
-from fabric.utils import GLib, exec_shell_command, exec_shell_command_async, logger
+from fabric.utils import GLib, exec_shell_command_async, logger
+
+from utils.functions import run_command
 
 from .base import SingletonService
 
@@ -86,15 +88,7 @@ class CloudflareWarpService(SingletonService):
 
     def _run_warp_cli(self, action: str) -> bool:
         """Run a warp-cli command synchronously. Returns success."""
-        try:
-            exec_shell_command(f"warp-cli {action}")
-            return True
-        except FileNotFoundError:
-            logger.error("[CloudflareWARP] warp-cli not found in PATH")
-            return False
-        except Exception as e:
-            logger.error(f"[CloudflareWARP] 'warp-cli {action}' error: {e}")
-            return False
+        return run_command(["warp-cli", action]) is not None
 
     def connect_warp(self) -> bool:
         ok = self._run_warp_cli("connect")

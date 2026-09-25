@@ -176,10 +176,9 @@ class ScreenRecorderService(SingletonService):
         def _annotate_and_notify():
             """Run satty off the main thread, then marshal back."""
             try:
-                result = exec_shell_command(
-                    f"satty --filename {temp_path} --output-filename {file_path}"
-                )
-                if result is False:
+                if helpers.run_command(
+                    ["satty", "--filename", temp_path, "--output-filename", file_path]
+                ) is None:
                     logger.warning("[SCREENSHOT] satty annotation failed")
                     return
                 os.unlink(temp_path)
