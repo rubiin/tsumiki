@@ -1,9 +1,9 @@
 from fabric.core.service import Signal
-from fabric.utils import GLib, exec_shell_command_async, logger
+from fabric.utils import exec_shell_command_async, logger
 
 from utils.functions import run_command
 
-from .base import SingletonService
+from .base import PollingController, SingletonService
 
 
 class CloudflareWarpService(SingletonService):
@@ -19,10 +19,13 @@ class CloudflareWarpService(SingletonService):
         self._poll_interval = poll_interval_ms
         self._connected = False
 
-        self._poll_timer_id: int | None = None
-        self._poller_running = False
-
-        self._start_polling()
+        self._poller = PollingController(
+            ["warp-cli", "status"],
+            poll_interval_ms,
+            self._on_status_line,
+            tag="CloudflareWARP",
+        )
+        self._poller.start()
 
     # ── Properties ──────────────────────────────────────────────
 
@@ -32,37 +35,13 @@ class CloudflareWarpService(SingletonService):
 
     # ── Polling ─────────────────────────────────────────────────
 
-    def _start_polling(self):
-        if self._poller_running:
-            return
-        self._poller_running = True
-        self._poll()
-
-    def _stop_polling(self):
-        self._poller_running = False
-        if self._poll_timer_id is not None:
-            GLib.source_remove(self._poll_timer_id)
-            self._poll_timer_id = None
-
     def pause_polling(self):
         """Pause the polling loop. Safe to call when already paused."""
-        self._stop_polling()
+        self._poller.stop()
 
     def resume_polling(self):
         """Resume the polling loop. Safe to call when already running."""
-        self._start_polling()
-
-    def _poll(self):
-        if not self._poller_running:
-            return False
-
-        exec_shell_command_async(
-            "warp-cli status",
-            self._on_status_line,
-        )
-
-        self._poll_timer_id = GLib.timeout_add(self._poll_interval, self._poll)
-        return False
+        self._poller.start()
 
     def _on_status_line(self, line: str):
         raw = line.strip()

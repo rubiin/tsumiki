@@ -6,7 +6,7 @@ from fabric.utils import GLib, exec_shell_command_async, logger
 
 from utils.functions import run_command
 
-from .base import SingletonService
+from .base import PollingController, SingletonService
 
 # Matches valid IPv4, IPv6, or hostname — blocks shell metacharacters.
 _DNS_VALUE_RE = re.compile(r"^[a-zA-Z0-9.:\[\]-]+$")
@@ -48,11 +48,18 @@ class DnsSwitcherService(SingletonService):
         self._current: str | None = None
         self._current_label: str = "Default"
 
-        self._poll_timer_id: int | None = None
-        self._poller_running = False
         self._first_line_of_poll = True
 
-        self._start_polling()
+        # A list, not a shell string: Fabric runs the argv directly, so a
+        # "2>/dev/null" style redirect would arrive as a literal argument.
+        self._poller = PollingController(
+            ["nmcli", "-t", "-f", "IP4.DNS", "con", "show", "--active"],
+            poll_interval_ms,
+            self._on_dns_line,
+            tag="DNS",
+            on_start=self._mark_poll_start,
+        )
+        self._poller.start()
 
     # ── Properties ──────────────────────────────────────────────
 
@@ -62,43 +69,20 @@ class DnsSwitcherService(SingletonService):
 
     # ── Polling ─────────────────────────────────────────────────
 
-    def _start_polling(self):
-        if self._poller_running:
-            return
-        self._poller_running = True
-        self._poll()
-
-    def _stop_polling(self):
-        self._poller_running = False
-        if self._poll_timer_id is not None:
-            GLib.source_remove(self._poll_timer_id)
-            self._poll_timer_id = None
-
     def pause_polling(self):
         """Stop polling — call when the widget is destroyed."""
-        self._stop_polling()
+        self._poller.stop()
 
     def resume_polling(self):
         """Restart polling — call when the widget is created."""
-        self._start_polling()
+        self._poller.start()
 
-    def _poll(self):
-        if not self._poller_running:
-            return False
-
+    def _mark_poll_start(self) -> None:
+        """Reset the per-run state before each nmcli invocation."""
         self._first_line_of_poll = True
-        # A list, not a shell string: Fabric runs the argv directly, so a "2>&1"
-        # style redirect would arrive as a literal argument.
-        exec_shell_command_async(
-            ["nmcli", "-t", "-f", "IP4.DNS", "con", "show", "--active"],
-            self._on_dns_line,
-        )
-        self._poll_timer_id = GLib.timeout_add(self._poll_interval, self._poll)
-        return False
 
     def _on_dns_line(self, line: str):
-        # exec_shell_command_async calls this once per stdout line.
-        # Only use the first line so we capture the primary DNS.
+        # Called once per stdout line; only the first carries the primary DNS.
         if not self._first_line_of_poll:
             return
         self._first_line_of_poll = False
