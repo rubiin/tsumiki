@@ -18,7 +18,6 @@ from fabric.widgets.box import Box
 from fabric.widgets.button import Button
 from fabric.widgets.eventbox import EventBox
 from fabric.widgets.grid import Grid
-from fabric.widgets.image import Image
 from fabric.widgets.label import Label
 from fabric.widgets.revealer import Revealer
 from fabric.widgets.widget import Widget
@@ -28,6 +27,13 @@ import utils.functions as helpers
 from services import notification_service
 from shared.buttons import HoverButton
 from shared.circle_image import CircularImage
+from shared.notification_card import (
+    app_icon,
+    close_button,
+    header,
+    summary_label,
+    timestamp_label,
+)
 from shared.widget_container import BaseWindow, TeardownMixin
 from utils.colors import Colors
 from utils.icons import get_text_icon
@@ -35,7 +41,6 @@ from utils.widget_settings import BarConfig
 from utils.widget_utils import (
     get_notification_image_pixbuf,
     nerd_font_icon,
-    resolve_notification_icon,
 )
 
 # Swipe threshold for dismissing notifications (normalized: 0.0 to 1.0)
@@ -292,30 +297,14 @@ class NotificationWidget(EventBox, TeardownMixin):
         max_expanded_lines: int,
     ) -> Box:
         """Build notification header: icon, summary, optional expand, close."""
-        header_container = Box(
-            spacing=8, orientation="h", style_classes="notification-header"
-        )
+        trailing = []
 
-        header_container.children = (
-            Image(
-                pixbuf=resolve_notification_icon(
-                    notification,
-                    25,
-                ),
-                size=25,
-            ),
-            Label(
-                markup=helpers.parse_markup(
-                    self._notification.summary
-                    if self._notification.summary
-                    else notification.app_name,
-                ),
-                h_align="start",
-                style_classes="summary",
-                max_chars_width=30,
-                line_wrap="word-char",
-            ),
-        )
+        if self.config.get("show_timestamp", True):
+            trailing.append(
+                timestamp_label(
+                    helpers.format_relative_timestamp(self._notification.time)
+                )
+            )
 
         self.expand_button = None
         if is_long_content:
@@ -330,36 +319,29 @@ class NotificationWidget(EventBox, TeardownMixin):
                     max_collapsed_lines, max_expanded_lines
                 ),
             )
+            trailing.append(self.expand_button)
 
-        close_btn = Button(
-            v_align="center",
-            h_align="center",
-            style_classes="close-button",
-            tooltip_text="Dismiss notification",
-            child=nerd_font_icon(
-                icon=get_text_icon("ui.window_close", ""),
-                props={"style_classes": ["panel-font-icon", "close-icon"]},
-            ),
-            on_clicked=self.on_close_button_clicked,
+        trailing.append(
+            close_button(
+                self.on_close_button_clicked,
+                tooltip_text="Dismiss notification",
+            )
         )
 
-        header_container.pack_end(close_btn, False, False, 0)
-        if self.expand_button:
-            header_container.pack_end(self.expand_button, False, False, 0)
-
-        if self.config.get("show_timestamp", True):
-            header_container.pack_end(
-                Label(
-                    label=helpers.format_relative_timestamp(self._notification.time),
-                    v_align="center",
-                    style_classes="timestamp",
+        return header(
+            leading=[
+                app_icon(notification),
+                summary_label(
+                    helpers.parse_markup(
+                        self._notification.summary
+                        if self._notification.summary
+                        else notification.app_name,
+                    ),
+                    max_chars_width=30,
                 ),
-                False,
-                False,
-                0,
-            )
-
-        return header_container
+            ],
+            trailing=trailing,
+        )
 
     def _build_body(
         self,

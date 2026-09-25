@@ -162,38 +162,23 @@ $hover-transition: background 0.15s ease-in-out;
     0 1px 3px 1px color.change(theme.$general-shadow-color, $alpha: 0.7),
     0 2px 6px 2px color.change(theme.$general-shadow-color, $alpha: 0.3);
 
-  // circular fallback app icon
-  #app-icon {
-    border-radius: variable.$radius-large;
-    background-color: color.mix(theme.$surface-neutral, theme.$background-dark, 30%);
-    padding: 6px;
-    min-width: 36px;
-    min-height: 36px;
+  // Same anatomy as the toast card, only tighter: the row box already
+  // provides the spacing the shared header/body padding would add.
+  min-width: 0; // allow text to shrink/wrap
+
+  .notification-header {
+    padding: 0;
+
+    .timestamp {
+      font-size: variable.$font-size-sm;
+      font-weight: 600;
+      color: theme.$text-disabled;
+      margin-right: 4px;
+    }
   }
 
-  // horizontal layout: icon on left, content on right
-  .notification-content {
-    min-width: 0; // allow text to shrink/wrap
-
-    .notification-header {
-      padding: 0;
-
-      .summary {
-        font-size: 13.5px;
-        font-weight: 700;
-      }
-
-      .timestamp {
-        font-size: variable.$font-size-sm;
-        font-weight: 600;
-        color: theme.$text-disabled;
-        margin-right: 4px;
-      }
-    }
-
-    #date-menu-notification-body {
-      font-size: variable.$font-size-md;
-      color: theme.$text-main;
-    }
+  #date-menu-notification-body {
+    font-size: variable.$font-size-md;
+    color: theme.$text-main;
   }
 }
