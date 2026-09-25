@@ -574,17 +574,11 @@ class USBManagerWidget(ButtonWidget, PopoverMixin):
     def __init__(self, **kwargs):
         super().__init__(name="usb_manager", **kwargs)
 
-        self.container_box.add(
-            nerd_font_icon(
-                icon=self.config.get("icon", ""),
-                props={"style_classes": ["panel-font-icon"]},
-            )
+        self.add_panel_content(
+            self.config.get("icon", ""),
+            _("widget.usb_manager.label"),
+            show_label=self.config.get("label", False),
         )
-
-        if self.config.get("label", False):
-            self.container_box.add(
-                Label(label=_("widget.usb_manager.label"), style_classes="panel-text")
-            )
 
         self.set_tooltip_if_enabled(_("widget.usb_manager.tooltip"), default=True)
 

@@ -301,18 +301,11 @@ class IPMonitorWidget(ButtonWidget, PopoverMixin):
     def __init__(self, **kwargs):
         super().__init__(name="ip_monitor", **kwargs)
 
-        self.container_box.children = nerd_font_icon(
-            icon=self.config.get("icon", "󰖟"),
-            props={"style_classes": ["panel-font-icon"]},
+        self.add_panel_content(
+            self.config.get("icon", "󰖟"),
+            self.config.get("label_text", "IP"),
+            show_label=self.config.get("label", False),
         )
-
-        if self.config.get("label", False):
-            self.container_box.add(
-                Label(
-                    label=self.config.get("label_text", "IP"),
-                    style_classes="panel-text",
-                )
-            )
 
         self.set_tooltip_if_enabled(_("widget.ip_monitor.tooltip"), default=True)
 

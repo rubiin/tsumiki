@@ -1,8 +1,6 @@
-from fabric.widgets.label import Label
 
 from shared.widget_container import ButtonWidget
 from utils.i18n import _
-from utils.widget_utils import nerd_font_icon
 
 
 class OverviewButtonWidget(ButtonWidget):
@@ -13,17 +11,11 @@ class OverviewButtonWidget(ButtonWidget):
 
         self.set_tooltip_if_enabled(_("widget.overview_button.tooltip"))
 
-        self.container_box.children = nerd_font_icon(
-            icon=self.config.get("icon"),
-            props={"style_classes": ["panel-font-icon"]},
+        self.add_panel_content(
+            self.config.get("icon"),
+            _("widget.overview_button.label"),
+            show_label=self.config.get("label", True),
         )
-
-        if self.config.get("label", True):
-            self.container_box.add(
-                Label(
-                    label=_("widget.overview_button.label"), style_classes="panel-text"
-                )
-            )
 
         # Lazy-init overview popup
         self._overview_popup = None

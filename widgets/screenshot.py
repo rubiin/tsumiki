@@ -1,9 +1,7 @@
-from fabric.widgets.label import Label
 
 from services.screen_record import ScreenRecorderService
 from shared.widget_container import ButtonWidget
 from utils.i18n import _
-from utils.widget_utils import nerd_font_icon
 
 
 class ScreenShotWidget(ButtonWidget):
@@ -16,15 +14,11 @@ class ScreenShotWidget(ButtonWidget):
 
         self.recorder_service = None
 
-        self.container_box.children = nerd_font_icon(
-            icon=self.config.get("icon"),
-            props={"style_classes": ["panel-font-icon"]},
+        self.add_panel_content(
+            self.config.get("icon"),
+            _("widget.screenshot.label"),
+            show_label=self.config.get("label", True),
         )
-
-        if self.config.get("label", True):
-            self.container_box.add(
-                Label(label=_("widget.screenshot.label"), style_classes="panel-text")
-            )
 
         self.set_tooltip_if_enabled(_("widget.screenshot.tooltip"))
 

@@ -196,6 +196,38 @@ class ButtonWidget(Button, BaseWidget):
             ),
         )
 
+    def add_panel_content(
+        self,
+        icon: str | Widget,
+        label: str | Widget | None = None,
+        *,
+        show_label: bool = True,
+    ) -> None:
+        """Fill the container box with the panel icon and an optional label.
+
+        Every panel widget is an icon plus, optionally, a text label; the only
+        per-widget differences are whether the label is enabled and what it
+        says. Either argument may be an already-built widget, for the widgets
+        that need a revealer or update their text later.
+        """
+        # Imported here, not at module scope: utils.widget_utils reaches
+        # utils.config, and this module must stay importable without loading
+        # the user's configuration (see test_config.ConfigImportIsolationTest).
+        from utils.widget_utils import nerd_font_icon
+
+        self.container_box.children = (
+            icon
+            if isinstance(icon, Widget)
+            else nerd_font_icon(icon=icon, props={"style_classes": ["panel-font-icon"]})
+        )
+
+        if show_label and label is not None:
+            self.container_box.add(
+                label
+                if isinstance(label, Widget)
+                else Label(label=label, style_classes="panel-text")
+            )
+
 
 class WidgetGroup(BoxWidget):
     """A group of widgets that can be managed and styled together."""

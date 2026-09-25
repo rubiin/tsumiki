@@ -1,10 +1,8 @@
 from fabric.utils import Gdk, exec_shell_command_async, os
-from fabric.widgets.label import Label
 
 from shared.widget_container import ButtonWidget
 from utils.constants import ASSETS_DIR
 from utils.i18n import _
-from utils.widget_utils import nerd_font_icon
 
 
 class HyprPickerWidget(ButtonWidget):
@@ -15,18 +13,11 @@ class HyprPickerWidget(ButtonWidget):
 
         if self.config.get("show_icon", True):
             # Create a TextIcon with the specified icon and size
-            self.container_box.add(
-                nerd_font_icon(
-                    icon=self.config.get("icon"),
-                    props={"style_classes": ["panel-font-icon"]},
-                )
-            )
-
-        if self.config.get("label", True):
-            self.container_box.add(
-                Label(label=_("widget.hyprpicker.label"), style_classes="panel-text")
-            )
-
+                    self.add_panel_content(
+            self.config.get("icon"),
+            _("widget.hyprpicker.label"),
+            show_label=self.config.get("label", True),
+        )
         self.connect("button-press-event", self.on_button_press)
 
         self.initialized = False

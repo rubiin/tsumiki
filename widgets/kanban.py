@@ -16,7 +16,7 @@ from utils.constants import KANBAN_FILE
 from utils.functions import read_json_file, write_json_file
 from utils.i18n import _
 from utils.icons import get_text_icon
-from utils.widget_utils import create_surface_from_widget, nerd_font_icon
+from utils.widget_utils import create_surface_from_widget
 
 
 # fix the kanban :TODO
@@ -416,20 +416,11 @@ class KanbanWidget(ButtonWidget, PopoverMixin):
     def __init__(self, **kwargs):
         super().__init__(name="kanban", **kwargs)
 
-        self.container_box.add(
-            nerd_font_icon(
-                icon=self.config.get("icon", "󰒲"),
-                props={"style_classes": ["panel-font-icon"]},
-            )
+        self.add_panel_content(
+            self.config.get("icon", "󰒲"),
+            _("widget.kanban.label"),
+            show_label=self.config.get("label", True),
         )
-
-        if self.config.get("label", True):
-            self.container_box.add(
-                Label(
-                    label=_("widget.kanban.label"),
-                    style_classes="panel-text",
-                )
-            )
 
         self.set_tooltip_if_enabled(_("widget.kanban.tooltip"))
 

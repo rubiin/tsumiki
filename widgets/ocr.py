@@ -1,7 +1,6 @@
 import time
 
 from fabric.utils import Gdk, GLib, Gtk, exec_shell_command_async, os
-from fabric.widgets.label import Label
 
 from shared.widget_container import ButtonWidget
 from utils.constants import ASSETS_DIR
@@ -28,11 +27,10 @@ class OCRWidget(ButtonWidget):
                 icon=self.config.get("icon"),
                 props={"style_classes": ["panel-font-icon"]},
             )
-            self.container_box.add(self.icon)
-
-        if self.config.get("label", True):
-            self.container_box.add(
-                Label(label=_("widget.ocr.label"), style_classes="panel-text")
+            self.add_panel_content(
+                self.icon,
+                _("widget.ocr.label"),
+                show_label=self.config.get("label", True),
             )
 
         # Left click for OCR
