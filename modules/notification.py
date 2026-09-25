@@ -603,10 +603,7 @@ class NotificationWidget(EventBox, TeardownMixin):
 
     @staticmethod
     def set_pointer_cursor(widget: Widget, cursor_name: str):
-        window = widget.get_window()
-        if window:
-            cursor = Gdk.Cursor.new_from_name(widget.get_display(), cursor_name)
-            window.set_cursor(cursor)
+        helpers.set_cursor(widget, cursor_name)
 
 
 class NotificationRevealer(Revealer):

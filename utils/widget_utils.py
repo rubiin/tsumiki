@@ -154,6 +154,19 @@ def on_leave_notify_event(cursor, widget: Widget):
     widget.get_window().set_cursor(cursor)
 
 
+# Function to point a widget's window at a named cursor
+def set_cursor(widget, cursor_name: str) -> None:
+    """Point *widget* at a named cursor, if it has a window yet.
+
+    A widget that has not been realised has no window, so this is a no-op
+    rather than an error.
+    """
+    window = widget.get_window()
+    if window is None:
+        return
+    window.set_cursor(Gdk.Cursor.new_from_name(widget.get_display(), cursor_name))
+
+
 # Function to setup cursor hover
 def setup_cursor_hover(
     widget, cursor_name: Literal["pointer", "crosshair", "grab"] = "pointer"

@@ -3,10 +3,11 @@ from fabric.widgets.label import Label
 
 from utils.widget_utils import nerd_font_icon
 
+from .mixins import PopoverMixin
 from .widget_container import ButtonWidget
 
 
-class CollapsibleGroupWidget(ButtonWidget):
+class CollapsibleGroupWidget(ButtonWidget, PopoverMixin):
     """A collapsible button group that shows a main toggle button in the bar.
 
     When clicked, reveals a popup menu with grouped widgets underneath.
@@ -25,12 +26,14 @@ class CollapsibleGroupWidget(ButtonWidget):
         self.tooltip_text = "Toggle tool menu"
 
         self.is_expanded = False
-        self.popup = None
         self.widgets_list = None
 
         # Read configuration and setup the widget
         self._read_config()
         self._setup_button_content()
+        # PopoverMixin owns the popover: it is built on first use from
+        # _build_popover_content, and it maintains the "active" class.
+        self.setup_popover(self._build_popover_content, connect_clicked=False)
         self.connect("clicked", self.on_toggle_clicked)
 
     def _read_config(self):
@@ -56,11 +59,8 @@ class CollapsibleGroupWidget(ButtonWidget):
             label = Label(label=self.label_text, style_classes="panel-text")
             self.container_box.add(label)
 
-    def _setup_popup(self):
-        """Set up the popup that contains the grouped widgets."""
-
-        from .popover import Popover
-
+    def _build_popover_content(self) -> Box:
+        """Build the popover content: the grouped widgets, in a row."""
         self.widgets_box = Box(
             orientation="h",
             spacing=self.config.get("spacing", 4),
@@ -71,11 +71,7 @@ class CollapsibleGroupWidget(ButtonWidget):
         )
 
         self._populate_widgets()
-
-        self.popup = Popover(content=self.widgets_box, point_to=self)
-        self.popup.connect(
-            "popover-closed", lambda *_: self.remove_style_class("active")
-        )
+        return self.widgets_box
 
     def _set_expanded(self, expanded: bool):
         """Sets the expanded state of the widget."""
@@ -83,14 +79,11 @@ class CollapsibleGroupWidget(ButtonWidget):
             return  # No change
 
         if expanded:
-            if self.popup is None:
-                self._setup_popup()
-            self.popup.open()
-        elif self.popup:
-            self.popup.hide_popover()
+            self.show_popover()
+        else:
+            self.hide_popover()
 
         self.is_expanded = expanded
-        self.toggle_css_class("active", self.is_expanded)
 
     def on_toggle_clicked(self, button):
         """Handle the toggle button click."""
