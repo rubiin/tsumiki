@@ -858,7 +858,38 @@ def ensure_directory(path: str):
             logger.exception(f"Failed to create directory {path}: {e.message}")
 
 
-def run_command(cmd: str | Sequence[str]) -> str | None:
+class CommandError(RuntimeError):
+    """A command failed while run with ``check=True``.
+
+    *kind* is one of ``"missing"``, ``"timeout"`` or ``"failed"``, so a caller
+    that has to react differently to "the binary is not installed" than to "it
+    exited non-zero" can, without inspecting the exception's cause.
+    """
+
+    def __init__(
+        self,
+        cmd: str | Sequence[str],
+        message: str,
+        *,
+        kind: str = "failed",
+        returncode: int | None = None,
+        stdout: str = "",
+        stderr: str = "",
+    ) -> None:
+        super().__init__(message)
+        self.cmd = cmd
+        self.kind = kind
+        self.returncode = returncode
+        self.stdout = stdout
+        self.stderr = stderr
+
+
+def run_command(
+    cmd: str | Sequence[str],
+    *,
+    timeout: float | None = None,
+    check: bool = False,
+) -> str | None:
     """Run a command and return its stdout, or ``None`` when it failed.
 
     Fabric's ``exec_shell_command`` returns the *error text* on a non-zero
@@ -869,6 +900,12 @@ def run_command(cmd: str | Sequence[str]) -> str | None:
     A list argument runs without a shell, which is the safe form for any value
     that came from config, a notification or the filesystem. A string runs via
     the shell, for commands that genuinely need it.
+
+    *timeout* kills the command after that many seconds.
+
+    By default a failure is logged and reported as ``None``. With ``check=True``
+    a failure raises :class:`CommandError` instead, for the callers that have to
+    say *why* it failed rather than fall back quietly.
     """
     try:
         result = subprocess.run(
@@ -876,18 +913,35 @@ def run_command(cmd: str | Sequence[str]) -> str | None:
             shell=isinstance(cmd, str),
             capture_output=True,
             text=True,
+            timeout=timeout,
             check=False,
         )
+    except subprocess.TimeoutExpired as e:
+        message = f"Command timed out after {timeout}s: {cmd}"
+        if check:
+            raise CommandError(cmd, message, kind="timeout") from e
+        logger.warning(message)
+        return None
     except (OSError, subprocess.SubprocessError) as e:
+        if check:
+            raise CommandError(cmd, f"Failed to run {cmd}: {e}", kind="missing") from e
         logger.exception(f"Failed to run {cmd}: {e}")
         return None
 
     if result.returncode != 0:
         detail = result.stderr.strip()
-        logger.warning(
-            f"Command failed (status {result.returncode}): {cmd}"
-            + (f": {detail}" if detail else "")
+        message = f"Command failed (status {result.returncode}): {cmd}" + (
+            f": {detail}" if detail else ""
         )
+        if check:
+            raise CommandError(
+                cmd,
+                message,
+                returncode=result.returncode,
+                stdout=result.stdout,
+                stderr=result.stderr,
+            )
+        logger.warning(message)
         return None
     return result.stdout
 

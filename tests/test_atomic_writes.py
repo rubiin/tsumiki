@@ -14,6 +14,7 @@ import psutil
 
 from utils import functions as functions_module
 from utils.functions import (
+    CommandError,
     _atomic_write,
     is_app_running,
     run_command,
@@ -174,6 +175,89 @@ class UpdateConfigKeyTest(unittest.TestCase):
             self.assertEqual(original, handle.read())
 
 
+class RunCommandCheckTest(unittest.TestCase):
+    """check=True raises instead of reporting a failure as None."""
+
+    def test_success_returns_stdout(self):
+        self.assertEqual("hello\n", run_command(["echo", "hello"], check=True))
+
+    def test_a_non_zero_exit_raises(self):
+        with self.assertRaises(CommandError) as caught:
+            run_command(["sh", "-c", "exit 3"], check=True)
+
+        self.assertEqual(3, caught.exception.returncode)
+
+    def test_the_exception_carries_stderr(self):
+        with self.assertRaises(CommandError) as caught:
+            run_command(["sh", "-c", "echo boom >&2; exit 3"], check=True)
+
+        self.assertEqual("boom", caught.exception.stderr.strip())
+        self.assertIn("boom", str(caught.exception))
+
+    def test_the_exception_carries_stdout_too(self):
+        """A command that fails after printing still has useful output."""
+        with self.assertRaises(CommandError) as caught:
+            run_command(["sh", "-c", "echo partial; exit 1"], check=True)
+
+        self.assertEqual("partial", caught.exception.stdout.strip())
+
+    def test_a_missing_program_raises_and_is_tagged(self):
+        with self.assertRaises(CommandError) as caught:
+            run_command(["definitely-not-a-real-binary-xyz"], check=True)
+
+        self.assertEqual("missing", caught.exception.kind)
+        self.assertIsNone(caught.exception.returncode)
+
+    def test_a_timeout_raises_and_is_tagged(self):
+        with self.assertRaises(CommandError) as caught:
+            run_command(["sleep", "5"], timeout=0.1, check=True)
+
+        self.assertEqual("timeout", caught.exception.kind)
+
+    def test_a_plain_failure_is_tagged_neither_missing_nor_timeout(self):
+        with self.assertRaises(CommandError) as caught:
+            run_command(["false"], check=True)
+
+        self.assertEqual("failed", caught.exception.kind)
+
+    def test_the_default_contract_is_unchanged(self):
+        """check=False must still return None and log, not raise."""
+        self.assertIsNone(run_command(["false"]))
+        self.assertIsNone(run_command(["definitely-not-a-real-binary-xyz"]))
+
+    def test_the_timeout_reaches_the_process(self):
+        with mock.patch.object(
+            functions_module.subprocess, "run", return_value=mock.Mock(returncode=0)
+        ) as run:
+            run_command(["true"], timeout=2.5)
+
+        self.assertEqual(2.5, run.call_args.kwargs["timeout"])
+
+    def test_no_timeout_by_default(self):
+        with mock.patch.object(
+            functions_module.subprocess, "run", return_value=mock.Mock(returncode=0)
+        ) as run:
+            run_command(["true"])
+
+        self.assertIsNone(run.call_args.kwargs["timeout"])
+
+    def test_a_list_never_goes_through_a_shell(self):
+        with mock.patch.object(
+            functions_module.subprocess, "run", return_value=mock.Mock(returncode=0)
+        ) as run:
+            run_command(["echo", "hi"])
+
+        self.assertFalse(run.call_args.kwargs["shell"])
+
+    def test_a_string_always_goes_through_a_shell(self):
+        with mock.patch.object(
+            functions_module.subprocess, "run", return_value=mock.Mock(returncode=0)
+        ) as run:
+            run_command("echo hi")
+
+        self.assertTrue(run.call_args.kwargs["shell"])
+
+
 class RunCommandTest(unittest.TestCase):
     """``run_command`` is the one place that reports success reliably.
 
@@ -197,6 +281,13 @@ class RunCommandTest(unittest.TestCase):
 
     def test_missing_program_is_not_an_exception(self):
         self.assertIsNone(run_command(["definitely-not-a-real-binary-xyz"]))
+
+    def test_a_timeout_is_logged_rather_than_raised_by_default(self):
+        with mock.patch("utils.functions.logger") as logger:
+            self.assertIsNone(run_command(["sleep", "5"], timeout=0.1))
+
+        logger.warning.assert_called_once()
+        self.assertIn("timed out", logger.warning.call_args[0][0])
 
     def test_is_app_running_keys_off_the_exit_status(self):
         # pidof matches the process name, which is versioned in a venv, so ask

@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import json
 import re
-import subprocess
+
+from utils.functions import CommandError, run_command
 
 _NOTIFICATION_RE = re.compile(r"/repos/([^/]+)/([^/]+)/(issues|pulls)/(\d+)$")
 
@@ -40,27 +41,25 @@ class GitHubClient:
 
     def _run(self, args: list[str]) -> dict | list:
         try:
-            result = subprocess.run(
-                self._command(args),
-                capture_output=True,
-                text=True,
-                timeout=self.timeout,
-                check=False,
+            output = run_command(
+                self._command(args), timeout=self.timeout, check=True
             )
-        except FileNotFoundError:
+        except CommandError as e:
+            if e.kind == "missing":
+                raise GitHubClientError(
+                    "The GitHub CLI (`gh`) is not installed", needs_auth=False
+                ) from None
+            if e.kind == "timeout":
+                raise GitHubClientError("The GitHub CLI timed out") from None
+            message = self._error_message(e.stderr)
             raise GitHubClientError(
-                "The GitHub CLI (`gh`) is not installed", needs_auth=False
+                message, needs_auth=self._looks_like_auth(message)
             ) from None
-        except subprocess.TimeoutExpired:
-            raise GitHubClientError("The GitHub CLI timed out") from None
 
-        if result.returncode != 0:
-            message = self._error_message(result.stderr)
-            raise GitHubClientError(message, needs_auth=self._looks_like_auth(message))
-        if not result.stdout.strip():
+        if not output.strip():
             return {}
         try:
-            return json.loads(result.stdout)
+            return json.loads(output)
         except ValueError:
             raise GitHubClientError("The GitHub CLI returned invalid JSON") from None
 

@@ -11,7 +11,7 @@ import unittest
 from datetime import datetime, timedelta, timezone
 from unittest import mock
 
-from widgets.github_tray import client as client_module
+from utils import functions as functions_module
 from widgets.github_tray import state as tray_state
 from widgets.github_tray.client import GitHubClient, GitHubClientError
 
@@ -323,7 +323,8 @@ class ClientTests(unittest.TestCase):
         proc.returncode = returncode
         proc.stdout = json.dumps(payload) if payload is not None else ""
         proc.stderr = stderr
-        return mock.patch.object(client_module.subprocess, "run", return_value=proc)
+        # the client delegates to functions.run_command, which wraps subprocess.run
+        return mock.patch.object(functions_module.subprocess, "run", return_value=proc)
 
     def test_fetch_menu_command_shape(self):
         payload = {"data": {"viewer": {"login": "octo", "repositories": {"nodes": []}}}}
