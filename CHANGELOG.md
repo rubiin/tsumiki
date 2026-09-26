@@ -1,5 +1,34 @@
 # Changelog
 
+## [4.8.4](https://github.com/rubiin/tsumiki/compare/v4.8.3...v4.8.4) (2026-09-26)
+
+
+### 🐛 Bug Fixes
+
+* ensure app icon resolution does not pass unhashable types ([37d5bd6](https://github.com/rubiin/tsumiki/commit/37d5bd6efc167451e905bffc80103d7b9777e0de))
+
+
+### 🎨 Code Style
+
+* clean up overview module and related styles ([37d5bd6](https://github.com/rubiin/tsumiki/commit/37d5bd6efc167451e905bffc80103d7b9777e0de))
+
+
+### ⚙️ Chores
+
+* bump version to 4.8.3 in lock file ([37d5bd6](https://github.com/rubiin/tsumiki/commit/37d5bd6efc167451e905bffc80103d7b9777e0de))
+
+
+### ♻️ Code Refactoring
+
+* improve pixbuf scaling logic to prevent upscaling and enhance performance ([ae85b2a](https://github.com/rubiin/tsumiki/commit/ae85b2ad1cd1531ec5ccbcbe231d0c763b2112e9))
+* **layout:** remove overview_button from middle_section for cleaner UI ([fd3b6c2](https://github.com/rubiin/tsumiki/commit/fd3b6c2cac030be9c116fc367997084b6073fc04))
+* simplify window management commands in dock.py using hyprland_service ([37d5bd6](https://github.com/rubiin/tsumiki/commit/37d5bd6efc167451e905bffc80103d7b9777e0de))
+
+
+### ✅ Automated Testing
+
+* add unit tests for app lookup and hyprland dispatch commands ([37d5bd6](https://github.com/rubiin/tsumiki/commit/37d5bd6efc167451e905bffc80103d7b9777e0de))
+
 ## [4.8.3](https://github.com/rubiin/tsumiki/compare/v4.8.2...v4.8.3) (2026-09-25)
 
 ### 🚀 New Features
