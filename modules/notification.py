@@ -20,7 +20,6 @@ from fabric.widgets.eventbox import EventBox
 from fabric.widgets.grid import Grid
 from fabric.widgets.label import Label
 from fabric.widgets.revealer import Revealer
-from fabric.widgets.widget import Widget
 
 import utils.constants as constants
 import utils.functions as helpers
@@ -37,10 +36,12 @@ from shared.notification_card import (
 from shared.widget_container import BaseWindow, TeardownMixin
 from utils.colors import Colors
 from utils.icons import get_text_icon
+from utils.pixbuf import load_file_pixbuf
 from utils.widget_settings import BarConfig
 from utils.widget_utils import (
     get_notification_image_pixbuf,
     nerd_font_icon,
+    set_cursor,
 )
 
 # Swipe threshold for dismissing notifications (normalized: 0.0 to 1.0)
@@ -406,11 +407,17 @@ class NotificationWidget(EventBox, TeardownMixin):
             path = path[len("file://") :]
         if not path or not os.path.exists(path):
             return None
-        pixbuf = helpers.load_file_pixbuf(
-            path,
-            constants.NOTIFICATION_IMAGE_SIZE,
-            constants.NOTIFICATION_IMAGE_SIZE,
-        )
+        size = constants.NOTIFICATION_IMAGE_SIZE
+        # Only ask GdkPixbuf to shrink the image. new_from_file_at_size enlarges
+        # a source smaller than the target (and stretches a non-square one to a
+        # square), so a small attachment would arrive pre-blurred. The header
+        # gives the real dimensions without a full decode, which keeps the cheap
+        # path for the large images that actually benefit from one.
+        info = GdkPixbuf.Pixbuf.get_file_info(path)
+        if info.width >= size and info.height >= size:
+            pixbuf = load_file_pixbuf(path, size, size)
+        else:
+            pixbuf = load_file_pixbuf(path)
         if pixbuf is None:
             logger.warning(f"[Notification] Failed to load body image: {src}")
         return pixbuf
@@ -591,18 +598,14 @@ class NotificationWidget(EventBox, TeardownMixin):
 
     def on_hover(self, *_):
         self.pause_timeout()
-        self.set_pointer_cursor(self, "hand2")
+        set_cursor(self, "hand2")
 
         if self.config.get("dismiss_on_hover", False):
             self.close_notification()
 
     def on_unhover(self, *_):
         self.resume_timeout()
-        self.set_pointer_cursor(self, "arrow")
-
-    @staticmethod
-    def set_pointer_cursor(widget: Widget, cursor_name: str):
-        helpers.set_cursor(widget, cursor_name)
+        set_cursor(self, "arrow")
 
 
 class NotificationRevealer(Revealer):

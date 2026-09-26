@@ -242,8 +242,15 @@ class IconResolver(SingletonMixin):
     def scale_pixbuf_to_size(
         self, pixbuf: GdkPixbuf.Pixbuf, size: int
     ) -> GdkPixbuf.Pixbuf | None:
-        """Scale ``pixbuf`` to a square ``size`` x ``size`` if not already."""
-        if pixbuf.get_width() == size and pixbuf.get_height() == size:
+        """Downscale ``pixbuf`` to a square ``size`` x ``size`` if it is larger.
+
+        Never upscales. A source smaller than *size* is returned untouched so
+        the renderer scales it at draw time, which is both smoother than
+        resampling here and correct on a scaled display. Bilinearly enlarging a
+        small source measurably softens it - a 32px notification icon blown up
+        to 78px loses ~16% of its edge contrast, while downscaling is lossless.
+        """
+        if pixbuf.get_width() <= size and pixbuf.get_height() <= size:
             return pixbuf
         return pixbuf.scale_simple(size, size, GdkPixbuf.InterpType.BILINEAR)
 

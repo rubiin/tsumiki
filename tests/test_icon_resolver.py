@@ -333,5 +333,49 @@ class IconSizeTest(unittest.TestCase):
         desktop_app.get_icon_pixbuf.assert_not_called()
 
 
+class ScalePixbufTest(unittest.TestCase):
+    """``scale_pixbuf_to_size`` must never enlarge a pixbuf.
+
+    Bilinearly upscaling a small source softens it - a 32px notification icon
+    enlarged to 78px loses ~16% of its edge contrast - and it discards the
+    display's real scale factor. Downscaling a larger source is effectively
+    lossless, so only that direction is done here.
+    """
+
+    def setUp(self):
+        IconResolver.reset_instance()
+        self.addCleanup(IconResolver.reset_instance)
+        self._resolver = IconResolver()
+
+    @staticmethod
+    def _pixbuf(width: int, height: int):
+        pixbuf = mock.Mock()
+        pixbuf.get_width.return_value = width
+        pixbuf.get_height.return_value = height
+        pixbuf.scale_simple.return_value = "scaled"
+        return pixbuf
+
+    def test_exact_size_is_returned_untouched(self):
+        pixbuf = self._pixbuf(32, 32)
+        self.assertIs(pixbuf, self._resolver.scale_pixbuf_to_size(pixbuf, 32))
+        pixbuf.scale_simple.assert_not_called()
+
+    def test_larger_source_is_downscaled(self):
+        pixbuf = self._pixbuf(256, 256)
+        self.assertEqual("scaled", self._resolver.scale_pixbuf_to_size(pixbuf, 78))
+        pixbuf.scale_simple.assert_called_once()
+
+    def test_smaller_source_is_never_enlarged(self):
+        pixbuf = self._pixbuf(32, 32)
+        self.assertIs(pixbuf, self._resolver.scale_pixbuf_to_size(pixbuf, 78))
+        pixbuf.scale_simple.assert_not_called()
+
+    def test_larger_in_one_axis_only_is_still_downscaled(self):
+        """200x40 still has to be fitted into the 78px box."""
+        pixbuf = self._pixbuf(200, 40)
+        self.assertEqual("scaled", self._resolver.scale_pixbuf_to_size(pixbuf, 78))
+        pixbuf.scale_simple.assert_called_once()
+
+
 if __name__ == "__main__":
     unittest.main()
