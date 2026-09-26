@@ -80,11 +80,13 @@ class OverviewTeardownTest(unittest.TestCase):
         """Covers the on_ready callback, which cannot be disconnected."""
         menu = make_menu()
         menu._on_destroy()
+        generation = menu._update_generation
 
-        with mock.patch.object(OverviewMenu, "_refresh_app_cache_if_needed") as refresh:
+        with mock.patch.object(OverviewMenu, "_fetch_monitors_async") as fetch:
             menu.update()
 
-        refresh.assert_not_called()
+        fetch.assert_not_called()
+        self.assertEqual(generation, menu._update_generation)
 
 
 if __name__ == "__main__":

@@ -26,6 +26,7 @@ from shared.popup import PopupWindow
 from utils.app import AppUtils
 from utils.decorators import thread
 from utils.functions import ttl_lru_cache
+from utils.icon_resolver import IconResolver
 from utils.plugin_manager import (
     PluginResult,
     get_plugin_manager,
@@ -145,6 +146,16 @@ class AppWidgetFactory:
     """Factory for creating application widgets in different layouts."""
 
     @staticmethod
+    def _icon(app: DesktopApp, icon_size: int):
+        """Load *app*'s icon at *icon_size*.
+
+        Not ``app.get_icon_pixbuf``: that caches the first size asked for on the
+        shared ``DesktopApp``, so the launcher would upscale whatever tiny pixbuf
+        a panel widget resolved first.
+        """
+        return IconResolver().get_icon_pixbuf_by_name(app.icon_name, icon_size)
+
+    @staticmethod
     def create_widget(
         app: DesktopApp, layout_mode: str, icon_size: int, config: LauncherConfig
     ) -> Button:
@@ -171,8 +182,7 @@ class AppWidgetFactory:
         icon_size: int,
     ) -> Box:
         """Create vertical layout for grid mode."""
-        label = Label(
-            label=app.display_name or "Unknown",
+        label = Label(            label=app.display_name or "Unknown",
             v_align="center",
             h_align="center",
             justification="center",
@@ -194,7 +204,7 @@ class AppWidgetFactory:
             v_align="fill",
             children=[
                 Image(
-                    pixbuf=app.get_icon_pixbuf(icon_size),
+                    pixbuf=AppWidgetFactory._icon(app, icon_size),
                     h_align="center",
                     name="icon",
                 ),
@@ -215,7 +225,7 @@ class AppWidgetFactory:
             style_classes="launcher-list-item",
             children=[
                 Image(
-                    pixbuf=app.get_icon_pixbuf(icon_size),
+                    pixbuf=AppWidgetFactory._icon(app, icon_size),
                     h_align="start",
                     name="icon",
                 ),

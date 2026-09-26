@@ -165,5 +165,173 @@ class IconResolverCacheTest(unittest.TestCase):
         self.assertEqual({"nm-signal-75": "nm-signal-75"}, resolver._icon_dict)
 
 
+class ResolveIconPixbufCacheKeyTest(unittest.TestCase):
+    """``resolve_icon_pixbuf`` is TTL-cached, so its key must stay hashable.
+
+    Regression: a ``DesktopApp`` used to be passed in as an argument, and the
+    lookup died with ``TypeError: unhashable type: 'DesktopApp'`` - fabric
+    declares it ``@dataclass(init=False)``, which generates ``__eq__`` and so
+    leaves ``__hash__`` unset. Because the overview button then failed to
+    finish constructing, every window fell back to the missing-image glyph.
+    The app is looked up from ``app_id`` instead.
+    """
+
+    def setUp(self):
+        IconResolver.reset_instance()
+        self.addCleanup(IconResolver.reset_instance)
+
+        for patcher in (
+            # Never schedule a real GLib timer, or touch the real desktop db.
+            mock.patch.object(IconResolver, "_schedule_cache_write"),
+            mock.patch.object(IconResolver, "_get_desktop_file", return_value=None),
+        ):
+            patcher.start()
+            self.addCleanup(patcher.stop)
+
+        self._resolver = IconResolver()
+        self._resolver._icon_theme = FakeIconTheme()
+        self._resolver._icon_dict = {}
+
+    def test_third_argument_is_rejected(self):
+        """The key is ``(app_id, size)``; nothing else may reach the cache."""
+        with self.assertRaises(TypeError):
+            self._resolver.resolve_icon_pixbuf("wezterm", 24, object())
+
+    def test_call_is_cacheable_and_repeated_calls_hit_the_cache(self):
+        with mock.patch(
+            "utils.app.AppUtils.find_app", return_value=None
+        ) as find_app:
+            first = self._resolver.resolve_icon_pixbuf("org.wezfurlong.wezterm", 71)
+            second = self._resolver.resolve_icon_pixbuf("org.wezfurlong.wezterm", 71)
+
+        self.assertIsNone(first)
+        self.assertIs(first, second, "second call should come from the cache")
+        find_app.assert_called_once_with("org.wezfurlong.wezterm")
+
+    def test_desktop_app_is_looked_up_internally(self):
+        pixbuf = mock.Mock()
+        # Already at the requested size, so no scaling is applied.
+        pixbuf.get_width.return_value = 24
+        pixbuf.get_height.return_value = 24
+
+        with mock.patch(
+            "utils.app.AppUtils.find_app",
+            return_value=mock.Mock(icon_name="wezterm", get_icon_pixbuf=None),
+        ), mock.patch.object(
+            IconResolver, "get_icon_pixbuf_by_name", return_value=pixbuf
+        ):
+            self.assertIs(pixbuf, self._resolver.resolve_icon_pixbuf("wezterm", 24))
+
+    def test_falls_back_to_the_theme_when_lookup_raises(self):
+        with mock.patch(
+            "utils.app.AppUtils.find_app", side_effect=RuntimeError("dbus down")
+        ):
+            self.assertIsNone(self._resolver.resolve_icon_pixbuf("wezterm", 24))
+
+
+class IconSizeTest(unittest.TestCase):
+    """Each caller must get a pixbuf rendered at the size it asked for.
+
+    Regression: the icons looked blurry because ``DesktopApp`` caches the first
+    size it is asked for on an instance shared for the whole process. A panel
+    widget resolved the app at 16px, so the overview's 71px icon was a
+    bilinear upscale of that 16px render - roughly 40% of the edge contrast.
+    """
+
+    def setUp(self):
+        IconResolver.reset_instance()
+        self.addCleanup(IconResolver.reset_instance)
+
+        for patcher in (
+            mock.patch.object(IconResolver, "_schedule_cache_write"),
+            mock.patch.object(IconResolver, "_get_desktop_file", return_value=None),
+        ):
+            patcher.start()
+            self.addCleanup(patcher.stop)
+
+        self._resolver = IconResolver()
+        self._resolver._icon_theme = FakeIconTheme(["wezterm"])
+        self._resolver._icon_dict = {}
+        # FakeIconTheme hands back marker strings, not real pixbufs, so the
+        # measurement in scale_pixbuf_to_size is stubbed out here.
+        patcher = mock.patch.object(
+            IconResolver, "scale_pixbuf_to_size", side_effect=lambda pixbuf, _: pixbuf
+        )
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def test_each_size_is_rendered_at_that_size(self):
+        for size in (16, 24, 32, 71):
+            with self.subTest(size=size):
+                pixbuf = self._resolver.get_icon_pixbuf_by_name("wezterm", size)
+                self.assertEqual(f"pixbuf:wezterm:{size}", pixbuf)
+
+    def test_a_small_request_does_not_degrade_a_later_large_one(self):
+        """The panel resolving at 16px must not poison the overview's 71px."""
+        self._resolver.get_icon_pixbuf_by_name("wezterm", 16)
+
+        self.assertEqual(
+            "pixbuf:wezterm:71", self._resolver.get_icon_pixbuf_by_name("wezterm", 71)
+        )
+
+    def test_by_name_returns_none_for_an_empty_name(self):
+        self.assertIsNone(self._resolver.get_icon_pixbuf_by_name("", 32))
+        self.assertIsNone(self._resolver.get_icon_pixbuf_by_name(None, 32))
+
+    def test_large_request_ignores_a_sticky_small_desktop_app_cache(self):
+        """The reported bug, reproduced through the resolver's public API.
+
+        fabric's ``DesktopApp.get_icon_pixbuf`` caches the first size it is
+        asked for, so a panel widget resolving the app at 16px leaves every
+        later caller upscaling that. Mirrors the real object here: the large
+        request must come from the theme, not the cache.
+        """
+
+        class StickyDesktopApp:
+            """Mimics fabric's first-size-wins ``_pixbuf`` cache."""
+
+            icon_name = "wezterm"
+
+            def __init__(self):
+                self._pixbuf = None
+
+            def get_icon_pixbuf(self, size=48, **kwargs):
+                if self._pixbuf is None:
+                    self._pixbuf = f"sticky:{size}"
+                return self._pixbuf
+
+        desktop_app = StickyDesktopApp()
+        self.assertEqual("sticky:16", desktop_app.get_icon_pixbuf(16))
+
+        with mock.patch("utils.app.AppUtils.find_app", return_value=desktop_app):
+            pixbuf = self._resolver.resolve_icon_pixbuf("org.wezfurlong.wezterm", 71)
+
+        self.assertEqual("pixbuf:wezterm:71", pixbuf)
+        self.assertEqual("sticky:16", desktop_app.get_icon_pixbuf(16), "cache unused")
+
+    def test_resolve_uses_the_app_icon_name_rather_than_the_cached_pixbuf(self):
+        desktop_app = mock.Mock(icon_name="wezterm")
+        # Any use of the shared DesktopApp pixbuf cache is the bug.
+        desktop_app.get_icon_pixbuf = mock.Mock(
+            side_effect=AssertionError("must not use the shared DesktopApp pixbuf")
+        )
+        pixbuf = mock.Mock()
+        pixbuf.get_width.return_value = 71
+        pixbuf.get_height.return_value = 71
+
+        with (
+            mock.patch("utils.app.AppUtils.find_app", return_value=desktop_app),
+            mock.patch.object(
+                IconResolver, "get_icon_pixbuf_by_name", return_value=pixbuf
+            ) as by_name,
+        ):
+            self.assertIs(
+                pixbuf, self._resolver.resolve_icon_pixbuf("org.wezfurlong.wezterm", 71)
+            )
+
+        by_name.assert_called_once_with("wezterm", 71)
+        desktop_app.get_icon_pixbuf.assert_not_called()
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -1,8 +1,28 @@
+import re
+
 from fabric.hyprland.widgets import get_hyprland_connection
 from fabric.utils import logger
 
 from utils.functions import normalize_address, parse_hyprland_reply
 from utils.singleton import SingletonMixin
+
+# Hyprland 0.55+ evaluates /dispatch as Lua, so the old
+# ``dispatch <name> <args>`` form is a syntax error and every command has to be
+# a ``hl.dsp.*`` call. Window targets are given as an ``address:`` selector
+# string; a bare address parses but silently matches nothing.
+_ADDRESS_RE = re.compile(r"\A0x[0-9a-fA-F]+\Z")
+
+
+def _window_selector(address: str) -> str | None:
+    """Return *address* as a Lua window selector, or None if it is unusable.
+
+    The value is interpolated into a Lua string literal, so anything that is
+    not a plain hex address is rejected rather than escaped.
+    """
+    if not address or not _ADDRESS_RE.match(address):
+        logger.error(f"[HyprlandService] Refusing to dispatch bad address {address!r}")
+        return None
+    return f'"address:{address}"'
 
 
 class HyprlandService(SingletonMixin):
@@ -125,35 +145,65 @@ class HyprlandService(SingletonMixin):
 
     # ── Dispatch helpers ──────────────────────────────────────────
 
+    def _dispatch(self, lua: str) -> None:
+        """Run a ``hl.dsp.*`` expression, logging anything but a clean ack.
+
+        Hyprland answers a malformed or unmatched dispatch with an error
+        string, and this used to be dropped on the floor - which is how a
+        wholesale API break stayed invisible.
+        """
+        self._connection.send_command_async(f"dispatch {lua}", self._on_dispatch_reply)
+
+    @staticmethod
+    def _on_dispatch_reply(reply) -> None:
+        if reply.reply != b"ok":
+            logger.error(
+                f"[HyprlandService] dispatch rejected: "
+                f"{reply.command} -> {reply.reply.decode(errors='replace')}"
+            )
+
+    def _dispatch_to_window(self, template: str, address: str) -> None:
+        """Send *template* with ``WINDOW`` replaced by *address*'s selector."""
+        selector = _window_selector(address)
+        if selector is not None:
+            self._dispatch(template.replace("WINDOW", selector))
+
     def focus_window(self, address: str):
-        self._connection.send_command_async(
-            f"dispatch focuswindow address:{address}",
-            lambda *_: None,
-        )
+        self._dispatch_to_window('hl.dsp.focus({window=WINDOW})', address)
 
     def close_window(self, address: str):
-        self._connection.send_command_async(
-            f"dispatch closewindow address:{address}",
-            lambda *_: None,
-        )
+        self._dispatch_to_window('hl.dsp.window.close({window=WINDOW})', address)
 
-    def move_window_to_workspace(self, address: str, workspace: int):
-        self._connection.send_command_async(
-            f"dispatch movetoworkspace {workspace},address:{address}",
-            lambda *_: None,
+    def close_windows_by_class(self, window_class: str) -> None:
+        """Close every window whose class matches *window_class*.
+
+        *window_class* is a regex, matching the legacy ``class:`` selector.
+        """
+        if not window_class:
+            return
+        self._dispatch(f'hl.dsp.window.close({{window="class:{window_class}"}})')
+
+    def move_window_to_workspace(
+        self, address: str, workspace: int, silent: bool = False
+    ):
+        # follow=false is the old movetoworkspacesilent: the window moves but
+        # focus stays where it is.
+        follow = "false" if silent else "true"
+        self._dispatch_to_window(
+            f'hl.dsp.window.move({{workspace={workspace}, follow={follow}, '
+            "window=WINDOW})",
+            address,
         )
 
     def toggle_floating(self, address: str):
-        self._connection.send_command_async(
-            f"dispatch togglefloating address:{address}",
-            lambda *_: None,
+        self._dispatch_to_window(
+            'hl.dsp.window.float({action="toggle", window=WINDOW})', address
         )
 
     def set_fullscreen(self, active: bool):
-        val = "1" if active else "0"
-        self._connection.send_command_async(
-            f"dispatch fullscreen {val}",
-            lambda *_: None,
+        action = "set" if active else "unset"
+        self._dispatch(
+            f'hl.dsp.window.fullscreen({{mode="fullscreen", action="{action}"}})'
         )
 
 

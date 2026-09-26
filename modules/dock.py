@@ -396,7 +396,9 @@ class AppBar(BoxWidget):
             name="pinned_app",
             tooltip_markup=app.display_name,
             image=Image(
-                pixbuf=app.get_icon_pixbuf(self.icon_size),
+                pixbuf=self._icon_resolver.get_icon_pixbuf_by_name(
+                    app.icon_name, self.icon_size
+                ),
                 size=self.icon_size,
             ),
             on_clicked=lambda *_, app=app: app.launch(),
@@ -428,10 +430,7 @@ class AppBar(BoxWidget):
     def _toggle_floating(self, client: HyprlandClient):
         hex_address = client.get_address_str()
         if hex_address:
-            self._hyprland_connection.send_command_async(
-                f"dispatch togglefloating address:{hex_address}",
-                lambda _: None,
-            )
+            hyprland_service.toggle_floating(hex_address)
 
     def _toggle_fullscreen(self, client: HyprlandClient):
         try:
@@ -445,10 +444,7 @@ class AppBar(BoxWidget):
     def _move_to_workspace(self, client: HyprlandClient, workspace: int):
         hex_address = client.get_address_str()
         if hex_address:
-            self._hyprland_connection.send_command_async(
-                f"dispatch movetoworkspace address:{hex_address} {workspace}",
-                lambda _: None,
-            )
+            hyprland_service.move_window_to_workspace(hex_address, workspace)
 
     def _close_running_app(self, client: HyprlandClient):
         try:
@@ -461,10 +457,7 @@ class AppBar(BoxWidget):
             try:
                 app_id = client.get_app_id()
                 if app_id:
-                    # Use hyprctl to kill windows of this application class
-                    self._hyprland_connection.send_command_async(
-                        f"closewindow class:{app_id}", lambda _: None
-                    )
+                    hyprland_service.close_windows_by_class(app_id)
             except Exception:
                 logger.exception(f"[Dock] Failed to close client {app_id}")
 

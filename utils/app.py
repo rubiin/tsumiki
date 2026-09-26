@@ -98,6 +98,9 @@ class AppUtils(SingletonMixin):
         """Find an app by dict or direct identifier."""
         if not app_identifier:
             return None
+        # Load before the identifier map is touched: find_app is the entry
+        # point callers reach for first, so it cannot assume a property ran.
+        self._ensure_loaded()
         if isinstance(app_identifier, dict):
             for key in (
                 "window_class",

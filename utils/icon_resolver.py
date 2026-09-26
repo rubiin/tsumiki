@@ -151,6 +151,19 @@ class IconResolver(SingletonMixin):
             pixbuf = self.get_icon_theme_icon(default_icon, size)
         return pixbuf
 
+    @ttl_lru_cache(seconds_to_live=3600, maxsize=512)
+    def get_icon_pixbuf_by_name(self, icon_name: str, size: int = 16):
+        """Load *icon_name* from the theme at exactly *size*.
+
+        For callers that already hold a ``DesktopApp``. Its own
+        ``get_icon_pixbuf`` cannot be used for this: it caches the first size
+        it is asked for on the shared instance, so it hands back whatever the
+        panel happened to request first.
+        """
+        if not icon_name:
+            return None
+        return self.get_icon_theme_icon(icon_name, size)
+
     def _store_new_icon(self, app_id: str, icon: str):
         """Record an icon in the cache and schedule a debounced write."""
         self._icon_dict[app_id] = icon
@@ -239,30 +252,35 @@ class IconResolver(SingletonMixin):
         self,
         app_id: str,
         size: int,
-        desktop_app=None,
     ) -> GdkPixbuf.Pixbuf | None:
         """Resolve an application icon pixbuf.
 
-        Strategy (matching the overview module's proven approach):
-        1. If *desktop_app* is given, try its ``get_icon_pixbuf`` directly.
-        2. Otherwise look up the app via ``AppUtils.find_app`` (XDG desktop
-            app database — most reliable for Hyprland window classes).
-        3. Fall back to ``IconResolver`` (GTK icon theme lookup).
-        4. Final fallback: ``symbolic_icons["missing"]``.
+        The cache is keyed on *app_id* alone, so nothing unhashable may be
+        passed in: a resolved ``DesktopApp`` is looked up here rather than
+        accepted as an argument, since fabric declares it ``@dataclass``, which
+        generates ``__eq__`` and so leaves ``__hash__`` unset.
+
+        Strategy:
+        1. Ask ``AppUtils.find_app`` for the app's icon *name* (the XDG desktop
+            database maps Hyprland window classes reliably) and load it from the
+            theme at exactly *size*.
+        2. Fall back to the GTK icon theme lookup via ``get_icon_pixbuf``,
+            whose own fallback is ``symbolic_icons["missing"]``.
+
+        The pixbuf is deliberately not taken from ``DesktopApp.get_icon_pixbuf``:
+        that caches the first size it is asked for on the shared, process-wide
+        ``DesktopApp``, so whichever panel widget resolved the app first would
+        dictate the size everyone else gets. Loading by name here means each
+        caller gets a pixbuf rendered at the size it actually wants.
         """
         from .app import AppUtils
 
         pixbuf = None
 
-        # Try DesktopApp first
-        if desktop_app is None:
-            with contextlib.suppress(Exception):
-                desktop_app = AppUtils().find_app(app_id)
-        if desktop_app:
-            try:
-                pixbuf = desktop_app.get_icon_pixbuf(size=size)
-            except Exception:
-                pixbuf = None
+        with contextlib.suppress(Exception):
+            desktop_app = AppUtils().find_app(app_id)
+            if desktop_app and desktop_app.icon_name:
+                pixbuf = self.get_icon_pixbuf_by_name(desktop_app.icon_name, size)
 
         # Fall back to the resolver's theme lookup
         if not pixbuf:

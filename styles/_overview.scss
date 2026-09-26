@@ -3,18 +3,12 @@
 @use "common";
 @use "variable";
 
-#overview_button {
-  @include common.widget_border(
-    variable.$bar-widgets-overview-border-radius,
-    variable.$bar-widgets-overview-border-enabled,
-    variable.$bar-widgets-overview-border-width
-  );
-
-  @include common.nerd-icon(
-    variable.$bar-widgets-overview-icon_size,
-    variable.$bar-widgets-overview-spacing
-  );
-
+// The panel button is styled by the generated widget shell in
+// common/_widgets.scss, which already emits #overview_button from the
+// $bar-widgets-overview-* variables. Only the popup lives here: OverViewOverlay
+// is its own layer-shell window named "overview", so #overview-menu is not a
+// descendant of #overview_button and must be selected through the window.
+#overview {
   #overview-menu {
     padding: 5px;
 

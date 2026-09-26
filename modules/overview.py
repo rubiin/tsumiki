@@ -11,7 +11,6 @@ from fabric.widgets.overlay import Overlay
 
 from shared.popup import PopupWindow
 from shared.widget_container import TeardownMixin
-from utils.app import AppUtils
 from utils.hyprland import HyprlandClient, hyprland_service
 from utils.icon_resolver import IconResolver
 from utils.widget_settings import BarConfig
@@ -30,7 +29,6 @@ class HyprlandWindowButton(Button):
         client: HyprlandClient,
         size,
         transform: int = 0,
-        app_util=None,
     ):
         self.transform = transform % 4
         self.size = size if transform in [0, 2] else (size[1], size[0])
@@ -41,13 +39,9 @@ class HyprlandWindowButton(Button):
         # Using the minimum dimension of the button for scaling.
         icon_size_main = int(min(self.size) * 0.5)
 
-        # Enhanced icon resolution using desktop apps
-        if app_util is None:
-            app_util = AppUtils()
-        desktop_app = app_util.find_app(client.get_app_id())
         self._icon_resolver = IconResolver()
         icon_pixbuf = self._icon_resolver.resolve_icon_pixbuf(
-            client.get_app_id(), icon_size_main, desktop_app
+            client.get_app_id(), icon_size_main
         )
 
         super().__init__(
@@ -66,9 +60,6 @@ class HyprlandWindowButton(Button):
                 context, create_surface_from_widget(self, (255, 255, 255, 0))
             ),
         )
-
-        # Store the desktop_app for later use
-        self.desktop_app = desktop_app
 
         self.drag_source_set(
             start_button_mask=Gdk.ModifierType.BUTTON1_MASK,
@@ -94,7 +85,6 @@ class HyprlandWindowButton(Button):
         icon_pixbuf = self._icon_resolver.resolve_icon_pixbuf(
             self.client.get_app_id(),
             icon_size_overlay,
-            self.desktop_app,
         )
 
         self.set_image(
@@ -145,9 +135,8 @@ class WorkspaceEventBox(EventBox):
                 label=f"{workspace_id}",
             ),
             on_drag_data_received=lambda _w, _c, _x, _y, data, *_: (
-                self._service.connection.send_command_async(
-                    f"/dispatch movetoworkspacesilent {workspace_id},address:{data.get_data().decode()}",  # noqa: E501
-                    lambda *_: None,
+                self._service.move_window_to_workspace(
+                    data.get_data().decode(), workspace_id, silent=True
                 )
             ),
         )
@@ -177,8 +166,6 @@ class OverviewMenu(Box, TeardownMixin):
         self._fetched_monitors: dict = {}
 
         self._service = hyprland_service
-        self._app_util = None  # Lazy-load on first access
-        self._app_cache_dirty = False
 
         self._register_handlers(
             self._service,
@@ -223,19 +210,6 @@ class OverviewMenu(Box, TeardownMixin):
         # Hyprland connections are dropped by TeardownMixin.
         self._update_generation += 1
 
-    @property
-    def app_util(self) -> AppUtils:
-        """Lazy-load AppUtils on first access."""
-        if self._app_util is None:
-            self._app_util = AppUtils()
-        return self._app_util
-
-    def _refresh_app_cache_if_needed(self):
-        """Only refresh app cache when a new window appears with unknown app_id."""
-        if self._app_cache_dirty and self._app_util is not None:
-            self._app_util.refresh()
-            self._app_cache_dirty = False
-
     def _schedule_update(self, *_):
         self._schedule_timeout(self._UPDATE_TIMER, 200, self._run_scheduled_update)
 
@@ -254,7 +228,6 @@ class OverviewMenu(Box, TeardownMixin):
                 client.raw_data["size"][1] * SCALE,
             ),
             transform=monitor_info[2],
-            app_util=self.app_util,
         )
 
     def _build_client_target(self, client: dict, monitors: dict) -> tuple | None:
@@ -352,7 +325,6 @@ class OverviewMenu(Box, TeardownMixin):
         """Update overview asynchronously — fetches monitors then chains clients."""
         if self._destroyed:
             return
-        self._refresh_app_cache_if_needed()
         self._update_generation += 1
         gen = self._update_generation
         self._fetch_monitors_async(
@@ -370,6 +342,11 @@ class OverviewMenu(Box, TeardownMixin):
     def _on_clients_fetched(self, raw_clients, gen):
         if gen != self._update_generation:
             return  # Stale update superseded by a newer one
+        if not raw_clients:
+            # A failed fetch delivers None. Keep the buttons already on screen
+            # instead of tearing the overview down over one bad reply.
+            logger.error("[Overview] Client fetch failed, keeping current state")
+            return
         monitors = self._fetched_monitors
         target_addresses = set()
         for raw_client in raw_clients:
