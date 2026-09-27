@@ -13,6 +13,7 @@ import unittest
 from concurrent.futures import ThreadPoolExecutor
 from unittest import mock
 
+from services import base as base_module
 from services import cloudflare_warp as warp_module
 from services.cloudflare_warp import CloudflareWarpService
 from utils import decorators
@@ -22,9 +23,32 @@ def make_service() -> CloudflareWarpService:
     """The shared singleton with its poller halted, so nothing else emits."""
     service = CloudflareWarpService.__new__(CloudflareWarpService)
     service.pause_polling()
-    service._connected = False
+    service._state = False
     service.emit = mock.Mock()
     return service
+
+
+class WarpPollingTest(unittest.TestCase):
+    """The status poll must not cost a warp-cli round-trip every few seconds."""
+
+    def setUp(self):
+        self.service = make_service()
+
+    def test_the_status_interval_is_not_a_hot_loop(self):
+        """5 s meant 17,280 spawns a day, all failing when warp-cli is absent."""
+        self.assertGreaterEqual(warp_module._STATUS_INTERVAL_MS, 15_000)
+
+    def test_a_missing_warp_cli_never_spawns_anything(self):
+        with (
+            mock.patch.object(base_module, "find_executable", return_value=None),
+            mock.patch.object(base_module, "PollingController") as controller,
+        ):
+            CloudflareWarpService()
+        controller.return_value.start.assert_not_called()
+
+    def test_the_widget_reads_disconnected_without_warp_cli(self):
+        with mock.patch.object(base_module, "find_executable", return_value=None):
+            self.assertFalse(self.service.connected)
 
 
 class WarpToggleTest(unittest.TestCase):
@@ -114,7 +138,7 @@ class WarpToggleTest(unittest.TestCase):
     # ── ``changed`` fires only after the command has run ──
 
     def test_nothing_is_published_before_the_main_loop_dispatch(self):
-        self.service._connected = True
+        self.service._state = True
         self.service.disconnect_warp()
         self.wait_for_worker()
         self.release_worker()
@@ -183,7 +207,7 @@ class WarpArgvTest(unittest.TestCase):
         self.assertEqual(["connect"], self.ran)
 
     def test_a_connected_service_disconnects(self):
-        self.service._connected = True
+        self.service._state = True
 
         self.service.toggle_warp()
 

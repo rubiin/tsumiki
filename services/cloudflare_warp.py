@@ -6,68 +6,53 @@ from fabric.utils import exec_shell_command_async, logger
 from utils.decorators import run_worker_with_idle
 from utils.functions import run_command
 
-from .base import PollingController, SingletonService
+from .base import IGNORED, PolledCommandService
 
 # A toggle whose daemon is wedged must settle; the poller still reports the truth.
 _WARP_CLI_TIMEOUT = 30.0
 
+# WARP status only changes when someone connects or disconnects, and each poll
+# is a round-trip to warp-svc: at 5 s it was 17,280 spawns a day for a button.
+_STATUS_INTERVAL_MS = 30_000
 
-class CloudflareWarpService(SingletonService):
+
+class CloudflareWarpService(PolledCommandService):
     """Manage Cloudflare WARP connection status (polls ``warp-cli status``)."""
 
     @Signal
     def changed(self) -> None:
         """Emitted when connection state changes."""
 
-    def __init__(self, poll_interval_ms: int = 5000, **kwargs):
-        super().__init__(**kwargs)
-
-        self._poll_interval = poll_interval_ms
-        self._connected = False
-
-        self._poller = PollingController(
+    def __init__(self, poll_interval_ms: int = _STATUS_INTERVAL_MS, **kwargs):
+        super().__init__(
             ["warp-cli", "status"],
             poll_interval_ms,
-            self._on_status_line,
+            "_on_status_line",
             tag="CloudflareWARP",
+            state=False,
+            **kwargs,
         )
-        self._poller.start()
 
     # ── Properties ──────────────────────────────────────────────
 
     @property
     def connected(self) -> bool:
-        return self._connected
+        return bool(self._state)
 
-    # ── Polling ─────────────────────────────────────────────────
-
-    def pause_polling(self):
-        """Pause the polling loop. Safe to call when already paused."""
-        self._poller.stop()
-
-    def resume_polling(self):
-        """Resume the polling loop. Safe to call when already running."""
-        self._poller.start()
+    # ── Parsing ─────────────────────────────────────────────────
 
     def _on_status_line(self, line: str):
         raw = line.strip()
         if not raw:
-            return
-
-        was = self._connected
-
+            return IGNORED
         if "Connected" in raw:
-            self._connected = True
-        elif "Disconnected" in raw:
-            self._connected = False
-        else:
-            return  # Unknown line, keep current state
+            return True
+        if "Disconnected" in raw:
+            return False
+        return IGNORED  # Unknown line, keep current state
 
-        if was != self._connected:
-            logger.info(
-                f"[CloudflareWARP] {'Connected' if self._connected else 'Disconnected'}"
-            )
-            self.emit("changed")
+    def _on_state_changed(self, value) -> None:
+        logger.info(f"[CloudflareWARP] {'Connected' if value else 'Disconnected'}")
 
     # ── Actions ─────────────────────────────────────────────────
 
@@ -87,9 +72,8 @@ class CloudflareWarpService(SingletonService):
     def _on_warp_cli_finished(self, ok: bool, connected: bool) -> None:
         if not ok:
             return  # run_command already logged why; the poller keeps state honest.
-        self._connected = connected
-        self.emit("changed")
-        exec_shell_command_async("warp-cli status", self._on_status_line)
+        self._set_state(connected)
+        exec_shell_command_async("warp-cli status", self._on_line)
 
     def connect_warp(self) -> None:
         """Start ``warp-cli connect``; ``changed`` fires once it has actually run."""
@@ -100,16 +84,10 @@ class CloudflareWarpService(SingletonService):
         self._run_warp_cli("disconnect", False)
 
     def toggle_warp(self) -> None:
-        if self._connected:
+        if self.connected:
             self.disconnect_warp()
         else:
             self.connect_warp()
-
-    # ── Teardown ────────────────────────────────────────────────
-
-    def destroy(self):
-        self._stop_polling()
-        return super().destroy()
 
 
 # Singleton instance
