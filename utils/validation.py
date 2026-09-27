@@ -131,6 +131,34 @@ def _validate_schema_enums(
     ):
         raise ValueError(f"{path}: invalid value {_format_config_value(value)}")
 
+    if isinstance(value, (int, float)):
+        minimum = schema_node.get("minimum")
+        if isinstance(minimum, (int, float)) and value < minimum:
+            raise ValueError(
+                f"{path}: {_format_config_value(value)} is below the minimum "
+                f"of {minimum}"
+            )
+        maximum = schema_node.get("maximum")
+        if isinstance(maximum, (int, float)) and value > maximum:
+            raise ValueError(
+                f"{path}: {_format_config_value(value)} is above the maximum "
+                f"of {maximum}"
+            )
+
+    if isinstance(value, list):
+        min_items = schema_node.get("minItems")
+        if isinstance(min_items, int) and len(value) < min_items:
+            raise ValueError(
+                f"{path}: expected at least {min_items} item(s), "
+                f"got {len(value)}"
+            )
+        max_items = schema_node.get("maxItems")
+        if isinstance(max_items, int) and len(value) > max_items:
+            raise ValueError(
+                f"{path}: expected at most {max_items} item(s), "
+                f"got {len(value)}"
+            )
+
     if isinstance(value, dict):
         properties = schema_node.get("properties", {})
         if isinstance(properties, dict):
@@ -398,8 +426,36 @@ def validate_format_strings(parsed_data: dict) -> None:
                 )
 
 
+def _validate_unique_ids(parsed_data: dict) -> None:
+    """Warn when an indexed collection reuses an ``id``.
+
+    Lookup resolves the first match, so a duplicate id leaves every later entry
+    unreachable by name and addressable only by numeric index.
+    """
+    for widget_type in sorted(SPECIAL_WIDGET_TYPES):
+        collection = _get_config_collection(parsed_data, widget_type)
+        if not isinstance(collection, list):
+            continue
+
+        seen: dict[str, int] = {}
+        for idx, item in enumerate(collection):
+            identifier = item.get("id") if isinstance(item, dict) else None
+            if not isinstance(identifier, str) or not identifier:
+                continue
+            if identifier in seen:
+                logger.warning(
+                    f"[Config] Duplicate {widget_type} id '{identifier}' at index "
+                    f"{idx}; '{identifier}' resolves to index {seen[identifier]}. "
+                    "Only the first entry is reachable by id."
+                )
+            else:
+                seen[identifier] = idx
+
+
 def validate_widgets(parsed_data, default_config):
     """Validates the widgets defined in the layout configuration."""
+    _validate_unique_ids(parsed_data)
+
     layout = parsed_data.get("layout", {})
 
     for section_name, widgets in layout.items():
