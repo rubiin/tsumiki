@@ -341,18 +341,15 @@ _config_write_lock = threading.Lock()
 
 
 def _absorb_own_config_write(config_file: str) -> None:
-    """Re-baseline the config watcher's hash for a write we just made.
+    """Tell the config watcher that this write is ours, not an external edit.
 
-    Without this the watcher reads our own write as an external change and
-    restarts the app. Imported lazily: config_watcher imports us, so a
-    module-level import would be circular.
+    Imported lazily: config_watcher imports us, so a module-level import
+    would be circular.
     """
     from utils.config_watcher import _watcher
 
-    if _watcher is None:
-        return
-
-    _watcher._file_hashes[config_file] = _watcher._read_file_hash(config_file)
+    if _watcher is not None:
+        _watcher.note_self_write(config_file)
 
 
 def _update_config_key(key_path: list[str], value: Any) -> None:

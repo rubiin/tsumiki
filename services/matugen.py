@@ -1,6 +1,5 @@
 from fabric.core.service import Signal
 from fabric.utils import (
-    exec_shell_command_async,
     get_relative_path,
     logger,
     os,
@@ -52,28 +51,6 @@ class MatugenService(SingletonService):
             "--source-color-index",
             "0",
         ]
-
-    def generate(self, image_path: str | None = None) -> None:
-        """Generate colors from an image asynchronously."""
-        image_path = image_path or os.path.expanduser(
-            self._style_config.get("wallpaper", "")
-        )
-
-        if not os.path.exists(image_path):
-            self.emit("generation_failed", f"Image not found: {image_path}")
-            return
-
-        cmd = self._build_cmd(image_path)
-        logger.info("[Matugen] Generating colors")
-
-        def on_complete(result):
-            if result is not None:
-                logger.info("[Matugen] Colors generated successfully")
-                self.emit("colors_generated")
-            else:
-                self.emit("generation_failed", "Matugen returned no result")
-
-        exec_shell_command_async(cmd, on_complete)
 
     def generate_sync(self, image_path: str | None = None) -> bool:
         """Generate colors from an image synchronously."""

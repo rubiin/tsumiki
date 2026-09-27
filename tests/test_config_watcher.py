@@ -344,6 +344,23 @@ class ConfigWatcherSelfWriteTest(unittest.TestCase):
             self._watcher._read_file_hash(self._path),
         )
 
+    def test_the_writer_uses_the_seam_not_the_watchers_internals(self):
+        from utils.config_watcher import ConfigWatcher
+
+        with mock.patch.object(ConfigWatcher, "note_self_write") as seam:
+            self._functions._update_config_key(["styling", "mode"], "dark")
+
+        seam.assert_called_once_with(self._path)
+
+    def test_the_writer_no_longer_touches_the_watchers_primitives(self):
+        import inspect
+
+        from utils import functions as functions_module
+
+        source = inspect.getsource(functions_module._absorb_own_config_write)
+        self.assertNotIn("_file_hashes", source)
+        self.assertNotIn("_read_file_hash", source)
+
 
 class ConfigWatcherStopTest(unittest.TestCase):
     """Test stop cleans up monitors and timers."""

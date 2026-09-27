@@ -125,6 +125,14 @@ class ConfigWatcher:
             events.MOVED_IN,
         )
 
+    def note_self_write(self, file_path: str) -> None:
+        """Record *file_path* as already-current, for a write we just made.
+
+        Without this the monitor reports the app's own write as an external
+        change and the bar restarts itself.
+        """
+        self._file_hashes[file_path] = self._read_file_hash(file_path)
+
     def _on_file_changed(self, monitor, file, other_file, event_type):
         """Handle file change events."""
         if not self._is_relevant_event(event_type):
