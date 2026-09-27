@@ -451,16 +451,6 @@ spacing = 4
 
 [[widgets.custom_button_group.buttons]]
 id = "spotify"
-icon = ""
-label = "Spotify"
-command = "spotify"
-tooltip = "Launch Spotify"
-label_text = "Spotify"
-tooltip_text = "Open Spotify"
-show_icon = true
-
-[[widgets.custom_button_group.buttons]]
-id = "spotify"
 command = "spotify"
 icon = ""
 label_text = "Spotify"
@@ -505,16 +495,6 @@ interval = 1
 on_scroll_up = "pamixer -i 5"
 on_scroll_down = "pamixer -d 5"
 exec_on_event = true
-
-[[widgets.custom_button]]
-id = "firefox"
-command = "firefox"
-icon = "󰈹"
-label_text = "Firefox"
-tooltip_text = "Open Firefox Browser"
-show_icon = true
-label = true
-tooltip = true
 
 [[widget_groups]]
 id = "workspaces-group"

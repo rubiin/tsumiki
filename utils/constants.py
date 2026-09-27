@@ -426,7 +426,7 @@ DEFAULT_CONFIG = {
             "show_special": False,
         },
         "world_clock": {
-            "icon": "󱉊'",
+            "icon": "󱉊",
             "use_24hr": True,
             "show_icon": True,
             "timezones": ["America/New_York", "Asia/Tokyo"],
