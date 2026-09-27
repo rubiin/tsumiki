@@ -307,6 +307,7 @@ truncation_size = 10
 tooltip = false
 hide_when_no_player = true
 label_format = "{title} - {artist}"
+ignore = []
 
 [widgets.ocr]
 icon = "󰐳"
@@ -469,6 +470,7 @@ label = false
 tooltip = true
 
 [widgets.cheatsheet]
+icon = "󰌌"
 label = true
 label_text = "Keys"
 tooltip = true
