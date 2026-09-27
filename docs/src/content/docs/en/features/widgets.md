@@ -526,8 +526,6 @@ Manage USB drive mounting and ejection.
 icon = "󰕓"
 label = false
 tooltip = true
-auto_refresh = true
-refresh_interval = 5
 ```
 
 ---

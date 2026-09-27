@@ -371,8 +371,6 @@ enable_pinning = true
 icon = "󰕓"
 label = false
 tooltip = true
-auto_refresh = true
-refresh_interval = 5
 ```
 
 ---

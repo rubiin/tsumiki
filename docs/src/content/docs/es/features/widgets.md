@@ -497,8 +497,6 @@ Gestiona el montaje y expulsión de unidades USB.
 icon = "󰕓"
 label = false
 tooltip = true
-auto_refresh = true
-refresh_interval = 5
 ```
 
 ---

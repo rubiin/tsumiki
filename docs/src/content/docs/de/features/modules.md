@@ -34,7 +34,6 @@ transition_type = "slide-left"
 enabled = false
 icon_size = 40
 behavior = "intellihide"
-preview_apps = true
 group_apps = true
 ```
 

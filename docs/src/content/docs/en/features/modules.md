@@ -90,8 +90,6 @@ behavior = "intellihide"            # "intellihide" | "always_show"
 tooltip = false
 layer = "top"
 show_when_no_windows = false
-preview_apps = true
-preview_size = [200, 130]
 group_apps = true
 truncation_size = 20
 orientation = "horizontal"
@@ -103,7 +101,7 @@ ignored = []
 ```
 
 - **`behavior`**: `intellihide` hides the dock when a window overlaps it; `always_show` keeps it visible.
-- **`preview_apps`**: Shows window preview thumbnails on hover.
+- **`s`**: Shows window preview thumbnails on hover.
 - **`group_apps`**: Groups multiple windows from the same application.
 - **`show_launcher`**: Adds an application launcher icon to the dock.
 - **`hide_special_workspace_apps`**: Hides apps on special workspaces (scratchpads).

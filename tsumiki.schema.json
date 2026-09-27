@@ -253,7 +253,7 @@
             },
             "label_format": {
               "type": "string",
-              "default": "{icon}",
+              "default": "{icon} {percent}",
               "description": "Specifies the format string for the battery label. Available variables: {icon}, {percent}, {time_remaining}."
             },
             "tooltip": {
@@ -263,7 +263,7 @@
             },
             "hide_percent_when_full": {
               "type": "boolean",
-              "default": false,
+              "default": true,
               "description": "Determines whether to hide the percent when full"
             },
             "full_battery_level": {
@@ -399,19 +399,9 @@
               "type": "boolean",
               "default": true,
               "description": "Show tooltip with detected USB drive count."
-            },
-            "auto_refresh": {
-              "type": "boolean",
-              "default": true,
-              "description": "Refresh device list periodically while popover is open."
-            },
-            "refresh_interval": {
-              "type": "number",
-              "default": 5,
-              "description": "Refresh interval in seconds for USB device scan."
             }
           },
-          "required": ["icon", "label", "tooltip", "auto_refresh", "refresh_interval"]
+          "required": ["icon", "label", "tooltip"]
         },
         "breathe": {
           "type": "object",
@@ -636,7 +626,7 @@
           "properties": {
             "label_format": {
               "type": "string",
-              "default": "{upload}  / {download} ",
+              "default": " {upload}  {download}",
               "description": "The format string for displaying network usage."
             },
             "tooltip": {
@@ -666,7 +656,7 @@
             },
             "kb_digits": {
               "type": "number",
-              "default": 2,
+              "default": 0,
               "description": "The number of digits to display for kilobytes."
             },
             "mb_digits": {
@@ -925,7 +915,7 @@
               "type": "string",
               "enum": ["label", "graph", "circular"],
               "description": "Specifies the mode of the widget.",
-              "default": "label"
+              "default": "circular"
             },
             "tooltip": {
               "type": "boolean",
@@ -1041,7 +1031,7 @@
             },
             "hover_reveal": {
               "type": "boolean",
-              "default": true,
+              "default": false,
               "description": "Determines whether to reveal the updates section on hover."
             },
             "reveal_duration": {
@@ -1071,7 +1061,7 @@
             },
             "pad_zero": {
               "type": "boolean",
-              "default": false,
+              "default": true,
               "description": "Determines whether to pad the update version numbers with leading zeros."
             },
             "tooltip": {
@@ -1086,7 +1076,7 @@
             },
             "flatpak": {
               "type": "boolean",
-              "default": true,
+              "default": false,
               "description": "Determines whether to include Flatpak updates."
             },
             "snap": {
@@ -1185,7 +1175,7 @@
             },
             "label_format": {
               "type": "string",
-              "default": "{temperature} {condition}",
+              "default": "{condition} {temperature}",
               "description": "The format for the weather label."
             },
             "wind_speed_unit": {
@@ -1195,7 +1185,7 @@
             },
             "hover_reveal": {
               "type": "boolean",
-              "default": true,
+              "default": false,
               "description": "Determines whether to show the hover effect for the weather information."
             },
             "reveal_duration": {
@@ -1431,7 +1421,7 @@
               "type": "string",
               "enum": ["label", "graph", "circular"],
               "description": "Specifies the mode of the widget.",
-              "default": "label"
+              "default": "circular"
             },
             "tooltip": {
               "type": "boolean",
@@ -1513,7 +1503,7 @@
           "properties": {
             "date_format": {
               "type": "string",
-              "default": "%b %d %H:%M",
+              "default": "%b %d",
               "description": "Date/time display format string."
             },
             "calendar": {
@@ -1528,7 +1518,7 @@
             },
             "hover_reveal": {
               "type": "boolean",
-              "default": true,
+              "default": false,
               "description": "Determines whether to reveal the updates section on hover."
             },
             "reveal_duration": {
@@ -1551,7 +1541,7 @@
                 },
                 "hide_count_on_zero": {
                   "type": "boolean",
-                  "default": true,
+                  "default": false,
                   "description": "Hide event count if zero."
                 },
                 "notification_grouping": {
@@ -1658,7 +1648,7 @@
           "properties": {
             "label_format": {
               "type": "string",
-              "default": "[{count}]"
+              "default": " [{count}]"
             },
             "tooltip": {
               "type": "boolean",
@@ -1708,7 +1698,7 @@
               "type": "string",
               "enum": ["label", "graph", "circular"],
               "description": "Specifies the mode of the widget.",
-              "default": "label"
+              "default": "circular"
             },
             "tooltip": {
               "type": "boolean",
@@ -2371,7 +2361,7 @@
               }
             ]
           },
-          "default": ["date_time", "weather"],
+          "default": ["date_time"],
           "description": "Widgets on the middle section."
         },
         "right_section": {
@@ -2463,7 +2453,7 @@
               }
             ]
           },
-          "default": ["@collapsible:0", "@group:0", "system_tray"],
+          "default": ["system_tray"],
           "description": "Widgets on the right section."
         }
       },
@@ -2872,25 +2862,10 @@
               "description": "Specifies the size of the dock icons.",
               "default": 40
             },
-            "preview_apps": {
-              "type": "boolean",
-              "default": true,
-              "description": "Determines whether app previews are enabled in the dock."
-            },
             "show_when_no_windows": {
               "type": "boolean",
               "default": false,
               "description": "Determines whether the dock is shown when there are no windows."
-            },
-            "preview_size": {
-              "type": "array",
-              "default": [200, 130],
-              "items": {
-                "type": "integer",
-                "maxItems": 2,
-                "minItems": 2
-              },
-              "description": "Specifies the size of the dock preview icons."
             },
             "ignored": {
               "type": "array",
@@ -2915,16 +2890,6 @@
               "enum": ["horizontal", "vertical"],
               "default": "horizontal",
               "description": "Specifies the orientation of the dock."
-            },
-            "always_show_focused": {
-              "type": "boolean",
-              "default": true,
-              "description": "Determines whether the focused window is always shown in the dock."
-            },
-            "hide_special_workspace_apps": {
-              "type": "boolean",
-              "default": false,
-              "description": "Determines whether apps on special workspaces are hidden from the dock."
             },
             "launcher_position": {
               "type": "string",
@@ -2959,6 +2924,12 @@
               "description": "Determines whether the desktop clock is enabled.",
               "default": false
             },
+            "layer": {
+              "type": "string",
+              "enum": ["background", "bottom", "top", "overlay"],
+              "description": "Determines the layer of the desktop clock.",
+              "default": "bottom"
+            },
             "anchor": {
               "type": "string",
               "enum": [
@@ -2974,7 +2945,7 @@
                 "bottom-right"
               ],
               "description": "Specifies the anchor position of the desktop clock.",
-              "default": "bottom-right"
+              "default": "center"
             },
             "date_format": {
               "type": "string",
@@ -3102,7 +3073,7 @@
           "properties": {
             "enabled": {
               "type": "boolean",
-              "description": "Determines whether the desktop clock is enabled.",
+              "description": "Determines whether the linux activation is enabled.",
               "default": false
             },
             "anchor": {
@@ -3126,7 +3097,7 @@
               "type": "string",
               "enum": ["top", "overlay", "bottom", "background"],
               "description": "Layer on which the bar is displayed.",
-              "default": "top"
+              "default": "bottom"
             }
           }
         },
@@ -3145,7 +3116,7 @@
               "type": "string",
               "enum": ["crossfade", "slide-left", "slide-right", "slide-up", "slide-down", "none"],
               "description": "Specifies the type of transition effect for notifications.",
-              "default": "crossfade"
+              "default": "slide-left"
             },
             "transition_duration": {
               "type": "integer",
@@ -3275,7 +3246,7 @@
             "play_sound": {
               "type": "boolean",
               "description": "Determines whether to play a sound when a notification is received",
-              "default": true
+              "default": false
             },
             "sound_file": {
               "type": "string",
@@ -3325,7 +3296,7 @@
               "type": "string",
               "enum": ["crossfade", "slide-left", "slide-right", "slide-up", "slide-down", "none"],
               "description": "Specifies the type of transition effect for notifications.",
-              "default": "slide-left"
+              "default": "slide-up"
             },
             "enabled": {
               "type": "boolean",
@@ -3474,17 +3445,17 @@
         "debug": {
           "type": "boolean",
           "description": "Determines whether debug mode is enabled.",
-          "default": false
+          "default": true
         },
         "monitor_styles": {
           "type": "boolean",
           "description": "Determines whether to use monitor stylesheet.",
-          "default": false
+          "default": true
         },
         "tooltips": {
           "type": "boolean",
           "description": "Determines whether to show tooltips.",
-          "default": false
+          "default": true
         },
         "check_updates": {
           "type": "boolean",

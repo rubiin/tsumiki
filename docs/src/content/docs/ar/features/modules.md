@@ -86,8 +86,6 @@ behavior = "intellihide"            # "intellihide" | "always_show"
 tooltip = false
 layer = "top"
 show_when_no_windows = false
-preview_apps = true
-preview_size = [200, 130]
 group_apps = true
 truncation_size = 20
 orientation = "horizontal"
@@ -99,7 +97,7 @@ ignored = []
 ```
 
 - **`behavior`**: `intellihide` يخفي الإرساء عندما تتداخل نافذة؛ `always_show` يبقيه مرئياً.
-- **`preview_apps`**: يعرض صوراً مصغرة للنوافذ عند تمرير المؤشر.
+- **`s`**: يعرض صوراً مصغرة للنوافذ عند تمرير المؤشر.
 - **`group_apps`**: يجمع نوافذ متعددة من نفس التطبيق.
 - **`show_launcher`**: يضيف أيقونة مشغل تطبيقات إلى الإرساء.
 - **`hide_special_workspace_apps`**: يخفي التطبيقات في مساحات العمل الخاصة.

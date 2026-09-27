@@ -86,7 +86,7 @@ behavior = "intellihide"            # "intellihide" | "always_show"
 tooltip = false
 layer = "top"
 show_when_no_windows = false
-preview_apps = true
+s = true
 preview_size = [200, 130]
 group_apps = true
 truncation_size = 20
@@ -99,7 +99,7 @@ ignored = []
 ```
 
 - **`behavior`**: `intellihide` oculta el dock cuando una ventana se superpone; `always_show` lo mantiene visible.
-- **`preview_apps`**: Muestra miniaturas de vista previa de ventanas al pasar el cursor.
+- **`s`**: Muestra miniaturas de vista previa de ventanas al pasar el cursor.
 - **`group_apps`**: Agrupa múltiples ventanas de la misma aplicación.
 - **`show_launcher`**: Añade un icono de lanzador de aplicaciones al dock.
 - **`hide_special_workspace_apps`**: Oculta aplicaciones en espacios de trabajo especiales (scratchpads).

@@ -46,7 +46,6 @@ Lanceur d'applications épinglées avec intellihide.
 enabled = false
 icon_size = 40
 behavior = "intellihide"
-preview_apps = true
 group_apps = true
 orientation = "horizontal"
 ```

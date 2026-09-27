@@ -216,8 +216,6 @@ unit = "gb"
 icon = "󰕓"
 label = false
 tooltip = true
-auto_refresh = true
-refresh_interval = 5
 
 
 [widgets.memory]
@@ -616,13 +614,9 @@ behavior = "intellihide"
 tooltip = false
 layer = "top"
 show_when_no_windows = false
-preview_apps = true
-preview_size = [200, 130]
 group_apps = true
 truncation_size = 20
 orientation = "horizontal"
-always_show_focused = true
-hide_special_workspace_apps = false
 show_launcher = true
 launcher_position = "last"
 ignored = []
