@@ -48,7 +48,7 @@ class DispatchCommandTest(unittest.TestCase):
     def test_move_window_to_workspace_follows_focus_by_default(self):
         self.service.move_window_to_workspace(ADDR, 4)
         self.assertEqual(
-            f'dispatch hl.dsp.window.move({{workspace=4, follow=true, '
+            f"dispatch hl.dsp.window.move({{workspace=4, follow=true, "
             f'window="address:{ADDR}"}})',
             self.sent(),
         )

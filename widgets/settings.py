@@ -1,6 +1,5 @@
 """Settings button widget to open the settings GUI."""
 
-
 from modules.settings_gui import open_settings
 from shared.widget_container import ButtonWidget
 from utils.i18n import _

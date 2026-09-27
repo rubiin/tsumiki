@@ -9,7 +9,6 @@ class AppUtils(SingletonMixin):
 
     __slots__ = ("_all_applications", "_app_identifiers")
 
-
     def __init__(self):
         if not self._init_once():
             return

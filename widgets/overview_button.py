@@ -1,4 +1,3 @@
-
 from shared.widget_container import ButtonWidget
 from utils.i18n import _
 

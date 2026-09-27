@@ -41,9 +41,7 @@ class GitHubClient:
 
     def _run(self, args: list[str]) -> dict | list:
         try:
-            output = run_command(
-                self._command(args), timeout=self.timeout, check=True
-            )
+            output = run_command(self._command(args), timeout=self.timeout, check=True)
         except CommandError as e:
             if e.kind == "missing":
                 raise GitHubClientError(

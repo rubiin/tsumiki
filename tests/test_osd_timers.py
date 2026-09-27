@@ -41,9 +41,7 @@ class OSDTimerTest(unittest.TestCase):
             ("timeout_add", self._add),
             ("source_remove", self.removed.append),
         ):
-            patcher = mock.patch.object(
-                container.GLib, target, side_effect=side_effect
-            )
+            patcher = mock.patch.object(container.GLib, target, side_effect=side_effect)
             self.addCleanup(patcher.stop)
             patcher.start()
         self.osd = make_osd()

@@ -13,11 +13,11 @@ class HyprPickerWidget(ButtonWidget):
 
         if self.config.get("show_icon", True):
             # Create a TextIcon with the specified icon and size
-                    self.add_panel_content(
-            self.config.get("icon"),
-            _("widget.hyprpicker.label"),
-            show_label=self.config.get("label", True),
-        )
+            self.add_panel_content(
+                self.config.get("icon"),
+                _("widget.hyprpicker.label"),
+                show_label=self.config.get("label", True),
+            )
         self.connect("button-press-event", self.on_button_press)
 
         self.initialized = False

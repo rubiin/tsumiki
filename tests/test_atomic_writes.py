@@ -106,9 +106,7 @@ class AtomicWriteTest(unittest.TestCase):
         ) as mkstemp:
             _atomic_write(self.path, lambda handle: handle.write("x"))
 
-        self.assertEqual(
-            self._tmpdir.name, mkstemp.call_args.kwargs["dir"]
-        )
+        self.assertEqual(self._tmpdir.name, mkstemp.call_args.kwargs["dir"])
 
 
 class WriteJsonFileTest(unittest.TestCase):
@@ -196,9 +194,7 @@ class UpdateConfigKeyTest(unittest.TestCase):
 
         with (
             mock.patch.object(functions_module, "get_relative_path", return_value=path),
-            mock.patch.object(
-                functions_module, "read_toml_file", return_value=parsed
-            ),
+            mock.patch.object(functions_module, "read_toml_file", return_value=parsed),
             mock.patch.object(
                 functions_module,
                 "write_toml_file",

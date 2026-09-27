@@ -32,7 +32,6 @@ class HyprlandService(SingletonMixin):
     so widgets no longer call ``get_hyprland_connection()`` directly.
     """
 
-
     def __init__(self):
         if not self._init_once():
             return
@@ -169,10 +168,10 @@ class HyprlandService(SingletonMixin):
             self._dispatch(template.replace("WINDOW", selector))
 
     def focus_window(self, address: str):
-        self._dispatch_to_window('hl.dsp.focus({window=WINDOW})', address)
+        self._dispatch_to_window("hl.dsp.focus({window=WINDOW})", address)
 
     def close_window(self, address: str):
-        self._dispatch_to_window('hl.dsp.window.close({window=WINDOW})', address)
+        self._dispatch_to_window("hl.dsp.window.close({window=WINDOW})", address)
 
     def close_windows_by_class(self, window_class: str) -> None:
         """Close every window whose class matches *window_class*.
@@ -190,7 +189,7 @@ class HyprlandService(SingletonMixin):
         # focus stays where it is.
         follow = "false" if silent else "true"
         self._dispatch_to_window(
-            f'hl.dsp.window.move({{workspace={workspace}, follow={follow}, '
+            f"hl.dsp.window.move({{workspace={workspace}, follow={follow}, "
             "window=WINDOW})",
             address,
         )

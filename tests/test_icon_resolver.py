@@ -43,9 +43,7 @@ class IconResolverCacheTest(unittest.TestCase):
         self.cache_file = os.path.join(self._tmpdir.name, "icons.json")
 
         for patcher in (
-            mock.patch.object(
-                icon_resolver_module, "ICON_CACHE_FILE", self.cache_file
-            ),
+            mock.patch.object(icon_resolver_module, "ICON_CACHE_FILE", self.cache_file),
             # Never schedule a real GLib timer from a test.
             mock.patch.object(IconResolver, "_schedule_cache_write"),
             mock.patch.object(IconResolver, "_get_desktop_file", return_value=None),
@@ -198,9 +196,7 @@ class ResolveIconPixbufCacheKeyTest(unittest.TestCase):
             self._resolver.resolve_icon_pixbuf("wezterm", 24, object())
 
     def test_call_is_cacheable_and_repeated_calls_hit_the_cache(self):
-        with mock.patch(
-            "utils.app.AppUtils.find_app", return_value=None
-        ) as find_app:
+        with mock.patch("utils.app.AppUtils.find_app", return_value=None) as find_app:
             first = self._resolver.resolve_icon_pixbuf("org.wezfurlong.wezterm", 71)
             second = self._resolver.resolve_icon_pixbuf("org.wezfurlong.wezterm", 71)
 
@@ -214,11 +210,14 @@ class ResolveIconPixbufCacheKeyTest(unittest.TestCase):
         pixbuf.get_width.return_value = 24
         pixbuf.get_height.return_value = 24
 
-        with mock.patch(
-            "utils.app.AppUtils.find_app",
-            return_value=mock.Mock(icon_name="wezterm", get_icon_pixbuf=None),
-        ), mock.patch.object(
-            IconResolver, "get_icon_pixbuf_by_name", return_value=pixbuf
+        with (
+            mock.patch(
+                "utils.app.AppUtils.find_app",
+                return_value=mock.Mock(icon_name="wezterm", get_icon_pixbuf=None),
+            ),
+            mock.patch.object(
+                IconResolver, "get_icon_pixbuf_by_name", return_value=pixbuf
+            ),
         ):
             self.assertIs(pixbuf, self._resolver.resolve_icon_pixbuf("wezterm", 24))
 

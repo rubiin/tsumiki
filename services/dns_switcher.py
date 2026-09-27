@@ -126,9 +126,7 @@ class DnsSwitcherService(SingletonService):
 
     def _get_active_connection(self) -> str:
         """Return the UUID of the active connection, or empty string."""
-        output = run_command(
-            ["nmcli", "-t", "-f", "UUID", "con", "show", "--active"]
-        )
+        output = run_command(["nmcli", "-t", "-f", "UUID", "con", "show", "--active"])
         if output is None:
             return ""
         lines = [line.strip() for line in output.strip().split("\n") if line.strip()]

@@ -31,18 +31,16 @@ class RunWorkerWithIdleTest(unittest.TestCase):
 
     def test_the_value_is_delivered_to_the_callback(self):
         with captured_idle_adds() as delivered:
-            run_worker_with_idle(
-                lambda a, b: a + b, lambda *_: None, 2, 3
-            ).result(2)
+            run_worker_with_idle(lambda a, b: a + b, lambda *_: None, 2, 3).result(2)
 
         self.assertEqual([5], delivered)
 
     def test_the_worker_runs_off_the_main_thread(self):
         main_thread = threading.get_ident()
         with captured_idle_adds() as delivered:
-            run_worker_with_idle(
-                lambda: threading.get_ident(), lambda *_: None
-            ).result(2)
+            run_worker_with_idle(lambda: threading.get_ident(), lambda *_: None).result(
+                2
+            )
 
         self.assertNotEqual(main_thread, delivered[0])
 

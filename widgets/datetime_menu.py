@@ -124,9 +124,7 @@ class DateMenuNotification(Box):
 
         image_pixbuf = notification_service.get_cached_pixbuf(self._id, image_size)
         if image_pixbuf is None:
-            image_pixbuf = get_notification_image_pixbuf(
-                self._notification, image_size
-            )
+            image_pixbuf = get_notification_image_pixbuf(self._notification, image_size)
             if image_pixbuf is None:
                 return None
             notification_service.cache_pixbuf(self._id, image_pixbuf, image_size)

@@ -74,9 +74,7 @@ class ModuleAliasReferenceTest(unittest.TestCase):
     def test_the_check_actually_detects_a_missing_attribute(self):
         """Guard the guard: a typo in this file must not pass silently."""
         tree = ast.parse("import utils.functions as helpers\nhelpers.nope_xyz()\n")
-        self.assertEqual(
-            [("helpers", "nope_xyz", 2)], aliased_attribute_refs(tree)
-        )
+        self.assertEqual([("helpers", "nope_xyz", 2)], aliased_attribute_refs(tree))
 
     def test_notification_cursor_helper_is_imported_from_its_real_home(self):
         """The reported bug: helpers.set_cursor does not exist."""

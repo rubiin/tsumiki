@@ -27,7 +27,6 @@ class TsumikiConfig(SingletonMixin):
         "toml_config_file",
     )
 
-
     def __init__(self):
         if not self._init_once():
             return

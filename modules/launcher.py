@@ -182,7 +182,8 @@ class AppWidgetFactory:
         icon_size: int,
     ) -> Box:
         """Create vertical layout for grid mode."""
-        label = Label(            label=app.display_name or "Unknown",
+        label = Label(
+            label=app.display_name or "Unknown",
             v_align="center",
             h_align="center",
             justification="center",

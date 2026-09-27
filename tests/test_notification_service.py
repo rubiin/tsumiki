@@ -143,9 +143,7 @@ class CustomNotificationsTest(unittest.TestCase):
 
     def test_drop_registry_entry_leaves_history_untouched(self):
         self.service._notifications = {1: make_notification()}
-        self.service.all_notifications = [
-            notification_data(summary="s", body="b")
-        ]
+        self.service.all_notifications = [notification_data(summary="s", body="b")]
 
         self.service.drop_registry_entry(1)
 
