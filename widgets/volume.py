@@ -36,6 +36,9 @@ class VolumeWidget(ScrollableProgressWidget):
         # Connect the event box to handle scroll events
         self.connect("scroll-event", self.on_scroll)
 
+        # GTK destroys panel widgets from C, so cleanup hangs off the signal.
+        self.connect("destroy", self._on_destroy)
+
     @cooldown(0.1)
     def on_scroll(self, _, event):
         # Adjust the volume based on the scroll direction
@@ -86,9 +89,9 @@ class VolumeWidget(ScrollableProgressWidget):
         icon_text = get_audio_icon_name(volume, speaker.muted)["icon_text"]
         self.update_progress(volume / 100, icon_text)
 
-    def destroy(self):
+    def _on_destroy(self, *_):
+        """Detach from the speaker; runs even when the parent destroys us from C."""
         if self._speaker and self._speaker_volume_handler_id is not None:
             safe_disconnect(self._speaker, self._speaker_volume_handler_id)
-            self._speaker_volume_handler_id = None
+        self._speaker_volume_handler_id = None
         self._speaker = None
-        return super().destroy()

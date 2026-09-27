@@ -108,3 +108,14 @@ def make_tsumiki_config(
 def run_inline(func: Callable[..., Any], *args: Any, **kwargs: Any) -> Any:
     """Run a thread-pool submission synchronously so tests stay deterministic."""
     return func(*args, **kwargs)
+
+
+def bare_quotes(text: str) -> int:
+    """Count single quotes in *text* that are not backslash-escaped.
+
+    A CSS ``url('...')`` argument must hold exactly two of them; a third means
+    the path was interpolated without escaping and GTK drops the declaration.
+    """
+    return sum(
+        1 for i, ch in enumerate(text) if ch == "'" and (i == 0 or text[i - 1] != "\\")
+    )

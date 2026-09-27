@@ -23,6 +23,7 @@ class LockkeysOSDContainer(GenericOSDContainer):
         self.config = config
         self.previous_capslock = None
         self.previous_numlock = None
+        self._seeded = False
 
         # Create text display for locks
         from fabric.widgets.label import Label
@@ -66,12 +67,18 @@ class LockkeysOSDContainer(GenericOSDContainer):
             caps = main_kb.get("capsLock", False)
             num = main_kb.get("numLock", False)
 
-            if self.previous_capslock != caps or self.previous_numlock != num:
-                self.previous_capslock = caps
-                self.previous_numlock = num
+            if self.previous_capslock == caps and self.previous_numlock == num:
+                return
 
-                self._update_display(caps, num)
+            self.previous_capslock = caps
+            self.previous_numlock = num
+            self._update_display(caps, num)
+
+            # The seed read always "differs" from the None baseline, so emitting
+            # there would pop the OSD open on every login.
+            if self._seeded:
                 self.emit("locks-changed")
+            self._seeded = True
 
         except (KeyError, TypeError, AttributeError) as e:
             logger.warning(f"[LockkeysOSD] Parse error: {e}")

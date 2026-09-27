@@ -1,3 +1,4 @@
+import contextlib
 from typing import Callable, Iterable
 
 from fabric.utils import GLib, bulk_connect
@@ -13,30 +14,39 @@ from utils.functions import safe_disconnect
 
 
 class TeardownMixin:
-    """Track GLib repeaters and signal handlers so ``destroy`` can remove them."""
+    """Track GLib timers and signal handlers so ``destroy`` can remove them.
+
+    Cleanup hangs off the ``destroy`` *signal*, not a ``destroy()`` override:
+    GTK destroys children from C, which never dispatches to a Python override.
+    """
+
+    def _ensure_teardown_hooked(self) -> None:
+        """Connect ``_teardown`` to ``destroy`` once, on first tracked resource."""
+        if hasattr(self, "_repeaters"):
+            return
+        self._repeaters = []
+        self._handlers = []
+        self.connect("destroy", self._teardown)
 
     def _register_repeater(self, repeater_id: int) -> int:
-        if not hasattr(self, "_repeaters"):
-            self._repeaters = []
-            self._handlers = []
-            self.connect("destroy", self._teardown)
+        self._ensure_teardown_hooked()
         self._repeaters.append(repeater_id)
         return repeater_id
 
     def _unregister_repeater(self, repeater_id: int) -> None:
         """Remove a repeater id from the tracked list after manual removal."""
-        import contextlib
-
         with contextlib.suppress(ValueError):
             getattr(self, "_repeaters", []).remove(repeater_id)
 
     def _register_handler(self, source, handler_id) -> int:
-        if not hasattr(self, "_repeaters"):
-            self._repeaters = []
-            self._handlers = []
-            self.connect("destroy", self._teardown)
+        self._ensure_teardown_hooked()
         self._handlers.append((source, handler_id))
         return handler_id
+
+    def _unregister_handler(self, source, handler_id) -> None:
+        """Forget a tracked handler after it has been disconnected by hand."""
+        with contextlib.suppress(ValueError):
+            getattr(self, "_handlers", []).remove((source, handler_id))
 
     def _register_handlers(self, source, signal_map: dict[str, Callable]) -> list[int]:
         """Tracked counterpart of ``bulk_connect``, so ids reach ``_teardown``."""
@@ -46,13 +56,67 @@ class TeardownMixin:
         ]
 
     def _timeout_store(self) -> dict[str, int]:
+        self._ensure_teardown_hooked()
         if not hasattr(self, "_timeouts"):
             self._timeouts = {}
         return self._timeouts
 
+    def _tick_store(self) -> dict[str, tuple[object, int]]:
+        self._ensure_teardown_hooked()
+        if not hasattr(self, "_ticks"):
+            self._ticks = {}
+        return self._ticks
+
     def _has_timeout(self, key: str) -> bool:
         """True while a timer armed under *key* has not fired yet."""
         return key in self._timeout_store()
+
+    def _has_tick(self, key: str) -> bool:
+        """True while a frame-clock tick armed under *key* is still pending."""
+        return key in self._tick_store()
+
+    def _schedule_repeater(
+        self,
+        key: str,
+        interval_ms: int,
+        callback: Callable[[], bool],
+    ) -> bool:
+        """Arm a repeating timer under *key*; return whether it was armed.
+
+        Keyed like :meth:`_schedule_timeout` but keeps firing until *callback*
+        returns ``False``, at which point the key is freed.
+        """
+        if self._has_timeout(key):
+            return False
+        store = self._timeout_store()
+
+        def fire() -> bool:
+            if callback():
+                return True
+            # Free the key before returning so a re-arm is not clobbered.
+            store.pop(key, None)
+            return False
+
+        store[key] = GLib.timeout_add(interval_ms, fire)
+        return True
+
+    def _schedule_tick(self, widget, key: str, callback: Callable[..., bool]) -> bool:
+        """Arm a frame-clock tick on *widget* under *key*.
+
+        A tick self-throttles to the display's refresh rate and is only serviced
+        while the widget is actually being drawn, unlike a fixed ``timeout_add``.
+        """
+        if self._has_tick(key):
+            return False
+        self._tick_store()[key] = (widget, widget.add_tick_callback(callback))
+        return True
+
+    def _cancel_tick(self, key: str) -> None:
+        """Cancel a tick armed by :meth:`_schedule_tick`, if one is pending."""
+        entry = getattr(self, "_ticks", {}).pop(key, None)
+        if entry is not None:
+            widget, tick_id = entry
+            widget.remove_tick_callback(tick_id)
 
     def _schedule_timeout(
         self,
@@ -95,11 +159,14 @@ class TeardownMixin:
         for timeout_id in getattr(self, "_timeouts", {}).values():
             if timeout_id:
                 GLib.source_remove(timeout_id)
+        for widget, tick_id in getattr(self, "_ticks", {}).values():
+            widget.remove_tick_callback(tick_id)
         for source, handler_id in getattr(self, "_handlers", []):
             safe_disconnect(source, handler_id)
         self._repeaters = []
         self._handlers = []
         self._timeouts = {}
+        self._ticks = {}
 
     def toggle(self):
         """Toggle the visibility of this widget/window."""

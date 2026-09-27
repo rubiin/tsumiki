@@ -10,6 +10,7 @@ from fabric.widgets.stack import Stack
 
 from services.mpris import MprisPlayer, MprisPlayerManager
 from shared.sinewave_slider import SineWaveSlider
+from utils.change_cache import ChangeCache
 from utils.constants import APP_DATA_DIRECTORY, ASSETS_DIR, NEWLINE_RE
 from utils.functions import ensure_directory, get_http_client
 from utils.i18n import _
@@ -19,6 +20,7 @@ from utils.pixbuf import load_file_pixbuf
 from utils.widget_utils import nerd_font_icon
 
 from .buttons import HoverButton
+from .widget_container import TeardownMixin
 
 
 def _format_seconds(micro_seconds: int) -> str:
@@ -39,6 +41,17 @@ _LIGHT_ART_LUMINANCE_THRESHOLD = 0.5
 _ART_SCRIM_GRADIENT = (
     "linear-gradient(to right, rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.1))"
 )
+
+_SEEKBAR_TIMER = "seekbar"
+
+
+def css_image_url(path: str) -> str:
+    """Return *path* quoted for a CSS ``url()``, escaping what would break it.
+
+    A track named ``Bob's cover.jpg`` yields a path GTK's CSS parser rejects, so
+    the whole declaration — and the artwork with it — is silently dropped.
+    """
+    return path.replace("\\", "\\\\").replace("'", "\\'")
 
 
 def _average_luminance(pixbuf: GdkPixbuf.Pixbuf) -> float | None:
@@ -188,7 +201,7 @@ class PlayerBoxStack(Box):
         self._sync_dots()
 
 
-class PlayerBox(Box):
+class PlayerBox(Box, TeardownMixin):
     """Glassmorphism player card: metadata, waveform, playback."""
 
     def __init__(
@@ -212,8 +225,10 @@ class PlayerBox(Box):
         self.player_name = player_name
         self.fallback_cover_path = f"{ASSETS_DIR}/images/disk.png"
         self._last_temp_art_path: str | None = None
-        self._seekbar_timer_id: int | None = None
+        self._art_cache = ChangeCache()
         self.exit = False
+        # GTK destroys children from C, so cleanup hangs off the signal.
+        self.connect("destroy", self._on_destroy)
 
         # ─── Track Info ───
         self.title_label = Label(
@@ -441,7 +456,12 @@ class PlayerBox(Box):
         light_art = self._classify_art(art_path)
         # Dark scrim under light text on dark art; skipped on light art.
         scrim = "" if light_art else f"{_ART_SCRIM_GRADIENT}, "
-        self.set_style(f"background-image: {scrim}url('{art_path}');")
+        # set_style reparses the whole declaration, so only reapply on a change.
+        self._art_cache.apply(
+            "background",
+            f"background-image: {scrim}url('{css_image_url(art_path)}');",
+            self.set_style,
+        )
         for cls in ("on-light-art", "on-dark-art"):
             self.remove_style_class(cls)
         if light_art is not None:
@@ -531,28 +551,24 @@ class PlayerBox(Box):
 
     def _move_seekbar(self, *_):
         if self.player is None or self.exit:
-            self._seekbar_timer_id = None
             return False
         # Don't fight the user's hand while they are dragging the seekbar.
         if self.progress_bar.get_dragging():
             return True
         if self.player.playback_status != "playing":
             # A paused position does not advance, so stop the 1 Hz tick.
-            self._seekbar_timer_id = None
             return False
         self._sync_seekbar()
         return True
 
     def _start_seekbar_timer(self):
         """Start the 1 Hz position tick unless it is already running."""
-        if self._seekbar_timer_id is not None or self.exit:
+        if self.exit:
             return
-        self._seekbar_timer_id = GLib.timeout_add(1000, self._move_seekbar)
+        self._schedule_repeater(_SEEKBAR_TIMER, 1000, self._move_seekbar)
 
     def _stop_seekbar_timer(self):
-        if self._seekbar_timer_id is not None:
-            GLib.source_remove(self._seekbar_timer_id)
-            self._seekbar_timer_id = None
+        self._cancel_timeout(_SEEKBAR_TIMER)
 
     # ─── Lifecycle ──────────────────────────────────────────────────────────
 
@@ -561,15 +577,12 @@ class PlayerBox(Box):
         self._stop_seekbar_timer()
         self.destroy()
 
-    def destroy(self):
+    def _on_destroy(self, *_):
+        """Drop the temp download and the tick; GTK emits this for C-side destroys."""
         self._stop_seekbar_timer()
-        if self._last_temp_art_path and os.path.exists(self._last_temp_art_path):
+        path, self._last_temp_art_path = self._last_temp_art_path, None
+        if path and os.path.exists(path):
             try:
-                os.remove(self._last_temp_art_path)
+                os.remove(path)
             except OSError:
-                logger.debug(
-                    f"[Media] Failed to remove temp file: {self._last_temp_art_path}"
-                )
-            finally:
-                self._last_temp_art_path = None
-        super().destroy()
+                logger.debug(f"[Media] Failed to remove temp file: {path}")

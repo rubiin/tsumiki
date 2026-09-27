@@ -48,6 +48,10 @@ from utils.widget_utils import (
 _SWIPE_DISMISS_THRESHOLD = 0.35
 BAR_COLOR = (1.0, 0.36, 0.36)  # RGB for the progress bar color
 
+# The progress bar is a 2px sliver, so a 60 Hz vsync tick bought nothing visible.
+_EXPIRY_TIMER = "expiry"
+_EXPIRY_INTERVAL_MS = 33  # ~30 Hz
+
 
 class NotificationPopup(BaseWindow):
     """A widget to grab and display notifications."""
@@ -173,7 +177,6 @@ class NotificationWidget(EventBox, TeardownMixin):
 
         self.config = config
         self._notification = notification
-        self._timeout_id = None
         self._time_remaining = 0
         self._last_tick_time = 0
 
@@ -239,11 +242,6 @@ class NotificationWidget(EventBox, TeardownMixin):
             self._notification,
             {"closed": lambda *_: self.stop_timeout()},
         )
-
-    def destroy(self):
-        # Drop the frame-clock tick before the widget tree goes away.
-        self.stop_timeout()
-        return super().destroy()
 
     def _wire_events(self):
         """Connect all input event handlers."""
@@ -452,10 +450,10 @@ class NotificationWidget(EventBox, TeardownMixin):
         self.stop_timeout()
         self._time_remaining = self.get_timeout()
         self._last_tick_time = GLib.get_monotonic_time()
-        self._timeout_id = self.progress_timeout.add_tick_callback(self._tick_callback)
+        self._schedule_repeater(_EXPIRY_TIMER, _EXPIRY_INTERVAL_MS, self._tick)
 
-    def _tick_callback(self, widget, frame_clock) -> bool:
-        """Called on every frame (vsync). Updates progress bar smoothly."""
+    def _tick(self) -> bool:
+        """Advance the countdown; returns False once the notification expires."""
         now = GLib.get_monotonic_time()
         elapsed_ms = (now - self._last_tick_time) / 1000
         self._last_tick_time = now
@@ -465,14 +463,12 @@ class NotificationWidget(EventBox, TeardownMixin):
 
         if self._time_remaining <= 0:
             self.close_notification()
-            return False  # Stop ticking
+            return False
 
-        return True  # Keep ticking on next frame
+        return True
 
     def stop_timeout(self):
-        if self._timeout_id is not None:
-            self.progress_timeout.remove_tick_callback(self._timeout_id)
-            self._timeout_id = None
+        self._cancel_timeout(_EXPIRY_TIMER)
 
     def close_notification(self):
         self._notification.close("expired")
@@ -568,10 +564,10 @@ class NotificationWidget(EventBox, TeardownMixin):
 
     def resume_timeout(self):
         """Resume the countdown from where it left off after a pause."""
-        if self._timeout_id is not None:
+        if self._has_timeout(_EXPIRY_TIMER):
             return
         self._last_tick_time = GLib.get_monotonic_time()
-        self._timeout_id = self.progress_timeout.add_tick_callback(self._tick_callback)
+        self._schedule_repeater(_EXPIRY_TIMER, _EXPIRY_INTERVAL_MS, self._tick)
 
     def on_hover(self, *_):
         self.pause_timeout()
@@ -585,7 +581,7 @@ class NotificationWidget(EventBox, TeardownMixin):
         set_cursor(self, "arrow")
 
 
-class NotificationRevealer(Revealer):
+class NotificationRevealer(Revealer, TeardownMixin):
     """A widget to reveal a notification with open/close animations."""
 
     def __init__(self, config: dict, notification: Notification, **kwargs):
@@ -610,16 +606,18 @@ class NotificationRevealer(Revealer):
     def _bind_closed_handler(self):
         """Watch ``closed`` on the current notification, dropping any old link."""
         self._unbind_closed_handler()
-        self._closed_handler_id = self._notification.connect("closed", self.on_resolved)
+        self._closed_handler_id = self._register_handler(
+            self._notification,
+            self._notification.connect("closed", self.on_resolved),
+        )
 
     def _unbind_closed_handler(self):
         """Disconnect the ``closed`` handler from the current notification."""
+        if self._closed_handler_id is None:
+            return
         helpers.safe_disconnect(self._notification, self._closed_handler_id)
+        self._unregister_handler(self._notification, self._closed_handler_id)
         self._closed_handler_id = None
-
-    def destroy(self):
-        self._unbind_closed_handler()
-        return super().destroy()
 
     def replace_notification(self, notification: Notification):
         config = self.notification_box.config

@@ -10,6 +10,11 @@ from .geometry import (
     rounded_rect_path,
     value_from_fraction,
 )
+from .widget_container import TeardownMixin
+
+# A frame-clock tick self-throttles to vsync and stops when unmapped, so the
+# card costs nothing while it is scrolled out of the stack.
+_ANIMATION_TICK = "animation"
 
 
 class SineWaveSliderStyle(TypedDict):
@@ -27,7 +32,7 @@ class SineWaveSliderStyle(TypedDict):
     gap: float
 
 
-class SineWaveSlider(Gtk.DrawingArea, Widget):
+class SineWaveSlider(Gtk.DrawingArea, Widget, TeardownMixin):
     """An interactive slider with an animated sine wave and an active/inactive
     state, styled through ``wave``/``track``/``handle`` CSS gadget nodes.
     """
@@ -128,8 +133,6 @@ class SineWaveSlider(Gtk.DrawingArea, Widget):
             | Gdk.EventMask.LEAVE_NOTIFY_MASK
         )
 
-        self._anim_id: int | None = None
-
     # ───────────────────────────────────────── CSS gadget contexts
 
     def do_create_gadget_context(self, node_name: str) -> Gtk.StyleContext:
@@ -197,15 +200,14 @@ class SineWaveSlider(Gtk.DrawingArea, Widget):
     # ───────────────────────────────────────── animation lifecycle
 
     def _start_animation(self, *_args) -> None:
-        if self._anim_id is None and (
-            self._morph != self._morph_target or self._morph > 0.0
-        ):
-            self._anim_id = GLib.timeout_add(16, self._tick)
+        if self._has_tick(_ANIMATION_TICK):
+            return
+        if self._morph == self._morph_target and self._morph <= 0.0:
+            return
+        self._schedule_tick(self, _ANIMATION_TICK, self._tick)
 
     def _stop_animation(self, *_args) -> None:
-        if self._anim_id is not None:
-            GLib.source_remove(self._anim_id)
-            self._anim_id = None
+        self._cancel_tick(_ANIMATION_TICK)
 
     # ───────────────────────────────────────── active state
 
@@ -260,7 +262,7 @@ class SineWaveSlider(Gtk.DrawingArea, Widget):
         fraction = fraction_from_position(x, self.get_allocated_width(), margin)
         return value_from_fraction(fraction, self._min, self._max)
 
-    def _tick(self) -> bool:
+    def _tick(self, widget, frame_clock) -> bool:
         if self._morph < self._morph_target:
             self._morph = min(self._morph + self._morph_speed, self._morph_target)
         elif self._morph > self._morph_target:
@@ -271,11 +273,8 @@ class SineWaveSlider(Gtk.DrawingArea, Widget):
 
         self.queue_draw()
 
-        if self._morph <= 0.0 and self._morph_target <= 0.0:
-            self._anim_id = None
-            return False
-
-        return True
+        # An idle slider has nothing left to animate; the key frees itself.
+        return not (self._morph <= 0.0 and self._morph_target <= 0.0)
 
     # ───────────────────────────────────────── draw
 
@@ -380,7 +379,9 @@ class SineWaveSlider(Gtk.DrawingArea, Widget):
             styles = self.do_resolve_style()
             self._value = self._x_to_value(event.x, styles["handle_length"])
             self._throttled_fire_change()
-            self.queue_draw()
+            # The animation tick already redraws; only an idle slider needs its own.
+            if not self._has_tick(_ANIMATION_TICK):
+                self.queue_draw()
 
     def _on_enter(self, widget: Gtk.Widget, event: Gdk.EventCrossing) -> None:
         self._hover = True
@@ -407,7 +408,3 @@ class SineWaveSlider(Gtk.DrawingArea, Widget):
         if current_time - self._last_fire_time >= 100_000:  # 100ms in microseconds
             self._last_fire_time = current_time
             self._fire_change()
-
-    def destroy(self) -> None:
-        self._stop_animation()
-        super().destroy()

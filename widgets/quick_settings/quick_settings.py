@@ -1,6 +1,6 @@
 import os
 
-from fabric.utils import GLib, Gtk, invoke_repeater, logger
+from fabric.utils import GLib, Gtk, logger
 from fabric.widgets.box import Box
 from fabric.widgets.centerbox import CenterBox
 from fabric.widgets.grid import Grid
@@ -16,7 +16,7 @@ from shared.buttons import HoverButton, QSChevronButton
 from shared.circle_image import CircularImage
 from shared.dialog import Dialog
 from shared.mixins import PopoverMixin
-from shared.widget_container import ButtonWidget
+from shared.widget_container import ButtonWidget, TeardownMixin
 from utils.constants import ASSETS_DIR
 from utils.functions import expand_env, lazy_load_class, safe_disconnect
 from utils.i18n import _
@@ -42,6 +42,8 @@ _WIFI_GENERIC_ICON = get_text_icon("wifi.generic", "󰤬")
 _ETHERNET_ICON = get_text_icon("ethernet", "󰈀")
 _BRIGHTNESS_MEDIUM_ICON = get_text_icon("brightness.medium", "󰃟")
 _HOURGLASS_ICON = get_text_icon("hourglass", "")
+
+_UPTIME_TIMER = "uptime"
 
 _DEFAULT_TOGGLES = [
     "wifi",
@@ -169,7 +171,7 @@ class QuickSettingsButtonBox(Box):
         self.active_submenu.toggle_reveal()
 
 
-class QuickSettingsMenu(Box):
+class QuickSettingsMenu(Box, TeardownMixin):
     """A menu to display the quick settings information."""
 
     def _create_power_button(self, icon_name: str, title: str, body: str, command: str):
@@ -426,14 +428,9 @@ class QuickSettingsMenu(Box):
             uptime_label.set_label(uptime_text)
             return True
 
-        # Register a repeater to update uptime every minute
-        self._uptime_repeater_id = invoke_repeater(60000, _update_uptime)
-
-    def destroy(self):
-        if getattr(self, "_uptime_repeater_id", None) is not None:
-            GLib.source_remove(self._uptime_repeater_id)
-            self._uptime_repeater_id = None
-        return super().destroy()
+        # invoke_repeater's immediate first call is done inline instead.
+        _update_uptime()
+        self._schedule_repeater(_UPTIME_TIMER, 60000, _update_uptime)
 
     def show_dialog(self, title: str, body: str, command: str):
         """Show a dialog with the given title and body."""
@@ -519,6 +516,9 @@ class QuickSettingsButtonWidget(ButtonWidget, PopoverMixin):
             connect_clicked=True,
             on_close_callback=lambda *_: self.remove_style_class("active"),
         )
+
+        # GTK destroys panel widgets from C, so cleanup hangs off the signal.
+        self.connect("destroy", self._on_destroy)
 
     def _get_network_icon(self, *_):
         # Check if the network service is ready
@@ -639,15 +639,14 @@ class QuickSettingsButtonWidget(ButtonWidget, PopoverMixin):
             # Fallback icon if something goes wrong
             self._set_brightness_icon(_BRIGHTNESS_MEDIUM_ICON)
 
-    def destroy(self):
+    def _on_destroy(self, *_):
+        """Detach from wifi/speaker; runs even when the parent destroys us from C."""
         if self._active_wifi and self._wifi_changed_handler_id is not None:
             safe_disconnect(self._active_wifi, self._wifi_changed_handler_id)
-            self._wifi_changed_handler_id = None
+        self._wifi_changed_handler_id = None
         self._active_wifi = None
 
         if self._active_speaker and self._speaker_volume_handler_id is not None:
             safe_disconnect(self._active_speaker, self._speaker_volume_handler_id)
-            self._speaker_volume_handler_id = None
+        self._speaker_volume_handler_id = None
         self._active_speaker = None
-
-        return super().destroy()

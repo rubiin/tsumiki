@@ -19,6 +19,8 @@ try:
 except (ImportError, ValueError):  # GTK / fabric widgets unavailable
     HAS_MPRIS_WIDGET = False
 
+from tests.helpers import bare_quotes
+
 
 @unittest.skipUnless(HAS_PLAYERCTL, "Playerctl bindings unavailable")
 class MprisPlayerSafetyTest(unittest.TestCase):
@@ -53,6 +55,140 @@ class MprisPlayerSafetyTest(unittest.TestCase):
 
         # With _player None, getters must not touch the raw playerctl proxy.
         self.assertEqual(raw.get_property.call_count, 0)
+
+
+@unittest.skipUnless(HAS_PLAYERCTL, "Playerctl bindings unavailable")
+class MprisCoalescingTest(unittest.TestCase):
+    """One player signal must cost one main-loop wakeup and one ``changed``.
+
+    Players re-emit ``metadata`` about once a second while playing, so a
+    callback per property turned a 1 Hz event into a ~10 Hz storm.
+    """
+
+    class _FakePlayer:
+        def __init__(self):
+            self.properties = {
+                "metadata": {
+                    "mpris:artUrl": "file:///art.png",
+                    "mpris:length": 200000000,
+                },
+                "playback_status": 2,
+                "loop_status": 0,
+                "shuffle": False,
+                "can_go_next": True,
+                "can_go_previous": True,
+                "can_seek": True,
+                "can_pause": True,
+                "position": 0,
+                "player-name": "fake",
+            }
+            self.handlers: dict[str, object] = {}
+
+        def connect(self, name, callback):
+            self.handlers[name] = callback
+            return len(self.handlers)
+
+        def get_property(self, name):
+            return self.properties.get(name)
+
+        def get_title(self):
+            return "Track"
+
+        def get_artist(self):
+            return "Artist"
+
+        def get_album(self):
+            return "Album"
+
+    class _ImmediateGLib:
+        """Runs idle callbacks inline and counts the main-loop wakeups."""
+
+        PRIORITY_DEFAULT_IDLE = 200
+
+        def __init__(self):
+            self.idle_calls = 0
+
+        def idle_add(self, callback, *args, priority=None):
+            self.idle_calls += 1
+            callback(*args)
+            return 1
+
+    def setUp(self):
+        self.raw = self._FakePlayer()
+        self.glib = self._ImmediateGLib()
+        patcher = mock.patch("services.mpris.GLib", self.glib)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+        self.player = MprisPlayer(self.raw)
+        self.changed: list = []
+        self.notified: list[str] = []
+        self.player.connect("changed", lambda *_: self.changed.append(True))
+        self.player.connect(
+            "notify", lambda _obj, pspec: self.notified.append(pspec.name)
+        )
+        # Discard the startup pass; it is asserted separately.
+        self.changed.clear()
+        self.notified.clear()
+        self.idle_calls = self.glib.idle_calls
+
+    def _metadata_event(self):
+        self.raw.handlers["metadata"](self.raw)
+        return self.glib.idle_calls - self.idle_calls
+
+    def test_one_metadata_signal_is_one_idle_callback(self):
+        self.assertEqual(1, self._metadata_event())
+
+    def test_one_metadata_signal_emits_one_changed(self):
+        self._metadata_event()
+
+        self.assertEqual(1, len(self.changed))
+
+    def test_every_property_the_widget_listens_to_is_notified(self):
+        self._metadata_event()
+
+        # Exactly the signals widgets/mpris.py and shared/media.py connect to.
+        for prop in ("metadata", "title", "arturl", "length", "can-pause"):
+            self.assertIn(prop, self.notified)
+
+    def test_an_unchanged_repeat_notifies_nothing_a_second_time(self):
+        self._metadata_event()
+        self.notified.clear()
+
+        self._metadata_event()
+
+        self.assertEqual([], self.notified)
+        self.assertEqual(2, len(self.changed), "one changed per event is kept")
+
+    def test_a_new_track_notifies_again(self):
+        self._metadata_event()
+        self.raw.properties["metadata"] = {"mpris:length": 300000000}
+        self.notified.clear()
+
+        self._metadata_event()
+
+        self.assertIn("metadata", self.notified)
+
+    def test_the_startup_pass_emits_one_changed_not_one_per_property(self):
+        self.player.update_status_once()
+
+        self.assertEqual(1, len(self.changed))
+        self.assertGreater(len(self.notified), 5)
+
+    def test_a_single_player_signal_path_still_notifies_and_emits(self):
+        self.player.notifier("playback-status")
+
+        self.assertEqual(["playback-status"], self.notified)
+        self.assertEqual(1, len(self.changed))
+
+    def test_a_dead_player_notifies_nothing(self):
+        self.player._player = None
+
+        self.player.update_status()
+        self.player.notifier("title")
+
+        self.assertEqual([], self.notified)
+        self.assertEqual([], self.changed)
 
 
 @unittest.skipUnless(HAS_MPRIS_WIDGET, "mpris widget unavailable")
@@ -194,6 +330,60 @@ class MprisProgressTimerTest(unittest.TestCase):
 
         # _set_player -> get_current re-evaluates the tick for the new player.
         widget._set_player.assert_called_once_with(fallback)
+
+
+@unittest.skipUnless(HAS_MPRIS_WIDGET, "mpris widget unavailable")
+class MprisArtworkTeardownTest(unittest.TestCase):
+    """The destroy signal must unbind the player and drop the temp download."""
+
+    def _make_widget(self, temp_path):
+        widget = MprisWidget.__new__(MprisWidget)
+        widget.exit = False
+        widget.player = mock.Mock()
+        widget._player_update_handlers = []
+        widget._last_temp_art_path = temp_path
+        widget._progress_timer_id = 5
+        widget._stop_progress_timer = mock.Mock()
+        widget._unbind_player_updates = mock.Mock()
+        return widget
+
+    def test_destroy_stops_the_tick_unbinds_and_removes_the_temp_file(self):
+        widget = self._make_widget("/tmp/cover.png")
+
+        with (
+            mock.patch("widgets.mpris.os.path.exists", return_value=True),
+            mock.patch("widgets.mpris.os.remove") as remove,
+        ):
+            MprisWidget._on_destroy(widget)
+
+        widget._stop_progress_timer.assert_called_once()
+        widget._unbind_player_updates.assert_called_once()
+        remove.assert_called_once_with("/tmp/cover.png")
+        self.assertIsNone(widget._last_temp_art_path)
+        self.assertTrue(widget.exit)
+
+    def test_destroy_is_safe_without_a_temp_download(self):
+        widget = self._make_widget(None)
+
+        with mock.patch("widgets.mpris.os.remove") as remove:
+            MprisWidget._on_destroy(widget)
+
+        remove.assert_not_called()
+
+    def test_a_quoted_artwork_path_stays_valid_css(self):
+        widget = self._make_widget(None)
+        widget.cover = mock.Mock()
+        widget.default_cover = "/fallback.png"
+
+        with (
+            mock.patch("widgets.mpris.os.path.isfile", return_value=True),
+            mock.patch("shared.media.os.path.isfile", return_value=True),
+        ):
+            MprisWidget._update_art(widget, "/music/Bob's cover.jpg")
+
+        style = widget.cover.set_style.call_args[0][0]
+        self.assertIn("/music/Bob\\'s cover.jpg", style)
+        self.assertEqual(2, bare_quotes(style))
 
 
 if __name__ == "__main__":

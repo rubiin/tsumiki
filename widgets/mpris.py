@@ -6,7 +6,7 @@ from fabric.utils import GLib, bulk_connect, idle_add, logger
 from fabric.widgets.box import Box
 
 from services.mpris import MprisPlayer, MprisPlayerManager
-from shared.media import PlayerBoxStack
+from shared.media import PlayerBoxStack, css_image_url
 from shared.mixins import PopoverMixin
 from shared.scrollable_text import ScrollingLabel
 from shared.widget_container import ButtonWidget
@@ -100,6 +100,8 @@ class MprisWidget(ButtonWidget, PopoverMixin):
         self.setup_popover(
             lambda: PlayerBoxStack(self.mpris_manager, config=self.config),
         )
+        # GTK destroys panel widgets from C, so cleanup hangs off the signal.
+        self.connect("destroy", self._on_destroy)
         # The 1 Hz progress tick is started/stopped by get_current().
 
     def _bind_player_updates(self):
@@ -298,8 +300,7 @@ class MprisWidget(ButtonWidget, PopoverMixin):
             return
         has_art = bool(image_path) and os.path.isfile(image_path)
         art_path = image_path if has_art else self.default_cover
-        safe_url = art_path.replace("\\", "\\\\").replace("'", "\\'")
-        self.cover.set_style(f"background-image: url('{safe_url}');")
+        self.cover.set_style(f"background-image: url('{css_image_url(art_path)}');")
 
     def get_current(self):
         if self.exit:
@@ -343,16 +344,14 @@ class MprisWidget(ButtonWidget, PopoverMixin):
         if self.config.get("hide_when_no_player", True):
             self.hide()
 
-    def destroy(self):
+    def _on_destroy(self, *_):
+        """Detach from the player and drop the temp download; runs for C destroys."""
         self._stop_progress_timer()
         self._unbind_player_updates()
         self.exit = True
-        if self._last_temp_art_path and os.path.exists(self._last_temp_art_path):
+        path, self._last_temp_art_path = self._last_temp_art_path, None
+        if path and os.path.exists(path):
             try:
-                os.remove(self._last_temp_art_path)
+                os.remove(path)
             except OSError:
-                logger.debug(
-                    f"[Mpris] Failed to remove temp file: {self._last_temp_art_path}"
-                )
-            self._last_temp_art_path = None
-        return super().destroy()
+                logger.debug(f"[Mpris] Failed to remove temp file: {path}")
