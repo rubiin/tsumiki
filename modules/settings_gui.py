@@ -2,6 +2,7 @@
 Settings GUI for Tsumiki
 """
 
+import copy
 from collections.abc import Callable
 from typing import Any
 
@@ -38,6 +39,10 @@ from utils.types import (
     get_literal_values,
 )
 
+# Spin button bounds are a floor, not a cap: the adjustment clamps on set_value.
+_INT_MAX = 100
+_THEME_INT_MAX = 10000
+
 
 class SettingsGUI(Window):
     """Settings window for Tsumiki configuration."""
@@ -63,17 +68,15 @@ class SettingsGUI(Window):
         )
 
         self.set_resizable(False)
-        import copy
 
         self.config = copy.deepcopy(tsumiki_config)
-        self.theme = self.config.get("styling", {})
+        # A live reference into self.config, so one write in _on_save persists both.
+        self.theme = self.config.setdefault("styling", {})
         self.modified = False
 
-        # Main layout
         root_box = Box(orientation="v", spacing=10, style="margin: 10px;")
         self.add(root_box)
 
-        # Content with sidebar
         main_content = Box(
             orientation="h",
             spacing=6,
@@ -82,7 +85,6 @@ class SettingsGUI(Window):
         )
         root_box.add(main_content)
 
-        # Tab stack
         self.tab_stack = Stack(
             transition_type="slide-up-down",
             transition_duration=250,
@@ -90,10 +92,8 @@ class SettingsGUI(Window):
             h_expand=True,
         )
 
-        # Create tabs
         self._setup_tabs()
 
-        # Tab switcher (sidebar)
         tab_switcher = Gtk.StackSwitcher()
         tab_switcher.set_stack(self.tab_stack)
         tab_switcher.set_orientation(Gtk.Orientation.VERTICAL)
@@ -101,7 +101,6 @@ class SettingsGUI(Window):
         main_content.add(tab_switcher)
         main_content.add(self.tab_stack)
 
-        # Button box
         button_box = Box(orientation="h", spacing=10, h_align="end")
 
         reset_btn = HoverButton(
@@ -129,7 +128,6 @@ class SettingsGUI(Window):
 
         root_box.add(button_box)
 
-        # Connect close event
         self.connect("delete-event", self._on_delete)
 
     def _setup_tabs(self):
@@ -281,20 +279,7 @@ class SettingsGUI(Window):
         indent: bool = False,
         margin_bottom: int = 0,
     ) -> None:
-        """Attach one config section - header, grid of controls, nested groups.
-
-        The five sections this replaces differ only in presentation and in where
-        they send their values, so those are the parameters:
-
-        *control* builds the widget for a leaf value, which is also what decides
-        whether a change goes to the config or to the theme. *nested* handles a
-        dict value; pass the matching one of the wrappers below, so deeper
-        nesting keeps the same policy.
-
-        *expander* puts the section behind a disclosure instead of a plain
-        header, *indent* shifts it right, and *margin_bottom* is the gap before
-        the next section. List values are skipped - they have no generic editor.
-        """
+        """Attach one config section; *control* decides config vs theme routing."""
         section_path = f"{path}.{name}"
         title = name.replace("_", " ").title()
 
@@ -422,7 +407,7 @@ class SettingsGUI(Window):
             return self._create_spinbutton(
                 value,
                 0,
-                100,
+                max(_INT_MAX, value),
                 lambda sp, p=path, k=key: self._update_config(
                     p, k, int(sp.get_value())
                 ),
@@ -466,7 +451,6 @@ class SettingsGUI(Window):
         """Create the theme settings tab."""
         scrolled, vbox = self._create_scrolled_container()
 
-        # Main theme sections
         self._create_theme_section(
             vbox, "matugen", self.theme.get("matugen", {}), "theme"
         )
@@ -482,8 +466,7 @@ class SettingsGUI(Window):
         self, container: Box, section_name: str, section_config: dict, path: str
     ):
         """Create a top-level section for theme config (no expander)."""
-        # Individual modules get their own indented section; other groups nest
-        # behind expanders.
+        # Modules get their own indented section; other groups nest behind expanders.
         nested = (
             self._create_theme_module_section
             if section_name == "modules"
@@ -539,7 +522,7 @@ class SettingsGUI(Window):
             return self._create_spinbutton(
                 value,
                 0,
-                10000,
+                max(_THEME_INT_MAX, value),
                 lambda sp, p=path, k=key: self._update_theme(p, k, int(sp.get_value())),
             )
         elif isinstance(value, float):
@@ -590,10 +573,8 @@ class SettingsGUI(Window):
 
     def _create_wallpaper_picker(self, path: str, key: str, value: str) -> Gtk.Widget:
         """Create a wallpaper file picker control."""
-        # Create horizontal box for entry and button
         hbox = Box(orientation="h", spacing=6)
 
-        # Create entry for path
         entry = Entry(text=value, h_expand=True)
         entry.connect(
             "changed",
@@ -601,7 +582,6 @@ class SettingsGUI(Window):
         )
         hbox.pack_start(entry, True, True, 0)
 
-        # Create browse button
         browse_btn = HoverButton(
             label="Browse...",
             name="settings-browse-btn",
@@ -622,7 +602,6 @@ class SettingsGUI(Window):
             action=Gtk.FileChooserAction.OPEN,
         )
 
-        # Add filters for image files
         filter_images = Gtk.FileFilter()
         filter_images.set_name("Image files")
         filter_images.add_mime_type("image/*")
@@ -633,7 +612,6 @@ class SettingsGUI(Window):
         filter_all.add_pattern("*")
         dialog.add_filter(filter_all)
 
-        # Add buttons
         dialog.add_button("Cancel", Gtk.ResponseType.CANCEL)
         dialog.add_button("Select", Gtk.ResponseType.OK)
 
@@ -648,31 +626,26 @@ class SettingsGUI(Window):
 
     def _get_theme_enum_options(self, path: str, key: str) -> list | None:
         """Get enum options for theme keys."""
-        # Define all enum options
         enum_options = {
             "scheme": get_literal_values(Theme_Scheme),
             "mode": get_literal_values(Theme_Mode),
             "widget_style": get_literal_values(Widget_Style),
         }
 
-        # Define bar style options
         bar_style_options = {
             "panel": get_literal_values(Bar_Panel_Style),
             "widget": get_literal_values(Bar_Widget_Style),
         }
 
-        # Check for bar style options
         if path == "theme.bar.style" and key in bar_style_options:
             return bar_style_options[key]
 
-        # Check for general enum options
         return enum_options.get(key)
 
     def _create_about_tab(self):
         """Create the about tab."""
         vbox = Box(orientation="v", spacing=18, style="margin: 30px;", h_align="center")
 
-        # Logo
         logo = Image(
             image_file=f"{ASSETS_DIR}/images/logo.png",
             size=160,
@@ -730,10 +703,8 @@ class SettingsGUI(Window):
     def _on_save(self, *_):
         """Save configuration."""
         try:
+            # One write: [styling] also lives in config.toml, behind self.theme.
             write_toml_file(configuration.toml_config_file, self.config)
-
-            # TODO: only write changed files
-            write_toml_file(configuration.theme_config_file, self.theme)
 
             logger.info("[SETTINGS] Configuration saved successfully")
             self.modified = False
@@ -745,8 +716,9 @@ class SettingsGUI(Window):
 
     def _on_reset(self, *_):
         """Reset to saved config."""
-        self.config = dict(tsumiki_config)
-        self.theme = dict(tsumiki_config.get("styling", {}))
+        # Deep copy: a shallow one would alias sub-tables to the live global.
+        self.config = copy.deepcopy(tsumiki_config)
+        self.theme = self.config.setdefault("styling", {})
         self.modified = False
         self.save_btn.set_sensitive(False)
         self._refresh_tabs()

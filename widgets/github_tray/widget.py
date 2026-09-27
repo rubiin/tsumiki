@@ -1,9 +1,8 @@
 """GitHub tray bar button + popover.
 
-Functionally mirrors the Omarchy "github-tray" panel (notifications inbox,
-repositories, per-repo issues/PRs/Actions, alerts and local-project
-mappings) inside a Tsumiki bar widget. All GitHub data comes from the
-``gh`` CLI; nothing else is configured — the widget relies on the user's
+Mirrors the Omarchy "github-tray" panel (notifications, repositories, per-repo
+issues/PRs/Actions, alerts, local-project mappings) inside a Tsumiki bar
+widget. All data comes from the ``gh`` CLI; the widget relies on the user's
 ``gh auth`` session.
 """
 
@@ -111,9 +110,7 @@ class GitHubTrayWidget(ButtonWidget, PopoverMixin):
         """Seconds profile + repo data stays cached; ``0`` disables caching."""
         return max(0, int(self.config.get("cache_ttl", DEFAULT_CACHE_TTL)))
 
-    # ------------------------------------------------------------------ #
-    # bar button
-    # ------------------------------------------------------------------ #
+    # -- bar button --
     def _build_button(self):
         content = Box(
             orientation="h",
@@ -134,10 +131,7 @@ class GitHubTrayWidget(ButtonWidget, PopoverMixin):
                 )
             )
 
-        # Unread-count bubble drawn over the icon's top-right corner. It is a
-        # sibling of the icon rather than an Overlay child: the chip's negative
-        # margins pull it onto the icon, so the glyph stays visible underneath
-        # instead of being swallowed by an overlay sized to the icon alone.
+        # Sibling of the icon, not an Overlay: negative margins pull it over the glyph.
         self.badge_label = Label(
             label="",
             name="github-tray-badge",
@@ -156,8 +150,7 @@ class GitHubTrayWidget(ButtonWidget, PopoverMixin):
         self.set_tooltip_if_enabled(tooltip_text, default=True)
 
         self.connect("button-press-event", self._on_press)
-        # Lazy popover; connect_clicked is disabled so ``on_click`` can
-        # refresh stale data before toggling.
+        # connect_clicked is off so on_click refreshes stale data before toggling.
         self.setup_popover(
             lambda: GitHubTrayPopoverContent(widget=self),
             connect_clicked=False,
@@ -177,9 +170,7 @@ class GitHubTrayWidget(ButtonWidget, PopoverMixin):
         if (monotonic() - self._last_notify_at) > self.notify_interval:
             self.refresh(manual=True)
 
-    # ------------------------------------------------------------------ #
-    # timers / lifecycle
-    # ------------------------------------------------------------------ #
+    # -- timers / lifecycle --
     @property
     def notify_interval(self) -> int:
         interval = int(self.config.get("notification_interval", 60))
@@ -215,9 +206,7 @@ class GitHubTrayWidget(ButtonWidget, PopoverMixin):
         self._repo_timer = GLib.timeout_add_seconds(REPOS_REFRESH_SECONDS, _repo_tick)
         self._register_repeater(self._repo_timer)
 
-    # ------------------------------------------------------------------ #
-    # refresh orchestration
-    # ------------------------------------------------------------------ #
+    # -- refresh orchestration --
     def _menu_due(self) -> bool:
         """True when profile + repo data needs a refresh."""
         if not self.loaded_once:
@@ -249,8 +238,7 @@ class GitHubTrayWidget(ButtonWidget, PopoverMixin):
     def refresh_repos(self, manual: bool = False) -> None:
         if self._busy:
             return
-        # Serve the disk cache while it is fresh instead of hitting the API.
-        # A manual refresh (middle click) always bypasses the cache.
+        # Serve the fresh disk cache; a manual refresh always bypasses it.
         if not manual:
             cached = tray_state.read_menu_cache(MENU_CACHE_FILE, self.cache_ttl)
             if cached is not None:
@@ -346,9 +334,7 @@ class GitHubTrayWidget(ButtonWidget, PopoverMixin):
             kind in ("Issue", "IssueComment") and not flags.get("issue_comments", True)
         )
 
-    # ------------------------------------------------------------------ #
-    # apply (main thread)
-    # ------------------------------------------------------------------ #
+    # -- apply (main thread) --
     def _apply_notifications(self, generation, notifications, error):
         if generation != self._generation:
             self._busy = False
@@ -393,6 +379,7 @@ class GitHubTrayWidget(ButtonWidget, PopoverMixin):
         self.loaded_once = True
         self._last_repos_at = monotonic()
 
+        # Empty config means alerts off; diff_alerts reads it as "all on".
         alerts_cfg = self._alerts_config()
         current = {
             "repos": self.repos,
@@ -400,7 +387,7 @@ class GitHubTrayWidget(ButtonWidget, PopoverMixin):
             "notifications": self.notifications,
             "workflows": workflows or {},
         }
-        if previous_state:
+        if previous_state and alerts_cfg:
             for title, body in tray_state.diff_alerts(
                 previous_state, current, alerts_cfg
             ):
@@ -416,8 +403,7 @@ class GitHubTrayWidget(ButtonWidget, PopoverMixin):
             }
         )
         tray_state.save_state_file(STATE_FILE, merged)
-        # Disk cache for profile + repo data so restarts (and the hourly
-        # TTL window) never hit the API twice.
+        # Disk cache keeps restarts inside the TTL window without a second API hit.
         tray_state.save_menu_cache(MENU_CACHE_FILE, payload)
 
         self._load_avatar_async()
@@ -443,8 +429,7 @@ class GitHubTrayWidget(ButtonWidget, PopoverMixin):
         self.followers = payload.get("followers", []) or []
         self.web_base = payload.get("web") or self._client.web_base
         self.loaded_once = True
-        # Anchor the in-memory freshness gate to the cache's own age so the
-        # API is only hit again once the cache has actually expired.
+        # Anchor freshness to the cache age so the API is only re-hit after expiry.
         self._last_repos_at = monotonic() - age
         if self.avatar_pixbuf is None:
             self._load_avatar_async()
@@ -479,6 +464,7 @@ class GitHubTrayWidget(ButtonWidget, PopoverMixin):
         )
 
     def _alerts_config(self) -> dict:
+        """Diff flags; ``{}`` means "do not alert", missing flags default True."""
         alerts = self.config.get("alerts", {}) or {}
         if not alerts.get("enabled", True):
             return {}
@@ -501,9 +487,7 @@ class GitHubTrayWidget(ButtonWidget, PopoverMixin):
             return str(error)
         return str(error) or "Something went wrong talking to the GitHub CLI"
 
-    # ------------------------------------------------------------------ #
-    # avatar
-    # ------------------------------------------------------------------ #
+    # -- avatar --
     def _load_avatar_async(self):
         avatar_url = str(self.user.get("avatar_url") or "")
         if not avatar_url:
@@ -525,9 +509,7 @@ class GitHubTrayWidget(ButtonWidget, PopoverMixin):
             self.avatar_pixbuf = pixbuf
             self._push_state()
 
-    # ------------------------------------------------------------------ #
-    # badge / state push
-    # ------------------------------------------------------------------ #
+    # -- badge / state push --
     @property
     def unread_count(self) -> int:
         return len(self.notifications)
@@ -551,9 +533,7 @@ class GitHubTrayWidget(ButtonWidget, PopoverMixin):
             if hasattr(content, "on_widget_data_changed"):
                 content.on_widget_data_changed()
 
-    # ------------------------------------------------------------------ #
-    # detail + actions (called by the popover content)
-    # ------------------------------------------------------------------ #
+    # -- detail + actions (called by the popover content) --
     def open_url(self, url: str):
         if url:
             exec_shell_async_quiet(["xdg-open", str(url)])
@@ -744,9 +724,7 @@ class GitHubTrayPopoverContent(Box):
         self.show_all()
         self.toast_label.set_visible(False)
 
-    # ------------------------------------------------------------------ #
-    # tab helpers
-    # ------------------------------------------------------------------ #
+    # -- tab helpers --
     @staticmethod
     def _normalize_tab(tab: str) -> str:
         return tab if tab in ("inbox", "repos") else "inbox"
@@ -761,9 +739,7 @@ class GitHubTrayPopoverContent(Box):
             return "repos"
         return self._tab
 
-    # ------------------------------------------------------------------ #
-    # rendering
-    # ------------------------------------------------------------------ #
+    # -- rendering --
     def on_widget_data_changed(self):
         """Re-render whatever changed; cheap full rebuild for the tray."""
         detail_kind = self.tray_widget.detail.get("kind")
@@ -796,9 +772,7 @@ class GitHubTrayPopoverContent(Box):
         self._stack.children = children
         self._stack.show_all()
 
-    # ------------------------------------------------------------------ #
-    # main view
-    # ------------------------------------------------------------------ #
+    # -- main view --
     def _render_main(self) -> list:
         widget = self.tray_widget
         pieces: list = []
@@ -826,9 +800,7 @@ class GitHubTrayPopoverContent(Box):
                 tooltip="Retry",
                 on_clicked=lambda *_: widget.refresh(manual=True),
             )
-            # Chrome box (not a Button): the retry / open buttons below must
-            # stay clickable siblings — a Button card would claim the whole
-            # row and swallow their presses.
+            # Chrome box, not a Button: the buttons below must stay clickable siblings.
             card = CardBox(
                 name="github-tray-error",
                 style_classes="github-tray-error-card",
@@ -1034,9 +1006,7 @@ class GitHubTrayPopoverContent(Box):
             return self._build_inbox()
         return self._build_repos()
 
-    # ------------------------------------------------------------------ #
-    # inbox
-    # ------------------------------------------------------------------ #
+    # -- inbox --
     def _build_inbox(self) -> Box:
         widget = self.tray_widget
         notifications = list(widget.notifications)
@@ -1083,8 +1053,7 @@ class GitHubTrayPopoverContent(Box):
             subject = item.get("subject") or {}
             repo = item.get("repository") or {}
             state = tray_state.notification_state(item)
-            # Chrome box hosting sibling controls: clicking the text row runs
-            # the card action, the mark-as-read button is its own target.
+            # Chrome box: the text row and mark-as-read button are separate targets.
             cards.append(
                 CardBox(
                     name="github-tray-notification",
@@ -1196,9 +1165,7 @@ class GitHubTrayPopoverContent(Box):
             ],
         )
 
-    # ------------------------------------------------------------------ #
-    # repositories
-    # ------------------------------------------------------------------ #
+    # -- repositories --
     def _build_repos(self) -> Box:
         widget = self.tray_widget
         repos = tray_state.sort_repos(
@@ -1261,8 +1228,7 @@ class GitHubTrayPopoverContent(Box):
             )
             language = str(repo.get("language") or "")
             metrics = [
-                # Stars/Forks are read-only (no detail view); dropping the
-                # actionable flag removes the misleading tooltip/affordance.
+                # Read-only metrics: actionable=False drops the misleading affordance.
                 MetricButton(
                     icon=tray_state.glyph("star"),
                     value=tray_state.format_count(repo.get("stargazers_count")),
@@ -1348,9 +1314,7 @@ class GitHubTrayPopoverContent(Box):
                     lines=2,
                 )
 
-            # Chrome box (not a Button): the metrics (issues / PRs) and action
-            # icons below must stay clickable siblings — a Button card would
-            # claim the whole row and swallow their presses.
+            # Chrome box, not a Button: metrics and action icons must stay clickable.
             card = CardBox(
                 name="github-tray-repo",
                 style_classes="github-tray-repo-card",
@@ -1377,9 +1341,7 @@ class GitHubTrayPopoverContent(Box):
             cards.append(card)
         return cards
 
-    # ------------------------------------------------------------------ #
-    # detail views (issues / pulls / workflows)
-    # ------------------------------------------------------------------ #
+    # -- detail views (issues / pulls / workflows) --
     def _render_detail(self) -> list:
         widget = self.tray_widget
         detail = widget.detail
@@ -1558,8 +1520,7 @@ class GitHubTrayPopoverContent(Box):
                 widget.open_url(_r.get("html_url"))
                 widget.hide_popover()
 
-            # Chrome box (not a Button): the re-run button must stay a
-            # clickable sibling — a Button card would claim the whole row.
+            # Chrome box, not a Button: the re-run button must stay a clickable sibling.
             cards.append(
                 CardBox(
                     name="github-tray-run",
@@ -1627,9 +1588,7 @@ class GitHubTrayPopoverContent(Box):
             )
         return cards
 
-    # ------------------------------------------------------------------ #
-    # navigation
-    # ------------------------------------------------------------------ #
+    # -- navigation --
     def _back_to_main(self):
         widget = self.tray_widget
         widget.detail = {

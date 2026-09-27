@@ -18,12 +18,19 @@ def make_service() -> DnsSwitcherService:
     return service
 
 
-def fake_process(status: int) -> mock.Mock:
-    """A Gio.Subprocess stand-in whose wait reports *status*.
+def make_polling_service() -> DnsSwitcherService:
+    """A service carrying the per-poll state ``_on_dns_line`` reads and writes."""
+    service = DnsSwitcherService.__new__(DnsSwitcherService)
+    service.emit = mock.Mock()
+    service.notify = mock.Mock()
+    service._current = None
+    service._current_label = "Default"
+    service._first_line_of_poll = True
+    return service
 
-    ``wait_async`` invokes its callback immediately so the sequence advances
-    synchronously and the ordering assertions stay deterministic.
-    """
+
+def fake_process(status: int) -> mock.Mock:
+    """A Gio.Subprocess stand-in; ``wait_async`` calls back immediately."""
     process = mock.Mock()
     process.wait_finish.return_value = status
 
@@ -32,6 +39,75 @@ def fake_process(status: int) -> mock.Mock:
 
     process.wait_async.side_effect = wait_async
     return process
+
+
+class PollCommandTest(unittest.TestCase):
+    """The poller must read device DNS: ``con show`` has no IP4.DNS field."""
+
+    def setUp(self):
+        self.service = dns_module.dns_switcher_service
+        # __new__ hands back the shared singleton, so restore its real poller.
+        self.addCleanup(setattr, self.service, "_poller", self.service._poller)
+        patcher = mock.patch.object(dns_module, "PollingController")
+        self.poller_class = patcher.start()
+        self.addCleanup(patcher.stop)
+        DnsSwitcherService(3000)
+
+    def test_the_poller_asks_for_device_dns(self):
+        """Regression: "con show" exits non-zero and prints no DNS at all."""
+        argv = self.poller_class.call_args.args[0]
+
+        self.assertIn("dev", argv)
+        self.assertNotIn("con", argv)
+        self.assertEqual(["nmcli", "-t", "-f", "IP4.DNS", "dev", "show"], argv)
+
+    def test_the_stubbed_poller_is_started_without_spawning_nmcli(self):
+        self.poller_class.return_value.start.assert_called_once_with()
+
+
+class DnsLineTest(unittest.TestCase):
+    """One stdout line from ``nmcli dev show`` becomes the current DNS."""
+
+    def setUp(self):
+        self.service = make_polling_service()
+
+    def test_a_device_line_sets_the_current_dns(self):
+        self.service._on_dns_line("IP4.DNS[1]:192.168.18.1")
+
+        self.assertEqual("192.168.18.1", self.service._current)
+        self.assertEqual("192.168.18.1", self.service.current)
+
+    def test_a_known_provider_is_labelled(self):
+        self.service._on_dns_line("IP4.DNS[1]:1.1.1.1")
+
+        self.assertEqual("Cloudflare", self.service._current_label)
+
+    def test_an_unknown_server_is_labelled_with_its_own_address(self):
+        self.service._on_dns_line("IP4.DNS[1]:192.168.18.1")
+
+        self.assertEqual("192.168.18.1", self.service._current_label)
+
+    def test_only_the_first_entry_of_a_poll_is_used(self):
+        """``dev show`` lists every device; the first DNS line wins."""
+        self.service._on_dns_line("IP4.DNS[1]:1.1.1.1")
+        self.service._on_dns_line("IP4.DNS[1]:8.8.8.8")
+
+        self.assertEqual("1.1.1.1", self.service._current)
+
+    def test_a_new_dns_notifies_once(self):
+        self.service._on_dns_line("IP4.DNS[1]:192.168.18.1")
+
+        self.service.notify.assert_called_once_with("current")
+        self.service.emit.assert_called_once_with("changed")
+
+    def test_an_unchanged_dns_is_silent(self):
+        self.service._on_dns_line("IP4.DNS[1]:192.168.18.1")
+        self.service._mark_poll_start()
+
+        self.service._on_dns_line("IP4.DNS[1]:192.168.18.1")
+
+        self.service.notify.assert_called_once_with("current")
+        self.service.emit.assert_called_once_with("changed")
 
 
 class SwitchCommandsTest(unittest.TestCase):
