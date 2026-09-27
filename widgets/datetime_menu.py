@@ -172,6 +172,8 @@ class DateNotificationMenu(Box):
             self.all_notifications: list[Notification] = (
                 notification_service.get_deserialized()
             )
+            # Seeded so the first count event is not mistaken for a change.
+            self._last_synced_count = notification_service.count
 
             self.notifications_listbox = ListBox(
                 name="notification-list",
@@ -319,6 +321,7 @@ class DateNotificationMenu(Box):
         self.all_notifications.clear()
         self.grouped_entries.clear()
         self.loaded_count = 0
+        self._last_synced_count = 0
 
         notification_service.clear_all_notifications()
         self.clear_icon.set_label(get_text_icon("trash.empty", ""))
@@ -646,6 +649,7 @@ class DateNotificationMenu(Box):
         self.grouped_entries.clear()
         self._app_expand_state.clear()
         self.loaded_count = 0
+        self._last_synced_count = 0
         self.clear_icon.set_label(get_text_icon("trash.empty", ""))
         self.placeholder.set_visible(True)
         self.notifications_listbox.set_visible(False)
@@ -655,12 +659,17 @@ class DateNotificationMenu(Box):
         """Re-sync notifications from the service when the count changes."""
         if getattr(self, "_syncing_notification_count", False):
             return
-        if notification_service.count == len(self.all_notifications):
+        # Track the count we last materialised, not the list length: under DND
+        # new notifications never reach the list, so the length stays put and
+        # would otherwise trigger a full re-deserialize on every arrival.
+        service_count = notification_service.count
+        if service_count == getattr(self, "_last_synced_count", None):
             return
 
         self._syncing_notification_count = True
         try:
             self.all_notifications = notification_service.get_deserialized()
+            self._last_synced_count = service_count
             self._reload_grouped_list()
         finally:
             self._syncing_notification_count = False
@@ -673,10 +682,12 @@ class DateNotificationMenu(Box):
         self.all_notifications = [
             n for n in self.all_notifications if self._notification_id(n) != id
         ]
+        self._last_synced_count = notification_service.count
         self._reload_grouped_list()
 
     def on_new_notification(self, fabric_notification, id):
         if notification_service.dont_disturb:
+            # Deferred to the count handler, which resyncs in one pass.
             return
 
         fabric_notification: Notification = (
@@ -697,6 +708,8 @@ class DateNotificationMenu(Box):
             return
 
         self.all_notifications.insert(0, fabric_notification)
+        # The list is current, so a later count event must not force a resync.
+        self._last_synced_count = notification_service.count
         self._reload_grouped_list()
 
 

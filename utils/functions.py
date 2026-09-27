@@ -728,10 +728,14 @@ def get_distro_icon() -> str:
     return get_text_icon(f"distro.{distro_id}", "") or ""
 
 
-@ttl_lru_cache(600, 10)
 def check_executable_exists(executable_name):
-    executable_path = GLib.find_program_in_path(executable_name)
-    if not executable_path:
+    """Raise ``ExecutableNotFoundError`` if *executable_name* is not on PATH.
+
+    The lookup goes through ``find_executable``, which is TTL-cached: lru_cache
+    does not memoize exceptions, so raising directly from a cached function meant
+    a missing binary re-scanned PATH on every single call.
+    """
+    if not find_executable(executable_name):
         raise ExecutableNotFoundError(executable_name)
 
 

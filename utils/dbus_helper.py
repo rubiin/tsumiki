@@ -3,6 +3,10 @@ from fabric.utils import Gio, GLib
 # Cache shared D-Bus connections by bus type to avoid redundant connections
 _bus_cache = {}
 
+# GLib's -1 means "wait forever", which wedges the GTK main loop if the service
+# stops responding. 5 s is long enough for a cold UPower start.
+_DEFAULT_CALL_TIMEOUT_MS = 5000
+
 
 def _get_shared_bus(bus_type):
     """Get or create a shared D-Bus connection for the given bus type."""
@@ -25,9 +29,12 @@ class GioDBusHelper:
 
         self.bus_name = bus_name
         self.object_path = object_path
+        # DO_NOT_AUTO_START stops the proxy from *launching* the service, which
+        # is the slow part when UPower is not already up. Properties must still
+        # load, because consumers read them via get_cached_property.
         self.proxy = Gio.DBusProxy.new_sync(
             self.bus,
-            Gio.DBusProxyFlags.NONE,
+            Gio.DBusProxyFlags.DO_NOT_AUTO_START,
             None,
             bus_name,
             object_path,
@@ -42,7 +49,7 @@ class GioDBusHelper:
         interface_name,
         method_name,
         parameters=None,
-        timeout=-1,
+        timeout=_DEFAULT_CALL_TIMEOUT_MS,
     ):
         if parameters is None:
             parameters = GLib.Variant("()", ())
