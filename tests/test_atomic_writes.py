@@ -260,43 +260,35 @@ class RunCommandCheckTest(unittest.TestCase):
 
     def test_the_timeout_reaches_the_process(self):
         with mock.patch.object(
-            functions_module.subprocess, "run", return_value=mock.Mock(returncode=0)
-        ) as run:
+            functions_module, "_spawn_and_wait", return_value=(0, "", "", None)
+        ) as spawn:
             run_command(["true"], timeout=2.5)
 
-        self.assertEqual(2.5, run.call_args.kwargs["timeout"])
+        self.assertEqual(2.5, spawn.call_args.args[1])
 
     def test_no_timeout_by_default(self):
         with mock.patch.object(
-            functions_module.subprocess, "run", return_value=mock.Mock(returncode=0)
-        ) as run:
+            functions_module, "_spawn_and_wait", return_value=(0, "", "", None)
+        ) as spawn:
             run_command(["true"])
 
-        self.assertIsNone(run.call_args.kwargs["timeout"])
+        self.assertIsNone(spawn.call_args.args[1])
 
-    def test_a_list_never_goes_through_a_shell(self):
+    def test_a_list_reaches_the_spawn_untouched(self):
         with mock.patch.object(
-            functions_module.subprocess, "run", return_value=mock.Mock(returncode=0)
-        ) as run:
-            run_command(["echo", "hi"])
+            functions_module, "_spawn_and_wait", return_value=(0, "", "", None)
+        ) as spawn:
+            run_command(["echo", "a b; rm -rf /"])
 
-        self.assertFalse(run.call_args.kwargs["shell"])
+        self.assertEqual(["echo", "a b; rm -rf /"], spawn.call_args.args[0])
 
-    def test_a_string_always_goes_through_a_shell(self):
-        with mock.patch.object(
-            functions_module.subprocess, "run", return_value=mock.Mock(returncode=0)
-        ) as run:
-            run_command("echo hi")
-
-        self.assertTrue(run.call_args.kwargs["shell"])
+    def test_a_string_is_shlex_split_never_shell_parsed(self):
+        # Only observable by really running it: ";" must survive as an argument.
+        self.assertEqual("hi; rm -rf /\n", run_command("echo hi; rm -rf /"))
 
 
 class RunCommandTest(unittest.TestCase):
-    """``run_command`` is the one place that reports success reliably.
-
-    Fabric's ``exec_shell_command`` returns the error text on a non-zero exit,
-    so a caller testing it for ``False`` never sees a failure.
-    """
+    """``run_command`` reports success reliably; ``exec_shell_command`` does not."""
 
     def test_returns_stdout_on_success(self):
         self.assertEqual("hello\n", run_command(["echo", "hello"]))
@@ -323,8 +315,7 @@ class RunCommandTest(unittest.TestCase):
         self.assertIn("timed out", logger.warning.call_args[0][0])
 
     def test_is_app_running_keys_off_the_exit_status(self):
-        # pidof matches the process name, which is versioned in a venv, so ask
-        # about this very process rather than a hardcoded name.
+        # pidof matches the versioned venv name, so ask about this process.
         self.assertTrue(is_app_running(psutil.Process().name()))
         self.assertFalse(is_app_running("definitely-not-a-real-binary-xyz"))
 

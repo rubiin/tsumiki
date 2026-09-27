@@ -30,12 +30,10 @@ def main():
 
     helpers.ensure_directory(APP_DATA_DIRECTORY)
 
-    # Initialize i18n with the configured language
     language = general_options.get("language", "en")
     i18n = get_i18n()
     i18n.load(language)
 
-    # Initialize theme service and apply the configured theme
     from services import style_service
 
     style_service.write_settings_css()
@@ -43,15 +41,11 @@ def main():
 
     helpers.set_process_name(APPLICATION_NAME)
 
-    # Initialize the application
     app = Application(APPLICATION_NAME)
 
-    # Compile and apply the stylesheet before any widget exists. Building the
-    # bars first meant they were mapped unstyled and restyled once the first
-    # async compile landed - a second full style/layout pass and a flash.
+    # Compile before any widget exists, or the bars get mapped unstyled and flash.
     style_service.refresh_blocking()
 
-    # Create status bars
     Bar.create_bars(app, tsumiki_config)
 
     # ── Module registry: config key → (module path, class name) ──────────
@@ -74,8 +68,6 @@ def main():
             logger.info(f"[Main] Adding {name} module")
             app.add_window(cls(tsumiki_config))
 
-    # Disable verbose logging for non-debug mode
-
     if not general_options.get("debug", False):
         for log in [
             "fabric",
@@ -88,7 +80,6 @@ def main():
         ]:
             logger.disable(log)
 
-    # Start config file watching if enabled
     if general_options.get("auto_restart", True):
         from utils.config_watcher import start_config_watching
 
@@ -165,26 +156,16 @@ def main():
     @Application.action()
     def execute_command(command: str):
         """Execute a shell command and return the output."""
-        import subprocess
-
         try:
-            result = subprocess.run(
-                command,
-                shell=True,
-                capture_output=True,
-                text=True,
-                timeout=10,
-            )
-            output = result.stdout
-            if result.returncode != 0:
-                output += f"\nError: {result.stderr}"
-            return output
-        except subprocess.TimeoutExpired:
-            return "Command timed out after 10 seconds"
+            return helpers.run_command(command, timeout=10, check=True) or ""
+        except helpers.CommandError as e:
+            if e.kind == "timeout":
+                return "Command timed out after 10 seconds"
+            detail = (e.stderr or "").strip()
+            return f"Error: {detail}" if detail else f"Error: {e}"
         except Exception as e:
             return f"Error: {e}"
 
-    # Run the application
     app.run()
 
 

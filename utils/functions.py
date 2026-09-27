@@ -5,8 +5,8 @@ import html
 import importlib
 import json
 import re
+import shlex
 import shutil
-import subprocess
 import tempfile
 import threading
 from collections import Counter
@@ -25,6 +25,7 @@ from fabric.utils import (
     GLib,
     Gtk,
     cooldown,
+    exec_shell_command,
     exec_shell_command_async,
     get_relative_path,
     idle_add,
@@ -58,9 +59,7 @@ _ALLOWED_MARKUP_TAGS_RE = re.compile(r"&lt;(/?(?:b|i|u))&gt;")
 _DOUBLE_ESCAPED_ENTITIES_RE = re.compile(
     r"&amp;(lt;|gt;|amp;|apos;|quot;|#60;|#x3C;|#x3c;|#62;|#x3E;|#x3e;|#39;|#34;)"
 )
-# One-time codes (2FA / OTP) in notification bodies, e.g. "123-456" or "482913",
-# delimited by whitespace/string boundaries and optional trailing punctuation.
-# The optional literal "G-" prefix covers Google's "G-123456" sender format.
+# One-time codes (2FA / OTP) in notification bodies, with Google's "G-" prefix allowed.
 _ONE_TIME_CODE_RE = re.compile(
     r"(?:^|(?<=\s))(?:G-)?(\d{3}[- ]\d{3}|\d{4,8})(?=$|[\s.,])"
 )
@@ -146,23 +145,19 @@ def get_window_manager_backend() -> Literal["hyprland", "sway", "i3"]:
     return "hyprland"
 
 
-# Function to convert RGB to hex format
 def rgb_to_hex(rgb) -> str:
     return "#{:02x}{:02x}{:02x}".format(*rgb)
 
 
-# Function to set the process name
 def set_process_name(name: str):
     libc = ctypes.CDLL("libc.so.6")
     libc.prctl(15, name.encode("utf-8"), 0, 0, 0)  # 15 = PR_SET_NAME
 
 
-# Function to convert RGB to CSS rgb format
 def rgb_to_css(rgb) -> str:
     return f"rgb({rgb[0]}, {rgb[1]}, {rgb[2]})"
 
 
-# Function to mix two RGB colors, with a ratio of 0.5 by default.
 def mix_colors(color1, color2, ratio=0.5) -> tuple[int, int, int]:
     r = int(color1[0] * (1 - ratio) + color2[0] * ratio)
     g = int(color1[1] * (1 - ratio) + color2[1] * ratio)
@@ -170,7 +165,6 @@ def mix_colors(color1, color2, ratio=0.5) -> tuple[int, int, int]:
     return (r, g, b)
 
 
-# Function to tint a color by mixing it with white
 def tint_color(color, tint_factor=1) -> tuple[int, int, int]:
     # tint_factor: 0 means original color, 1 means full white
     return mix_colors(color, WHITE, tint_factor)
@@ -182,10 +176,7 @@ def delayed_call(
     *args: Any,
     **kwargs: Any,
 ) -> int:
-    """Schedule a function to be called after a delay.
-
-    Similar to JavaScript's setTimeout. The callback runs on the main GTK thread.
-    """
+    """Run *callback* on the GTK main thread after *delay_ms* (setTimeout)."""
 
     def _wrapper() -> bool:
         callback(*args, **kwargs)
@@ -200,10 +191,7 @@ def delayed_call_seconds(
     *args: Any,
     **kwargs: Any,
 ) -> int:
-    """Schedule a function to be called after a delay in seconds.
-
-    Convenience wrapper around delayed_call for second-based delays.
-    """
+    """As ``delayed_call`` but in seconds."""
     return delayed_call(int(delay_seconds * 1000), callback, *args, **kwargs)
 
 
@@ -225,7 +213,6 @@ def _pillow_worker(image_path, callback, color_count, resize):
         idle_add(callback, None)
 
 
-# Function to get a simple color palette from an image using threading
 def get_simple_palette_threaded(
     image_path: str,
     callback: Callable[[Optional[list[tuple[int, int, int]]]], None],
@@ -235,20 +222,14 @@ def get_simple_palette_threaded(
     thread(_pillow_worker, image_path, callback, color_count, resize)
 
 
-# Function to escape the markup
 def parse_markup(text: str) -> str:
-    """Escape *text* for Pango markup, re-enabling a small whitelist of
-    formatting tags (b/i/u) so apps can send basic formatting without being
-    able to inject arbitrary markup (inspired by SwayNotificationCenter).
+    """Escape *text* for Pango, re-enabling only the whitelisted b/i/u tags.
 
-    Falls back to fully-escaped output when the re-enabled markup does not
-    parse (e.g. unclosed tags), so malformed bodies can never break rendering.
+    Falls back to fully-escaped output when the result does not parse, so a
+    malformed body can never break rendering.
     """
     escaped = html.escape(text.replace("\n", " "))
-    # Re-enable whitelisted tags first (real ``<b>`` tags survive escaping as
-    # ``&lt;b&gt;``), then fix double-escaped entities: apps like Discord send
-    # pre-escaped text, so a literal "<" arrives as "&lt;" and would render as
-    # "&lt;" without unescaping "&amp;" back to "&" first (SwayNC behavior).
+    # Whitelisted tags survive escaping as entities; undo double-escaping too (Discord).
     candidate = _ALLOWED_MARKUP_TAGS_RE.sub(r"<\1>", escaped)
     candidate = _DOUBLE_ESCAPED_ENTITIES_RE.sub(r"&\1", candidate)
     if candidate == escaped:
@@ -261,11 +242,10 @@ def parse_markup(text: str) -> str:
 
 
 def extract_one_time_code(text: str) -> str | None:
-    """Return the first one-time (2FA) code found in *text*, else ``None``.
+    """Return the first 2FA code in *text* (digits only), or ``None``.
 
-    Matches 4-8 digit codes and ``123-456`` / ``123 456`` pairs delimited by
-    whitespace or string boundaries, plus Google's ``G-123456`` format
-    (SwayNC-inspired). Returns digits only, ready for pasting into OTP fields.
+    Matches 4-8 digit codes and ``123-456``/``123 456`` pairs plus Google's
+    ``G-123456`` form, ready for pasting into OTP fields.
     """
     if not text:
         return None
@@ -278,11 +258,9 @@ def extract_one_time_code(text: str) -> str | None:
 
 
 def extract_body_image(text: str) -> tuple[str, str | None]:
-    """Strip ``<img src=...>`` tags from *text* and return a tuple of the
-    cleaned text and the first image source, or ``None`` (SwayNC-inspired).
+    """Strip ``<img src=...>`` tags, returning (cleaned text, first src).
 
-    The returned source is not resolved to a path; use ``expand_env`` and
-    ``os.path.exists`` at the call site.
+    The source is unresolved; expand and stat it at the call site.
     """
     if not text or "<img" not in text:
         return text, None
@@ -295,9 +273,10 @@ def extract_body_image(text: str) -> tuple[str, str | None]:
 
 
 def format_relative_timestamp(ts: float | None) -> str:
-    """Format a unix timestamp as a compact relative label, e.g. "Now",
-    "5m ago", "2h ago", "3d ago". Accepts seconds or milliseconds; returns an
-    empty string for missing/invalid input."""
+    """Format a timestamp as "Now"/"5m ago"/"2h ago"/"3d ago".
+
+    Takes seconds or milliseconds; missing or invalid input yields "".
+    """
     if ts is None:
         return ""
     try:
@@ -327,15 +306,10 @@ def _clipboard_argv() -> list[str] | None:
 
 
 def copy_to_clipboard(text: str, *, asynchronous: bool = False) -> bool:
-    """Copy *text* to the system clipboard (wl-copy, falling back to xclip).
+    """Copy *text* to the clipboard (wl-copy, else xclip).
 
-    Synchronous by default, which reports whether the copy completed. With
-    *asynchronous* the text is handed to the tool and the call returns
-    immediately so the GTK thread is never blocked while it starts; the real
-    outcome then arrives on the completion callback, so the return value only
-    says the copy was dispatched.
-
-    A missing tool or a spawn failure is logged, never raised.
+    Synchronous by default reports the real outcome; *asynchronous* only says
+    the copy was dispatched. Failures are logged, never raised.
     """
     argv = _clipboard_argv()
     if argv is None:
@@ -392,11 +366,10 @@ def read_toml_file(file_path: str) -> Optional[dict]:
 
 
 def _atomic_write(path: str, dump: Callable[[Any], None]) -> None:
-    """Write via a temp file beside *path*, then rename it into place.
+    """Dump via a temp file beside *path*, then rename it into place.
 
-    A crash or a failed dump leaves the previous file intact instead of a
-    truncated one, so ``config.toml`` and the caches cannot be corrupted. The
-    temp file is removed if the dump raises.
+    Keeps the old file intact if the dump raises, so config and caches are
+    never left truncated.
     """
     directory = os.path.dirname(path) or "."
     fd, tmp_path = tempfile.mkstemp(dir=directory, prefix=".tsumiki-", suffix=".tmp")
@@ -426,13 +399,11 @@ def write_toml_file(path: str, data: dict, *, sync: bool = False):
         return None
 
 
-# support for multiple monitors
 def for_monitors(widget: Gtk.Widget) -> list[Gtk.Widget]:
     n = Gdk.Display.get_default().get_n_monitors() if Gdk.Display.get_default() else 1
     return [widget(i) for i in range(n)]
 
 
-# Function to ttl lru cache
 def ttl_lru_cache(seconds_to_live: int, maxsize: int = 128):
     def wrapper(func):
         @lru_cache(maxsize)
@@ -446,7 +417,6 @@ def ttl_lru_cache(seconds_to_live: int, maxsize: int = 128):
     return wrapper
 
 
-# Function to parse hyprland reply
 def parse_hyprland_reply(reply: HyprlandReply) -> dict:
     try:
         return json.loads(reply.reply.decode().strip("\n"))
@@ -461,11 +431,7 @@ def parse_hyprland_reply(reply: HyprlandReply) -> dict:
         return {}
 
 
-# Lock to serialize read-modify-write cycles on config.toml.
-# Without this, concurrent calls (e.g. set_mode triggering both
-# theme and mode updates) race on the same file: the second read
-# can observe stale pre-first-write content, silently reverting
-# the first update on next restart.
+# Without this lock, a concurrent second update reverts the first one.
 _config_write_lock = threading.Lock()
 
 
@@ -490,30 +456,24 @@ def _update_config_key(key_path: list[str], value: Any) -> None:
             )
 
 
-# Function to update the theme configuration
 def update_theme_config(theme_name: str):
     """Update the config.toml file with the new theme name."""
     _update_config_key(["styling", "theme_name"], theme_name)
     logger.info(f"{Colors.INFO}[Theme] Updated theme config to {theme_name}")
 
 
-# Function to update the styling mode (dark/light)
 def update_styling_mode(mode: str):
     """Update the config.toml file with the new styling mode."""
     _update_config_key(["styling", "mode"], mode)
     logger.info(f"{Colors.INFO}[Theme] Updated styling mode to {mode}")
 
 
-# Function to convert celsius to fahrenheit
 def celsius_to_fahrenheit(celsius: float) -> float:
     return (celsius * 9 / 5) + 32
 
 
-# Merge the parsed data with the default configuration
 def deep_merge(data: dict, target: dict) -> dict:
-    """
-    Recursively update a nested dictionary with values from another dictionary.
-    """
+    """Recursively merge *data* over *target*."""
     merged = target.copy()
     for key, user_value in data.items():
         if (
@@ -527,32 +487,28 @@ def deep_merge(data: dict, target: dict) -> dict:
     return merged
 
 
-# Function to flatten a dictionary
 def flatten_dict(d: dict, parent_key: str = "", sep: str = "-") -> dict:
     """Flatten a nested dictionary into a single level."""
     items = []
     for k, v in d.items():
         new_key = f"{parent_key}{sep}{k}" if parent_key else k
-        if isinstance(v, dict):  # If the value is a dictionary, recurse
+        if isinstance(v, dict):
             items.extend(flatten_dict(v, new_key, sep=sep).items())
         else:
             items.append((new_key, v))
     return dict(items)
 
 
-# Function to exclude keys from a dictionary
 def exclude_keys(d: dict, keys_to_exclude: list[str]) -> dict:
     return {k: v for k, v in d.items() if k not in keys_to_exclude}
 
 
-# Function to format time in hours and minutes
 def format_seconds_to_hours_minutes(secs: int) -> str:
     mm, _ = divmod(secs, 60)
     hh, mm = divmod(mm, 60)
     return "%d h %02d min" % (hh, mm)
 
 
-# Function to convert bytes to kilobytes, megabytes, or gigabytes
 def convert_bytes(
     bytes: int, to: Literal["kb", "mb", "gb", "tb"], format_spec=".1f"
 ) -> str:
@@ -560,7 +516,6 @@ def convert_bytes(
     return f"{format(bytes / (1024**factor), format_spec)}{to.upper()}"
 
 
-# Function to check if the current time is between sunrise and sunset
 def check_if_day(
     sunrise_time,
     sunset_time,
@@ -574,71 +529,57 @@ def check_if_day(
     sunrise_time_obj = datetime.strptime(sunrise_time, time_format)
     sunset_time_obj = datetime.strptime(sunset_time, time_format)
 
-    # Compare current time with sunrise and sunset
     if sunrise_time_obj <= sunset_time_obj:
         return sunrise_time_obj <= current_time_obj < sunset_time_obj
 
     return current_time_obj >= sunrise_time_obj or current_time_obj < sunset_time_obj
 
 
-# wttr.in time are in 300,400...2100 format, we need to convert it to 4:00...21:00
-# Accepts both "HHMM" (e.g. "1200") and "HH:MM" (e.g. "14:30") input.
+# wttr.in reports times as "HHMM" (e.g. "1200"); accept "HH:MM" too (Open-Meteo).
 def convert_to_12hr_format(time: str) -> str:
     if not time:
         return time or ""
 
-    # Handle "HH:MM" format (e.g. from Open-Meteo sunrise/sunset)
     if ":" in str(time):
         try:
             hour, minute = map(int, str(time).split(":"))
         except (ValueError, IndexError):
             return str(time)
     else:
-        # Handle "HHMM" format (e.g. from wttr.in hourly forecast)
         time_int = int(time)
         hour = time_int // 100
         minute = time_int % 100
 
-    # Convert to 12-hour format
     period = "AM" if hour < 12 else "PM"
 
-    # Adjust hour for 12-hour format
     if hour == 0:
         hour = 12
     elif hour > 12:
         hour -= 12
 
-    # Format the time as a string
     return f"{hour}:{minute:02d} {period}"
 
 
-# Function to unique list
 def unique_list(lst: list[Any]) -> list[Any]:
     """Return a list with unique elements."""
     return list(set(lst))
 
 
-# Function to get the relative time
 def get_relative_time(mins: int) -> str:
-    # Seconds
     if mins == 0:
         return "now"
 
-    # Minutes
     if mins < 60:
         return f"{mins} minute{'s' if mins > 1 else ''} ago"
 
-    # Hours
     if mins < 1440:
         hours = mins // 60
         return f"{hours} hour{'s' if hours > 1 else ''} ago"
 
-    # Days
     days = mins // 1440
     return f"{days} day{'s' if days > 1 else ''} ago"
 
 
-# Function to get the percentage of a value
 def convert_to_percent(
     current: int | float, max: int | float, is_int=True
 ) -> int | float:
@@ -650,7 +591,6 @@ def convert_to_percent(
         return (current / max) * 100
 
 
-# Function to check if a color is valid
 def is_valid_gjs_color(color: str) -> bool:
     color_lower = color.strip().lower()
 
@@ -663,12 +603,10 @@ def is_valid_gjs_color(color: str) -> bool:
     return bool(RGB_RE.match(color_lower) or RGBA_RE.match(color_lower))
 
 
-# Function to convert seconds to milliseconds
 def convert_seconds_to_milliseconds(seconds: int) -> int:
     return seconds * 1000
 
 
-# Set the scale's adjustment
 def set_scale_adjustment(
     scale, min_value: float = 0, max_value: float = 100, steps: float = 1
 ):
@@ -685,21 +623,30 @@ def set_scale_adjustment(
         )
 
 
-# Function to toggle a shell command
+def spawn_detached(argv: Sequence[str], cwd: str | None = None) -> None:
+    """Spawn *argv* fire-and-forget in its own session, output to /dev/null.
+
+    The separate session matters: callers use this for work that must outlive
+    this process, e.g. the restart the config watcher triggers.
+    """
+    argv = list(argv)
+    # setsid gives the child its own session so this process exiting cannot signal it.
+    if find_executable("setsid"):
+        argv.insert(0, "setsid")
+    launcher = Gio.SubprocessLauncher.new(Gio.SubprocessFlags.NONE)
+    if cwd:
+        launcher.set_cwd(cwd)
+    for stream in ("stdin", "stdout", "stderr"):
+        getattr(launcher, f"set_{stream}_file_path")("/dev/null")
+    launcher.spawnv(argv)
+
+
 def toggle_command(command: str, full_command: str):
     full_command = full_command.strip(" ")
     if is_app_running(command):
         kill_process(command)
     else:
-        # Use subprocess directly so the launched app survives bar restart.
-        subprocess.Popen(
-            full_command,
-            shell=True,
-            stdin=subprocess.DEVNULL,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            start_new_session=True,
-        )
+        spawn_detached(shlex.split(full_command))
 
 
 def char_limit_to_px(label_widget, char_limit: int) -> int:
@@ -712,10 +659,8 @@ def char_limit_to_px(label_widget, char_limit: int) -> int:
     return px
 
 
-## Function to execute a shell command asynchronously
 def kill_process(process_name: str):
-    # A list, not a shell string, and "--" so a name starting with a dash is
-    # not read as an option.
+    # argv, not a shell string, and "--" so a leading-dash name is not an option.
     exec_shell_command_async(["pkill", "--", process_name])
 
 
@@ -724,67 +669,54 @@ def lazy_load_class(module_name: str, class_name: str):
     return getattr(module, class_name)
 
 
-# Function to generate a QR code image
 @ttl_lru_cache(3600, 10)
 def make_qrcode(text: str, size: int = 200) -> GdkPixbuf.Pixbuf:
     import qrcode
 
-    # Generate QR Code image
     qr = qrcode.make(text)
     buffer = BytesIO()
     qr.save(buffer, format="PNG")
     buffer.seek(0)
 
-    # Load into GTK Pixbuf
     loader = GdkPixbuf.PixbufLoader.new_with_type("png")
     loader.write(buffer.read())
     loader.close()
     pixbuf = loader.get_pixbuf()
 
-    # Scale Pixbuf to the desired size
     scaled_pixbuf = pixbuf.scale_simple(size, size, GdkPixbuf.InterpType.BILINEAR)
 
     return scaled_pixbuf
 
 
-# Function to play sound
 @cooldown(1)
 def play_sound(file: str):
     # A list, not a shell string: the sound path is user-configured.
     exec_shell_command_async(["pw-play", file])
 
 
-# Function to get the distro icon
 @ttl_lru_cache(600, 10)
 def get_distro_icon() -> str:
     distro_id = GLib.get_os_info("ID")
 
-    # Search for the icon in the list
     return get_text_icon(f"distro.{distro_id}", "") or ""
 
 
-# Function to check if an executable exists
 @ttl_lru_cache(600, 10)
 def check_executable_exists(executable_name):
     executable_path = GLib.find_program_in_path(executable_name)
     if not executable_path:
-        raise ExecutableNotFoundError(
-            executable_name
-        )  # Raise an error if the executable is not found and exit the application
+        raise ExecutableNotFoundError(executable_name)
 
 
-# Function to locate an executable on PATH
 @ttl_lru_cache(600, 64)
 def find_executable(executable_name: str) -> str | None:
     """Return the absolute path of *executable_name*, or None if not found.
 
-    TTL-cached (10 min) so repeated lookups — e.g. plugins probing for a
-    required tool on every query — don't re-scan PATH each time.
+    TTL-cached so plugins probing for a required tool do not re-scan PATH.
     """
     return GLib.find_program_in_path(executable_name)
 
 
-# Function to send a notification
 @cooldown(1)
 def send_notification(
     title: str,
@@ -793,24 +725,19 @@ def send_notification(
     icon: Optional[str] = None,
     app_name: str = "Application",
 ):
-    # Create a notification with the title
     notification = Gio.Notification.new(title)
     notification.set_body(body)
 
-    # Set the urgency level if provided
     if urgency in URGENCY_LEVELS:
         notification.set_urgent(urgency == "critical")
 
-    # Set the icon if provided
     if icon:
         notification.set_icon(Gio.ThemedIcon.new(icon))
 
-    # Optionally, set the application name
     notification.set_title(app_name)
 
     application = Gio.Application.get_default()
 
-    # Send the notification to the application
     application.send_notification(None, notification)
     return True
 
@@ -818,8 +745,8 @@ def send_notification(
 def write_json_file(path: str, data: dict | list, *, sync: bool = False):
     """Write JSON off-thread by default, or inline when *sync* is true.
 
-    Write failures are logged, never raised, so a caller on a worker thread
-    cannot be wedged by an unwritable path.
+    Failures are logged, never raised, so a worker thread cannot be wedged by
+    an unwritable path.
     """
     if not sync:
         return thread(write_json_file, path, data, sync=True)
@@ -832,7 +759,6 @@ def write_json_file(path: str, data: dict | list, *, sync: bool = False):
         logger.exception(f"Failed to write json: {e}")
 
 
-# Function to ensure the file exists
 @run_in_thread
 def ensure_file(path: str):
     file = Gio.File.new_for_path(path)
@@ -848,13 +774,11 @@ def ensure_file(path: str):
         logger.exception(f"Failed to ensure file '{path}': {e.message}")
 
 
-# Function to ensure the directory exists
 def ensure_directory(path: str, *, sync: bool = False):
-    """Create the directory *path* and its parents; off-thread unless *sync*.
+    """Create *path* and its parents; off-thread unless *sync*.
 
-    Off-thread by default because callers are usually reacting to something on
-    the main loop. A caller that is about to write a file into the directory
-    must pass ``sync=True``, or it can race the mkdir.
+    A caller about to write into the directory must pass ``sync=True`` or it
+    can race the mkdir.
     """
     if not sync:
         return thread(ensure_directory, path, sync=True)
@@ -867,12 +791,7 @@ def ensure_directory(path: str, *, sync: bool = False):
 
 
 class CommandError(RuntimeError):
-    """A command failed while run with ``check=True``.
-
-    *kind* is one of ``"missing"``, ``"timeout"`` or ``"failed"``, so a caller
-    that has to react differently to "the binary is not installed" than to "it
-    exited non-zero" can, without inspecting the exception's cause.
-    """
+    """A command failed with ``check=True``; *kind* is missing/timeout/failed."""
 
     def __init__(
         self,
@@ -892,81 +811,100 @@ class CommandError(RuntimeError):
         self.stderr = stderr
 
 
+def _spawn_and_wait(
+    cmd: str | Sequence[str], timeout: float | None
+) -> tuple[int | None, str, str, str | None]:
+    """Run *cmd* to completion, returning ``(returncode, stdout, stderr, kind)``.
+
+    A *kind* of timeout/missing means there is no usable returncode.
+    """
+    argv = shlex.split(cmd) if isinstance(cmd, str) else list(cmd)
+    try:
+        process = Gio.Subprocess.new(
+            argv,
+            Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_PIPE,
+        )
+    except GLib.Error as e:
+        return None, "", str(e), "missing"
+
+    timed_out = False
+
+    def kill() -> None:
+        nonlocal timed_out
+        timed_out = True
+        with contextlib.suppress(GLib.Error):
+            process.force_exit()
+
+    # A GLib timeout cannot fire while this thread blocks, so the watchdog is a thread.
+    watchdog = threading.Timer(timeout, kill) if timeout else None
+    if watchdog is not None:
+        watchdog.daemon = True
+        watchdog.start()
+    try:
+        _, stdout, stderr = process.communicate_utf8(None, None)
+    finally:
+        if watchdog is not None:
+            watchdog.cancel()
+
+    if timed_out:
+        return None, stdout, stderr, "timeout"
+    return process.get_exit_status(), stdout, stderr, None
+
+
 def run_command(
     cmd: str | Sequence[str],
     *,
     timeout: float | None = None,
     check: bool = False,
 ) -> str | None:
-    """Run a command and return its stdout, or ``None`` when it failed.
+    """Run a command, returning stdout or ``None`` when it failed.
 
-    Fabric's ``exec_shell_command`` returns the *error text* on a non-zero
-    exit, so its result cannot be used to tell success from failure - callers
-    testing it for ``False`` never see an error. This wrapper keys off the
-    exit status instead, which is the only reliable signal.
-
-    A list argument runs without a shell, which is the safe form for any value
-    that came from config, a notification or the filesystem. A string runs via
-    the shell, for commands that genuinely need it.
-
-    *timeout* kills the command after that many seconds.
-
-    By default a failure is logged and reported as ``None``. With ``check=True``
-    a failure raises :class:`CommandError` instead, for the callers that have to
-    say *why* it failed rather than fall back quietly.
+    Keys off the exit status, not Fabric's ``exec_shell_command``, which returns
+    the error text and so cannot signal success. ``check=True`` raises.
     """
-    try:
-        result = subprocess.run(
-            cmd,
-            shell=isinstance(cmd, str),
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-            check=False,
-        )
-    except subprocess.TimeoutExpired as e:
+    returncode, stdout, stderr, kind = _spawn_and_wait(cmd, timeout)
+
+    if kind == "timeout":
         message = f"Command timed out after {timeout}s: {cmd}"
         if check:
-            raise CommandError(cmd, message, kind="timeout") from e
+            raise CommandError(cmd, message, kind="timeout")
         logger.warning(message)
         return None
-    except (OSError, subprocess.SubprocessError) as e:
+
+    if kind == "missing":
+        message = f"Failed to run {cmd}: {stderr}"
         if check:
-            raise CommandError(cmd, f"Failed to run {cmd}: {e}", kind="missing") from e
-        logger.exception(f"Failed to run {cmd}: {e}")
+            raise CommandError(cmd, message, kind="missing")
+        logger.warning(message)
         return None
 
-    if result.returncode != 0:
-        detail = result.stderr.strip()
-        message = f"Command failed (status {result.returncode}): {cmd}" + (
+    if returncode != 0:
+        detail = stderr.strip()
+        message = f"Command failed (status {returncode}): {cmd}" + (
             f": {detail}" if detail else ""
         )
         if check:
             raise CommandError(
                 cmd,
                 message,
-                returncode=result.returncode,
-                stdout=result.stdout,
-                stderr=result.stderr,
+                returncode=returncode,
+                stdout=stdout,
+                stderr=stderr,
             )
         logger.warning(message)
         return None
-    return result.stdout
+    return stdout
 
 
-# Function to check if an app is running
 @ttl_lru_cache(seconds_to_live=2, maxsize=32)
 def is_app_running(app_name: str) -> bool:
-    # pidof exits non-zero when nothing matches, so the status is the answer.
-    return run_command(["pidof", app_name]) is not None
+    return bool(exec_shell_command(f"pidof {app_name}"))
 
 
-# Function to take a memory snapshot
 def take_snapshot():
     import tracemalloc
 
     tracemalloc.start()
-    # Later in code
     snapshot = tracemalloc.take_snapshot()
     top_stats = snapshot.statistics("lineno")
 
@@ -976,7 +914,7 @@ def take_snapshot():
     for stat in top_stats[:10]:
         print(stat)
 
-    return True  # Keep the timeout active
+    return True
 
 
 # ── Shared HTTP client ───────────────────────────────────────
@@ -986,15 +924,10 @@ _shared_http_client_lock = threading.Lock()
 
 
 def get_http_client():
-    """Return a shared ``httpx.Client`` with connection pooling (thread-safe).
+    """Return a shared, connection-pooling ``httpx.Client`` (thread-safe).
 
-    Services that make HTTP requests (weather, quotes, etc.) should use
-    this instead of creating throwaway ``httpx.Client`` or ``urlopen``
-    instances per call.  The shared session reuses TCP connections,
-    caches DNS, and applies consistent timeout / User-Agent defaults.
-
-    The underlying ``httpx`` module is imported lazily, so there is no
-    import cost for configurations that never make HTTP requests.
+    Reuses TCP connections and DNS, and applies consistent timeout/UA defaults,
+    so services must not build throwaway clients per call.
     """
     global _shared_http_client
     with _shared_http_client_lock:
@@ -1025,23 +958,16 @@ _path_exists_cache = TTLCache(maxsize=_PATH_EXISTS_CACHE_MAX)
 
 
 def path_exists_ttl(path: str, ttl: int = 300) -> bool:
-    """Check if a filesystem path exists, with TTL and bounded caching (thread-safe).
+    """``os.path.exists`` with a TTL and a bounded cache (thread-safe).
 
-    Caches ``os.path.exists`` results to avoid redundant syscalls on hot paths
-    (system tray icon checks, device scans, etc.). Entries live at most *ttl*
-    seconds before a fresh stat is issued; past
-    ``_PATH_EXISTS_CACHE_MAX`` the oldest are evicted.
-
-    Eviction is least-recently-inserted, not least-recently-used: a hit does
-    not refresh the entry's position. That is fine for a stat cache, where a
-    hot path is re-stat'ed every *ttl* seconds anyway.
+    Eviction is least-recently-inserted, not LRU, which is fine for a stat
+    cache: a hot path is re-stat'ed every *ttl* seconds anyway.
     """
     return _path_exists_cache.get_or_produce(
         path, lambda: os.path.exists(path), ttl=ttl
     )
 
 
-# Pre-defined log domains tuple (immutable)
 _LOG_DOMAINS = (
     None,  # Default domain
     "Gtk",
@@ -1065,11 +991,9 @@ _LOG_DOMAINS = (
 )
 
 
-# Function to set a debug logger for GLib
 def set_debug_logger():
     import traceback
 
-    # Build level map once
     level_map = {
         GLib.LogLevelFlags.LEVEL_ERROR: "ERROR",
         GLib.LogLevelFlags.LEVEL_CRITICAL: "CRITICAL",
@@ -1079,7 +1003,6 @@ def set_debug_logger():
         GLib.LogLevelFlags.LEVEL_DEBUG: "DEBUG",
     }
 
-    # Pre-compute mask
     mask = ~(GLib.LogLevelFlags.FLAG_FATAL | GLib.LogLevelFlags.FLAG_RECURSION)
 
     def log_handler(domain, level, message):
@@ -1088,7 +1011,6 @@ def set_debug_logger():
         print(f"\n[{domain or 'Default'}] {level_name}: {message}")
         traceback.print_stack()
 
-    # Set log levels
     log_levels = (
         GLib.LogLevelFlags.LEVEL_ERROR
         | GLib.LogLevelFlags.LEVEL_CRITICAL
@@ -1103,21 +1025,14 @@ def set_debug_logger():
 
 
 def safe_disconnect(signal_source, handler_id: int | None) -> None:
-    """Safely disconnect a signal handler without raising exceptions.
-
-    Args:
-        signal_source: The object (e.g., GObject) with the signal
-        handler_id: The handler ID returned by connect(). Can be None.
-    """
+    """Disconnect *handler_id*, ignoring a stale or already-gone id."""
     if handler_id is not None:
         with contextlib.suppress(Exception):
             signal_source.disconnect(handler_id)
 
 
 def load_cover_pixbuf(path: str, width: int, height: int):
-    # Decode at roughly the target size to avoid full-resolution decode.
-    # GdkPixbuf.new_from_file_at_size uses optimized JPEG decode that only
-    # decompresses the needed resolution when possible.
+    # new_from_file_at_size avoids a full-resolution decode of large JPEGs.
     target_size = max(width, height)
     pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(path, target_size, target_size)
 

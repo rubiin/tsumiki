@@ -13,7 +13,9 @@ from unittest import mock
 
 from utils import functions as functions_module
 from widgets.github_tray import state as tray_state
+from widgets.github_tray import widget as tray_module
 from widgets.github_tray.client import GitHubClient, GitHubClientError
+from widgets.github_tray.widget import GitHubTrayWidget
 
 
 def _iso(seconds_ago: int) -> str:
@@ -315,16 +317,164 @@ class MenuCacheTests(unittest.TestCase):
         )
 
 
+class _MenuApplyHarness:
+    """Runs the real ``_apply_menu`` logic without building a GTK widget."""
+
+    _apply_menu = GitHubTrayWidget._apply_menu
+    _alerts_config = GitHubTrayWidget._alerts_config
+    _visible_repos = GitHubTrayWidget._visible_repos
+
+    def __init__(self, config, notifications=()):
+        self.config = config
+        self._client = mock.Mock(web_base="https://github.com")
+        self._generation = 1
+        self._busy = True
+        self.loading = False
+        self.error_message = ""
+        self.loaded_once = False
+        self._last_repos_at = 0.0
+        self.avatar_pixbuf = None
+        self.user = {}
+        self.repos = []
+        self.followers = []
+        self.notifications = list(notifications)
+
+    # no-op stand-ins for the UI touchpoints
+    def _load_avatar_async(self):
+        pass
+
+    def _update_badge(self):
+        pass
+
+    def _push_state(self):
+        pass
+
+    def _prime_notifications(self):
+        pass
+
+
+class MenuApplyAlertTests(unittest.TestCase):
+    """Desktop alerts fired by the menu-apply path honour the alerts config."""
+
+    def _repo(self, rid, name, stars=0, forks=0, issues=0):
+        return {
+            "id": rid,
+            "name": name,
+            "full_name": f"octo/{name}",
+            "stargazers_count": stars,
+            "forks_count": forks,
+            "open_issues_count": issues,
+        }
+
+    def _run(self, alerts, previous, payload, workflows=None):
+        harness = _MenuApplyHarness({"alerts": alerts})
+        with (
+            mock.patch.object(tray_state, "load_state_file", return_value=previous),
+            mock.patch.object(tray_state, "save_state_file") as save,
+            mock.patch.object(tray_state, "save_menu_cache"),
+            mock.patch.object(tray_module, "send_notification") as sent,
+        ):
+            harness._apply_menu(1, payload, workflows, None)
+        titles = {call.args[0] for call in sent.call_args_list}
+        return titles, save
+
+    def test_alerts_disabled_fires_nothing(self):
+        """alerts.enabled = false must not notify, even with every sub-flag on."""
+        previous = {
+            "repos": [self._repo(1, "r", 1, 0, 0)],
+            "followers": [{"id": 1, "login": "old"}],
+            "notifications": [],
+            "workflows": {"octo/r": [{"id": 1, "status": "in_progress", "name": "CI"}]},
+        }
+        payload = {
+            "user": {"login": "octo"},
+            "repos": [self._repo(1, "r", 9, 4, 3)],
+            "followers": [{"id": 1, "login": "old"}, {"id": 2, "login": "new"}],
+        }
+        workflows = {
+            "octo/r": [
+                {"id": 1, "status": "completed", "conclusion": "failure", "name": "CI"}
+            ]
+        }
+        alerts = {
+            "enabled": False,
+            "new_stars": True,
+            "new_forks": True,
+            "new_issues": True,
+            "new_followers": True,
+            "workflow_failure": True,
+        }
+
+        titles, _ = self._run(alerts, previous, payload, workflows)
+
+        self.assertEqual(titles, set())
+
+    def test_alerts_enabled_fires_only_enabled_categories(self):
+        previous = {
+            "repos": [self._repo(1, "r", 1, 1, 1)],
+            "followers": [{"id": 1, "login": "old"}],
+            "notifications": [],
+            "workflows": {"octo/r": [{"id": 1, "status": "in_progress", "name": "CI"}]},
+        }
+        payload = {
+            "user": {"login": "octo"},
+            "repos": [self._repo(1, "r", 9, 4, 3)],
+            "followers": [{"id": 1, "login": "old"}, {"id": 2, "login": "new"}],
+        }
+        workflows = {
+            "octo/r": [
+                {"id": 1, "status": "completed", "conclusion": "failure", "name": "CI"}
+            ]
+        }
+        alerts = {
+            "enabled": True,
+            "new_stars": True,
+            "new_forks": False,
+            "new_issues": False,
+            "new_followers": False,
+            "workflow_failure": True,
+        }
+
+        titles, _ = self._run(alerts, previous, payload, workflows)
+
+        self.assertEqual(titles, {"New Stars!", "GitHub Actions: Workflow Failed"})
+
+    def test_alerts_disabled_still_saves_state(self):
+        """The opt-out suppresses notifications, not the snapshot diff needs."""
+        previous = {"repos": [self._repo(1, "r", 1)], "followers": []}
+        payload = {
+            "user": {"login": "octo"},
+            "repos": [self._repo(1, "r", 9)],
+            "followers": [{"id": 2, "login": "new"}],
+        }
+        disabled = {"enabled": False, "new_stars": True, "new_followers": True}
+
+        _, save = self._run(disabled, previous, payload, None)
+
+        save.assert_called_once()
+        path, merged = save.call_args.args
+        self.assertTrue(path.endswith("github_tray_state.json"))
+        self.assertEqual([repo["stargazers_count"] for repo in merged["repos"]], [9])
+        # Feeding the saved snapshot back in must not re-alert.
+        titles, _ = self._run(
+            {"enabled": True, "new_stars": True, "new_followers": True},
+            merged,
+            payload,
+            None,
+        )
+        self.assertEqual(titles, set())
+
+
 class ClientTests(unittest.TestCase):
     """gh CLI command construction and error mapping."""
 
     def _patch_run(self, payload, returncode=0, stderr=""):
-        proc = mock.Mock()
-        proc.returncode = returncode
-        proc.stdout = json.dumps(payload) if payload is not None else ""
-        proc.stderr = stderr
-        # the client delegates to functions.run_command, which wraps subprocess.run
-        return mock.patch.object(functions_module.subprocess, "run", return_value=proc)
+        stdout = json.dumps(payload) if payload is not None else ""
+        result = (returncode, stdout, stderr, None)
+        # the client delegates to functions.run_command -> _spawn_and_wait
+        return mock.patch.object(
+            functions_module, "_spawn_and_wait", return_value=result
+        )
 
     def test_fetch_menu_command_shape(self):
         payload = {"data": {"viewer": {"login": "octo", "repositories": {"nodes": []}}}}
