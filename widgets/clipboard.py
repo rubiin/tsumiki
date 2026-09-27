@@ -14,7 +14,6 @@ from fabric.utils import (
     logger,
     os,
     re,
-    remove_handler,
     time,
 )
 from fabric.widgets.box import Box
@@ -63,7 +62,6 @@ class ClipHistoryMenu(Box, TeardownMixin):
         self.MAX_IMAGE_CACHE = 10  # Limit cache size to prevent memory bloat
 
         self.selected_index = -1  # Track the selected item index
-        self._arranger_handler = 0
         self.clipboard_items = []
         self.filtered_items = []
         self._loading = False
@@ -293,7 +291,6 @@ class ClipHistoryMenu(Box, TeardownMixin):
 
     def _display_clipboard_items(self, filter_text=""):
         """Display clipboard items in the viewport"""
-        remove_handler(self._arranger_handler) if self._arranger_handler else None
         self.viewport.remove_all()
         self._item_widgets.clear()
         self.selected_index = -1
@@ -892,10 +889,6 @@ class ClipHistoryMenu(Box, TeardownMixin):
     def _cleanup_resources(self):
         """Best-effort cleanup for timers, caches, and temporary resources."""
         self._search_timer_id = None
-
-        if self._arranger_handler:
-            remove_handler(self._arranger_handler)
-            self._arranger_handler = 0
 
         self.viewport.remove_all()
         self.clipboard_items.clear()

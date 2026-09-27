@@ -316,17 +316,19 @@ class StyleService(SingletonService):
         """Load the compiled CSS file into the running application."""
         try:
             if file:
-                # Belt-and-braces: GTK3 rejects @charset as an unknown @ rule.
                 with open(file, encoding="utf-8") as handle:
                     content = handle.read()
-                stripped = "\n".join(
-                    line
-                    for line in content.splitlines()
-                    if not line.lstrip().startswith("@charset")
-                )
-                if stripped != content:
-                    with open(file, "w", encoding="utf-8") as handle:
-                        handle.write(stripped)
+                # Belt-and-braces: GTK3 rejects @charset as an unknown @ rule,
+                # but the compile passes --no-charset, so skip the rewrite.
+                if "@charset" in content:
+                    stripped = "\n".join(
+                        line
+                        for line in content.splitlines()
+                        if not line.lstrip().startswith("@charset")
+                    )
+                    if stripped != content:
+                        with open(file, "w", encoding="utf-8") as handle:
+                            handle.write(stripped)
             app = Application.get_default()
             if app:
                 app.set_stylesheet_from_file(file)

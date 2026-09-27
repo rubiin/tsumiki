@@ -2,6 +2,7 @@
 
 import hashlib
 import os
+import shutil
 import tempfile
 import unittest
 from unittest import mock
@@ -135,11 +136,17 @@ class ConfigWatcherOnFileChangedTest(unittest.TestCase):
         m.get_basename.return_value = os.path.basename(path)
         return m
 
-    def test_ignores_non_done_hint_event(self):
+    def test_ignores_unrelated_event_types(self):
+        """Only events that can carry a new file body are worth reading."""
+        from fabric.utils import Gio
+
         w = _make_bare_watcher()
         file_mock = self._make_file_mock(self._path_a)
-        w._on_file_changed(None, file_mock, None, "CHANGED")
+        with mock.patch("utils.config_watcher.GLib.timeout_add") as mock_timeout:
+            for event in (Gio.FileMonitorEvent.DELETED, Gio.FileMonitorEvent.MOVED_OUT):
+                w._on_file_changed(None, file_mock, None, event)
         self.assertFalse(w._restart_pending)
+        mock_timeout.assert_not_called()
 
     def test_ignores_unwatched_files(self):
         w = _make_bare_watcher()
@@ -189,6 +196,84 @@ class ConfigWatcherOnFileChangedTest(unittest.TestCase):
         ):
             w._on_file_changed(None, file_mock, None, _DONE_HINT)
         mock_timeout.assert_not_called()
+
+
+class ConfigWatcherEventTypeTest(unittest.TestCase):
+    """An atomic save reports several event types; all of them must be heard.
+
+    A fresh ``config.toml`` may only ever report ``CREATED``, and the hash
+    comparison — not the event type — is what keeps that from restarting twice.
+    """
+
+    def setUp(self):
+        from fabric.utils import Gio
+
+        self.events = Gio.FileMonitorEvent
+        self._tmpdir = tempfile.mkdtemp()
+        self._path = os.path.join(self._tmpdir, "config.toml")
+        self.addCleanup(shutil.rmtree, self._tmpdir, ignore_errors=True)
+
+    def _write(self, text: str) -> None:
+        with open(self._path, "w", encoding="utf-8") as handle:
+            handle.write(text)
+
+    def _file_mock(self):
+        file_mock = mock.Mock()
+        file_mock.get_path.return_value = self._path
+        file_mock.get_basename.return_value = "config.toml"
+        return file_mock
+
+    def _deliver(self, watcher, *event_types):
+        file_mock = self._file_mock()
+        with mock.patch("utils.config_watcher.GLib.timeout_add") as timeout:
+            for event in event_types:
+                watcher._on_file_changed(None, file_mock, None, event)
+        return timeout
+
+    def test_a_created_only_sequence_triggers_a_restart(self):
+        self._write('[styling]\nmode = "light"\n')
+        watcher = _make_bare_watcher()
+
+        timeout = self._deliver(watcher, self.events.CREATED)
+
+        self.assertTrue(watcher._restart_pending)
+        timeout.assert_called_once()
+
+    def test_an_atomic_save_sequence_triggers_exactly_one_restart(self):
+        """RENAMED + CHANGED + CHANGES_DONE_HINT is one save, not three."""
+        self._write('[styling]\nmode = "light"\n')
+        watcher = _make_bare_watcher()
+
+        timeout = self._deliver(
+            watcher,
+            self.events.MOVED_IN,
+            self.events.CHANGED,
+            self.events.CHANGES_DONE_HINT,
+        )
+
+        self.assertTrue(watcher._restart_pending)
+        timeout.assert_called_once()
+        self.assertEqual(
+            watcher._read_file_hash(self._path), watcher._file_hashes[self._path]
+        )
+
+    def test_a_repeated_event_for_the_same_content_does_nothing(self):
+        self._write('[styling]\nmode = "light"\n')
+        watcher = _make_bare_watcher()
+
+        timeout = self._deliver(watcher, self.events.CREATED, self.events.CHANGED)
+
+        self.assertTrue(watcher._restart_pending)
+        timeout.assert_called_once()
+
+    def test_a_deleted_config_does_not_schedule_a_restart(self):
+        """The file is gone, so there is no hash to compare and nothing to do."""
+        watcher = _make_bare_watcher()
+
+        timeout = self._deliver(watcher, self.events.DELETED)
+
+        self.assertFalse(watcher._restart_pending)
+        timeout.assert_not_called()
 
 
 class ConfigWatcherSelfWriteTest(unittest.TestCase):

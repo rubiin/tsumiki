@@ -16,8 +16,8 @@ class BrightnessService(SingletonService):
     """Service to manage screen brightness levels."""
 
     @Signal
-    def brightness_changed(self, value: int) -> None:
-        """Signal emitted when screen brightness changes."""
+    def brightness_changed(self, percentage: int) -> None:
+        """Signal emitted with the new screen brightness, as a percentage."""
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -81,7 +81,17 @@ class BrightnessService(SingletonService):
             return
 
         self._screen_brightness_cache = brightness
-        self.emit("brightness_changed", brightness)
+        self.emit("brightness_changed", self._as_percentage(brightness))
+
+    def _as_percentage(self, raw: int) -> int:
+        """Convert a raw sysfs brightness to a 0-100 percentage.
+
+        Every ``brightness_changed`` payload goes through here: the two emit
+        sites used to disagree on the unit, and a consumer cannot tell which.
+        """
+        if self.max_screen <= 0:
+            return 0
+        return int((raw / self.max_screen) * 100)
 
     def _read_max_brightness(self, path: str) -> int:
         max_brightness_path = os.path.join(path, "max_brightness")
@@ -120,10 +130,7 @@ class BrightnessService(SingletonService):
         try:
             exec_brightnessctl_async("--device", self.screen_device, "set", str(value))
             self._screen_brightness_cache = value
-            percentage = (
-                int((value / self.max_screen) * 100) if self.max_screen > 0 else 0
-            )
-            self.emit("brightness_changed", percentage)
+            self.emit("brightness_changed", self._as_percentage(value))
             logger.info(
                 f"{Colors.INFO}Set screen brightness to {value} "
                 f"(out of {self.max_screen})"
@@ -163,7 +170,6 @@ class BrightnessService(SingletonService):
 
     @Property(int, "readable")
     def screen_brightness_percentage(self):
-        if not self.screen_backlight_path or self.max_screen <= 0:
+        if not self.screen_backlight_path:
             return 0
-        current_brightness = self.screen_brightness
-        return int((current_brightness / self.max_screen) * 100)
+        return self._as_percentage(self.screen_brightness)

@@ -22,6 +22,8 @@ from widgets.github_tray.client import (
     GitHubClientError,
     _alias_for,
 )
+from widgets.github_tray.views import detail as tray_detail
+from widgets.github_tray.views import repos as tray_repos
 from widgets.github_tray.widget import GitHubTrayWidget
 
 
@@ -508,11 +510,13 @@ class _StubContent:
 class _RenderHarness(GitHubTrayWidget):
     """Real render gating; the popover, badge and style calls are stubbed."""
 
-    def __init__(self, content, visible=False):
+    def __init__(self, content, visible=False, config=None):
         self._popup = _StubPopover(content, visible)
         self._popover_built = True
         self.badge_label = mock.Mock()
         self.tooltips_enabled = False
+        self.config = {} if config is None else config
+        self._base_tooltip = "GitHub Tray"
         self.notifications = []
 
 
@@ -590,6 +594,61 @@ class PopoverRenderGatingTests(unittest.TestCase):
         self.assertEqual(self.widget.unread_count, 0)
         self.widget.badge_label.set_label.assert_called_once_with("")
         self.widget.badge_label.set_visible.assert_called_once_with(False)
+
+
+class BadgeTooltipTests(unittest.TestCase):
+    """The badge tooltip is a temporary override, not a replacement."""
+
+    def _widget(self, config=None):
+        widget = _RenderHarness(_StubContent(), config=config)
+        widget.tooltips_enabled = True
+        self.tooltips: list[str] = []
+        patcher = mock.patch.object(
+            GitHubTrayWidget,
+            "set_tooltip_text",
+            side_effect=self.tooltips.append,
+        )
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        return widget
+
+    def test_unread_items_replace_the_tooltip(self):
+        widget = self._widget()
+        widget.notifications = [{"id": str(index)} for index in range(7)]
+
+        widget._update_badge()
+
+        self.assertEqual(["GitHub Tray — 7 unread"], self.tooltips)
+
+    def test_the_configured_tooltip_comes_back_at_zero(self):
+        widget = self._widget()
+        widget.notifications = [{"id": "1"}]
+        widget._update_badge()
+
+        widget.notifications = []
+        widget._update_badge()
+
+        self.assertEqual(["GitHub Tray — 1 unread", "GitHub Tray"], self.tooltips)
+
+    def test_the_per_widget_flag_is_honoured(self):
+        """``tooltip = false`` must not be overridden by the badge."""
+        widget = self._widget(config={"tooltip": False})
+        widget.notifications = [{"id": "1"}]
+
+        widget._update_badge()
+
+        self.assertEqual([], self.tooltips)
+        widget.badge_label.set_visible.assert_called_once_with(True)
+
+    def test_a_disabled_tooltip_leaves_the_previous_text_alone(self):
+        widget = self._widget(config={"tooltip": False})
+        widget.notifications = [{"id": "1"}]
+        widget._update_badge()
+
+        widget.notifications = []
+        widget._update_badge()
+
+        self.assertEqual([], self.tooltips)
 
 
 class _TrayStateStub:
@@ -1196,9 +1255,7 @@ class TransportTests(unittest.TestCase):
                 "_spawn_and_wait",
                 side_effect=self._spawn_token_then_api(spawn_log),
             ),
-            mock.patch.object(
-                tray_client_module, "get_http_client", return_value=http
-            ),
+            mock.patch.object(tray_client_module, "get_http_client", return_value=http),
         ):
             yield
 
@@ -1308,9 +1365,7 @@ class RefreshButtonTests(unittest.TestCase):
         recorded: dict = {}
 
         def _fake(icon=None, tooltip=None, style_classes=None, on_clicked=None, **_):
-            recorded.update(
-                icon=icon, tooltip=tooltip, style_classes=style_classes
-            )
+            recorded.update(icon=icon, tooltip=tooltip, style_classes=style_classes)
             if on_clicked is not None:
                 on_clicked()
             return mock.Mock()
@@ -1346,6 +1401,351 @@ class RefreshButtonTests(unittest.TestCase):
         harness.tray_widget.loading = True
 
         self.assertNotEqual(first, harness._render_key())
+
+
+class _DetailHarness:
+    """Real detail-load bookkeeping; the client and the GTK push are stubbed."""
+
+    load_details = GitHubTrayWidget.load_details
+    reset_detail = GitHubTrayWidget.reset_detail
+    _apply_detail = GitHubTrayWidget._apply_detail
+    _friendly_error = GitHubTrayWidget._friendly_error
+
+    def __init__(self):
+        self.detail = {
+            "kind": None,
+            "repo": None,
+            "items": [],
+            "pending": False,
+            "error": "",
+        }
+        self._detail_generation = 0
+        self._client = mock.Mock()
+        self.config = {"workflow_runs_max": 10}
+        self.pushes = 0
+
+    def _push_state(self):
+        self.pushes += 1
+
+
+def _synchronous_worker():
+    """Run the loader body inline and its idle callback immediately."""
+    return (
+        mock.patch.object(tray_module.helpers, "run_in_thread", lambda func: func),
+        mock.patch.object(
+            tray_module, "idle_add", side_effect=lambda callback, *args: callback(*args)
+        ),
+    )
+
+
+class DetailGenerationTests(unittest.TestCase):
+    """A ``gh`` call can outlive the view that asked for it."""
+
+    def setUp(self):
+        self.repo_a = {"full_name": "octo/a"}
+        self.repo_b = {"full_name": "octo/b"}
+        self.stale = [{"number": 1, "title": "A's issue"}]
+        self.harness = _DetailHarness()
+        self.harness._client.fetch_repo_items.side_effect = lambda full_name: {
+            "issues": [],
+            "pulls": [{"repo": full_name}],
+        }
+        inline, idle = _synchronous_worker()
+        inline.start()
+        self.addCleanup(inline.stop)
+        idle.start()
+        self.addCleanup(idle.stop)
+
+    def test_a_late_reply_for_the_previous_repo_is_dropped(self):
+        self.harness.load_details(self.repo_a, "issues")
+        self.harness.load_details(self.repo_b, "pulls")
+
+        self.harness._apply_detail(1, "issues", self.repo_a, self.stale, None)
+
+        self.assertEqual("pulls", self.harness.detail["kind"])
+        self.assertEqual(self.repo_b, self.harness.detail["repo"])
+        self.assertEqual([{"repo": "octo/b"}], self.harness.detail["items"])
+        self.assertNotIn(self.stale, self.harness.detail["items"])
+
+    def test_a_late_error_for_the_previous_repo_is_dropped(self):
+        self.harness.load_details(self.repo_a, "issues")
+        self.harness.load_details(self.repo_b, "pulls")
+
+        self.harness._apply_detail(1, "issues", self.repo_a, None, OSError("boom"))
+
+        self.assertEqual("pulls", self.harness.detail["kind"])
+        self.assertEqual("", self.harness.detail["error"])
+
+    def test_going_back_drops_the_in_flight_load(self):
+        self.harness.load_details(self.repo_a, "issues")
+
+        self.harness.reset_detail()
+        self.harness._apply_detail(1, "issues", self.repo_a, self.stale, None)
+
+        self.assertIsNone(self.harness.detail["kind"])
+        self.assertEqual([], self.harness.detail["items"])
+
+    def test_the_current_load_still_applies(self):
+        self.harness.load_details(self.repo_a, "issues")
+
+        self.harness._apply_detail(
+            self.harness._detail_generation, "issues", self.repo_a, self.stale, None
+        )
+
+        self.assertEqual(self.stale, self.harness.detail["items"])
+        self.assertFalse(self.harness.detail["pending"])
+
+    def test_a_failure_is_recorded_on_the_current_load(self):
+        self.harness.load_details(self.repo_a, "workflows")
+
+        self.harness._apply_detail(
+            self.harness._detail_generation,
+            "workflows",
+            self.repo_a,
+            None,
+            OSError("gh: not logged in"),
+        )
+
+        self.assertIn("not logged in", self.harness.detail["error"])
+
+
+class _DetailViewHarness:
+    """Borrows the real detail renderer; the widget tree is recorded instead."""
+
+    _render_detail = tray_detail.DetailView._render_detail
+
+    def __init__(self, detail):
+        self.tray_widget = mock.Mock(
+            detail=detail, web_base="https://github.com", hide_popover=mock.Mock()
+        )
+
+    def _detail_browser_url(self, repo, kind):
+        return "https://github.com"
+
+    def _back_to_main(self):
+        return None
+
+    def _build_item_cards(self, _items, _kind):
+        return [mock.Mock(name="item-card")]
+
+    def _build_run_cards(self, _runs):
+        return [mock.Mock(name="run-card")]
+
+
+class DetailErrorRenderTests(unittest.TestCase):
+    """A failed ``gh`` call must not read as an empty repo."""
+
+    def _render(self, detail):
+        harness = _DetailViewHarness(detail)
+        built: dict[str, list] = {}
+
+        def _recorder(name):
+            def _build(*args, **kwargs):
+                built.setdefault(name, []).append(kwargs)
+                return mock.Mock(name=name)
+
+            return _build
+
+        with mock.patch.multiple(
+            tray_detail,
+            ActionIconButton=_recorder("ActionIconButton"),
+            vbox=_recorder("vbox"),
+            hbox=_recorder("hbox"),
+            make_label=_recorder("make_label"),
+            EmptyState=_recorder("EmptyState"),
+            SkeletonRow=_recorder("SkeletonRow"),
+        ):
+            harness._render_detail()
+        return built
+
+    def _detail(self, **overrides):
+        detail = {
+            "kind": "issues",
+            "repo": {"full_name": "octo/a"},
+            "items": [],
+            "pending": False,
+            "error": "",
+        }
+        detail.update(overrides)
+        return detail
+
+    def test_a_detail_error_is_rendered(self):
+        built = self._render(
+            self._detail(error="GitHub is not reachable - run `gh auth login` first.")
+        )
+
+        self.assertEqual(1, len(built["EmptyState"]))
+        self.assertEqual(
+            "GitHub is not reachable - run `gh auth login` first.",
+            built["EmptyState"][0]["subtitle"],
+        )
+        self.assertNotIn("SkeletonRow", built)
+
+    def test_a_pending_load_still_shows_the_skeleton(self):
+        built = self._render(self._detail(pending=True, error="stale"))
+
+        self.assertEqual(1, len(built["SkeletonRow"]))
+        self.assertNotIn("EmptyState", built)
+
+    def test_an_empty_repo_is_still_the_empty_state(self):
+        built = self._render(self._detail())
+
+        self.assertEqual(1, len(built["EmptyState"]))
+        self.assertEqual("No open issues", built["EmptyState"][0]["title"])
+
+
+class _AvatarHarness:
+    """Real avatar scheduling; the HTTP fetch and the pixbuf are stubbed."""
+
+    _load_avatar_async = GitHubTrayWidget._load_avatar_async
+    _apply_avatar = GitHubTrayWidget._apply_avatar
+
+    def __init__(self, avatar_url=""):
+        self.config = {"avatar_size": 44}
+        self.user = {"avatar_url": avatar_url} if avatar_url else {}
+        self.avatar_pixbuf = None
+        self._avatar_url = ""
+        self.pushes = 0
+
+    def _push_state(self):
+        self.pushes += 1
+
+
+class AvatarFetchGuardTests(unittest.TestCase):
+    """The same avatar URL must not be re-downloaded on every refresh."""
+
+    def setUp(self):
+        self.fetched: list[tuple] = []
+
+        def _recording_thread(func):
+            def _wrapper(*args):
+                self.fetched.append(args)
+                return None
+
+            return _wrapper
+
+        patcher = mock.patch.object(
+            tray_module.helpers, "run_in_thread", _recording_thread
+        )
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def test_an_unchanged_avatar_url_is_not_refetched(self):
+        widget = _AvatarHarness("https://avatars.example/octo.png")
+
+        widget._load_avatar_async()
+        widget._load_avatar_async()
+
+        self.assertEqual([("https://avatars.example/octo.png", 44)], self.fetched)
+
+    def test_a_changed_avatar_url_is_refetched(self):
+        widget = _AvatarHarness("https://avatars.example/octo.png")
+        widget._load_avatar_async()
+
+        widget.user = {"avatar_url": "https://avatars.example/octo-2.png"}
+        widget._load_avatar_async()
+
+        self.assertEqual(2, len(self.fetched))
+        self.assertEqual("https://avatars.example/octo-2.png", self.fetched[-1][0])
+
+    def test_a_user_without_an_avatar_fetches_nothing(self):
+        widget = _AvatarHarness()
+
+        widget._load_avatar_async()
+
+        self.assertEqual([], self.fetched)
+
+    def test_a_failed_download_may_be_retried(self):
+        widget = _AvatarHarness("https://avatars.example/octo.png")
+        widget._load_avatar_async()
+
+        widget._apply_avatar(None)
+        widget._load_avatar_async()
+
+        self.assertEqual(2, len(self.fetched))
+
+    def test_a_loaded_pixbuf_is_published(self):
+        widget = _AvatarHarness()
+        pixbuf = mock.Mock()
+
+        widget._apply_avatar(pixbuf)
+
+        self.assertIs(pixbuf, widget.avatar_pixbuf)
+        self.assertEqual(1, widget.pushes)
+
+
+class _LocalPathHarness:
+    """Real local-project lookup; the config is the only input."""
+
+    local_mappings = GitHubTrayWidget.local_mappings
+    repo_local_path = GitHubTrayWidget.repo_local_path
+    _mappings_text = GitHubTrayWidget._mappings_text
+
+    def __init__(self, projects):
+        self.config = {"local_projects": projects}
+
+
+class LocalMappingTests(unittest.TestCase):
+    """One parse per render, not one per repo card."""
+
+    def _repos(self):
+        return [{"full_name": f"octo/repo{index}"} for index in range(20)]
+
+    def _projects(self):
+        return {f"octo/repo{index}": f"/src/repo{index}" for index in range(20)}
+
+    def test_the_mappings_are_parsed_once_per_render(self):
+        harness = _LocalPathHarness(self._projects())
+
+        with mock.patch.object(
+            tray_state,
+            "parse_local_projects",
+            wraps=tray_state.parse_local_projects,
+        ) as parse:
+            mappings = harness.local_mappings()
+            paths = [harness.repo_local_path(repo, mappings) for repo in self._repos()]
+
+        self.assertEqual(1, parse.call_count)
+        self.assertEqual("/src/repo0", paths[0])
+        self.assertEqual("/src/repo19", paths[19])
+
+    def test_the_omitted_argument_still_parses_and_expands(self):
+        harness = _LocalPathHarness({"octo/home": "~/src/home"})
+
+        path = harness.repo_local_path({"full_name": "octo/home"})
+
+        self.assertEqual(os.path.expanduser("~/src/home"), path)
+
+    def test_an_unmapped_repo_has_no_local_path(self):
+        harness = _LocalPathHarness({"octo/a": "/src/a"})
+
+        self.assertEqual("", harness.repo_local_path({"full_name": "octo/b"}))
+
+
+class RepoCardMappingTests(unittest.TestCase):
+    """The card builder receives the parsed mappings instead of re-parsing."""
+
+    def test_the_cards_are_given_one_pre_parsed_mapping(self):
+        recorded: dict = {}
+
+        def _fake_cards(_self, repos, username, mappings):
+            recorded.update(repos=repos, username=username, mappings=mappings)
+            return []
+
+        with mock.patch.object(tray_repos.ReposView, "_build_repo_cards", _fake_cards):
+            harness = mock.Mock()
+            harness.user = {"login": "octo"}
+            harness.repos = [{"full_name": "octo/a", "pushed_at": ""}]
+            harness.local_mappings.return_value = {"octo/a": "/src/a"}
+            view = tray_repos.ReposView()
+            view.tray_widget = harness
+            view.config = {"max_repos": 5, "sort_by": "updated"}
+
+            view._build_repos()
+
+        harness.local_mappings.assert_called_once_with()
+        self.assertEqual({"octo/a": "/src/a"}, recorded["mappings"])
+        self.assertEqual("octo", recorded["username"])
 
 
 if __name__ == "__main__":

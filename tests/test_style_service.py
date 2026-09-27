@@ -4,6 +4,8 @@ The service is built with ``__new__`` so the scheduler can be exercised without
 running sass or touching the real application.
 """
 
+import os
+import tempfile
 import threading
 import unittest
 from unittest import mock
@@ -169,6 +171,34 @@ class AsyncApplyEmitOrderTest(unittest.TestCase):
             events,
             [("apply", "/tmp/main.css"), ("emit", ("css_recompiled",))],
         )
+
+
+class CharsetStripTest(unittest.TestCase):
+    """``--no-charset`` already prevents this; the apply must not re-check the
+    whole stylesheet to find out."""
+
+    def test_a_charset_free_file_is_read_once_and_never_rewritten(self):
+        css = "body { color: red; }\n"
+
+        with mock.patch("builtins.open", mock.mock_open(read_data=css)) as opener:
+            StyleService._apply_css_to_app("main.css")
+
+        opener.assert_called_once_with("main.css", encoding="utf-8")
+        self.assertEqual(0, opener.return_value.write.call_count)
+
+    def test_a_charset_line_is_still_stripped_when_it_is_there(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = os.path.join(tmpdir, "main.css")
+            with open(path, "w", encoding="utf-8") as handle:
+                handle.write('@charset "UTF-8";\nbody { color: red; }\n')
+
+            StyleService._apply_css_to_app(path)
+
+            with open(path, encoding="utf-8") as handle:
+                rewritten = handle.read()
+
+        self.assertNotIn("@charset", rewritten)
+        self.assertIn("body { color: red; }", rewritten)
 
 
 if __name__ == "__main__":

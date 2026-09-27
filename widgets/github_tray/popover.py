@@ -34,7 +34,7 @@ class GitHubTrayPopoverContent(
         self.tray_widget = widget
         self.config = widget.config
 
-        self._view = "main"  # main | issues | pulls | workflows | error
+        self._view = "main"  # main | issues | pulls | workflows
         self._tab = self._normalize_tab(str(self.config.get("default_tab", "inbox")))
         self._notify_page = 0
         self._last_notification_key: tuple = ()
@@ -250,13 +250,7 @@ class GitHubTrayPopoverContent(
 
     # -- navigation --
     def _back_to_main(self):
-        widget = self.tray_widget
-        widget.detail = {
-            "kind": None,
-            "repo": None,
-            "items": [],
-            "pending": False,
-        }
+        self.tray_widget.reset_detail()
         self._view = "main"
         self._render()
 

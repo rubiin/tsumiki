@@ -34,7 +34,7 @@ class ScreenCorners(BaseWindow):
             anchor="top bottom left right",
             exclusivity="normal",
             pass_through=True,
-            visible=False,
+            visible=True,
             all_visible=False,
             **kwargs,
         )
@@ -73,4 +73,6 @@ class ScreenCorners(BaseWindow):
 
         self.add(self.all_corners)
 
-        self.show_all()
+        # An always-on overlay like the dock and desktop clock declares itself
+        # visible; show_all() here only reveals the corner shapes.
+        self.all_corners.show_all()

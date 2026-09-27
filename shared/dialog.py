@@ -22,6 +22,12 @@ class Dialog(PopupWindow):
         self,
         **kwargs,
     ):
+        # __new__ caches the instance, so without this the second caller would
+        # redo layer-shell setup and layout on a window the app already holds.
+        if getattr(self, "_initialized", False):
+            return
+        self._initialized = True
+
         self.wrapper = Box(orientation="v", name="dialog-wrapper")
 
         self.title = Label(

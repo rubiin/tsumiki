@@ -112,7 +112,7 @@ class WeatherService(SingletonService):
             ValueError,
             json.JSONDecodeError,
         ) as e:
-            logger.exception("Error geocoding location", e)
+            logger.exception(f"Error geocoding location: {e}")
         return None
 
     def _map_weather_code(self, code: int) -> int:
@@ -198,6 +198,9 @@ class WeatherService(SingletonService):
         }
 
         for attempt in range(retries):
+            # Every attempt pays the backoff: an empty payload is the case most
+            # likely to resolve itself on the next request.
+            backoff = delay * (attempt + 1)
             try:
                 response = session.get(self.api_url, params=params, timeout=10.0)
                 response.raise_for_status()
@@ -209,6 +212,7 @@ class WeatherService(SingletonService):
                 daily = data.get("daily", {})
 
                 if not current_weather or not hourly:
+                    time.sleep(backoff)
                     continue
 
                 # Get current time index
@@ -290,8 +294,8 @@ class WeatherService(SingletonService):
                 ValueError,
                 json.JSONDecodeError,
             ) as e:
-                logger.exception("Error fetching weather data: %s", e)
-                time.sleep(delay * (attempt + 1))
+                logger.exception(f"Error fetching weather data: {e}")
+                time.sleep(backoff)
 
         return None
 
@@ -318,13 +322,13 @@ class WeatherService(SingletonService):
                             os.remove(WEATHER_CACHE_FILE)
             except (OSError, PermissionError, ValueError) as e:
                 logger.warning(
-                    "Failed to read cache file, will fetch fresh data: %s", e
+                    f"Failed to read cache file, will fetch fresh data: {e}"
                 )
                 # Remove corrupted cache file
                 with suppress(OSError, PermissionError):
                     os.remove(WEATHER_CACHE_FILE)
             except Exception as e:
-                logger.exception("Unexpected error reading cache: %s", e)
+                logger.exception(f"Unexpected error reading cache: {e}")
                 # Remove potentially corrupted cache file
                 with suppress(OSError, PermissionError):
                     os.remove(WEATHER_CACHE_FILE)

@@ -38,6 +38,7 @@ REPOS_REFRESH_SECONDS = 300
 DEFAULT_CACHE_TTL = 3600
 MIN_NOTIFY_INTERVAL = 30
 
+
 def _load_pixbuf_from_bytes(image_bytes: bytes, size: int):
     from fabric.utils import GdkPixbuf
 
@@ -78,11 +79,21 @@ class GitHubTrayWidget(ButtonWidget, PopoverMixin):
         self._last_repos_at = 0.0
         self._last_notify_at = 0.0
         self.avatar_pixbuf = None
+        self._avatar_url = ""
         self.pending_notification_id: str | None = None
         self._popover_built = False
 
         # detail view state (issues / pulls / workflows for one repo)
-        self.detail = {"kind": None, "repo": None, "items": [], "pending": False}
+        self.detail = {
+            "kind": None,
+            "repo": None,
+            "items": [],
+            "pending": False,
+            "error": "",
+        }
+        # Guards detail loads only: the fetch generation is bumped by every
+        # menu/notification poll, which would discard a live drill-down.
+        self._detail_generation = 0
 
         self._build_button()
 
@@ -130,10 +141,10 @@ class GitHubTrayWidget(ButtonWidget, PopoverMixin):
         content.add(self.badge_label)
         self.container_box.add(content)
 
-        tooltip_text = str(
+        self._base_tooltip = str(
             self.config.get("tooltip_text", _("widget.github_tray.label"))
         )
-        self.set_tooltip_if_enabled(tooltip_text, default=True)
+        self.set_tooltip_if_enabled(self._base_tooltip, default=True)
 
         self.connect("button-press-event", self._on_press)
         # connect_clicked is off so on_click refreshes stale data before toggling.
@@ -530,8 +541,10 @@ class GitHubTrayWidget(ButtonWidget, PopoverMixin):
     # -- avatar --
     def _load_avatar_async(self):
         avatar_url = str(self.user.get("avatar_url") or "")
-        if not avatar_url:
+        # Guard on the URL too: a refresh with the same avatar must not re-fetch.
+        if not avatar_url or avatar_url == self._avatar_url:
             return
+        self._avatar_url = avatar_url
 
         @helpers.run_in_thread
         def _fetch(url: str, size: int):
@@ -545,9 +558,12 @@ class GitHubTrayWidget(ButtonWidget, PopoverMixin):
         _fetch(avatar_url, size)
 
     def _apply_avatar(self, pixbuf):
-        if pixbuf is not None:
-            self.avatar_pixbuf = pixbuf
-            self._push_state()
+        if pixbuf is None:
+            # Forget the URL so a later refresh may retry this download.
+            self._avatar_url = ""
+            return
+        self.avatar_pixbuf = pixbuf
+        self._push_state()
 
     # -- badge / state push --
     @property
@@ -559,12 +575,13 @@ class GitHubTrayWidget(ButtonWidget, PopoverMixin):
         if count > 0:
             self.badge_label.set_label("99+" if count > 99 else str(count))
             self.badge_label.set_visible(True)
-            self.set_tooltip_text(
-                f"GitHub Tray — {count} unread"
-            ) if self.tooltips_enabled else None
+            # Routed through the per-widget flag, and restorable when the count
+            # drops back to zero.
+            self.set_tooltip_if_enabled(f"GitHub Tray — {count} unread", default=True)
         else:
             self.badge_label.set_visible(False)
             self.badge_label.set_label("")
+            self.set_tooltip_if_enabled(self._base_tooltip, default=True)
 
     def _popover_content(self):
         popup = self.popup
@@ -604,9 +621,15 @@ class GitHubTrayWidget(ButtonWidget, PopoverMixin):
     def open_web(self):
         self.open_url(self.web_base)
 
-    def repo_local_path(self, repo: dict) -> str:
-        return tray_state.local_path(
-            self._mappings_text(),
+    def local_mappings(self) -> dict:
+        """Repo -> checkout path; parse once per render, not once per card."""
+        return tray_state.parse_local_projects(self._mappings_text())
+
+    def repo_local_path(self, repo: dict, mappings: dict | None = None) -> str:
+        if mappings is None:
+            mappings = self.local_mappings()
+        return tray_state.mapped_path(
+            mappings,
             str(repo.get("full_name") or ""),
             GLib.get_home_dir(),
         )
@@ -622,12 +645,24 @@ class GitHubTrayWidget(ButtonWidget, PopoverMixin):
             self.open_url(repo.get("html_url"))
         self.hide_popover()
 
+    def reset_detail(self) -> None:
+        """Leave the drill-down and drop any load still in flight for it."""
+        self._detail_generation += 1
+        self.detail = {
+            "kind": None,
+            "repo": None,
+            "items": [],
+            "pending": False,
+            "error": "",
+        }
+
     def load_details(self, repo: dict, kind: str):
         if self.detail.get("pending"):
             return
-        self.detail = {"kind": kind, "repo": repo, "items": [], "pending": True}
+        self.reset_detail()
+        self.detail.update({"kind": kind, "repo": repo, "pending": True})
         self._push_state()
-        generation = self._generation
+        generation = self._detail_generation
 
         @helpers.run_in_thread
         def _load():
@@ -651,6 +686,10 @@ class GitHubTrayWidget(ButtonWidget, PopoverMixin):
         _load()
 
     def _apply_detail(self, generation, kind, repo, items, error):
+        # A drill-down is abandoned by Back or replaced by another repo; a late
+        # reply must not overwrite whichever one is on screen now.
+        if generation != self._detail_generation:
+            return False
         self.detail = {
             "kind": kind,
             "repo": repo,

@@ -94,7 +94,6 @@ class SineWaveSlider(Gtk.DrawingArea, Widget, TeardownMixin):
 
         self._phase = 0.0
         self._dragging = False
-        self._hover = False
         self._last_fire_time = 0
 
         self._morph = 1.0 if active else 0.0
@@ -384,7 +383,6 @@ class SineWaveSlider(Gtk.DrawingArea, Widget, TeardownMixin):
                 self.queue_draw()
 
     def _on_enter(self, widget: Gtk.Widget, event: Gdk.EventCrossing) -> None:
-        self._hover = True
         window = self.get_window()
         if window:
             cursor = Gdk.Cursor.new_for_display(
@@ -393,7 +391,6 @@ class SineWaveSlider(Gtk.DrawingArea, Widget, TeardownMixin):
             window.set_cursor(cursor)
 
     def _on_leave(self, widget: Gtk.Widget, event: Gdk.EventCrossing) -> None:
-        self._hover = False
         window = self.get_window()
         if window:
             window.set_cursor(None)

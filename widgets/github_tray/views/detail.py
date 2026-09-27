@@ -74,6 +74,18 @@ class DetailView:
             pieces.append(SkeletonRow(rows=3))
             return vbox(spacing=8, children=pieces)
 
+        error = str(detail.get("error") or "")
+        if error:
+            # Without this a failed `gh` call reads as "nothing to show".
+            pieces.append(
+                EmptyState(
+                    icon=tray_state.glyph("error"),
+                    title="Could not load",
+                    subtitle=error,
+                )
+            )
+            return vbox(spacing=8, children=pieces)
+
         items = detail.get("items") or []
         if not items:
             pieces.append(

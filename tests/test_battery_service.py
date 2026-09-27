@@ -48,7 +48,7 @@ class HandlePropertyChangeTest(unittest.TestCase):
                 self.service.emit.assert_called_once_with("changed")
 
     def test_only_uninteresting_keys_do_not_re_emit(self):
-        self._signal({"Vendor": "Acme", "Capacity": 99, "PowerSupply": "BAT0"})
+        self._signal({"Vendor": "Acme", "Technology": "lipo", "PowerSupply": "BAT0"})
 
         self.service.emit.assert_not_called()
 

@@ -87,7 +87,9 @@ class BatteryWidget(ButtonWidget):
             if self.config.get("hide_when_missing", True):
                 self.set_visible(False)
             icon = get_text_icon("battery.low", "󰂎")
-            self.set_tooltip_text(f"{icon} {_('widget.battery.no_battery')}")
+            self.set_tooltip_if_enabled(
+                f"{icon} {_('widget.battery.no_battery')}", default=True
+            )
             if self.config.get("label", True):
                 self.battery_icon.set_text("N/A")
             return True
@@ -102,7 +104,8 @@ class BatteryWidget(ButtonWidget):
 
         temperature = self.client.get_property("Temperature") or 0
 
-        energy = self.client.get_property("Energy") or 0
+        # Design capacity is the battery-health figure UPower publishes here.
+        capacity = self.client.get_property("Capacity") or 0
 
         time_remaining = (
             self.client.get_property("TimeToFull")
@@ -142,7 +145,7 @@ class BatteryWidget(ButtonWidget):
                 "󰂄 Status: Charging" if is_charging else "󱠴 Status: Discharging"
             )
             tool_tip_text = (
-                f"󱐋 Energy : {round(energy, 2)} Wh\n Temperature: {temperature}°C"
+                f"󱐋 Capacity : {round(capacity)}%\n Temperature: {temperature}°C"
             )
 
             if battery_percent == self.full_battery_level:

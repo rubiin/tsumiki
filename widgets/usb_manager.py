@@ -593,4 +593,9 @@ class USBManagerWidget(ButtonWidget, PopoverMixin):
             self.popup.content.refresh_devices()
 
     def update_device_count(self, count: int):
-        self.set_tooltip_if_enabled(_("widget.usb_manager.tooltip"), default=True)
+        # The count rides in parentheses so it needs no plural form in twelve
+        # languages; at zero the plain title reads better than "USB Manager (0)".
+        text = _("widget.usb_manager.tooltip")
+        if count:
+            text = f"{text} ({count})"
+        self.set_tooltip_if_enabled(text, default=True)

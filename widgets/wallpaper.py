@@ -12,8 +12,7 @@ class WallpaperWidget(ButtonWidget):
         cfg = self.config
 
         # Optional tooltip
-        if cfg.get("tooltip"):
-            self.set_tooltip_text(_("widget.wallpaper.tooltip"))
+        self.set_tooltip_if_enabled(_("widget.wallpaper.tooltip"))
 
         # Add icon
         self.add_panel_content(

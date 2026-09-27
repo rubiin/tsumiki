@@ -25,7 +25,7 @@ _RENDERED_PROPERTIES = frozenset(
         "State",
         "IsPresent",
         "Temperature",
-        "Energy",
+        "Capacity",
         "TimeToEmpty",
         "TimeToFull",
         "IconName",

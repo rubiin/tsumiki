@@ -362,9 +362,6 @@ class OverviewMenu(Box, TeardownMixin):
         for address in stale_addresses:
             self._remove_client(address)
 
-    def _update(self, *_):
-        self._schedule_update(*_)
-
 
 class OverViewOverlay(PopupWindow):
     """A popup window for selecting wallpapers."""

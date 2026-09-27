@@ -88,7 +88,7 @@ class AudioSlider(SettingSlider):
         self.toggle_css_class("overamplified", is_over_amplified)
 
         self.scale.set_value(volume)
-        self.scale.set_tooltip_text(f"{volume}%")
+        self.set_scale_tooltip(f"{volume}%")
         self.update_icon(volume)
 
     def update_icon(self, volume=0):

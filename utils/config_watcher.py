@@ -109,9 +109,25 @@ class ConfigWatcher:
         except OSError:
             return None
 
+    def _is_relevant_event(self, event_type) -> bool:
+        """Whether an inotify event may have changed a watched file.
+
+        An atomic save reports several event types (and a fresh file may only
+        ever report CREATED), so the content hash — not the event — decides
+        whether this is a real change.
+        """
+        events = Gio.FileMonitorEvent
+        return event_type in (
+            events.CHANGED,
+            events.CHANGES_DONE_HINT,
+            events.CREATED,
+            events.RENAMED,
+            events.MOVED_IN,
+        )
+
     def _on_file_changed(self, monitor, file, other_file, event_type):
         """Handle file change events."""
-        if event_type != Gio.FileMonitorEvent.CHANGES_DONE_HINT:
+        if not self._is_relevant_event(event_type):
             return
 
         file_path = file.get_path()

@@ -570,18 +570,6 @@ class AppBar(BoxWidget):
             self._remove_pinned_app_button(app_id)
             self._save_pinned_apps()
 
-    def on_app_id(self, client, client_button: Button, client_image: Image, *_):
-        if client.get_app_id() in self.config.get("ignored", []):
-            client_button.destroy()
-            client_image.destroy()
-            return
-        client_image.set_from_pixbuf(
-            self._icon_resolver.resolve_icon_pixbuf(client.get_app_id(), self.icon_size)
-        )
-        client_button.set_tooltip_text(
-            client.get_title() if self.config.get("tooltip", True) else None
-        )
-
     def _get_app_id_safe(self, client: HyprlandClient) -> str | None:
         """Safely get app_id, returning None if not available yet."""
         try:

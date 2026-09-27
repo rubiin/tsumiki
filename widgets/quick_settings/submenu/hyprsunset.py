@@ -11,6 +11,7 @@ from fabric.widgets.scale import Scale
 
 from shared.buttons import QSChevronButton
 from shared.submenu import QuickSubMenu
+from shared.widget_container import tooltips_enabled
 from utils.functions import is_app_running, toggle_command
 from utils.i18n import _
 from utils.icons import get_text_icon
@@ -89,7 +90,8 @@ class HyprSunsetSubMenu(QuickSubMenu):
             return
 
         self.scale.set_value(sanitized_value)
-        self.scale.set_tooltip_text(f"{sanitized_value}K")
+        if tooltips_enabled():
+            self.scale.set_tooltip_text(f"{sanitized_value}K")
 
 
 class HyprSunsetToggle(QSChevronButton):

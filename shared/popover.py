@@ -169,7 +169,6 @@ class Popover(Widget):
         self._draw_handler_id = None
         self._focus_out_timeout_id = None
 
-        # Use weak reference to avoid circular reference issues
         self._manager = PopoverManager()
 
     def set_content_factory(self, content_factory):

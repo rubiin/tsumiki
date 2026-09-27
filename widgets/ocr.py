@@ -43,7 +43,7 @@ class OCRWidget(ButtonWidget):
             self.script_file = f"{ASSETS_DIR}/scripts/ocr.sh"
             if not os.path.isfile(self.script_file):
                 self.set_sensitive(False)
-                self.set_tooltip_text(_("common.error"))
+                self.set_tooltip_if_enabled(_("common.error"))
                 return
             self.initialized = True
 
@@ -121,4 +121,4 @@ class OCRWidget(ButtonWidget):
 
     def on_language_selected(self, _sender, lang):
         self.current_lang = lang
-        self.set_tooltip_text(_("widget.ocr.lang_selected", lang=lang))
+        self.set_tooltip_if_enabled(_("widget.ocr.lang_selected", lang=lang))

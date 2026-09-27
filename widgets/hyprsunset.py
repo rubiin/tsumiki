@@ -16,8 +16,7 @@ class HyprSunsetWidget(CommandSwitcher):
         self.enabled_icon = self.config.get("enabled_icon", self.enabled_icon)
         self.disabled_icon = self.config.get("disabled_icon", self.disabled_icon)
         self.icon.set_label(self.enabled_icon)
-        if self.config.get("tooltip", True):
-            self.set_tooltip_text("Adjust screen temperature")
+        self.set_tooltip_if_enabled("Adjust screen temperature", default=True)
         # Pass the configured temperature to hyprsunset via full_command.
         temperature = self.config.get("temperature", "6500")
         self.full_command = f"hyprsunset -t {temperature}"

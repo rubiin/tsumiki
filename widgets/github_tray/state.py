@@ -359,8 +359,12 @@ def expand_home(path: str, home: str) -> str:
     return value
 
 
+def mapped_path(mappings: dict, full_name: str, home: str) -> str:
+    return expand_home(mappings.get(full_name, ""), home)
+
+
 def local_path(mappings_text: str, full_name: str, home: str) -> str:
-    return expand_home(parse_local_projects(mappings_text).get(full_name, ""), home)
+    return mapped_path(parse_local_projects(mappings_text), full_name, home)
 
 
 def sorted_mappings(mappings_text: str) -> list[dict]:

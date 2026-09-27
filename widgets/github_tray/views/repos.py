@@ -62,10 +62,14 @@ class ReposView:
             )
         else:
             username = str(widget.user.get("login") or "")
-            pieces.extend(self._build_repo_cards(repos, username))
+            pieces.extend(
+                self._build_repo_cards(repos, username, widget.local_mappings())
+            )
         return vbox(spacing=8, name="github-tray-repos", children=pieces)
 
-    def _build_repo_cards(self, repos: list[dict], username: str) -> list:
+    def _build_repo_cards(
+        self, repos: list[dict], username: str, mappings: dict
+    ) -> list:
         widget = self.tray_widget
         cards = []
         for repo in repos:
@@ -128,7 +132,7 @@ class ReposView:
                     ),
                 ),
             ]
-            local = widget.repo_local_path(repo)
+            local = widget.repo_local_path(repo, mappings)
             if local:
                 actions.append(
                     ActionIconButton(
