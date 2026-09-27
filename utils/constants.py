@@ -152,7 +152,7 @@ DEFAULT_CONFIG = {
             "round": True,
             "temperature_unit": "celsius",
             "show_unit": True,
-            "sensor": "",
+            "sensor": "acpitz",
             "mode": "circular",
             "graph_length": 4,
         },
@@ -178,7 +178,7 @@ DEFAULT_CONFIG = {
                 "notification_grouping": True,  # Group history by app in the date menu
             },
         },
-        "divider": {"size": 2},
+        "divider": {},
         "cheatsheet": {},
         "github_tray": {
             "icon": "",
@@ -396,7 +396,7 @@ DEFAULT_CONFIG = {
             "step_size": 5,
         },
         "weather": {
-            "location": "",
+            "location": "kathmandu",
             "label_format": "{condition} {temperature}",
             "tooltip": True,
             "expanded": True,

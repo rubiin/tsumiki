@@ -107,7 +107,7 @@ class OSDContainer(BaseWindow):
             self.lockkeys_container = LockkeysOSDContainer(config=self.config)
             self.lockkeys_container.connect("locks-changed", self.show_lockkeys)
 
-        self.timeout = self.config.get("timeout", 3000)
+        self.timeout = self.config.get("timeout", 1500)
 
         self.revealer = Revealer(
             name="osd-revealer",

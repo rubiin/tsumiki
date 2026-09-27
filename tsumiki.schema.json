@@ -266,6 +266,13 @@
               "default": false,
               "description": "Determines whether to hide the percent when full"
             },
+            "full_battery_level": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100,
+              "default": 100,
+              "description": "Percentage at or above which the battery counts as full."
+            },
             "icons": {
               "type": "array",
               "items": {
@@ -589,7 +596,7 @@
             },
             "annotation": {
               "type": "boolean",
-              "default": false,
+              "default": true,
               "description": "Determines whether to show the annotation."
             },
             "capture_sound": {
@@ -1246,7 +1253,7 @@
             },
             "truncation_size": {
               "type": "number",
-              "default": 50,
+              "default": 20,
               "description": "Maximum number of characters before truncation is applied."
             },
             "mappings": {
@@ -1516,7 +1523,7 @@
             },
             "clock_format": {
               "type": "string",
-              "default": "24h",
+              "default": "12h",
               "description": "Clock format (12h or 24h)."
             },
             "hover_reveal": {
@@ -1640,7 +1647,7 @@
             },
             "show_icon": {
               "type": "boolean",
-              "default": false,
+              "default": true,
               "description": "Whether to display the keyboard icon."
             }
           },
@@ -1681,7 +1688,7 @@
             },
             "show_icon": {
               "type": "boolean",
-              "default": false
+              "default": true
             }
           },
           "required": ["truncation_size", "tooltip", "icon", "show_icon"]
@@ -1824,7 +1831,7 @@
             },
             "tooltip": {
               "type": "boolean",
-              "default": false
+              "default": true
             }
           },
           "required": ["icon", "label", "tooltip"]
@@ -1870,7 +1877,7 @@
             },
             "label": {
               "type": "boolean",
-              "default": false,
+              "default": true,
               "description": "Whether to display the label for the submap."
             },
             "hide_on_default": {
@@ -1948,12 +1955,12 @@
           "properties": {
             "truncation_size": {
               "type": "number",
-              "default": 10,
+              "default": 20,
               "description": "Maximum number of characters for truncating song titles."
             },
             "tooltip": {
               "type": "boolean",
-              "default": false,
+              "default": true,
               "description": "Whether to display the tooltip for the MPRIS."
             },
             "label_format": {
@@ -2847,7 +2854,7 @@
             "enabled": {
               "type": "boolean",
               "description": "Determines whether screen corners are enabled.",
-              "default": true
+              "default": false
             },
             "behavior": {
               "type": "string",
@@ -2858,7 +2865,7 @@
             "tooltip": {
               "type": "boolean",
               "description": "Determines whether the dock has a tooltip.",
-              "default": true
+              "default": false
             },
             "icon_size": {
               "type": "integer",
@@ -2927,7 +2934,7 @@
             },
             "show_launcher": {
               "type": "boolean",
-              "default": false,
+              "default": true,
               "description": "Determines whether the app launcher is shown in the dock."
             },
             "layer": {
@@ -2971,13 +2978,13 @@
             },
             "date_format": {
               "type": "string",
-              "description": "Specifies the format of the date displayed on the desktop clock.",
-              "default": "YYYY-MM-DD"
+              "description": "Date displayed on the desktop clock, as a strftime template (for example %Y-%m-%d).",
+              "default": "%Y-%m-%d"
             },
             "time_format": {
               "type": "string",
-              "description": "Specifies the format of the time displayed on the desktop clock.",
-              "default": "HH:mm"
+              "description": "Time displayed on the desktop clock, as a strftime template (for example %H:%M).",
+              "default": "%H:%M"
             },
             "type": {
               "type": "string",
@@ -3254,6 +3261,17 @@
               "description": "Show a relative timestamp (e.g. '5m ago') in the notification header.",
               "default": true
             },
+            "max_actions": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Maximum number of action buttons to show on a notification.",
+              "default": 3
+            },
+            "dismiss_on_hover": {
+              "type": "boolean",
+              "description": "Close the notification when the pointer hovers over it.",
+              "default": false
+            },
             "play_sound": {
               "type": "boolean",
               "description": "Determines whether to play a sound when a notification is received",
@@ -3312,7 +3330,7 @@
             "enabled": {
               "type": "boolean",
               "description": "Determines whether the OSD is enabled",
-              "default": true
+              "default": false
             },
             "osds": {
               "type": "array",
@@ -3330,15 +3348,21 @@
               "description": "Specifies the orientation of the osd.",
               "default": "horizontal"
             },
-            "duration": {
+            "timeout": {
               "type": "integer",
+              "minimum": 0,
               "description": "Duration in milliseconds to show the OSD",
-              "default": 3000
+              "default": 1500
+            },
+            "play_sound": {
+              "type": "boolean",
+              "description": "Determines whether to play a sound when the OSD is shown",
+              "default": false
             },
             "icon_size": {
               "type": "integer",
               "description": "Size of the OSD icons",
-              "default": 40
+              "default": 28
             },
             "percentage": {
               "type": "boolean",
@@ -3363,14 +3387,14 @@
             "tooltip": {
               "type": "boolean",
               "description": "Determines whether the app launcher has a tooltip",
-              "default": false
+              "default": true
             },
             "icon_size": {
               "type": "integer",
               "description": "Size of the app launcher icon",
               "minimum": 16,
               "maximum": 128,
-              "default": 30
+              "default": 16
             },
             "plugins_enabled": {
               "type": "boolean",
