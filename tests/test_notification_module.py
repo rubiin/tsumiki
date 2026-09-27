@@ -16,12 +16,7 @@ from tests.helpers import make_notification
 
 
 class NotificationRevealerClosedHandlerTest(unittest.TestCase):
-    """The ``closed`` handler must follow the current notification, not stack.
-
-    A revealer is reused when a notification is replaced (``replaces_id``), so a
-    rebind that forgets to disconnect leaves the previous notification holding a
-    live handler into a widget that outlives it.
-    """
+    """The ``closed`` handler must follow the current notification, not stack."""
 
     def _make_revealer(self, notification: Notification) -> NotificationRevealer:
         revealer = NotificationRevealer.__new__(NotificationRevealer)

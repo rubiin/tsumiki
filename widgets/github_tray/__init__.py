@@ -1,9 +1,9 @@
 """GitHub tray widget package.
 
-The bar button and popover live in :mod:`widgets.github_tray.widget`;
-``gh`` CLI access in :mod:`widgets.github_tray.client`, pure helpers in
-:mod:`widgets.github_tray.state` and reusable components in
-:mod:`widgets.github_tray.components`.
+Bar button and popover in :mod:`widgets.github_tray.widget`; ``gh`` CLI access
+in :mod:`~widgets.github_tray.client`, pure helpers in
+:mod:`~widgets.github_tray.state`, reusable GTK bits in
+:mod:`~widgets.github_tray.components`.
 """
 
 from .client import GitHubClient, GitHubClientError

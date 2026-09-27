@@ -54,8 +54,7 @@ class ClipboardHistoryPlugin(LauncherPlugin):
             ]
 
         try:
-            # ``cliphist list`` can be slow with large histories — run it
-            # via the cancellable helper so a superseding query kills it.
+            # Slow on large histories; the helper lets a superseding query kill it.
             result = self.run_subprocess(
                 ["cliphist", "list"],
                 timeout=_TIMEOUT_SECONDS,
@@ -110,8 +109,7 @@ class ClipboardHistoryPlugin(LauncherPlugin):
                 )
             )
         if total > _MAX_RESULTS:
-            # Tell the user the list is truncated instead of hiding it — the
-            # row is non-actionable (data=None) and keeps the launcher open.
+            # Show the truncation; this row is non-actionable (data=None).
             rows.append(
                 PluginResult(
                     f"… and {total - _MAX_RESULTS} more matches",

@@ -173,12 +173,7 @@ class BuildSectionTest(unittest.TestCase):
 
 
 class ControlPathTests(unittest.TestCase):
-    """Every leaf must be handed the path its value really lives at.
-
-    A wrong path does not raise: _update_nested_dict creates whatever segments
-    are missing, so the old duplicated-segment path wrote a value to an invented
-    key like ``config.modules.dock.deep.deep`` and saved it to config.toml.
-    """
+    """Every leaf must be handed the path its value really lives at."""
 
     def setUp(self):
         patcher = mock.patch.object(settings_module, "Box")

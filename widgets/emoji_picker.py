@@ -184,9 +184,7 @@ class EmojiPickerMenu(Box):
         )
 
         self._page_cache: dict[int, Box] = {}
-        # Build only the first page eagerly; remaining pages are built lazily
-        # on navigation. Rebuilding ~60 button trees on every keystroke caused
-        # heavy style/layout churn while typing in the search box.
+        # Only page 0 is built eagerly; the rest cost ~60 button trees per keystroke.
         if self.total_pages > 0:
             self._build_page(0)
         # Show first page

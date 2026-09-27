@@ -25,9 +25,7 @@ class GitHubClient:
         self.hostname = str(hostname or "").strip().rstrip("/")
         self.timeout = timeout
 
-    # ------------------------------------------------------------------ #
-    # plumbing
-    # ------------------------------------------------------------------ #
+    # -- plumbing --
     @property
     def web_base(self) -> str:
         return f"https://{self.hostname}" if self.hostname else "https://github.com"
@@ -104,9 +102,7 @@ class GitHubClient:
             raise GitHubClientError(str(message))
         return data.get("data", {}) if isinstance(data, dict) else {}
 
-    # ------------------------------------------------------------------ #
-    # menu payload (profile + repositories + followers + notifications)
-    # ------------------------------------------------------------------ #
+    # -- menu payload (profile + repositories + followers + notifications) --
     MENU_QUERY = """
 query {
   viewer {
@@ -196,17 +192,14 @@ query {
             "web": self.web_base,
         }
 
-    # ------------------------------------------------------------------ #
-    # notifications
-    # ------------------------------------------------------------------ #
+    # -- notifications --
     def fetch_notifications(self) -> list[dict]:
         """Unread notifications via the REST endpoint (gh session)."""
         data = self._run(["api", "notifications?per_page=100"])
         return data if isinstance(data, list) else []
 
     def enrich_notification_states(self, notifications: list[dict]) -> list[dict]:
-        """Attach ``_stateInfo`` {state, isDraft} to Issue/PullRequest
-        notifications with one aliased GraphQL query."""
+        """Attach ``_stateInfo`` {state, isDraft} via one aliased GraphQL query."""
         aliases: list[str] = []
         lookup: dict[str, dict] = {}
         for notification in notifications:
@@ -242,11 +235,7 @@ query {
                 }
         return notifications
 
-    # ------------------------------------------------------------------ #
-    # detail payloads
-    # ------------------------------------------------------------------ #
-    # %-style placeholders on purpose: str.format/f-strings would choke on
-    # the GraphQL braces.
+    # -- detail payloads: %-placeholders, f-strings would choke on the braces --
     REPO_ITEMS_QUERY = """
 query {
   repository(owner: %(owner)s, name: %(name)s) {
@@ -333,9 +322,7 @@ query {
             return str(data.get("avatar_url") or "")
         return ""
 
-    # ------------------------------------------------------------------ #
-    # actions
-    # ------------------------------------------------------------------ #
+    # -- actions --
     def mark_read(self, thread_id: str) -> None:
         self._run(["api", "--method", "PATCH", f"notifications/threads/{thread_id}"])
 

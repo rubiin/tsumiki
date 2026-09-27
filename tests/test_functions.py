@@ -142,8 +142,7 @@ class FunctionsTest(unittest.TestCase):
         self.assertFalse(is_valid_gjs_color("invalidcolor"))
 
     def test_uptime(self):
-        # uptime() lives in utils/widget_utils (needs psutil/fabric widgets),
-        # so import it lazily and skip when those deps aren't available.
+        # uptime() needs psutil/fabric widgets, so import it lazily and skip if absent.
         try:
             from utils.widget_utils import uptime
         except ImportError:
@@ -225,8 +224,7 @@ class ParseMarkupTest(unittest.TestCase):
         )
 
     def test_double_escaped_entities_are_unescaped(self):
-        # Discord sends literal "<" pre-escaped as "&lt;"; after our own
-        # escaping it would render as "&lt;" unless "&amp;" is restored to "&".
+        # Discord pre-escapes "<" as "&lt;", so "&amp;" has to be restored to "&".
         self.assertEqual(parse_markup("&lt;b&gt;hi&lt;/b&gt;"), "&lt;b&gt;hi&lt;/b&gt;")
         self.assertEqual(parse_markup("a &amp;lt; b"), "a &amp;lt; b")
 
@@ -333,12 +331,7 @@ class CopyToClipboardTest(unittest.TestCase):
 
 
 class FindExecutableTest(unittest.TestCase):
-    """Test the TTL-cached find_executable() PATH lookup helper.
-
-    Probe names are unique per test because the helper is wrapped in
-    ``ttl_lru_cache`` (keyed on the time bucket + argument), so the shared
-    cache must not leak between tests. Time is pinned to control the bucket.
-    """
+    """Test the TTL-cached find_executable() helper; probe names must be unique."""
 
     def test_finds_executable_on_path(self):
         with mock.patch.object(

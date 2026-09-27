@@ -56,10 +56,9 @@ def _get_thread_pool() -> ThreadPoolExecutor:
 
 
 def _shutdown_thread_pool() -> None:
-    """Best-effort, non-blocking shutdown for interpreter exit.
+    """Shut the thread pool down at interpreter exit without blocking joins.
 
-    On Ctrl+C, Python may run atexit handlers while another KeyboardInterrupt is
-    still bubbling; avoid blocking joins to keep shutdown quiet and fast.
+    Ctrl+C can run atexit handlers while another KeyboardInterrupt bubbles.
     """
 
     global thread_pool
@@ -79,10 +78,7 @@ def _shutdown_thread_pool() -> None:
 
 
 def thread(target: Callable[..., T], *args: Any, **kwargs: Any) -> Any:
-    """
-    Submit the given function to the thread pool.
-    Returns a Future instead of a Thread.
-    """
+    """Submit *target* to the thread pool, returning a Future."""
     return _get_thread_pool().submit(target, *args, **kwargs)
 
 
@@ -92,15 +88,9 @@ def run_worker_with_idle(
     *args: Any,
     **kwargs: Any,
 ) -> Any:
-    """Run *worker* on the thread pool and deliver its return value to *callback*.
+    """Run *worker* on the pool and hand its result to *callback* via ``idle_add``.
 
-    The result is handed over with ``GLib.idle_add`` because a worker thread
-    must not touch widgets. Returns the Future, so a caller that needs to wait
-    on the work can still do so.
-
-    Only for workers that just compute a value. A worker that has to report
-    failure, or that finishes by scheduling its own completion callback, needs
-    to keep its own ``idle_add`` calls.
+    The idle hop returns to the main thread, so *worker* must not touch widgets.
     """
 
     def _run() -> T:
@@ -112,10 +102,7 @@ def run_worker_with_idle(
 
 
 def run_in_thread(func: Callable[..., T]) -> Callable[..., Any]:
-    """
-    Decorator to run the decorated function in the thread pool.
-    Returns a Future.
-    """
+    """Decorator running the wrapped function in the thread pool."""
 
     def wrapper(*args: Any, **kwargs: Any) -> Any:
         return thread(func, *args, **kwargs)
@@ -126,9 +113,7 @@ def run_in_thread(func: Callable[..., T]) -> Callable[..., Any]:
 def replace_timeout(owner, attribute: str, delay_ms: int, callback: Callable[[], bool]):
     """(Re)arm a one-shot timer stored on *owner*, replacing any pending one.
 
-    The bookkeeping every "remove the old source, then schedule" site repeats.
-    The callback is responsible for clearing *attribute* if it needs to know the
-    timer has already fired - use it for a repeating poll.
+    The callback must clear *attribute* itself to repeat.
     """
     existing = getattr(owner, attribute, None)
     if existing:
@@ -146,16 +131,12 @@ def cancel_timeout(owner, attribute: str) -> None:
 
 
 def debounce(ms: int):
-    """
-    Debounce a method. Useful for preventing UI flickering during fast typing.
-    Cleans up timers on object deletion.
-    """
+    """Debounce a method to prevent UI flicker during fast typing."""
 
     def decorator(func: Callable):
         timer_id_attr = f"_debounce_timer_{func.__name__}"
 
         def wrapper(self, *args, **kwargs):
-            # Remove existing timer if present
             existing_timer = getattr(self, timer_id_attr, None)
             if existing_timer:
                 GLib.source_remove(existing_timer)
@@ -167,7 +148,6 @@ def debounce(ms: int):
 
             setattr(self, timer_id_attr, GLib.timeout_add(ms, timeout_cb))
 
-        # Clean up timer on object deletion
         def cleanup(self):
             existing_timer = getattr(self, timer_id_attr, None)
             if existing_timer:

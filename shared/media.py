@@ -69,8 +69,7 @@ def _average_luminance(pixbuf: GdkPixbuf.Pixbuf) -> float | None:
 def _classify_art_cached(image_path: str, mtime: float) -> bool | None:
     """Classify artwork light-or-dark, cached per (path, mtime); None on failure.
 
-    The decode is cached separately by :func:`load_file_pixbuf`, against the
-    file's mtime; this layer only has to redo the cheap luminance pass.
+    The decode is already cached by mtime, so this only redoes luminance.
     """
     pixbuf = load_file_pixbuf(image_path, 16, 16)
     if pixbuf is None:
@@ -371,8 +370,7 @@ class PlayerBox(Box):
             },
         )
 
-        # Seed the seekbar at the track position, then tick it only while
-        # playback advances (see _move_seekbar / on_playback_change).
+        # Seed the seekbar, then tick only while playback advances.
         if self.player is not None:
             self._sync_seekbar()
         self._start_seekbar_timer()
@@ -452,8 +450,7 @@ class PlayerBox(Box):
     def _classify_art(self, image_path: str | None) -> bool | None:
         """Classify artwork brightness: True light, False dark, None unknown.
 
-        Drives the ``on-light-art``/``on-dark-art`` classes SCSS uses to pick
-        readable text colors against the (theme-generated) album art.
+        Drives the ``on-light-art``/``on-dark-art`` classes SCSS uses.
         """
         if not image_path or not os.path.isfile(image_path):
             return None
@@ -467,13 +464,11 @@ class PlayerBox(Box):
         """Update dot navigation for player switching in place."""
         current_dots = list(self.dot_box.get_children())
 
-        # Remove excess dots
         while len(current_dots) > count:
             dot = current_dots.pop()
             dot.destroy()
             self.dot_box.remove(dot)
 
-        # Add new dots if needed
         while len(current_dots) < count:
             i = len(current_dots)
             dot = HoverButton(
@@ -486,7 +481,6 @@ class PlayerBox(Box):
             current_dots.append(dot)
             self.dot_box.add(dot)
 
-        # Update style classes in place
         for i, dot in enumerate(current_dots):
             if i == active_index:
                 dot.add_style_class("active")
@@ -521,8 +515,7 @@ class PlayerBox(Box):
             self.play_pause_icon.set_label(get_text_icon("mpris.paused", ""))
             self.progress_bar.set_active(True)
 
-        # Only a running player advances the position, so only then is there a
-        # reason to tick; _move_seekbar stops the timer for anything else.
+        # Only a running player advances the position, so only then tick.
         if status == "playing":
             self._start_seekbar_timer()
         else:
@@ -544,9 +537,7 @@ class PlayerBox(Box):
         if self.progress_bar.get_dragging():
             return True
         if self.player.playback_status != "playing":
-            # A paused/stopped position does not advance, so there is nothing to
-            # redraw: stop the 1 Hz tick rather than re-measuring the label and
-            # slider every second. Resuming restarts it via on_playback_change.
+            # A paused position does not advance, so stop the 1 Hz tick.
             self._seekbar_timer_id = None
             return False
         self._sync_seekbar()

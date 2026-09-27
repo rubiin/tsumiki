@@ -7,11 +7,7 @@ from .geometry import rounded_rect_path
 
 
 class ClippingBox(Box):
-    """A regular `Box` that replicates the CSS behavior of `overflow: hidden`
-    because GTK failed at it.
-
-    NOTE: use instead of the old `CustomImage` snippet.
-    """
+    """A `Box` that replicates CSS `overflow: hidden`, which GTK lacks."""
 
     @staticmethod
     def render_shape(cr: cairo.Context, width: int, height: int, radius: int = 0):

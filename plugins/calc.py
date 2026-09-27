@@ -19,8 +19,7 @@ _EVAL_TIMEOUT_SECONDS = 10
 # qalc prints a Unicode minus sign (U+2212) — normalize it for copy/paste.
 _UNICODE_MINUS = "\u2212"
 _ANSI_ESCAPE_RE = re.compile(r"\x1b\[[0-9;]*m")
-# Serialize qalc invocations: concurrent processes can contend on qalc's
-# config/lock file (debounced typing can still overlap on the worker pool).
+# Concurrent invocations contend on qalc's config/lock file.
 _QALC_LOCK = threading.Lock()
 
 
@@ -64,8 +63,7 @@ class CalcPlugin(LauncherPlugin):
     description = "Evaluate math, units and currency (libqalculate)"
     icon = "accessories-calculator-symbolic"
     aliases: ClassVar[list[str]] = ["calculator", "math"]
-    # Each query forks a qalc subprocess, so wait for the user to pause
-    # typing before calculating instead of re-evaluating on every keystroke.
+    # Each query forks qalc; debounce instead of re-evaluating per keystroke.
     debounce_ms = 400
 
     def __init__(self):

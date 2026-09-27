@@ -21,10 +21,7 @@ class HyprlandWithMonitors(SingletonMixin, Hyprland):
         self.display: Gdk.Display = Gdk.Display.get_default()
 
     def get_all_monitors(self, callback):
-        """Fetch all monitors asynchronously.
-
-        Calls callback(dict | None) with {monitor_id: monitor_name} mapping.
-        """
+        """Fetch all monitors, calling back with {monitor_id: monitor_name}."""
         self.send_command_async(
             "j/monitors",
             lambda reply: self._handle_all_monitors_reply(reply, callback),

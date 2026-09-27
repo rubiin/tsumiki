@@ -127,8 +127,7 @@ class BlockingRefreshTest(unittest.TestCase):
         ):
             service.refresh_blocking()
 
-        # A broken compile clears the stylesheet, but listeners are still told
-        # the apply ran, so UI keyed off the signal is never left waiting.
+        # A broken compile clears the stylesheet but listeners still hear the apply.
         self.assertEqual(events, [("apply", ""), ("emit", ("css_recompiled",))])
 
 

@@ -165,8 +165,7 @@ class PluginManagerTest(unittest.TestCase):
             manager = PluginManager(str(plugins_dir), plugin_names=["gamma"])
             self.assertEqual(manager.load(), 1)
             self.assertIsNotNone(manager.get("g"))
-            # Allowlisting an alias alone does not load the plugin — the
-            # allowlist matches plugin names, not aliases.
+            # The allowlist matches plugin names, not aliases.
             manager = PluginManager(str(plugins_dir), plugin_names=["g"])
             self.assertEqual(manager.load(), 0)
             self.assertIsNone(manager.get("gamma"))
@@ -269,8 +268,7 @@ class CalcPluginTest(unittest.TestCase):
         self.assertIn("Usage:", results[0].title)
 
     def test_debounce_before_calculation(self):
-        # /calc forks qalc per query, so it must debounce harder than the
-        # launcher default (150ms) rather than recalculate per keystroke.
+        # /calc forks qalc per query, so it must debounce past the 150ms default.
         self.assertGreaterEqual(self.plugin.debounce_ms or 0, 400)
 
 
@@ -284,8 +282,7 @@ class TranslatePluginTest(unittest.TestCase):
         self.assertIn("Usage:", results[0].title)
 
     def test_debounce_before_translation(self):
-        # /translate hits a network endpoint per query, so it must debounce
-        # harder than the launcher default (150ms), like /calc.
+        # /translate hits the network per query, so it must debounce past 150ms.
         from plugins.translate import TranslatePlugin
 
         self.assertGreaterEqual(TranslatePlugin.debounce_ms or 0, 400)
@@ -515,8 +512,7 @@ class CurrencyPluginTest(unittest.TestCase):
                         "rate": 183.91,
                     },
                 ]
-                # Pad with more currencies so the payload passes the size
-                # sanity check (_MIN_RATES_COUNT).
+                # Pad currencies so the payload passes _MIN_RATES_COUNT.
                 for i, code in enumerate(
                     ["GBP", "CHF", "CAD", "AUD", "INR", "CNY", "KRW", "MXN"]
                 ):
@@ -587,8 +583,7 @@ class CurrencyPluginTest(unittest.TestCase):
         self.assertEqual(calls["n"], 1)
 
     def test_debounce_before_conversion(self):
-        # /currency hits a network endpoint per query, so it must debounce
-        # harder than the launcher default (150ms), like /calc and /translate.
+        # /currency hits the network per query, so it must debounce past 150ms.
         self.assertGreaterEqual(self.plugin.debounce_ms or 0, 400)
 
     def test_execute_copies_converted_amount(self):
@@ -729,8 +724,7 @@ class HttpRequestTest(unittest.TestCase):
         ):
             result = http_request(lambda: False, "GET", "https://example.com")
         self.assertEqual(result, ("materialized", "hello world"))
-        # The helper must read the whole body before materializing, so
-        # superseded queries abort instead of parsing a partial response.
+        # Read the whole body before materializing, so stale queries abort early.
         args, _ = mock_materialize.call_args
         self.assertEqual(args[1], b"hello world")
 
@@ -1298,8 +1292,7 @@ class SearchPluginTest(unittest.TestCase):
         self.assertEqual(self.resolve_url("https://x.example/"), "https://x.example/")
 
     def test_resolve_url_keeps_literal_percent_encoding(self):
-        # A target URL containing %xx must not be double-decoded into a
-        # broken link (parse_qs already decodes the uddg value once).
+        # A %xx in the target must not be double-decoded into a broken link.
         self.assertEqual(
             self.resolve_url(
                 "//duckduckgo.com/l/?uddg=https%3A%2F%2Fexample.com%2Fa%2520b&rut=1"
@@ -1353,8 +1346,7 @@ class SearchPluginTest(unittest.TestCase):
         mock_copy.assert_called_once_with("https://example.com/")
 
     def test_debounce_before_search(self):
-        # /search hits a network endpoint per query, so it must debounce
-        # harder than the launcher default (150ms), like /translate.
+        # /search hits the network per query, so it must debounce past 150ms.
         self.assertGreaterEqual(self.plugin.debounce_ms or 0, 400)
 
 
@@ -1409,8 +1401,7 @@ class HistoryPluginTest(unittest.TestCase):
             bash.write_text("oldcmd\ngit status\n")
             zsh.write_text(": 1700000005:0;git status\n: 1700000006:0;ls -la\n")
             commands = self.load_history([str(bash), str(zsh)])
-        # "git status" appears twice — the zsh copy (newer epoch) wins, and
-        # the list is most-recent-first.
+        # "git status" appears twice; the newer epoch wins, list is newest-first.
         self.assertEqual(commands[:3], ["ls -la", "git status", "oldcmd"])
 
     def test_handle_filters_by_query(self):
@@ -1508,8 +1499,7 @@ class DefinePluginTest(unittest.TestCase):
         self.assertEqual(self.split_senses(block), ["a plain gcide-style definition"])
 
     def test_split_senses_handles_indented_dictorg_format(self):
-        # dict.org WordNet indents senses and uses full part-of-speech
-        # markers; continuation senses of the same POS are bare numbers.
+        # dict.org indents senses with full POS markers; continuations are bare numbers.
         block = {
             "body": [
                 "set",
@@ -1563,8 +1553,7 @@ class DefinePluginTest(unittest.TestCase):
         self.assertIn("failed", results[0].title.casefold())
 
     def test_debounce_before_lookup(self):
-        # /define opens a TCP connection per query, so it must debounce
-        # harder than the launcher default (150ms), like /translate.
+        # /define opens a TCP connection per query, so it must debounce past 150ms.
         self.assertGreaterEqual(self.plugin.debounce_ms or 0, 400)
 
     def test_execute_copies_definition(self):
@@ -1658,8 +1647,7 @@ class ShortenPluginTest(unittest.TestCase):
         self.assertIn("failed", results[0].title.casefold())
 
     def test_debounce_before_shorten(self):
-        # /shorten hits a network endpoint per query, so it must debounce
-        # harder than the launcher default (150ms), like /search.
+        # /shorten hits the network per query, so it must debounce past 150ms.
         self.assertGreaterEqual(self.plugin.debounce_ms or 0, 400)
 
     def test_execute_copies_short_url(self):

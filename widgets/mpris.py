@@ -98,8 +98,7 @@ class MprisWidget(ButtonWidget, PopoverMixin):
         self.setup_popover(
             lambda: PlayerBoxStack(self.mpris_manager, config=self.config),
         )
-        # The 1 Hz progress tick is started/stopped by get_current() from the
-        # player's playback status, so there is nothing to start here.
+        # The 1 Hz progress tick is started/stopped by get_current().
 
     def _bind_player_updates(self):
         self._unbind_player_updates()
@@ -194,9 +193,7 @@ class MprisWidget(ButtonWidget, PopoverMixin):
             self.progress_fill.set_style(f"min-width: {fill_px}px;")
         else:
             self.progress_fill.set_style("")
-            # Widget not yet allocated -- retry on next idle so the bar
-            # appears as soon as the layout pass assigns a width.
-            # Reset the sentinel so the retry isn't short-circuited.
+            # Not allocated yet: retry on idle, and clear the sentinel.
             self._last_progress_pct = None
             GLib.idle_add(self._update_progress)
 
@@ -227,8 +224,7 @@ class MprisWidget(ButtonWidget, PopoverMixin):
             return
         self._unbind_player_updates()
         self.player = None
-        # The fallback below re-evaluates the player, and get_current() syncs
-        # the progress tick to whatever it finds (including no player at all).
+        # get_current() below re-syncs the progress tick to whatever it finds.
 
         for raw_player in self.mpris_manager.players:
             if raw_player.props.player_name in self.config.get("ignore", []):
@@ -301,8 +297,7 @@ class MprisWidget(ButtonWidget, PopoverMixin):
         if self.exit:
             return
         playback_status = self.player.playback_status if self.player else None
-        # A paused/stopped player's position never advances, so the tick would
-        # only re-render an unchanged progress bar.
+        # A paused player's position never advances, so the tick would be a no-op.
         self._sync_progress_timer(playback_status)
         if playback_status not in {"playing", "paused"}:
             self._set_default_values()

@@ -460,12 +460,7 @@ class ValidateWidgetsTest(unittest.TestCase):
 
 
 class SingleSourceTest(unittest.TestCase):
-    """Validation must live in exactly one place.
-
-    ``utils/config.py`` used to import its validators from ``utils.functions``
-    while this suite imported them from ``utils.validation``, so the two copies
-    drifted and the tests covered a module the application never loaded.
-    """
+    """Validation must live in exactly one place."""
 
     VALIDATION_NAMES: ClassVar[tuple[str, ...]] = (
         "validate_config_enums",

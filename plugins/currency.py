@@ -30,8 +30,7 @@ _RETRY_DELAY_SECONDS = 0.5
 # A payload below this many rates is treated as malformed (never cached).
 _MIN_RATES_COUNT = 10
 
-# Serializes cache read/refresh so concurrent worker threads don't download
-# the daily file twice.
+# Keeps concurrent worker threads from downloading the daily file twice.
 _RATES_LOCK = threading.Lock()
 
 #: Common names/symbols → ISO 4217 codes, so "dollar", "$" and "euro" work.
@@ -113,9 +112,7 @@ def _download_rates(cancelled=None) -> tuple[str, dict[str, float]]:
             response = http_request(cancelled, "GET", _FRANKFURTER_RATES_URL)
             response.raise_for_status()
             fx_date, rates = normalize_rows(response.json())
-            # Guard against malformed/empty payloads: a nearly-empty table
-            # would poison the daily cache, so treat it as a failed download
-            # and let the stale-cache fallback take over.
+            # A near-empty table would poison the daily cache; treat as failure.
             if len(rates) < _MIN_RATES_COUNT:
                 raise ValueError(
                     f"Frankfurter returned only {len(rates)} currency rate(s)"
@@ -155,9 +152,7 @@ def _read_cache() -> dict | None:
 def _write_cache(payload: dict) -> None:
     """Persist the daily rates snapshot (best-effort)."""
     try:
-        # Both calls must complete before returning: load_rates() reads this
-        # file back on the next call, and the plugin already runs on a worker
-        # thread, so off-thread writes would race it.
+        # sync=True: load_rates() reads this back and would race an async write.
         ensure_directory(os.path.dirname(FX_RATES_CACHE_FILE), sync=True)
         write_json_file(FX_RATES_CACHE_FILE, payload, sync=True)
     except OSError:
@@ -165,11 +160,7 @@ def _write_cache(payload: dict) -> None:
 
 
 def load_rates(cancelled=None) -> dict:
-    """Return the daily rates payload, downloading at most once a day.
-
-    Falls back to the last snapshot on failure. *cancelled* aborts a
-    superseded download.
-    """
+    """Return daily rates, downloading at most once a day; falls back to a snapshot."""
     with _RATES_LOCK:
         cached = _read_cache()
         if cached and cached.get("fetched") == _today():
@@ -208,19 +199,14 @@ def normalize_code(token: str) -> str:
 
 
 def parse_query(args: str) -> tuple[float, str, str] | None:
-    """Parse ``<amount> <from> [to] <to>`` into (amount, from_code, to_code).
-
-    Returns None for an empty query; raises ValueError with a user-facing
-    message when the expression can't be parsed.
-    """
+    """Parse ``<amount> <from> [to] <to>``; raises ValueError if unparseable."""
     tokens = args.strip().split()
     if not tokens:
         return None
     tokens = [token for token in tokens if token.casefold() != "to"]
 
     if len(tokens) == 2:
-        # Two tokens: either "from to" (amount defaults to 1) or a numeric
-        # amount with a missing target currency.
+        # Either "from to" (amount defaults to 1) or a numeric amount.
         try:
             amount = float(tokens[0].replace(",", ""))
         except ValueError:
@@ -268,8 +254,7 @@ class CurrencyPlugin(LauncherPlugin):
     description = "Convert between currencies (daily rates, cached locally)"
     icon = "💱"
     aliases: ClassVar[list[str]] = ["fx", "money", "exchange"]
-    # The first query of the day downloads the rates file, so give the user a
-    # moment to finish typing before that happens.
+    # The day's first query downloads the rates file; let typing finish first.
     debounce_ms = 400
 
     def handle(self, args: str) -> list[PluginResult]:

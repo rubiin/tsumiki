@@ -35,8 +35,6 @@ class HyprlandWindowButton(Button):
         self.client = client
         self.window: Box = window
 
-        # Compute dynamic icon sizes based on the button size.
-        # Using the minimum dimension of the button for scaling.
         icon_size_main = int(min(self.size) * 0.5)
 
         self._icon_resolver = IconResolver()
@@ -205,9 +203,7 @@ class OverviewMenu(Box, TeardownMixin):
 
     def _on_destroy(self, *_):
         self._destroyed = True
-        # Bump the generation so a fetch already in flight is treated as stale
-        # and never reaches the torn-down widgets. The pending debounce and the
-        # Hyprland connections are dropped by TeardownMixin.
+        # Bumps the generation so an in-flight fetch is stale.
         self._update_generation += 1
 
     def _schedule_update(self, *_):
@@ -343,8 +339,7 @@ class OverviewMenu(Box, TeardownMixin):
         if gen != self._update_generation:
             return  # Stale update superseded by a newer one
         if not raw_clients:
-            # A failed fetch delivers None. Keep the buttons already on screen
-            # instead of tearing the overview down over one bad reply.
+            # A failed fetch delivers None; keep the buttons already on screen.
             logger.error("[Overview] Client fetch failed, keeping current state")
             return
         monitors = self._fetched_monitors

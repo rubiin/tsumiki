@@ -18,8 +18,7 @@ _TRANSLATE_URL = "https://translate.googleapis.com/translate_a/single"
 #: Google rejects longer payloads ("400. That's an error...").
 _MAX_TEXT_LENGTH = 1830
 
-#: Language name -> Google language code. Covers common languages; unknown
-#: names fall back to the plugin default target language.
+#: Language name -> Google code; unknown names fall back to the default target.
 _LANGUAGES = {
     "afrikaans": "af",
     "albanian": "sq",
@@ -156,8 +155,7 @@ class TranslatePlugin(LauncherPlugin):
     description = "Translate text (e.g. 'hello in nepali')"
     icon = "preferences-desktop-locale-symbolic"
     aliases: ClassVar[list[str]] = ["tr", "t"]
-    # Each query is a network request, so wait for the user to pause typing
-    # before translating instead of hitting the API on every keystroke.
+    # Each query is a network request; debounce instead of firing per keystroke.
     debounce_ms = 500
     #: Session cache TTL — repeat translations skip the network.
     cache_ttl_seconds = 300

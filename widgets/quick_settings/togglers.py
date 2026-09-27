@@ -165,8 +165,7 @@ class FlightModeToggle(HoverButton):
         self.connect("clicked", self.on_click)
 
         self._register_repeater(invoke_repeater(1000, self.update_state))
-        # Refresh when first shown; the repeater's initial call may run before
-        # mapping, when the visibility gate skips it.
+        # The repeater's first call can land before mapping, when the gate skips it.
         self.connect("map", self.update_state)
 
     def on_click(self, *_):

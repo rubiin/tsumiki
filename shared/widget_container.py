@@ -13,12 +13,7 @@ from utils.functions import safe_disconnect
 
 
 class TeardownMixin:
-    """Track GLib repeaters and signal handlers for teardown on destroy.
-
-    Widgets call ``_register_repeater`` / ``_register_handler``; the first call
-    wires a ``destroy`` handler that removes every tracked source. This stops
-    the leaks that stack when bars are recreated on config edit / hotplug.
-    """
+    """Track GLib repeaters and signal handlers so ``destroy`` can remove them."""
 
     def _register_repeater(self, repeater_id: int) -> int:
         if not hasattr(self, "_repeaters"):
@@ -44,12 +39,7 @@ class TeardownMixin:
         return handler_id
 
     def _register_handlers(self, source, signal_map: dict[str, Callable]) -> list[int]:
-        """Connect every signal in *signal_map* on *source*, tracked for teardown.
-
-        This is the tracked counterpart of fabric's ``bulk_connect``. The plain
-        call returns the handler ids and throws them away, which is what lets
-        those connections outlive the widget; here they all go to ``_teardown``.
-        """
+        """Tracked counterpart of ``bulk_connect``, so ids reach ``_teardown``."""
         return [
             self._register_handler(source, source.connect(signal, callback))
             for signal, callback in signal_map.items()
@@ -74,14 +64,7 @@ class TeardownMixin:
     ) -> bool:
         """Arm a one-shot timer under *key*; return whether it was armed.
 
-        A pending timer for the same key is left alone by default, which is
-        what a debounce wants: repeated events collapse into the one already
-        armed. Pass ``replace=True`` for a timer that must count from the
-        latest call.
-
-        The timer is tracked for teardown, so a widget cannot leak one by
-        forgetting to cancel it. A repeating poll re-arms itself from inside the
-        callback; *key* is free by then.
+        A pending timer for the same key survives unless ``replace=True``.
         """
         if self._has_timeout(key) and not replace:
             return False
@@ -93,8 +76,7 @@ class TeardownMixin:
 
     def _fire_timeout(self, key: str, callback: Callable[[], bool]):
         def fire() -> bool:
-            # The source is spent once it fires: drop the key before running so
-            # a callback that re-arms the same key is not clobbered.
+            # Drop the key before running so a re-arming callback is not clobbered.
             self._timeout_store().pop(key, None)
             return callback()
 
@@ -146,9 +128,7 @@ class BaseWidget(Widget, TeardownMixin):
         return merged
 
     def _init_widget_settings(self, widget_name: str) -> None:
-        # Imported here rather than at module scope: importing utils.config
-        # parses config.toml and validates it against the ~122 KB schema, a cost
-        # anything that merely imports this shared widget layer should not pay.
+        # Deferred: importing utils.config parses config.toml and validates it.
         from utils.config import tsumiki_config
 
         self.config: dict = tsumiki_config.get("widgets", {}).get(widget_name, {})
@@ -183,13 +163,7 @@ class BaseWidget(Widget, TeardownMixin):
     def set_tooltip_if_enabled(self, text: str, default: bool = False) -> None:
         """Set tooltip text only when tooltips are enabled.
 
-        Replaces the two-line guard in almost every widget:
-            ``if self.config.get("tooltip", ...) and self.tooltips_enabled:``
-
-        Args:
-            text: The tooltip string to display.
-            default: Fallback when ``widgets.<name>.tooltip`` is absent.
-                Use ``True`` for widgets whose tooltip is on by convention.
+        *default* is the fallback when ``widgets.<name>.tooltip`` is absent.
         """
         if self.config.get("tooltip", default) and self.tooltips_enabled:
             self.set_tooltip_text(text)
@@ -273,14 +247,9 @@ class ButtonWidget(Button, BaseWidget):
     ) -> None:
         """Fill the container box with the panel icon and an optional label.
 
-        Every panel widget is an icon plus, optionally, a text label; the only
-        per-widget differences are whether the label is enabled and what it
-        says. Either argument may be an already-built widget, for the widgets
-        that need a revealer or update their text later.
+        Either argument may be an already-built widget that updates its own text.
         """
-        # Imported here, not at module scope: utils.widget_utils reaches
-        # utils.config, and this module must stay importable without loading
-        # the user's configuration (see test_config.ConfigImportIsolationTest).
+        # Deferred: this module must import without the user's config.
         from utils.widget_utils import nerd_font_icon
 
         self.container_box.children = (

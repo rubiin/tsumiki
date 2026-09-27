@@ -47,8 +47,7 @@ class HyprSunsetSubMenu(QuickSubMenu):
         # Connect the slider immediately
         self.scale.connect("value-changed", self.on_scale_move)
         self._repeater_id = invoke_repeater(1000, self.update_scale)
-        # Refresh when first shown; the repeater's initial call may run before
-        # mapping, when the visibility gate skips it.
+        # The repeater's first call can land before mapping, when the gate skips it.
         self.connect("map", self.update_scale)
         self.connect("destroy", self._on_destroy)
 
@@ -116,8 +115,7 @@ class HyprSunsetToggle(QSChevronButton):
         self.connect("action-clicked", self.on_action)
 
         self._register_repeater(invoke_repeater(1000, self.update_action_button))
-        # Refresh when first shown; the repeater's initial call may run before
-        # mapping, when the visibility gate skips it.
+        # The repeater's first call can land before mapping, when the gate skips it.
         self.connect("map", self.update_action_button)
 
     def on_action(self, *_):

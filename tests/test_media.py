@@ -161,8 +161,7 @@ class PlayerBoxStackLostPlayerTest(unittest.TestCase):
         self.assertIsNone(stack.player_stack.visible_child)
 
     def test_vanished_after_exit_destroy_is_a_safe_noop_for_the_card(self):
-        # The player's own exit path may already have destroyed the card
-        # before the manager emits player-vanished.
+        # The card may already be gone before player-vanished is emitted.
         stack = self._make_stack(["vlc", "mpd"], current=0)
         vlc = self._box(stack, "vlc")
         mpd = self._box(stack, "mpd")

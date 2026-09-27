@@ -17,9 +17,8 @@ def scrolled_list_content(
 ) -> ScrolledWindow:
     """Wrap a submenu's list content in the shared scroll configuration.
 
-    ``propagate_width=False`` plus an automatic horizontal policy is what keeps
-    long labels from widening the popup - GTK3 ignores the policy entirely when
-    it is set to "never", so it has to stay "automatic".
+    The h_scrollbar policy must stay "automatic": GTK3 ignores "never", so long
+    labels would widen the popup.
     """
     return ScrolledWindow(
         min_content_size=(-1, min_height),

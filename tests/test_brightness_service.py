@@ -23,9 +23,7 @@ class _StubFile:
 
 
 def _make_service(cache: int) -> BrightnessService:
-    # Bypass __init__: it binds to real /sys devices and spawns file
-    # monitors, which unit tests must not depend on. The handler under
-    # test only touches _screen_brightness_cache and emit().
+    # Bypass __init__: it binds real /sys devices and spawns file monitors.
     service = BrightnessService.__new__(BrightnessService)
     service._screen_brightness_cache = cache
     service.emit = mock.Mock()

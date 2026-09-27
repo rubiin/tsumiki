@@ -10,14 +10,12 @@ from .widget_container import ButtonWidget
 class CollapsibleGroupWidget(ButtonWidget, PopoverMixin):
     """A collapsible button group that shows a main toggle button in the bar.
 
-    When clicked, reveals a popup menu with grouped widgets underneath.
-    Uses lazy initialization for performance.
+    Clicking reveals a popup of the grouped widgets, built on first use.
     """
 
     def __init__(self, **kwargs):
         super().__init__(name="collapsible_group", **kwargs)
 
-        # Initialize defaults - will be overridden when config is updated
         self.widgets_config = []
         self.icon_name = "󰍽"  # default icon
         self.show_icon = True
@@ -31,14 +29,12 @@ class CollapsibleGroupWidget(ButtonWidget, PopoverMixin):
         # Read configuration and setup the widget
         self._read_config()
         self._setup_button_content()
-        # PopoverMixin owns the popover: it is built on first use from
-        # _build_popover_content, and it maintains the "active" class.
+        # PopoverMixin builds the popover on first use and owns the "active" class.
         self.setup_popover(self._build_popover_content, connect_clicked=False)
         self.connect("clicked", self.on_toggle_clicked)
 
     def _read_config(self):
         """Read configuration values from the config."""
-        # Fix: Read config directly instead of from non-existent "group" key
         self.widgets_config = self.config.get("widgets", [])
         self.icon_name = self.config.get("icon", "󰍽")
         self.show_icon = self.config.get("show_icon", True)
@@ -76,7 +72,7 @@ class CollapsibleGroupWidget(ButtonWidget, PopoverMixin):
     def _set_expanded(self, expanded: bool):
         """Sets the expanded state of the widget."""
         if self.is_expanded == expanded:
-            return  # No change
+            return
 
         if expanded:
             self.show_popover()
@@ -94,15 +90,12 @@ class CollapsibleGroupWidget(ButtonWidget, PopoverMixin):
         if not hasattr(self, "widgets_box") or not hasattr(self, "_resolver_context"):
             return
 
-        # Clear existing widgets
         for child in self.widgets_box.get_children():
             child.destroy()
 
-        # Use the widget factory system
         from utils.widget_factory import WidgetResolver
 
-        # Note: Don't use `self.widgets_list or {}` because LazyWidgetDict
-        # inherits from dict but is empty, so it evaluates to falsy
+        # LazyWidgetDict subclasses dict but is empty, so `or {}` would discard it.
         widgets_list = self.widgets_list if self.widgets_list is not None else {}
         resolver = WidgetResolver(widgets_list)
         widgets = resolver.batch_resolve(self.widgets_config, self._resolver_context)
@@ -110,7 +103,7 @@ class CollapsibleGroupWidget(ButtonWidget, PopoverMixin):
         for widget in widgets:
             self.widgets_box.add(widget)
 
-        # Show all widgets - required for dynamically added widgets
+        # Dynamically added widgets are invisible until show_all.
         self.widgets_box.show_all()
 
     def set_context(self, config: dict, widgets_list: dict):
@@ -131,7 +124,6 @@ class CollapsibleGroupWidget(ButtonWidget, PopoverMixin):
         self.config.update(config_dict)
         self._read_config()
 
-        # Clear and rebuild button content with new config
         for child in self.container_box.get_children():
             child.destroy()
 

@@ -14,8 +14,7 @@ class MicrophoneOSDContainer(AudioDeviceOSDContainer):
 
     device_attribute: ClassVar[str] = "microphone"
     changed_signal: ClassVar[str] = "mic-changed"
-    # Unlike the speaker, a new capture device starts from a clean slate so the
-    # first reading is always published.
+    # A new capture device starts clean so the first reading is published.
     reset_state_on_device_change: ClassVar[bool] = True
 
     def _icon_for(self, volume: int, muted: bool) -> str:

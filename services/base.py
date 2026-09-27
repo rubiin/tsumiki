@@ -10,12 +10,8 @@ from utils.singleton import SingletonMixin
 class PollingController:
     """Polls a fixed command on an interval and feeds its output to a callback.
 
-    The next run is armed when the previous process *exits*, not when it
-    starts, so a slow command cannot overlap itself. A generation counter drops
-    the completion of a run that was stopped or superseded, so pausing cannot
-    leave a timer armed.
-
-    *on_start* runs before each command, for callers that reset per-run state.
+    The next run is armed when the previous process *exits*, so a slow command
+    cannot overlap itself; a generation counter drops late completions.
     """
 
     def __init__(

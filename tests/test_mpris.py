@@ -22,10 +22,7 @@ except (ImportError, ValueError):  # GTK / fabric widgets unavailable
 
 @unittest.skipUnless(HAS_PLAYERCTL, "Playerctl bindings unavailable")
 class MprisPlayerSafetyTest(unittest.TestCase):
-    """Playerctl's sync getters abort the process (g_error) when the
-    player's DBus name is gone - e.g. while VLC restarts its MPRIS service
-    on media change. Our getters must never call into a dead player.
-    """
+    """Our getters must never call into a dead player."""
 
     def _make_player(self, name: str = "no-such-player") -> MprisPlayer:
         raw = mock.Mock()
@@ -54,8 +51,7 @@ class MprisPlayerSafetyTest(unittest.TestCase):
         self.assertEqual(player.title, "")
         self.assertEqual(player.artist, "")
 
-        # When _player is None, getters must not call back into the raw
-        # playerctl proxy at all.
+        # With _player None, getters must not touch the raw playerctl proxy.
         self.assertEqual(raw.get_property.call_count, 0)
 
 

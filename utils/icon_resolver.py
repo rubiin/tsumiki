@@ -12,13 +12,10 @@ from .icons import symbolic_icons
 # Debounce delay for batching icon cache writes (ms)
 _CACHE_WRITE_DELAY_MS = 2000
 
-# Single source of truth for the fallback glyph, so a missing icon renders the
-# same way no matter which resolver path reached it.
+# Single source of truth for the fallback glyph, so a miss renders alike everywhere.
 _FALLBACK_MISSING = symbolic_icons["missing"]
 
-# A cached value equal to one of these means discovery failed, not that the app
-# has that icon. They are never written to the cache, and existing entries are
-# dropped on load, so a failure can never pin an app to a placeholder.
+# A cached value here means discovery failed, not that the app has that icon.
 _PLACEHOLDER_ICONS = frozenset(
     {symbolic_icons["missing"], *symbolic_icons["fallback"].values()}
 )
@@ -50,9 +47,8 @@ class IconResolver(SingletonMixin):
     def get_icon_theme_icon(self, icon_name: str, icon_size: int = 16):
         """Load an icon from the default theme, or ``None`` when it has none.
 
-        The single theme-lookup entry point: callers handle ``None`` instead of
-        catching ``GLib.GError`` themselves, so a missing icon degrades the same
-        way everywhere.
+        The single theme-lookup entry point, so a missing icon degrades the
+        same way everywhere instead of raising at each call site.
         """
         if not icon_name:
             return None
@@ -66,11 +62,10 @@ class IconResolver(SingletonMixin):
             return None
 
     def _ensure_cache_loaded(self):
-        """Lazily load the icon cache on first access.
+        """Lazily load the icon cache, dropping any placeholder entries.
 
-        Entries that hold a placeholder are dropped rather than trusted: they
-        mean a previous lookup gave up, and keeping them would stop the app
-        from ever resolving a real icon.
+        Placeholders mean a previous lookup gave up; keeping them would stop the
+        app from ever resolving a real icon.
         """
         if self._icon_dict is None:
             if os.path.exists(ICON_CACHE_FILE):
@@ -96,11 +91,8 @@ class IconResolver(SingletonMixin):
     def get_icon_name(self, app_id: str) -> str | None:
         """Return the cached icon name for app_id, resolving on miss.
 
-        Returns ``None`` when no real icon can be found - deciding what to show
-        instead is the caller's job, because the answer belongs to the surface
-        (panel, notification, tray), not to discovery. Only a resolved name is
-        cached, so a caller-supplied fallback can never be persisted as an
-        app's icon.
+        ``None`` when no real icon exists: what to show instead belongs to the
+        surface. Only resolved names are cached, never a caller's fallback.
         """
         self._ensure_cache_loaded()
         if app_id in self._icon_dict:
@@ -155,10 +147,8 @@ class IconResolver(SingletonMixin):
     def get_icon_pixbuf_by_name(self, icon_name: str, size: int = 16):
         """Load *icon_name* from the theme at exactly *size*.
 
-        For callers that already hold a ``DesktopApp``. Its own
-        ``get_icon_pixbuf`` cannot be used for this: it caches the first size
-        it is asked for on the shared instance, so it hands back whatever the
-        panel happened to request first.
+        ``get_icon_pixbuf`` cannot be reused: it caches the first size asked
+        for on the shared instance, so the panel's size would win.
         """
         if not icon_name:
             return None
@@ -244,11 +234,8 @@ class IconResolver(SingletonMixin):
     ) -> GdkPixbuf.Pixbuf | None:
         """Downscale ``pixbuf`` to a square ``size`` x ``size`` if it is larger.
 
-        Never upscales. A source smaller than *size* is returned untouched so
-        the renderer scales it at draw time, which is both smoother than
-        resampling here and correct on a scaled display. Bilinearly enlarging a
-        small source measurably softens it - a 32px notification icon blown up
-        to 78px loses ~16% of its edge contrast, while downscaling is lossless.
+        Never upscales: a smaller source is returned for the renderer to scale
+        at draw time, which is smoother and correct on a scaled display.
         """
         if pixbuf.get_width() <= size and pixbuf.get_height() <= size:
             return pixbuf
@@ -260,25 +247,10 @@ class IconResolver(SingletonMixin):
         app_id: str,
         size: int,
     ) -> GdkPixbuf.Pixbuf | None:
-        """Resolve an application icon pixbuf.
+        """Resolve an application icon pixbuf; the cache is keyed on *app_id* alone.
 
-        The cache is keyed on *app_id* alone, so nothing unhashable may be
-        passed in: a resolved ``DesktopApp`` is looked up here rather than
-        accepted as an argument, since fabric declares it ``@dataclass``, which
-        generates ``__eq__`` and so leaves ``__hash__`` unset.
-
-        Strategy:
-        1. Ask ``AppUtils.find_app`` for the app's icon *name* (the XDG desktop
-            database maps Hyprland window classes reliably) and load it from the
-            theme at exactly *size*.
-        2. Fall back to the GTK icon theme lookup via ``get_icon_pixbuf``,
-            whose own fallback is ``symbolic_icons["missing"]``.
-
-        The pixbuf is deliberately not taken from ``DesktopApp.get_icon_pixbuf``:
-        that caches the first size it is asked for on the shared, process-wide
-        ``DesktopApp``, so whichever panel widget resolved the app first would
-        dictate the size everyone else gets. Loading by name here means each
-        caller gets a pixbuf rendered at the size it actually wants.
+        A ``DesktopApp`` is looked up, not passed in (dataclasses are
+        unhashable); its own ``get_icon_pixbuf`` pins the first size requested.
         """
         from .app import AppUtils
 
@@ -289,7 +261,6 @@ class IconResolver(SingletonMixin):
             if desktop_app and desktop_app.icon_name:
                 pixbuf = self.get_icon_pixbuf_by_name(desktop_app.icon_name, size)
 
-        # Fall back to the resolver's theme lookup
         if not pixbuf:
             pixbuf = self.get_icon_pixbuf(app_id, size)
 

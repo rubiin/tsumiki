@@ -281,8 +281,7 @@ class AppBar(BoxWidget):
         self._apply_active_state(active_address)
 
     def _schedule_sync_clients(self, delay_ms: int = DOCK_SYNC_DEBOUNCE_MS):
-        # A pending debounce wins over an immediate request: syncing now would
-        # duplicate the sync that is already armed to run.
+        # A pending debounce wins: syncing now duplicates the armed sync.
         if self._has_timeout(self._SYNC_TIMER):
             return
 
@@ -610,13 +609,7 @@ class AppBar(BoxWidget):
         on_press,
         on_release,
     ) -> tuple[Box, Button]:
-        """Build one dock entry: an indicator plus a button, wired for DnD.
-
-        The image and indicator are supplied because a group shows a multi-dot
-        indicator and fills in its icon later, while a lone client shows a single
-        dot with the icon already set. Callers keep their own press/release
-        behaviour, drag id and bookkeeping.
-        """
+        """Build one dock entry: an indicator plus a button, wired for DnD."""
         is_vertical = self.orientation == "vertical"
         # Center indicator within the entry box
         if is_vertical:
@@ -641,10 +634,7 @@ class AppBar(BoxWidget):
                 children=[button, indicator],
             )
 
-        # One bulk_connect: the drag handlers each need different trailing
-        # arguments, so bind them rather than passing one shared arg tuple.
-        # partial matches the previous ``connect(sig, handler, *args)`` exactly -
-        # the bound values land after the arguments GTK itself supplies.
+        # One bulk_connect: partial binds the trailing args the drag handlers need.
         bulk_connect(
             button,
             {

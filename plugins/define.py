@@ -45,12 +45,7 @@ def _parse_151(line: str) -> dict:
 
 
 def parse_dict_response(text: str) -> list[dict]:
-    """Parse a DICT session transcript into definition blocks.
-
-    Returns one dict per ``151`` block with keys word/database/description/
-    body (list of text lines). Empty when the server replied ``552``
-    (no match).
-    """
+    """Parse a DICT transcript into one dict per ``151`` block; empty on ``552``."""
     blocks: list[dict] = []
     current: dict | None = None
     for raw in text.splitlines():
@@ -69,11 +64,7 @@ def parse_dict_response(text: str) -> list[dict]:
 
 
 def split_senses(block: dict) -> list[str]:
-    """Split a definition body into numbered senses, e.g. WordNet's.
-
-    Falls back to the whole collapsed body when no ``n 1:``-style sense
-    markers are present (gcide, foldoc, ...).
-    """
+    """Split a definition body into senses; falls back to the collapsed body."""
     body = "\n".join(block["body"])
     matches = list(_SENSE_RE.finditer(body))
     if not matches:
@@ -97,11 +88,7 @@ def query_dict(
     timeout: float = _TIMEOUT_SECONDS,
     cancelled=None,
 ) -> list[dict]:
-    """Return definition blocks for *word* over the DICT protocol.
-
-    *cancelled* aborts a superseded lookup between socket reads, raising
-    :class:`PluginCancelledError`.
-    """
+    """Return definition blocks for *word*; *cancelled* raises PluginCancelledError."""
     word = word.strip()
     if not word or "\r" in word or "\n" in word:
         raise ValueError("invalid word")
@@ -160,8 +147,7 @@ class DefinePlugin(LauncherPlugin):
     description = "Define a word (dict.org WordNet)"
     icon = "accessories-dictionary-symbolic"
     aliases: ClassVar[list[str]] = ["def", "dict"]
-    # Each query opens a TCP connection — debounce like the other network
-    # plugins so we don't look the word up on every keystroke.
+    # Each query opens a TCP connection; debounce so it isn't per keystroke.
     debounce_ms = 500
     #: Session cache TTL — definitions rarely change.
     cache_ttl_seconds = 3600
@@ -208,8 +194,7 @@ class DefinePlugin(LauncherPlugin):
         rows = []
         for block in blocks:
             senses = split_senses(block)
-            # The body usually starts with the headword on its own line —
-            # don't duplicate it in the copied definition.
+            # The body repeats the headword on line 1; drop it from the copy.
             lines = list(block["body"])
             if lines and lines[0].strip().casefold() == block["word"].casefold():
                 lines = lines[1:]

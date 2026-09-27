@@ -80,9 +80,7 @@ class BatteryWidget(ButtonWidget):
         self._update_ui()
 
     def _update_ui(self, *_args):
-        """Update the battery status by fetching the current battery information
-        and updating the widget accordingly.
-        """
+        """Update the widget from the current battery properties."""
         is_present = self.client.get_property("IsPresent") == 1
 
         if not is_present:
@@ -172,8 +170,7 @@ class BatteryWidget(ButtonWidget):
         return True
 
     def _get_notification_message(self, event_type, percentage):
-        """Return the body text for a battery notification.
-        Uses custom message from config if provided, otherwise falls back to i18n."""
+        """Battery notification body: config message if set, else i18n."""
         notifications = self.config.get("notifications", {})
         event_config = notifications.get(event_type, {})
         if isinstance(event_config, dict):

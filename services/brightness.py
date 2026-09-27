@@ -50,8 +50,7 @@ class BrightnessService(SingletonService):
                 "changed",
                 self._on_screen_brightness_file_changed,
             )
-            # Prime the cache so an unchanged first event (e.g. a driver
-            # restoring the same value after resume) stays silent.
+            # Prime the cache so a no-op first event stays silent.
             _ = self.screen_brightness
 
             logger.info(

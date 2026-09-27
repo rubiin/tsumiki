@@ -44,10 +44,9 @@ def list_processes(
     limit: int = _MAX_RESULTS,
     proc_dir: str = "/proc",
 ) -> list[tuple[int, str, str]]:
-    """Return up to *limit* (pid, comm, cmdline) rows matching *query*.
+    """Return (pid, comm, cmdline) rows matching *query* against name or cmdline.
 
-    Matches against the process name and full command line. *proc_dir* is
-    injectable for tests; unreadable or non-numeric entries are skipped.
+    *proc_dir* is injectable so tests need not scan the real ``/proc``.
     """
     query = query.casefold().strip()
     if not query:
@@ -99,11 +98,7 @@ def parse_ss_output(output: str, port: int) -> list[int]:
 
 
 def find_pids_on_port(port: int, runner=None) -> list[int]:
-    """Return PIDs listening on *port* (via ss, falling back to lsof).
-
-    *runner* is an optional :func:`run_subprocess`-compatible callable so
-    the caller can kill the scan when the query is superseded.
-    """
+    """Return PIDs listening on *port*; *runner* overrides subprocess running."""
     run = runner or run_subprocess
     ss = find_executable("ss")
     if ss is not None:
@@ -161,10 +156,7 @@ def _read_cmdline(pid: int, proc_dir: str) -> str:
 
 
 def kill_process(pid: int, force: bool = False) -> str | None:
-    """Send SIGTERM (or SIGKILL when *force*) to *pid*.
-
-    Returns None on success, or a user-facing error message on failure.
-    """
+    """Send SIGTERM (or SIGKILL when *force*); None on success, else an error."""
     try:
         os.kill(pid, signal.SIGKILL if force else signal.SIGTERM)
         return None

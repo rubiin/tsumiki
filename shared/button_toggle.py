@@ -11,8 +11,7 @@ from .widget_container import ButtonWidget
 
 
 class CommandSwitcher(ButtonWidget):
-    """A button widget to toggle a command.
-    Useful for making services with two states."""
+    """A button widget to toggle a command; useful for two-state services."""
 
     def __init__(
         self,
@@ -61,14 +60,11 @@ class CommandSwitcher(ButtonWidget):
 
         self.connect("clicked", self.on_click)
 
-        # reusing the fabricator to call specified intervals
         self._register_repeater(invoke_repeater(1000, self._update_ui))
-        # Refresh as soon as the widget is actually shown (the repeater's
-        # initial call may run before mapping, when the visibility gate skips it).
+        # The repeater's first call can land before mapping; refresh again on map.
         self.connect("map", self._update_ui)
-        self._update_ui()  # Initial update
+        self._update_ui()
 
-    # toggle the command on click
     def on_click(self, *_args):
         helpers.toggle_command(
             self.command,

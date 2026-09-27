@@ -22,9 +22,7 @@ class CustomNotificationsTest(unittest.TestCase):
             ),
             # Avoid owning the real DBus name in tests.
             mock.patch("gi.repository.Gio.bus_own_name", return_value=1),
-            # History writes are dispatched to the shared pool; drain them
-            # inline so a test's temp dir is never removed while a write is
-            # still in flight.
+            # Drain pooled history writes inline so the test's temp dir survives.
             mock.patch("services.custom_notification.thread", side_effect=run_inline),
         ]
         for patcher in patchers:
@@ -204,8 +202,7 @@ class CustomNotificationsTest(unittest.TestCase):
             mock.patch("services.custom_notification.thread", side_effect=capture),
         ):
             self.service.cache_notification({}, make_notification(summary="a"), 100)
-            # Invoke the worker directly, the way the pool would: an escaping
-            # error would leave the running flag set and drop later writes.
+            # Call the worker as the pool would: an escaping error wedges the flag.
             submitted[0]()
 
         self.assertFalse(self.service._persist_running)

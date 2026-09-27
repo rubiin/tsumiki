@@ -112,7 +112,7 @@ class Wifi(Service):
     def scan(self):
         """Start scanning for WiFi networks and emit scanning signal"""
         if self._device:
-            self.emit("scanning", True)  # Emit signal that scanning has started
+            self.emit("scanning", True)
 
             def _on_scan_done(device, result):
                 with contextlib.suppress(GLib.Error):
@@ -255,7 +255,6 @@ class Wifi(Service):
         current_time = time.time()
 
         for ap in points:
-            # Skip if no SSID data
             if not ap.get_ssid():
                 continue
 
@@ -267,7 +266,6 @@ class Wifi(Service):
             if not ssid or ssid.strip() == "":
                 continue
 
-            # Skip hidden networks (empty SSID)
             if ssid == "Unknown":
                 continue
 
@@ -275,7 +273,6 @@ class Wifi(Service):
             bssid = ap.get_bssid()
             last_seen = ap.get_last_seen()
 
-            # Add network info for filtering
             network_info = {
                 "ap": ap,
                 "strength": strength,
@@ -286,11 +283,9 @@ class Wifi(Service):
                 or (current_time - last_seen) <= NETWORK_RECENCY_THRESHOLD_SECONDS,
             }
 
-            # For duplicate SSIDs, keep the one with the strongest signal
-            # But prioritize recent networks over old ones
+            # Duplicate SSIDs: keep the most recent, else the strongest.
             if ssid in unique_networks:
                 existing = unique_networks[ssid]
-                # Prefer recent networks, then strength
                 new_is_more_recent = (
                     network_info["is_recent"] and not existing["is_recent"]
                 )
@@ -303,7 +298,6 @@ class Wifi(Service):
             else:
                 unique_networks[ssid] = network_info
 
-        # Sort by signal strength (strongest first)
         sorted_networks = sorted(
             unique_networks.values(), key=lambda x: x["strength"], reverse=True
         )

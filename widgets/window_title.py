@@ -4,8 +4,7 @@ from fabric.utils import FormattedString, logger, re, truncate
 from shared.widget_container import ButtonWidget
 from utils.constants import WINDOW_TITLE_MAP
 
-# Pre-compile regex patterns from WINDOW_TITLE_MAP at module load
-# Capped at 64 entries to prevent unbounded growth from custom config patterns
+# Pre-compile WINDOW_TITLE_MAP at module load, capped to bound custom patterns.
 _COMPILED_PATTERNS: dict[str, re.Pattern | None] = {}
 _MAX_COMPILED_PATTERNS = 50
 
@@ -31,8 +30,7 @@ class WindowTitleWidget(ButtonWidget):
         self.container_box.children = self.active_window
 
     def _get_title(self, win_title: str, win_class: str):
-        # When no window is active, win_class is empty or "unknown"
-        # (Fabric defaults to "unknown" when j/activewindow has no class key)
+        # Fabric reports "unknown" when j/activewindow has no class key.
         if not win_class or win_class == "unknown":
             return ""
 

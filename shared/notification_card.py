@@ -1,10 +1,8 @@
 """Shared widget builders for the notification cards.
 
-The toast popup (``modules/notification.py``) and the date-menu history row
-(``widgets/datetime_menu.py``) render the same anatomy: a header row holding
-the app icon, the summary and a set of trailing controls, and a body row
-holding the notification image and its text. The parts that are genuinely
-identical live here so both cards stay in sync.
+The toast popup and the date-menu history row render the same anatomy: a header
+of icon, summary and trailing controls, plus a body of image and text. The
+identical parts live here so both cards stay in sync.
 """
 
 from collections.abc import Callable, Iterable
@@ -24,8 +22,7 @@ APP_ICON_SIZE = 20
 def app_icon(notification, size: int = APP_ICON_SIZE, **props) -> Image:
     """Return the notification's app icon, sized for a card header.
 
-    Resolution failures yield a pixbuf-less ``Image`` (the default info
-    glyph), so callers never have to branch on it.
+    Resolution failures yield a pixbuf-less ``Image`` (the default glyph).
     """
     return Image(
         pixbuf=resolve_notification_icon(notification, size),
@@ -67,8 +64,7 @@ def close_button(
 ) -> Button:
     """Return the header's dismiss control.
 
-    *name* is overridable so a control that needs its own CSS selector (the
-    date-menu group deck) can still share this construction.
+    *name* is overridable so a control needing its own CSS selector can reuse it.
     """
     return Button(
         name=name,
@@ -94,8 +90,7 @@ def header(
 ) -> Box:
     """Assemble a card header: ``leading`` at the start, ``trailing`` at the end.
 
-    ``trailing`` is given in visual order (timestamp first, controls last) and
-    packed end back-to-front, which is what puts them in that order.
+    ``trailing`` is in visual order and is packed end back-to-front.
     """
     header_box = Box(
         spacing=spacing,

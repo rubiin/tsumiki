@@ -36,15 +36,12 @@ class LockkeysOSDContainer(GenericOSDContainer):
         # Replace scale with lock display
         self.children = (self.icon, self.lock_label)
 
-        # Subscribe to Hyprland event — fires on keyboard layout changes.
-        # Tracked by TeardownMixin, which the OSD base already wires to
-        # "destroy", so this needs no cleanup() of its own.
+        # TeardownMixin already binds this to "destroy"; no cleanup() needed.
         self._register_handlers(
             hyprland_service,
             {"event::activelayout": self._on_activelayout},
         )
 
-        # Initial query
         self._query_lock_state()
 
     def _on_activelayout(self, *_):

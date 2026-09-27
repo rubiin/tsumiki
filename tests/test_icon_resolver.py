@@ -164,15 +164,7 @@ class IconResolverCacheTest(unittest.TestCase):
 
 
 class ResolveIconPixbufCacheKeyTest(unittest.TestCase):
-    """``resolve_icon_pixbuf`` is TTL-cached, so its key must stay hashable.
-
-    Regression: a ``DesktopApp`` used to be passed in as an argument, and the
-    lookup died with ``TypeError: unhashable type: 'DesktopApp'`` - fabric
-    declares it ``@dataclass(init=False)``, which generates ``__eq__`` and so
-    leaves ``__hash__`` unset. Because the overview button then failed to
-    finish constructing, every window fell back to the missing-image glyph.
-    The app is looked up from ``app_id`` instead.
-    """
+    """``resolve_icon_pixbuf`` is TTL-cached, so its key must stay hashable."""
 
     def setUp(self):
         IconResolver.reset_instance()
@@ -229,13 +221,7 @@ class ResolveIconPixbufCacheKeyTest(unittest.TestCase):
 
 
 class IconSizeTest(unittest.TestCase):
-    """Each caller must get a pixbuf rendered at the size it asked for.
-
-    Regression: the icons looked blurry because ``DesktopApp`` caches the first
-    size it is asked for on an instance shared for the whole process. A panel
-    widget resolved the app at 16px, so the overview's 71px icon was a
-    bilinear upscale of that 16px render - roughly 40% of the edge contrast.
-    """
+    """Each caller must get a pixbuf rendered at the size it asked for."""
 
     def setUp(self):
         IconResolver.reset_instance()
@@ -251,8 +237,7 @@ class IconSizeTest(unittest.TestCase):
         self._resolver = IconResolver()
         self._resolver._icon_theme = FakeIconTheme(["wezterm"])
         self._resolver._icon_dict = {}
-        # FakeIconTheme hands back marker strings, not real pixbufs, so the
-        # measurement in scale_pixbuf_to_size is stubbed out here.
+        # FakeIconTheme returns marker strings, so scale_pixbuf_to_size is stubbed.
         patcher = mock.patch.object(
             IconResolver, "scale_pixbuf_to_size", side_effect=lambda pixbuf, _: pixbuf
         )
@@ -278,13 +263,7 @@ class IconSizeTest(unittest.TestCase):
         self.assertIsNone(self._resolver.get_icon_pixbuf_by_name(None, 32))
 
     def test_large_request_ignores_a_sticky_small_desktop_app_cache(self):
-        """The reported bug, reproduced through the resolver's public API.
-
-        fabric's ``DesktopApp.get_icon_pixbuf`` caches the first size it is
-        asked for, so a panel widget resolving the app at 16px leaves every
-        later caller upscaling that. Mirrors the real object here: the large
-        request must come from the theme, not the cache.
-        """
+        """Reproduce the blurry-icon bug through the resolver's public API."""
 
         class StickyDesktopApp:
             """Mimics fabric's first-size-wins ``_pixbuf`` cache."""
@@ -333,13 +312,7 @@ class IconSizeTest(unittest.TestCase):
 
 
 class ScalePixbufTest(unittest.TestCase):
-    """``scale_pixbuf_to_size`` must never enlarge a pixbuf.
-
-    Bilinearly upscaling a small source softens it - a 32px notification icon
-    enlarged to 78px loses ~16% of its edge contrast - and it discards the
-    display's real scale factor. Downscaling a larger source is effectively
-    lossless, so only that direction is done here.
-    """
+    """``scale_pixbuf_to_size`` must never enlarge a pixbuf."""
 
     def setUp(self):
         IconResolver.reset_instance()

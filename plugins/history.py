@@ -13,8 +13,7 @@ _MAX_RESULTS = 24
 #: Preview length of a command row in the launcher.
 _PREVIEW_LENGTH = 100
 
-#: Extended-history timestamp prefix: ``: <epoch>:<seconds>;<command>``
-#: (written when EXTENDED_HISTORY is set in zsh).
+#: Extended zsh history prefix: ``: <epoch>:<seconds>;<command>``
 _ZSH_EXTENDED_RE = re.compile(r"^:\s*(\d+):\d*;(.*)$")
 
 
@@ -31,11 +30,7 @@ def default_history_files() -> list[str]:
 
 
 def parse_bash_history(content: str) -> list[tuple[int, str]]:
-    """Return ``[(line_ordinal, command)]`` from a bash-style history file.
-
-    Each entry gets a line-position ordinal so later lines rank as more
-    recent, matching the convention used by zsh plain entries.
-    """
+    """Return ``[(line_ordinal, command)]``; later lines rank as more recent."""
     return [
         (index + 1, line.strip())
         for index, line in enumerate(content.splitlines())
@@ -44,11 +39,7 @@ def parse_bash_history(content: str) -> list[tuple[int, str]]:
 
 
 def parse_zsh_history(content: str) -> list[tuple[int, str]]:
-    """Return ``[(epoch, command)]`` from a zsh history file.
-
-    Handles plain and extended (``: ts:0;cmd``) formats; plain lines get a
-    position ordinal so later lines sort as more recent.
-    """
+    """Return ``[(epoch, command)]``; handles plain and extended zsh formats."""
     entries: list[tuple[int, str]] = []
     for index, line in enumerate(content.splitlines()):
         if not line.strip() or line.startswith("#"):

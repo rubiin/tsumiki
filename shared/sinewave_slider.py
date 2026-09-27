@@ -28,37 +28,8 @@ class SineWaveSliderStyle(TypedDict):
 
 
 class SineWaveSlider(Gtk.DrawingArea, Widget):
-    """SineWaveSlider: an interactive slider with an animated sine wave, also has
-    active and inactive state management
-
-    # Throttle DBus SetPosition calls during drag to ~100ms to avoid flooding.
-
-    example CSS:
-
-        #player-slider {
-            background-color: transparent;
-        }
-
-        #player-slider wave {
-            color: rgba(130, 133, 166, 0.9);
-            min-width: 4px; /* wave thickness */
-            min-height: 3px; /* wave amplitude */
-        }
-
-        #player-slider track {
-            color: rgba(54, 56, 77, 0.4);
-            min-width: 2px; /* track thickness*/
-        }
-
-        #player-slider handle {
-            color: white;
-            min-width: 3px; /* handle thickness*/
-            min-height: 22px; /* handle length*/
-            margin-left: 5px; /* gap between handle and wave(will be mathematically
-              adjusted to look better)*/
-            border-radius: 2px; /* handle corner radii*/
-        }
-
+    """An interactive slider with an animated sine wave and an active/inactive
+    state, styled through ``wave``/``track``/``handle`` CSS gadget nodes.
     """
 
     def __init__(
@@ -374,12 +345,10 @@ class SineWaveSlider(Gtk.DrawingArea, Widget):
         hx = x_val - ht / 2
         hy = cy - hl / 2
 
-        # shadow
         cr.set_source_rgba(0.0, 0.0, 0.0, 0.15)
         rounded_rect_path(cr, hx + 0.5, hy + 1.5, ht, hl, r)
         cr.fill()
 
-        # main handle
         Gdk.cairo_set_source_rgba(cr, hc)
         rounded_rect_path(cr, hx, hy, ht, hl, r)
         cr.fill()

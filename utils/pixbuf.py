@@ -1,9 +1,7 @@
-"""One place that decodes an image file into a pixbuf.
+"""The one place that decodes an image file into a pixbuf.
 
-Six call sites were each doing it slightly differently: some decoded at a
-reduced size, some at full size, some cached on the path alone, some caught
-``GLib.GError`` and some let it escape. Two of them cached without the file's
-mtime, so a replaced image stayed stale until the process restarted.
+Six call sites each did it differently, and two cached without the file's mtime,
+so a replaced image stayed stale until the process restarted.
 """
 
 import os
@@ -11,8 +9,7 @@ from functools import lru_cache
 
 from fabric.utils import GdkPixbuf, GLib, logger
 
-#: Decoded pixbufs held at once. Each entry is a decoded bitmap, so this is a
-#: memory ceiling rather than a speed one.
+#: Decoded pixbufs held at once; a memory ceiling rather than a speed one.
 _CACHE_MAXSIZE = 128
 
 
@@ -28,9 +25,7 @@ def _decode_now(
             -1 if height is None else height,
         )
     except GLib.Error as e:
-        # A file that exists but will not decode is a normal condition here:
-        # tray icons and notification images both point at paths that may be
-        # truncated or the wrong format. Callers decide whether to fall back.
+        # Undecodable is a normal outcome here; callers decide whether to fall back.
         logger.debug(f"[Pixbuf] Failed to decode {path}: {e}")
         return None
 
@@ -52,15 +47,8 @@ def load_file_pixbuf(
 ) -> "GdkPixbuf.Pixbuf | None":
     """Decode *path* into a pixbuf, or return None if it cannot be read.
 
-    Pass *width*/*height* to decode at a reduced size, which lets GdkPixbuf
-    decompress only the resolution it needs for a JPEG. Leave either as None
-    for a full-size decode. An explicit ``-1`` scales that axis to fit the
-    other, which is what ``new_from_file_at_size`` does natively.
-
-    Results are cached against the file's mtime and size, so a rewritten image
-    is re-decoded while an untouched one is not decoded again at all; the
-    superseded entry ages out of the cache on its own. Pass ``cache=False`` for
-    a one-shot decode, or to keep a large transient image out of the cache.
+    *width*/*height* decode at a reduced size so GdkPixbuf decompresses only
+    the needed resolution; either may be ``-1``. Cached against mtime and size.
     """
     if not path:
         return None

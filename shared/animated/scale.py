@@ -23,10 +23,7 @@ class AnimatedScale(Scale, BaseWidget):
         self.connect("destroy", self._on_destroy)
 
     def _on_destroy(self, *_):
-        # The animator's tick callback and any queued idle animation can outlive
-        # this widget (e.g. when a quick settings submenu rebuild destroys the
-        # scale mid-animation); calling set_value afterwards touches a freed
-        # GtkAdjustment (gtk_adjustment_animate_to_value crash).
+        # An animation can outlive the widget; set_value would touch freed memory.
         self._destroyed = True
         if self.animator is not None:
             self.animator.pause()
@@ -73,9 +70,7 @@ class AnimatedScale(Scale, BaseWidget):
         if self._animation_timeout:
             GLib.source_remove(self._animation_timeout)
 
-        # Use idle_add instead of a 50ms timeout for scheduling the animation.
-        # Multiple rapid calls to animate_value cancel the previous idle,
-        # providing natural debounce without an artificial delay.
+        # idle_add, not a timeout: rapid calls cancel the previous idle.
         self._animation_timeout = self._register_repeater(
             GLib.idle_add(self._execute_animation)
         )

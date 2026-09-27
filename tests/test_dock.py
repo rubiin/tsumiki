@@ -76,11 +76,7 @@ class DockEntryTest(unittest.TestCase):
         return self.bulk_connect.call_args.args[1]
 
     def test_drag_handlers_receive_the_same_arguments_as_before(self):
-        """The handlers are partials; their bound values must be the tail args.
-
-        GTK supplies the leading arguments, so the bound tuple has to be
-        exactly what the old ``connect(sig, handler, *args)`` passed.
-        """
+        """Pin the bound tail args the partial drag handlers now receive."""
         bar = make_appbar()
         bar._create_app_group("firefox", [FakeClient()])
 

@@ -6,14 +6,7 @@ from nepali.datetime import nepalidatetime
 
 
 class ExtendedDateTime(DateTime):
-    """DateTime that optionally displays date/time in Nepali (Bikram Sambat) calendar.
-
-    When *nepali_time* is True the year, month, and day values come from the
-    Nepali calendar while time components are taken from the system clock
-    unchanged.  When False the standard ``time.strftime`` path is used.
-
-    Accepts the same strftime format codes as Python's datetime.
-    """
+    """DateTime that renders in the Nepali (Bikram Sambat) calendar."""
 
     def __init__(self, nepali_time: bool = False, **kwargs):
         self._nepali_time = nepali_time

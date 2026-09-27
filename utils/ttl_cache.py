@@ -1,9 +1,7 @@
-"""A bounded TTL cache.
+"""A bounded TTL cache, shared by the stat cache and the plugin session cache.
 
-Exists because the same shape was written twice: a stat cache in
-``utils/functions.py`` and a session cache in ``utils/plugin_manager.py``.
-Both stored ``key -> (expiry, value)``, both capped themselves and evicted the
-oldest entry past the cap. Only the clock and the locking differed.
+Both stored ``key -> (expiry, value)`` and evicted the oldest entry past the
+cap; only the clock and the locking differed.
 """
 
 import threading
@@ -11,24 +9,15 @@ import time
 from collections.abc import Callable
 from typing import Any
 
-#: Sentinel returned by :meth:`TTLCache.get` on a miss, so that a cached
-#: ``None`` is still a hit.
+#: Sentinel returned by :meth:`TTLCache.get` on a miss, so a cached ``None`` hits.
 CACHE_MISS = object()
 
 
 class TTLCache:
     """Key -> value with a per-entry expiry and a bounded size.
 
-    Expiry is measured on :func:`time.monotonic`, so an NTP step or a
-    timezone/DST change cannot make a fresh entry look expired or a stale one
-    look live.
-
-    When the cache grows past *maxsize* it first drops everything already
-    expired, then the oldest entries, so a burst of fresh keys does not have to
-    wait for the stale ones to age out one at a time.
-
-    Thread-safe. Callers that produce a value expensively should do so outside
-    the lock, via :meth:`get_or_produce`.
+    Expiry uses :func:`time.monotonic`, so an NTP step or DST change cannot
+    mislabel an entry. Past *maxsize*, expired entries go first, then oldest.
     """
 
     def __init__(
@@ -60,11 +49,7 @@ class TTLCache:
             return value
 
     def put(self, key: Any, value: Any, ttl: float | None = None) -> None:
-        """Store *value* under *key*.
-
-        *ttl* falls back to ``default_ttl``. A ``None`` or non-positive TTL
-        means "do not cache", and is a no-op.
-        """
+        """Store *value* under *key*; a ``None``/non-positive *ttl* is a no-op."""
         ttl = self.default_ttl if ttl is None else ttl
         if ttl is None or ttl <= 0:
             return
@@ -79,9 +64,8 @@ class TTLCache:
     ) -> Any:
         """Return the live value for *key*, calling *producer* on a miss.
 
-        *producer* runs outside the lock, so an expensive one (a stat, a
-        network call) does not block other threads. Two threads racing the same
-        cold key can both produce; the last write wins.
+        *producer* runs outside the lock, so an expensive one does not block
+        other threads. Racing threads on the same cold key can both produce.
         """
         value = self.get(key)
         if value is not CACHE_MISS:

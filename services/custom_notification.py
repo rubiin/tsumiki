@@ -15,8 +15,7 @@ from utils.widget_utils import get_notification_image_pixbuf
 
 _MAX_CACHED_PIXBUF = 100  # Hard cap on pixbuf cache entries
 
-# Hint keys apps use to mark notifications that replace each other (SwayNC
-# checks these in order; the hint's value is the shared sync key).
+# Hint keys apps use to mark notifications that replace each other.
 _SYNC_HINT_KEYS = (
     "synchronous",
     "private-synchronous",
@@ -69,8 +68,7 @@ class CustomNotifications(Notifications):
         self._pixbuf_cache: dict[int, dict[int, GdkPixbuf.Pixbuf]] = {}
         # Sync-hint map: {sync key: last notification id} (SwayNC parity).
         self._synchronous_ids: dict[str, int] = {}
-        # Coalesced background persistence: history is large and rewritten on
-        # every change, so the write never runs on the caller's thread.
+        # Large and rewritten every change; never write on the caller's thread.
         self._persist_lock = threading.Lock()
         self._persist_pending = False
         self._persist_running = False
@@ -109,7 +107,7 @@ class CustomNotifications(Notifications):
                     msg = f"[Notification] Invalid: {str(e)[:50]}"
                     logger.exception(f"{Colors.INFO}{msg}")
 
-            # Write only if the validated data differs from what was originally loaded
+            # Only rewrite when validation changed something.
             if valid_notifications != loaded_data:
                 write_json_file(NOTIFICATION_CACHE_FILE, valid_notifications)
                 logger.info(
@@ -118,8 +116,7 @@ class CustomNotifications(Notifications):
 
             self.all_notifications = valid_notifications
             self._count = highest_id
-            # Restore the sync-hint map from persisted entries so the mapping
-            # survives restarts.
+            # Restored from persisted entries so the mapping survives restarts.
             self._synchronous_ids = {
                 n["sync-key"]: n["id"] for n in valid_notifications if n.get("sync-key")
             }
@@ -137,7 +134,6 @@ class CustomNotifications(Notifications):
             item = next((p for p in self.all_notifications if p["id"] == id), None)
             if item:
                 self.all_notifications.remove(item)
-                # Clean up cached pixbuf for this notification
                 self._pixbuf_cache.pop(id, None)
                 self._persist_and_emit()
 
@@ -147,10 +143,8 @@ class CustomNotifications(Notifications):
     def drop_registry_entry(self, notification_id: int):
         """Remove a notification from the in-memory registry only.
 
-        History, persistence, and the ``notification-closed`` signal are left
-        untouched. ``remove_notification`` is overridden here to operate on
-        persisted history, so registry cleanup for replaced notifications needs
-        this dedicated path (mirrors ``Notifications.remove_notification``).
+        ``remove_notification`` is overridden to act on persisted history, so
+        replaced notifications need this narrower path.
         """
         return super().remove_notification(notification_id)
 
@@ -164,11 +158,9 @@ class CustomNotifications(Notifications):
         cache = self._pixbuf_cache[notification_id]
         size = size or NOTIFICATION_IMAGE_SIZE
 
-        # Return exact size if cached
         if size in cache:
             return cache[size]
 
-        # Scale from largest available cached size
         if cache:
             largest_size = max(cache.keys())
             source_pixbuf = cache[largest_size]
@@ -206,11 +198,10 @@ class CustomNotifications(Notifications):
     ) -> None:
         """Cache a notification's image pixbuf at common sizes."""
         if pixbuf := get_notification_image_pixbuf(notification):
-            # Cache at the base size (already scaled to NOTIFICATION_IMAGE_SIZE)
             base_size = NOTIFICATION_IMAGE_SIZE
             self.cache_pixbuf(notification_id, pixbuf, base_size)
 
-            # Also cache smaller size used in date menu (75% of base)
+            # 75% of the base size is what the date menu uses.
             smaller_size = math.ceil(0.75 * base_size)
             scaled_small = pixbuf.scale_simple(
                 smaller_size, smaller_size, GdkPixbuf.InterpType.BILINEAR
@@ -221,10 +212,8 @@ class CustomNotifications(Notifications):
     def cache_notification(self, widget_config, data: Notification, max_count: int):
         """Cache a notification, ensuring thread safety.
 
-        Notifications carrying a ``replaces_id`` (or a synchronous hint) that
-        targets an existing entry are updated in place instead of being
-        appended, so progress-style updates don't stack up duplicates in the
-        persisted history.
+        A ``replaces_id`` or sync hint targeting a live entry updates it in
+        place, so progress updates do not stack up history duplicates.
         """
         with self._lock:
             target_id = self._replacement_target_id(data)
@@ -253,12 +242,7 @@ class CustomNotifications(Notifications):
         return any(n["id"] == notification_id for n in self.all_notifications)
 
     def _get_sync_key(self, data: Notification) -> str | None:
-        """Return the sync-hint key for a notification, or ``None``.
-
-        Apps use the ``synchronous`` hint (or its private/canonical variants)
-        to mark notifications that replace each other; the hint's value is the
-        shared key (mirrors SwayNC's ``synchronous_ids`` map).
-        """
+        """Return the sync-hint key for a notification, or ``None``."""
         getter = getattr(data, "do_get_hint_entry", None)
         if getter is None:
             return None
@@ -274,10 +258,8 @@ class CustomNotifications(Notifications):
     def _replacement_target_id(self, data: Notification) -> int | None:
         """Compute the id of the entry this notification should replace.
 
-        ``replaces_id`` wins when it points at a live entry; otherwise the
-        synchronous-hint map is consulted. Returns ``None`` when there is no
-        target, in which case the notification is appended instead (mirrors
-        SwayNC's fallback to ``add_notification``).
+        A live ``replaces_id`` wins; otherwise the sync-hint map is consulted.
+        ``None`` means append.
         """
         replaces_id = getattr(data, "replaces_id", 0) or 0
         if replaces_id and self._notification_exists(replaces_id):
@@ -293,10 +275,8 @@ class CustomNotifications(Notifications):
     def _replace_notification_in_place(self, target_id: int, data: Notification):
         """Update an existing history entry with a replacement notification.
 
-        The original id (and list position) is preserved, keeping the pixbuf
-        cache and any id-based bookkeeping consistent. ``_count`` is not
-        advanced and per-app/global limits are not re-enforced: the replaced
-        entry is already counted.
+        The id and list position are preserved, keeping the pixbuf cache
+        consistent; limits are not re-enforced because the entry is already counted.
         """
         serialized = data.serialize()
         serialized.update({"id": target_id, "app_name": data.app_name})
@@ -332,7 +312,6 @@ class CustomNotifications(Notifications):
         while len(self.all_notifications) > max_count:
             oldest = self.all_notifications.pop(0)
             oldest_id = oldest["id"]
-            # Clean up cached pixbuf
             self._pixbuf_cache.pop(oldest_id, None)
             self.emit("notification-closed", oldest_id, "dismissed-by-limit")
 
@@ -349,12 +328,11 @@ class CustomNotifications(Notifications):
         ]
 
         if len(app_notifications) >= app_limit:
-            app_notifications.sort(key=lambda x: x["id"])  # Oldest first
+            app_notifications.sort(key=lambda x: x["id"])
             to_remove = len(app_notifications) - app_limit + 1
             for old in app_notifications[:to_remove]:
                 self.all_notifications.remove(old)
                 old_id = old["id"]
-                # Clean up cached pixbuf
                 self._pixbuf_cache.pop(old_id, None)
                 self.emit("notification-closed", old_id, "dismissed-by-limit")
 
@@ -365,9 +343,8 @@ class CustomNotifications(Notifications):
     def _persist_and_emit(self):
         """Queue a background write of the history, then emit signals.
 
-        The write is coalesced: notification bursts (e.g. progress updates that
-        replace each other) only mark the snapshot dirty instead of stacking up
-        one full-history rewrite per notification.
+        Bursts (e.g. progress updates) only mark the snapshot dirty instead of
+        stacking up one full rewrite per notification.
         """
         self._schedule_persist()
         self.emit("notification_count", len(self.all_notifications))
@@ -382,8 +359,7 @@ class CustomNotifications(Notifications):
         try:
             thread(self._persist_loop)
         except Exception as e:
-            # Submission can fail once the pool is shut down (interpreter
-            # exit); releasing the flag keeps later writes from being dropped.
+            # Submission fails once the pool shuts down; the flag reset matters.
             with self._persist_lock:
                 self._persist_running = False
             logger.exception(f"Failed to schedule notifications persist: {e}")
@@ -391,8 +367,7 @@ class CustomNotifications(Notifications):
     def _persist_loop(self):
         """Write the latest snapshot, looping while newer writes are queued.
 
-        Running on a single worker keeps the file's final content in sync with
-        the newest in-memory state, even under bursts.
+        A single worker keeps the file in sync with the newest state under bursts.
         """
         while True:
             with self._persist_lock:
@@ -400,18 +375,13 @@ class CustomNotifications(Notifications):
                     self._persist_running = False
                     return
                 self._persist_pending = False
-                # Entries are replaced wholesale, never mutated in place, so a
-                # shallow copy is a stable snapshot for the write below.
+                # Entries are replaced wholesale, so a shallow copy is stable.
                 snapshot = list(self.all_notifications)
             try:
-                # ``sync=True`` because this already runs on the dedicated
-                # writer thread.
+                # sync=True: this already runs on the dedicated writer thread.
                 write_json_file(NOTIFICATION_CACHE_FILE, snapshot, sync=True)
             except Exception as e:
-                # A failed write must never escape: the flag reset below only
-                # happens on ``return``, so escaping would wedge persistence
-                # for the rest of the session. The helper handles the expected
-                # IO/type failures itself; this catches the rest.
+                # Escaping would skip the flag reset and wedge persistence.
                 logger.exception(f"Failed to persist notifications: {e}")
 
     def clear_all_notifications(self):
@@ -419,11 +389,9 @@ class CustomNotifications(Notifications):
         logger.info("[Notification] Clearing all notifications")
 
         with self._lock:
-            # Clear notifications but preserve the highest ID we've seen
             highest_id = self._count
 
             self.all_notifications = []
-            # Clear all cached pixbufs
             self._pixbuf_cache.clear()
 
             self._persist_and_emit()
@@ -448,14 +416,11 @@ class CustomNotifications(Notifications):
 
     def get_deserialized(self) -> list[Notification]:
         """Return the notifications."""
-
-        # Process all notifications at once
         results = [
             self.deserialize_with_id(notification)
             for notification in self.all_notifications
         ]
 
-        # Split into successful and failed
         deserialized = []
         invalid_ids = []
         for result, error_id in results:
@@ -464,7 +429,6 @@ class CustomNotifications(Notifications):
             elif error_id is not None:
                 invalid_ids.append(error_id)
 
-        # Clean up invalid notifications
         for invalid_id in invalid_ids:
             self.remove_notification(invalid_id)
 

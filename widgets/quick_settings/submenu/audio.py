@@ -27,8 +27,7 @@ class AudioSubMenu(QuickSubMenu):
             style_classes="menu",
         )
 
-        # Sized to its content, so the sliders fit without a scrollbar until
-        # there are many apps.
+        # Content-sized, so sliders fit without a scrollbar until there are many.
         self.child = scrolled_list_content(self.app_list, max_height=320)
 
         # Initialize parent with our components

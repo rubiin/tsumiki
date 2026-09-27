@@ -1,8 +1,4 @@
-"""A custom slider widget with a labeled knob that displays the current value.
-
-Draws a trough, filled portion, and a circular knob with centered text.
-Supports drag-to-adjust and animated value transitions.
-"""
+"""A slider widget with a labeled knob, drag-to-adjust and animated transitions."""
 
 import math
 
@@ -22,8 +18,7 @@ from .widget_container import BaseWidget, TeardownMixin
 class LabeledSlider(Gtk.DrawingArea, BaseWidget, TeardownMixin):
     """A slider with a circular knob that shows the current value as a label.
 
-    Emits ``change-value`` with the new float value when the user drags
-    or the value is set programmatically via ``set_value``.
+    Emits ``change-value`` with the new float value on drag or ``set_value``.
     """
 
     @Signal
@@ -183,12 +178,10 @@ class LabeledSlider(Gtk.DrawingArea, BaseWidget, TeardownMixin):
 
         trough_r = self.trough_height / 2
 
-        # Trough background
         self._apply_color(cr, sc, "trough-bg", default="#313244")
         rounded_rect_path(cr, trough_x, trough_y, trough_w, trough_h, trough_r)
         cr.fill()
 
-        # Filled portion
         frac = (self._value - self.min_value) / max(1, self.max_value - self.min_value)
         self._apply_color(cr, sc, "trough-fill", default="#89b4fa")
         if self.orientation == "h":
@@ -214,23 +207,19 @@ class LabeledSlider(Gtk.DrawingArea, BaseWidget, TeardownMixin):
             knob_x = width / 2
             knob_y = padding + trough_h - trough_h * frac
 
-        # Knob shadow
         self._apply_color(cr, sc, "knob-shadow", default="#00000080")
         cr.arc(knob_x, knob_y + 1, radius, 0, 2 * math.pi)
         cr.fill()
 
-        # Knob body
         self._apply_color(cr, sc, "knob-bg", default="#cdd6f4")
         cr.arc(knob_x, knob_y, radius, 0, 2 * math.pi)
         cr.fill()
 
-        # Knob border
         self._apply_color(cr, sc, "knob-border", default="#585b70")
         cr.set_line_width(1.5)
         cr.arc(knob_x, knob_y, radius, 0, 2 * math.pi)
         cr.stroke()
 
-        # Value label
         label = self.format_fn(self._value)
         self._apply_color(cr, sc, "knob-label", default="#11111b")
         font_desc = sc.get_font(Gtk.StateFlags.NORMAL)
@@ -248,8 +237,7 @@ class LabeledSlider(Gtk.DrawingArea, BaseWidget, TeardownMixin):
     @staticmethod
     def _apply_color(cr, sc, css_class, default="#888888"):
         """Try to read a color from the style context; fall back to *default*."""
-        # GTK3 doesn't expose per-class colors easily via DrawingArea.
-        # We use the base foreground color and rely on SCSS classes for overrides.
+        # GTK3 has no per-class color on a DrawingArea; SCSS handles overrides.
         rgba = sc.get_color(Gtk.StateFlags.NORMAL)
         cr.set_source_rgba(rgba.red, rgba.green, rgba.blue, rgba.alpha)
 

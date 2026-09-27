@@ -1,5 +1,4 @@
-# Author: Yousef EL-Darsh
-# License (SPDX): AGPL-3.0-or-later
+# Author: Yousef EL-Darsh — License (SPDX): AGPL-3.0-or-later
 
 from functools import lru_cache
 from typing import Protocol, cast
@@ -7,8 +6,7 @@ from typing import Protocol, cast
 from fabric.core.service import Property, Service, Signal
 from fabric.utils import GLib, Gtk, clamp
 
-# Use lru_cache with bounded size to prevent unbounded memory growth
-# Progress values are floats with many decimal places, so cache can grow large
+# Floats have many decimals, so an unbounded cache would grow forever.
 
 
 def _round_floats(*args, precision=4):
@@ -34,8 +32,7 @@ def cubic_bezier(
     x1: float, y1: float, x2: float, y2: float, progress: float, epsilon=1e-6
 ) -> float:
     x1, y1, x2, y2, progress, epsilon = _round_floats(x1, y1, x2, y2, progress, epsilon)
-    # implementation yanked off of the internet, don't blame me about anything.
-    # Fast-path boundaries to avoid overshoot and unnecessary work
+    # Implementation yanked off the internet; boundaries fast-path to avoid overshoot.
     if progress <= 0.0 or progress >= 1.0:
         return clamp(progress, 0.0, 1.0)
 
@@ -88,10 +85,7 @@ class TimingFunctionCallback(Protocol):
 
 
 class Animator(Service):
-    """
-    An animator is a simple way for animating a value on
-    a set timeline based on a given timing function
-    """
+    """Animates a value over time using a given timing function."""
 
     @Signal
     def finished(self) -> None: ...
@@ -216,7 +210,6 @@ class Animator(Service):
             return
 
         if not self._repeat:
-            # all done..
             self.value = self._max_value
             self.finished()
             self.pause()

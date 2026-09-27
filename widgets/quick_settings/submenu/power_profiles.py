@@ -94,8 +94,7 @@ class PowerProfileSubMenu(QuickSubMenu):
             **kwargs,
         )
 
-        # Listen for profile changes once; the base class already wires the
-        # revealer to ``on_child_revealed``.
+        # The base class already wires the revealer to ``on_child_revealed``.
         self._profile_changed_handler = power_pfl_service.connect(
             "changed", self.on_profile_changed
         )

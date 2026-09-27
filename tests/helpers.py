@@ -20,8 +20,7 @@ DEFAULT_PARSED_CONFIG = {
     "styling": {},
 }
 
-# Distinguishes "argument not passed" (use the default config) from an
-# explicit ``parsed_data=None`` (the defaults path in ``_load_config``).
+# Distinguishes "argument not passed" from an explicit parsed_data=None.
 _UNSET = object()
 
 
@@ -85,15 +84,9 @@ def make_tsumiki_config(
     exists: bool = True,
     enums_error: BaseException | None = None,
 ):
-    """Construct a ``TsumikiConfig`` with the file and validation layers mocked.
+    """Build a ``TsumikiConfig`` with mocks; ``parsed_data=None`` means defaults.
 
-    *parsed_data* is what ``read_toml_file`` returns - omit it for the standard
-    config, pass ``None`` to exercise the defaults path, or a dict to control
-    it exactly. *exists* makes ``config.toml`` look absent; *enums_error* makes
-    enum validation fail.
-
-    Callers that care about singleton identity must reset
-    ``TsumikiConfig._instance`` themselves, so the patches still run.
+    Resets ``TsumikiConfig._instance`` so each test gets a fresh singleton.
     """
     from utils.config import TsumikiConfig
 

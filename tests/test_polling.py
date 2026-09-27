@@ -37,8 +37,7 @@ class PollingControllerTest(unittest.TestCase):
         def spawn(command, on_line):
             process = mock.Mock()
             process.wait_finish.return_value = 0
-            # The process stays "running" until the test says otherwise, so the
-            # window between starting a command and it exiting is observable.
+            # Stay running until told otherwise, so the start/exit window is visible.
             process.wait_async.side_effect = lambda _c, cb: self.waits.append(
                 (process, cb)
             )

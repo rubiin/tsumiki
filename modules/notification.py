@@ -100,10 +100,7 @@ class NotificationPopup(BaseWindow):
 
         replaces_id = getattr(notification, "replaces_id", 0) or 0
 
-        # Check if the notification is in the "do not disturb" mode, hacky way.
-        # A hidden replacement still removes the old notification (SwayNC
-        # parity): DND/ignored notifications never reach the popup, but a
-        # stale visible revealer for the replaced one must not linger.
+        # SwayNC parity: a hidden replacement still drops the stale revealer.
         if self._server.dont_disturb or notification.app_name in self.ignored_apps:
             if replaces_id:
                 self._server.drop_registry_entry(replaces_id)
@@ -114,16 +111,13 @@ class NotificationPopup(BaseWindow):
             return
 
         if replaces_id:
-            # Drop the replaced notification from the server's in-memory
-            # registry so its Notification object doesn't leak there.
+            # Drop the replaced notification so its object doesn't leak.
             self._server.drop_registry_entry(replaces_id)
 
             old_box = self._active_notifications.pop(replaces_id, None)
             if old_box is not None:
                 old_box.replace_notification(notification)
-                # Disconnect the old destroy handler (wired to replaces_id)
-                # and re-register with the new id so cleanup targets the
-                # correct key when the box eventually self-destroys.
+                # Re-register under the new id so cleanup targets the right key.
                 if hasattr(old_box, "_destroy_handler_id"):
                     old_box.disconnect(old_box._destroy_handler_id)
                 old_box._destroy_handler_id = old_box.connect(
@@ -183,7 +177,6 @@ class NotificationWidget(EventBox, TeardownMixin):
         self._time_remaining = 0
         self._last_tick_time = 0
 
-        # Swipe gesture state
         self._drag_start_x: float | None = None
         self._drag_start_y: float | None = None
         self._is_dragging = False
@@ -212,8 +205,7 @@ class NotificationWidget(EventBox, TeardownMixin):
 
         self._wire_events()
 
-        # Strip inline <img src=...> tags from the body; the first source is
-        # rendered as an image when the notification has no image hint.
+        # Strip inline <img src=...>; first source renders absent an image hint.
         body_text, body_image_src = helpers.extract_body_image(
             self._notification.body or ""
         )
@@ -242,18 +234,14 @@ class NotificationWidget(EventBox, TeardownMixin):
         )
         self.add(self.notification_box)
 
-        # Stop the countdown whenever the notification closes, whichever path
-        # closed it (swipe, close button, expiry, or the sending app). Tracked
-        # by TeardownMixin so the connection dies with this widget instead of
-        # outliving it on the notification.
+        # Stops the countdown on every close path; TeardownMixin owns the link.
         self._register_handlers(
             self._notification,
             {"closed": lambda *_: self.stop_timeout()},
         )
 
     def destroy(self):
-        # Drop the frame-clock tick while the widget tree is still alive, then
-        # let TeardownMixin release the notification's ``closed`` connection.
+        # Drop the frame-clock tick before the widget tree goes away.
         self.stop_timeout()
         return super().destroy()
 
@@ -408,11 +396,7 @@ class NotificationWidget(EventBox, TeardownMixin):
         if not path or not os.path.exists(path):
             return None
         size = constants.NOTIFICATION_IMAGE_SIZE
-        # Only ask GdkPixbuf to shrink the image. new_from_file_at_size enlarges
-        # a source smaller than the target (and stretches a non-square one to a
-        # square), so a small attachment would arrive pre-blurred. The header
-        # gives the real dimensions without a full decode, which keeps the cheap
-        # path for the large images that actually benefit from one.
+        # Only let GdkPixbuf shrink; the header gives real dimensions cheaply.
         info = GdkPixbuf.Pixbuf.get_file_info(path)
         if info.width >= size and info.height >= size:
             pixbuf = load_file_pixbuf(path, size, size)
@@ -423,11 +407,7 @@ class NotificationWidget(EventBox, TeardownMixin):
         return pixbuf
 
     def _build_actions(self, notification: Notification, body_text: str) -> Grid:
-        """Build the actions grid from notification actions.
-
-        When the body contains a one-time (2FA) code, a COPY button is
-        prepended that copies the code and dismisses the notification.
-        """
+        """Build the actions grid; prepend COPY for a 2FA code in the body."""
         max_actions = self.config.get("max_actions", 3)
         actions = notification.actions[:max_actions]
 
@@ -502,14 +482,12 @@ class NotificationWidget(EventBox, TeardownMixin):
     def on_button_press(self, widget, event):
         """Handle button press - start drag tracking for swipe gestures."""
         if event.button == 1:
-            # Left click: start tracking for potential swipe
             self._drag_start_x = event.x
             self._drag_start_y = event.y
             self._is_dragging = False
             self._swipe_offset = 0.0
             return True
         else:
-            # Right/middle click: dismiss immediately
             self._notification.close("dismissed-by-user")
             self.stop_timeout()
             return True
@@ -550,7 +528,6 @@ class NotificationWidget(EventBox, TeardownMixin):
             else:
                 self._reset_swipe_position()
 
-        # Reset drag state
         self._drag_start_x = None
         self._drag_start_y = None
         self._is_dragging = False
@@ -685,11 +662,7 @@ class NotificationRevealer(Revealer):
 
 
 class NotificationActionButton(HoverButton):
-    """Base for the notification card's action row.
-
-    Subclasses only supply their label and what a click does; the styling and
-    the position-dependent edge class are identical for every action.
-    """
+    """Base for the notification card's action row."""
 
     def __init__(
         self,

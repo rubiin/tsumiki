@@ -27,8 +27,7 @@ class Failing(SingletonMixin):
     def __init__(self):
         type(self).attempts += 1
         if type(self).attempts == 1:
-            # Fails *after* the guard, so the retry is what proves the flag is
-            # not set by a successful body.
+            # Fails after the guard, proving a successful body is what sets the flag.
             raise RuntimeError("boom")
         if not self._init_once():
             return

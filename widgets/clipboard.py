@@ -296,7 +296,7 @@ class ClipHistoryMenu(Box, TeardownMixin):
         remove_handler(self._arranger_handler) if self._arranger_handler else None
         self.viewport.remove_all()
         self._item_widgets.clear()
-        self.selected_index = -1  # Reset selection
+        self.selected_index = -1
 
         # Reset scroll to top
         self.vadj.set_value(0)
@@ -317,8 +317,7 @@ class ClipHistoryMenu(Box, TeardownMixin):
             )
 
         self.filtered_items = filtered_items
-        self.viewport.v_align = "start"  # Align to top when showing items
-        # Show message if no items are found
+        self.viewport.v_align = "start"
         if not filtered_items:
             self.filtered_items = []
             # Create a container box to better center the message
@@ -480,8 +479,7 @@ class ClipHistoryMenu(Box, TeardownMixin):
         for child in children:
             self.viewport.remove(child)
 
-        # Rebuild from cache in sorted order
-        # Use items_loaded to preserve scroll position and loaded state
+        # items_loaded preserves the scroll position and loaded state
         visible_count = min(self.items_loaded, len(self.filtered_items))
         for i in range(visible_count):
             item = self.filtered_items[i]

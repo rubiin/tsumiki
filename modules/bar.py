@@ -65,8 +65,7 @@ class LazyWidgetDict(dict):
             yield key, self[key]
 
 
-# Lazy widget loading - widgets are imported on-demand to speed up startup
-# Format: "widget_name": "module.path.ClassName"
+# Imported on demand to speed up startup: "widget_name" -> "module.path.Class"
 LAZY_WIDGETS_LIST = {
     "launcher_button": "widgets.launcher_button.LauncherButton",
     "battery": "widgets.battery.BatteryWidget",
@@ -168,11 +167,9 @@ class Bar(BaseWindow):
                 reveal_child=True,
             )
 
-            # Create a hover zone that remains visible even when bar is hidden
-            # This allows the user to hover at the edge to reveal the bar
+            # Stays visible when the bar is hidden so an edge hover reveals it.
             hover_zone = Box(style="min-height: 5px;")
 
-            # Stack the revealer and hover zone
             if location == "top":
                 container = Box(
                     orientation="v",
@@ -262,11 +259,9 @@ class Bar(BaseWindow):
 
         for key in layout:
             for widget_name in config["layout"][key]:
-                # Use unified widget resolver for ALL widget types
                 widget = resolver.resolve_widget(widget_name, context)
                 if widget:
-                    # Mark top-level bar widgets so CSS can target them directly
-                    # (e.g. for spacing) without depending on the CenterBox tree
+                    # Let CSS target bar widgets directly, without the CenterBox.
                     widget.add_style_class("panel-widget")
                     layout[key].append(widget)
 

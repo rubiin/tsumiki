@@ -94,11 +94,7 @@ class LoadConfigTest(unittest.TestCase):
 
 
 class ConfigImportIsolationTest(unittest.TestCase):
-    """Importing the shared widget layer must not parse config.toml.
-
-    Runs in a subprocess because this test process has already imported
-    utils.config through other modules.
-    """
+    """Importing the shared widget layer must not parse config.toml."""
 
     def test_widget_layer_import_does_not_load_config(self):
         project_root = Path(__file__).resolve().parents[1]
