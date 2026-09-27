@@ -1,5 +1,6 @@
 from fabric.core.service import Signal
 from fabric.utils import (
+    exec_shell_command,
     exec_shell_command_async,
     get_relative_path,
     logger,
@@ -32,31 +33,18 @@ class MatugenService(SingletonService):
         self._style_config = tsumiki_config.get("styling", {}).get("matugen", {})
         self._mode = self._style_config.get("mode", "dark")
 
-    def _build_cmd(self, image_path: str) -> list[str]:
-        """Build the matugen argv from config.
+    def _build_cmd(self, image_path: str) -> str:
+        """Build matugen command from config."""
+        import shlex
 
-        A list rather than a shell string, so a wallpaper path needs no
-        quoting and cannot be re-parsed.
-        """
         scheme = self._style_config.get("scheme", "scheme-tonal-spot")
         contrast = self._style_config.get("contrast", 0.0)
 
-        return [
-            "matugen",
-            "image",
-            "-q",
-            image_path,
-            "-t",
-            scheme,
-            "--mode",
-            self._mode,
-            "--contrast",
-            str(contrast),
-            "--config",
-            _CONFIG_PATH,
-            "--source-color-index",
-            "0",
-        ]
+        return (
+            f"matugen image -q {shlex.quote(image_path)} -t {scheme} "
+            f"--mode {self._mode} --contrast {contrast} --config {_CONFIG_PATH} "
+            f"--source-color-index 0"
+        )
 
     def generate(self, image_path: str | None = None) -> None:
         """Generate colors from an image asynchronously."""
@@ -94,9 +82,8 @@ class MatugenService(SingletonService):
         logger.info("[Matugen] Generating colors")
 
         try:
-            if helpers.run_command(cmd) is None:
-                self.emit("generation_failed", "matugen exited non-zero")
-                return False
+            if not exec_shell_command(cmd):
+                self.emit("generation_failed", "Matugen returned no result")
             logger.info("[Matugen] Colors generated successfully")
             self.emit("colors_generated")
             return True
