@@ -42,7 +42,8 @@ class MprisWidget(ButtonWidget, PopoverMixin):
             style=f"background-image: url('{self.default_cover}');",
         )
 
-        # Progress bar — styled via SCSS (#mpris-progress)
+        # Progress bar — themed by SCSS (#mpris-progress), sized via the
+        # geometry API: a min-width style string would reparse CSS every tick.
         self.progress = Box(name="mpris-progress")
         self.progress_fill = Box(
             name="mpris-progress-fill",
@@ -60,6 +61,7 @@ class MprisWidget(ButtonWidget, PopoverMixin):
         )
 
         self._last_progress_pct: float | None = None
+        self._last_fill_px: int = 0
         self._last_temp_art_path: str | None = None
         self.exit = False
         self._set_default_values()
@@ -179,7 +181,7 @@ class MprisWidget(ButtonWidget, PopoverMixin):
 
         if not show_progress:
             self._last_progress_pct = None
-            self.progress_fill.set_style("")
+            self._set_fill_width(0)
             return
 
         rounded = round(progress_pct, 1)
@@ -189,13 +191,19 @@ class MprisWidget(ButtonWidget, PopoverMixin):
         self._last_progress_pct = rounded
         alloc_width = self.progress.get_allocated_width()
         if alloc_width > 0:
-            fill_px = max(1, round(alloc_width * rounded / 100.0))
-            self.progress_fill.set_style(f"min-width: {fill_px}px;")
+            self._set_fill_width(max(1, round(alloc_width * rounded / 100.0)))
         else:
-            self.progress_fill.set_style("")
+            self._set_fill_width(0)
             # Not allocated yet: retry on idle, and clear the sentinel.
             self._last_progress_pct = None
             GLib.idle_add(self._update_progress)
+
+    def _set_fill_width(self, fill_px: int):
+        """Resize the fill through the geometry API instead of recompiling CSS."""
+        if fill_px == self._last_fill_px:
+            return
+        self._last_fill_px = fill_px
+        self.progress_fill.set_size_request(fill_px, -1)
 
     def _unbind_player_updates(self):
         if self.player is None:
@@ -331,7 +339,7 @@ class MprisWidget(ButtonWidget, PopoverMixin):
         self.label.set_text(_("widget.mpris.nothing_playing"))
         self.meta_box.v_align = "center"
         self.progress.set_visible(False)
-        self.progress_fill.set_style("")
+        self._set_fill_width(0)
         if self.config.get("hide_when_no_player", True):
             self.hide()
 

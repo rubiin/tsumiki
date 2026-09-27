@@ -465,6 +465,205 @@ class MenuApplyAlertTests(unittest.TestCase):
         self.assertEqual(titles, set())
 
 
+class _StubPopover:
+    """Minimal stand-in for ``shared.popover.Popover``."""
+
+    def __init__(self, content, visible=False):
+        self.content = content
+        self._visible = visible
+        self.open_count = 0
+
+    def get_visible(self):
+        return self._visible
+
+    def open(self, *_):
+        self._visible = True
+        self.open_count += 1
+
+
+class _StubContent:
+    """Counts renders instead of building ~300 GObjects."""
+
+    def __init__(self):
+        self.renders = 0
+        self.invalidations = 0
+
+    def invalidate_render_cache(self):
+        self.invalidations += 1
+
+    def on_widget_data_changed(self):
+        self.renders += 1
+
+
+class _RenderHarness(GitHubTrayWidget):
+    """Real render gating; the popover, badge and style calls are stubbed."""
+
+    def __init__(self, content, visible=False):
+        self._popup = _StubPopover(content, visible)
+        self._popover_built = True
+        self.badge_label = mock.Mock()
+        self.tooltips_enabled = False
+        self.notifications = []
+
+
+class PopoverRenderGatingTests(unittest.TestCase):
+    """Hidden popovers must not rebuild their widget tree on every poll."""
+
+    def setUp(self):
+        self.content = _StubContent()
+        self.widget = _RenderHarness(self.content)
+        patcher = mock.patch.object(GitHubTrayWidget, "add_style_class")
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def test_push_state_while_hidden_does_not_render(self):
+        """A 60s poll with a closed popover must not touch the widget tree."""
+        self.widget._push_state()
+
+        self.assertEqual(self.content.renders, 0)
+
+    def test_push_state_while_visible_renders(self):
+        """Visible popovers keep re-rendering on data changes."""
+        self.widget._popup._visible = True
+
+        self.widget._push_state()
+
+        self.assertEqual(self.content.renders, 1)
+
+    def test_opening_after_hidden_push_renders_once(self):
+        """Data that arrived while hidden is drawn by the next open."""
+        self.widget._push_state()
+        self.assertEqual(self.content.renders, 0)
+
+        self.widget.show_popover()
+
+        self.assertEqual(self.widget._popup.open_count, 1)
+        self.assertEqual(self.content.renders, 1)
+        self.assertEqual(self.content.invalidations, 1)
+
+    def test_reopening_renders_again_for_fresh_ages(self):
+        self.widget.show_popover()
+        self.widget._popup._visible = False
+
+        self.widget.show_popover()
+
+        self.assertEqual(self.content.renders, 2)
+        self.assertEqual(self.content.invalidations, 2)
+
+    def test_first_open_does_not_double_render(self):
+        """Content builds itself in its constructor, so open must not repeat it."""
+        self.widget._popover_built = False
+        self.content.renders = 1
+
+        self.widget.show_popover()
+
+        self.assertEqual(self.content.renders, 1)
+        self.assertEqual(self.content.invalidations, 0)
+
+    def test_badge_updates_while_popover_hidden(self):
+        """The bar button is always visible, so it keeps updating off-screen."""
+        self.widget.notifications = [{"id": "1"}, {"id": "2"}, {"id": "3"}]
+
+        self.widget._update_badge()
+
+        self.assertEqual(self.widget.unread_count, 3)
+        self.widget.badge_label.set_label.assert_called_once_with("3")
+        self.widget.badge_label.set_visible.assert_called_once_with(True)
+        self.assertEqual(self.content.renders, 0)
+
+    def test_badge_clears_when_no_notifications(self):
+        self.widget.badge_label.set_label.reset_mock()
+        self.widget.badge_label.set_visible.reset_mock()
+
+        self.widget._update_badge()
+
+        self.assertEqual(self.widget.unread_count, 0)
+        self.widget.badge_label.set_label.assert_called_once_with("")
+        self.widget.badge_label.set_visible.assert_called_once_with(False)
+
+
+class _TrayStateStub:
+    """Data snapshot the render key is derived from."""
+
+    def __init__(self):
+        self.notifications: list = []
+        self.repos: list = []
+        self.user: dict = {}
+        self.detail = {"kind": None}
+        self.loading = False
+        self.loaded_once = True
+        self.error_message = ""
+        self.avatar_pixbuf = None
+        self.web_base = "https://github.com"
+        self.pending_notification_id = None
+
+
+class _RenderKeyHarness:
+    """Borrows ``_render_key`` so the memo can be checked without GTK."""
+
+    _render_key = tray_module.GitHubTrayPopoverContent._render_key
+
+    def __init__(self):
+        self._view = "main"
+        self._tab = "inbox"
+        self._notify_page = 0
+        self.tray_widget = _TrayStateStub()
+
+
+class RenderKeyTests(unittest.TestCase):
+    """The render memo only skips rebuilds when nothing visible changed."""
+
+    def setUp(self):
+        self.harness = _RenderKeyHarness()
+        self._load_snapshot()
+
+    def _load_snapshot(self):
+        """Reset the data to a known baseline."""
+        state = self.harness.tray_widget
+        state.notifications = [
+            {"id": "1", "subject": {"title": "fix bug"}, "reason": "mention"}
+        ]
+        state.repos = [{"full_name": "octo/r", "stargazers_count": 3}]
+
+    def test_identical_state_yields_identical_key(self):
+        first = self.harness._render_key()
+        self._load_snapshot()
+
+        self.assertEqual(first, self.harness._render_key())
+
+    def test_changed_notification_forces_a_new_key(self):
+        first = self.harness._render_key()
+        self.harness.tray_widget.notifications[0]["_stateInfo"] = {"state": "MERGED"}
+
+        self.assertNotEqual(first, self.harness._render_key())
+
+    def test_changed_repo_metric_forces_a_new_key(self):
+        first = self.harness._render_key()
+        self.harness.tray_widget.repos[0]["stargazers_count"] = 4
+
+        self.assertNotEqual(first, self.harness._render_key())
+
+    def test_tab_page_and_pending_state_force_a_new_key(self):
+        first = self.harness._render_key()
+        self.harness._tab = "repos"
+        after_tab = self.harness._render_key()
+        self.harness._tab = "inbox"
+        self.harness._notify_page = 1
+        after_page = self.harness._render_key()
+        self.harness._notify_page = 0
+        self.harness.tray_widget.pending_notification_id = "1"
+        after_pending = self.harness._render_key()
+
+        self.assertNotEqual(first, after_tab)
+        self.assertNotEqual(first, after_page)
+        self.assertNotEqual(first, after_pending)
+
+    def test_detail_view_is_never_memoised(self):
+        self.harness._view = "issues"
+
+        self.assertIsNone(self.harness._render_key())
+
+
 class ClientTests(unittest.TestCase):
     """gh CLI command construction and error mapping."""
 

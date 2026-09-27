@@ -56,6 +56,61 @@ class MprisPlayerSafetyTest(unittest.TestCase):
 
 
 @unittest.skipUnless(HAS_MPRIS_WIDGET, "mpris widget unavailable")
+class MprisProgressFillTest(unittest.TestCase):
+    """The fill must be sized through the geometry API, never recompiled CSS."""
+
+    def _make_widget(self, position, length=200, alloc_width=100):
+        widget = MprisWidget.__new__(MprisWidget)
+        widget.meta_box = mock.Mock()
+        widget.progress = mock.Mock()
+        widget.progress.get_allocated_width.return_value = alloc_width
+        widget.progress_fill = mock.Mock()
+        widget._last_progress_pct = None
+        widget._last_fill_px = 0
+        widget.player = mock.Mock(
+            playback_status="playing", length=length, position=position, title="Track"
+        )
+        return widget
+
+    def test_unchanged_progress_does_not_reapply_the_width(self):
+        widget = self._make_widget(position=20)
+
+        for _ in range(10):
+            widget._update_progress()
+
+        # 20/200 -> 10% of 100px, applied once and then left alone.
+        widget.progress_fill.set_size_request.assert_called_once_with(10, -1)
+
+    def test_changed_progress_reapplies_the_width(self):
+        widget = self._make_widget(position=20)
+        widget._update_progress()
+        widget.player.position = 100
+
+        widget._update_progress()
+
+        widget.progress_fill.set_size_request.assert_called_with(50, -1)
+
+    def test_fill_never_uses_a_css_min_width(self):
+        widget = self._make_widget(position=20)
+
+        widget._update_progress()
+
+        widget.progress_fill.set_style.assert_not_called()
+
+    def test_hidden_progress_clears_the_fill_once(self):
+        widget = self._make_widget(position=20)
+        widget._update_progress()
+        widget.player.playback_status = "stopped"
+        widget.player.title = ""
+
+        for _ in range(5):
+            widget._update_progress()
+
+        widget.progress_fill.set_size_request.assert_called_with(0, -1)
+        widget.progress.set_visible.assert_called_with(False)
+
+
+@unittest.skipUnless(HAS_MPRIS_WIDGET, "mpris widget unavailable")
 class MprisProgressTimerTest(unittest.TestCase):
     """The 1 Hz progress tick must only run while playback advances."""
 

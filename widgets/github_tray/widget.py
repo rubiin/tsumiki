@@ -94,6 +94,7 @@ class GitHubTrayWidget(ButtonWidget, PopoverMixin):
         self._last_notify_at = 0.0
         self.avatar_pixbuf = None
         self.pending_notification_id: str | None = None
+        self._popover_built = False
 
         # detail view state (issues / pulls / workflows for one repo)
         self.detail = {"kind": None, "repo": None, "items": [], "pending": False}
@@ -526,12 +527,35 @@ class GitHubTrayWidget(ButtonWidget, PopoverMixin):
             self.badge_label.set_visible(False)
             self.badge_label.set_label("")
 
-    def _push_state(self):
-        """Tell the popover content (if any) that data changed."""
-        if self.popup is not None and self.popup.content is not None:
-            content = self.popup.content
+    def _popover_content(self):
+        popup = self.popup
+        return None if popup is None else popup.content
+
+    def show_popover(self, *_):
+        """Open the popover, then rebuild its content for the now-visible window."""
+        super().show_popover(*_)
+        content = self._popover_content()
+        if content is None:
+            return
+        if self._popover_built:
+            # Pushes made while hidden were skipped, and relative ages must be fresh.
+            if hasattr(content, "invalidate_render_cache"):
+                content.invalidate_render_cache()
             if hasattr(content, "on_widget_data_changed"):
                 content.on_widget_data_changed()
+        self._popover_built = True
+
+    def _push_state(self):
+        """Render the popover, or let the next open render it instead."""
+        popup = self.popup
+        if popup is None or popup.content is None:
+            return
+        if not popup.get_visible():
+            # A hidden popover paints nothing; rendering would churn ~300 GObjects.
+            return
+        content = popup.content
+        if hasattr(content, "on_widget_data_changed"):
+            content.on_widget_data_changed()
 
     # -- detail + actions (called by the popover content) --
     def open_url(self, url: str):
@@ -660,10 +684,9 @@ class GitHubTrayWidget(ButtonWidget, PopoverMixin):
             self.load_details(repo, "workflows")
 
     def _toast(self, message: str):
-        if self.popup is not None and self.popup.content is not None:
-            content = self.popup.content
-            if hasattr(content, "show_toast"):
-                content.show_toast(message)
+        content = self._popover_content()
+        if content is not None and hasattr(content, "show_toast"):
+            content.show_toast(message)
 
 
 def exec_shell_async_quiet(command: list[str]) -> None:
@@ -691,6 +714,7 @@ class GitHubTrayPopoverContent(Box):
         self._tab = self._normalize_tab(str(self.config.get("default_tab", "inbox")))
         self._notify_page = 0
         self._last_notification_key: tuple = ()
+        self._last_render_key: tuple | None = None
         self._toast_timer: int | None = None
 
         self._body = ScrolledWindow(
@@ -749,6 +773,10 @@ class GitHubTrayPopoverContent(Box):
             self._view = "main"
         self._render()
 
+    def invalidate_render_cache(self):
+        """Force the next render to rebuild, e.g. when the popover becomes visible."""
+        self._last_render_key = None
+
     def show_toast(self, message: str):
         self.toast_label.set_label(f"󰄬  {message}")
         self.toast_label.set_visible(True)
@@ -761,7 +789,55 @@ class GitHubTrayPopoverContent(Box):
         self.toast_label.set_visible(False)
         return False
 
+    def _render_key(self) -> tuple | None:
+        """Inputs that decide the main-view output; ``None`` disables memoisation."""
+        widget = self.tray_widget
+        if self._view != "main":
+            return None
+        notifications = tuple(
+            (
+                str(item.get("id")),
+                tray_state.notification_state(item),
+                str(item.get("reason")),
+                str(item.get("updated_at")),
+                str((item.get("subject") or {}).get("title")),
+                str((item.get("repository") or {}).get("full_name")),
+                str(item.get("id")) == widget.pending_notification_id,
+            )
+            for item in widget.notifications
+        )
+        repos = tuple(
+            (
+                str(repo.get("full_name")),
+                repo.get("stargazers_count"),
+                repo.get("forks_count"),
+                repo.get("_issuesCount"),
+                repo.get("_pullsCount"),
+                str(repo.get("pushed_at") or repo.get("updated_at")),
+            )
+            for repo in widget.repos
+        )
+        return (
+            self._view,
+            self._tab,
+            self._notify_page,
+            # Bucket the clock so "5m ago" labels refresh during a long-open popover.
+            int(monotonic() // 300),
+            widget.loading,
+            widget.loaded_once,
+            widget.error_message,
+            widget.avatar_pixbuf is not None,
+            widget.web_base,
+            tuple(sorted((str(k), str(v)) for k, v in (widget.user or {}).items())),
+            notifications,
+            repos,
+        )
+
     def _render(self):
+        key = self._render_key()
+        if key is not None and key == self._last_render_key:
+            return
+
         self.tray_widget_draw_count += 1
 
         children: list = []
@@ -771,6 +847,7 @@ class GitHubTrayPopoverContent(Box):
             children = self._render_detail()
         self._stack.children = children
         self._stack.show_all()
+        self._last_render_key = key
 
     # -- main view --
     def _render_main(self) -> list:
