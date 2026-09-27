@@ -223,7 +223,11 @@ def resolve_notification_icon(
     return IconResolver().resolve_icon(
         None,
         getattr(notification, "app_icon", None) or "",
-        getattr(notification, "app_name", None) or "",
+        # Prefer a real app id: the cache is keyed on it, and a display name is
+        # a different key space, so the same app ends up stored twice.
+        getattr(notification, "app_id", None)
+        or getattr(notification, "app_name", None)
+        or "",
         size,
         default_icon=default_icon,
     )

@@ -7,6 +7,7 @@ from fabric.core.service import Property, Service, Signal
 from fabric.utils import Gio, GLib, bulk_connect, exec_shell_command_async, logger, time
 
 from utils.constants import NETWORK_RECENCY_THRESHOLD_SECONDS
+from utils.decorators import replace_timeout
 from utils.exceptions import NetworkManagerNotFoundError
 
 from .base import SingletonService
@@ -45,6 +46,10 @@ _DEVICE_STATE_MAP = {
     NM.DeviceState.FAILED: "failed",
 }
 
+# A scan announces every visible AP at once, and each rebuild re-reads all of
+# them, so a burst of signals is collapsed into one pass.
+_AP_UPDATE_COALESCE_MS = 250
+
 
 class Wifi(Service):
     """A service to manage wifi devices"""
@@ -63,6 +68,7 @@ class Wifi(Service):
         self._device: NM.DeviceWifi = device
         self._ap: NM.AccessPoint | None = None
         self._ap_signal: int | None = None
+        self._ap_update_timer: int | None = None
         super().__init__(**kwargs)
 
         self._client.connect(
@@ -70,16 +76,30 @@ class Wifi(Service):
             lambda *_: self.notifier("enabled"),
         )
         if self._device:
+            # access-point-added stays: a network joining a background scan
+            # announces nothing else, and the submenu only ever re-reads the list.
             bulk_connect(
                 self._device,
                 {
                     "notify::active-access-point": self._activate_ap,
-                    "access-point-added": lambda *_: self.emit("changed"),
-                    "access-point-removed": lambda *_: self.emit("changed"),
-                    "state-changed": self.ap_update,
+                    "access-point-added": self._queue_ap_update,
+                    "access-point-removed": self._queue_ap_update,
+                    "state-changed": self._queue_ap_update,
                 },
             )
             self._activate_ap()
+
+    def _queue_ap_update(self, *_):
+        """Arm the single pending rebuild, replacing any earlier one."""
+        replace_timeout(
+            self, "_ap_update_timer", _AP_UPDATE_COALESCE_MS, self._flush_ap_update
+        )
+
+    def _flush_ap_update(self):
+        # Cleared first so a signal raised during the rebuild arms a new timer.
+        self._ap_update_timer = None
+        self.ap_update()
+        return False
 
     def ap_update(self, *_):
         self.emit("changed")
@@ -103,7 +123,7 @@ class Wifi(Service):
             return
 
         self._ap_signal = self._ap.connect(
-            "notify::strength", lambda *_: self.ap_update()
+            "notify::strength", lambda *_: self._queue_ap_update()
         )  # type: ignore
 
     def toggle_wifi(self):
@@ -118,6 +138,8 @@ class Wifi(Service):
                 with contextlib.suppress(GLib.Error):
                     device.request_scan_finish(result)
                 self.emit("scanning", False)
+                # A scan that finds nothing new emits no AP signal at all.
+                self._queue_ap_update()
 
             self._device.request_scan_async(None, _on_scan_done)
 

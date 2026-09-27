@@ -102,7 +102,6 @@ class DeepMergeAliasingTest(unittest.TestCase):
 
         self.assertEqual(deep_merge({}, target)["widgets"]["widget_groups"], [])
 
-
     def test_flatten_dict(self):
         d = {"a": 1, "b": {"c": 2, "d": {"e": 3}}}
         flat = flatten_dict(d)

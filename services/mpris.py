@@ -5,6 +5,7 @@ import gi
 from fabric.core.service import Property, Service, Signal
 from fabric.utils import GLib, bulk_connect, logger
 
+from utils.change_cache import ChangeCache
 from utils.exceptions import PlayerctlImportError
 from utils.functions import safe_disconnect
 
@@ -29,6 +30,20 @@ _LOOP_STATUS_REVERSE_MAP = {
     "track": Playerctl.LoopStatus.TRACK,
     "playlist": Playerctl.LoopStatus.PLAYLIST,
 }
+_METADATA_PROPS = (
+    "metadata",
+    "title",
+    "artist",
+    "arturl",
+    "length",
+)
+_CAPABILITY_PROPS = (
+    "can-seek",
+    "can-pause",
+    "can-shuffle",
+    "can-go-next",
+    "can-go-previous",
+)
 
 
 class MprisPlayer(Service):
@@ -62,50 +77,56 @@ class MprisPlayer(Service):
             "metadata",
             lambda *_: self.update_status(),
         )
+        self._changes = ChangeCache()
         GLib.idle_add(self.update_status_once)
-
-    def _notify_property(self, prop):
-        if self._player is None:
-            return
-        if self.get_property(prop) is not None:
-            self.notifier(prop)
 
     def update_status(self):
         if self._player is None:
             return
-        # schedule each notifier asynchronously.
+        # One idle hop per event: players re-emit metadata ~1x/s while playing,
+        # so a callback per property turned one track change into ten wakeups.
+        GLib.idle_add(self._flush_metadata, priority=GLib.PRIORITY_DEFAULT_IDLE)
 
-        for prop in [
-            "metadata",
-            "title",
-            "artist",
-            "arturl",
-            "length",
-        ]:
-            GLib.idle_add(lambda p=prop: (self._notify_property(p), False))
-        for prop in [
-            "can-seek",
-            "can-pause",
-            "can-shuffle",
-            "can-go-next",
-            "can-go-previous",
-        ]:
-            GLib.idle_add(lambda p=prop: (self.notifier(p), False))
+    def _flush_metadata(self):
+        """Notify only the properties that actually changed, then emit once.
+
+        ``changed`` is emitted per event rather than per property: consumers
+        already rebuild from every property on that one signal.
+        """
+        if self._player is None:
+            return False
+
+        for prop in (*_METADATA_PROPS, *_CAPABILITY_PROPS):
+            value = self.get_property(prop)
+            if value is None:
+                continue
+            self._changes.apply(prop, value, self._notifier_for(prop))
+        self.emit("changed")
+        return False
+
+    def _notifier_for(self, prop: str):
+        """A notifier that discards the value, since notify() takes the name."""
+        return lambda _value: self.notify(prop)
 
     def _notify_all(self):
+        if self._player is None:
+            return False
         for prop in self.list_properties():  # type: ignore
-            self.notifier(prop.name)
+            self.notify(prop.name)
+        self.emit("changed")
         return False
 
     def update_status_once(self):
         if self._player is None:
             return False
-        # schedule notifier calls for each property
+        # schedule a single notifier pass on the main loop
 
         GLib.idle_add(self._notify_all, priority=GLib.PRIORITY_DEFAULT_IDLE)
         return False
 
     def _notify_and_emit(self, name):
+        if self._player is None:
+            return False
         self.notify(name)
         self.emit("changed")
         return False

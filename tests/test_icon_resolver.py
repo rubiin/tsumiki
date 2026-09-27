@@ -163,6 +163,128 @@ class IconResolverCacheTest(unittest.TestCase):
         self.assertEqual({"nm-signal-75": "nm-signal-75"}, resolver._icon_dict)
 
 
+class IconLookupMissCacheTest(unittest.TestCase):
+    """A miss must be remembered, or every tick re-scans and re-logs it."""
+
+    def setUp(self):
+        IconResolver.reset_instance()
+        self.addCleanup(IconResolver.reset_instance)
+
+        for patcher in (
+            mock.patch.object(icon_resolver_module, "ICON_CACHE_FILE", "/nonexistent"),
+            mock.patch.object(IconResolver, "_schedule_cache_write"),
+        ):
+            patcher.start()
+            self.addCleanup(patcher.stop)
+
+        self.resolver = IconResolver()
+        self.resolver._icon_theme = FakeIconTheme()
+
+    def test_a_miss_is_not_rescanned_on_the_next_call(self):
+        with mock.patch.object(
+            IconResolver, "_compositor_find_icon", return_value=None
+        ) as find_icon:
+            self.assertIsNone(self.resolver.get_icon_name("HyDE Power"))
+            self.assertIsNone(self.resolver.get_icon_name("HyDE Power"))
+
+        find_icon.assert_called_once_with("HyDE Power")
+
+    def test_a_miss_is_logged_once(self):
+        with mock.patch.object(icon_resolver_module, "logger") as logger:
+            for _ in range(5):
+                self.resolver.get_icon_name("HyDE Power")
+
+        misses = [
+            call
+            for call in logger.info.call_args_list
+            if "no icon found" in call.args[0]
+        ]
+        self.assertEqual(1, len(misses))
+
+    def test_the_miss_expires_and_a_later_hit_is_cached(self):
+        with mock.patch.object(icon_resolver_module, "time") as clock:
+            clock.monotonic.return_value = 1000.0
+            self.resolver.get_icon_name("HyDE Power")
+            clock.monotonic.return_value = (
+                1000.0 + icon_resolver_module._MISS_TTL_SECONDS + 1
+            )
+            with mock.patch.object(
+                IconResolver, "_compositor_find_icon", return_value="hyde-power"
+            ) as find_icon:
+                self.assertEqual(
+                    "hyde-power", self.resolver.get_icon_name("HyDE Power")
+                )
+
+        find_icon.assert_called_once()
+        self.assertEqual({"HyDE Power": "hyde-power"}, self.resolver._icon_dict)
+        self.assertEqual({}, self.resolver._miss_cache)
+
+    def test_a_miss_is_not_written_to_the_shared_cache(self):
+        with mock.patch.object(
+            IconResolver, "_compositor_find_icon", return_value=None
+        ):
+            self.resolver.get_icon_name("HyDE Power")
+
+        self.assertEqual({}, self.resolver._icon_dict)
+
+
+class DesktopFileListingCacheTest(unittest.TestCase):
+    """The listing must be re-read when a desktop directory actually changes."""
+
+    def setUp(self):
+        IconResolver._desktop_files_cache = {}
+        self.addCleanup(setattr, IconResolver, "_desktop_files_cache", {})
+
+        self._tmpdir = tempfile.TemporaryDirectory()
+        self.addCleanup(self._tmpdir.cleanup)
+        self.apps_dir = os.path.join(self._tmpdir.name, "applications")
+        os.mkdir(self.apps_dir)
+        self._write_desktop_file("firefox.desktop")
+
+        self.resolver = IconResolver()
+        IconResolver._desktop_files_cache = {}
+        patcher = mock.patch.object(
+            icon_resolver_module.GLib,
+            "get_system_data_dirs",
+            return_value=[self._tmpdir.name],
+        )
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def _write_desktop_file(self, name):
+        with open(os.path.join(self.apps_dir, name), "w", encoding="utf-8") as handle:
+            handle.write("[Desktop Entry]\nIcon=icon-name\n")
+
+    def test_a_new_desktop_file_is_seen_without_a_restart(self):
+        self.assertIsNone(self.resolver._get_desktop_file("newapp"))
+
+        self._write_desktop_file("newapp.desktop")
+        # The directory mtime is what invalidates; force it forward.
+        os.utime(self.apps_dir, (0, 0))
+
+        self.assertTrue(
+            self.resolver._get_desktop_file("newapp").endswith("newapp.desktop")
+        )
+
+    def test_an_unchanged_directory_is_not_relisted(self):
+        with mock.patch.object(
+            icon_resolver_module.os, "listdir", wraps=os.listdir
+        ) as listdir:
+            for _ in range(5):
+                self.resolver._get_desktop_file("firefox")
+
+        self.assertEqual(1, listdir.call_count)
+
+    def test_an_unreadable_directory_is_retried_not_remembered(self):
+        with mock.patch.object(
+            icon_resolver_module.os, "listdir", side_effect=OSError("denied")
+        ):
+            self.assertIsNone(self.resolver._get_desktop_file("firefox"))
+
+        self.assertEqual({}, IconResolver._desktop_files_cache)
+        self.assertIsNotNone(self.resolver._get_desktop_file("firefox"))
+
+
 class ResolveIconPixbufCacheKeyTest(unittest.TestCase):
     """``resolve_icon_pixbuf`` is TTL-cached, so its key must stay hashable."""
 

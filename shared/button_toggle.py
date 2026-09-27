@@ -1,7 +1,8 @@
-from fabric.utils import invoke_repeater
+from fabric.utils import invoke_repeater, logger
 from fabric.widgets.label import Label
 
 import utils.functions as helpers
+from utils.change_cache import ChangeCache
 from utils.i18n import _
 from utils.widget_utils import (
     nerd_font_icon,
@@ -33,7 +34,15 @@ class CommandSwitcher(ButtonWidget):
             **kwargs,
         )
 
-        helpers.check_executable_exists(self.command)
+        # A missing binary must not take down the whole bar: this widget is
+        # constructed during layout, so raising here would abort every widget
+        # after it. Degrade to a disabled toggle instead.
+        self.command_available = True
+        try:
+            helpers.check_executable_exists(self.command)
+        except helpers.ExecutableNotFoundError as e:
+            self.command_available = False
+            logger.warning(f"[{name}] Command not found: {e}")
 
         self.add_style_class(style_classes)
 
@@ -60,12 +69,17 @@ class CommandSwitcher(ButtonWidget):
 
         self.connect("clicked", self.on_click)
 
+        # The 1 Hz tick re-applies unchanged state otherwise, and each apply
+        # invalidates style or re-renders a label.
+        self._changes = ChangeCache()
         self._register_repeater(invoke_repeater(1000, self._update_ui))
         # The repeater's first call can land before mapping; refresh again on map.
         self.connect("map", self._update_ui)
         self._update_ui()
 
     def on_click(self, *_args):
+        if not self.command_available:
+            return True
         helpers.toggle_command(
             self.command,
             full_command=self.full_command,
@@ -77,18 +91,30 @@ class CommandSwitcher(ButtonWidget):
         if not self.get_mapped():
             return True
 
-        is_running = helpers.is_app_running(self.command)
+        # Nothing to poll when the binary is absent, and the disabled icon plus a
+        # tooltip already say so.
+        is_running = (
+            helpers.is_app_running(self.command) if self.command_available else False
+        )
 
-        self.toggle_css_class("active", is_running)
+        self._changes.apply(
+            "active", is_running, lambda value: self.toggle_css_class("active", value)
+        )
 
         label = _("common.enabled") if is_running else _("common.disabled")
 
         if self.label:
-            self.label_text.set_label(label)
+            self._changes.apply("label", label, self.label_text.set_label)
 
-        self.icon.set_label(self.enabled_icon if is_running else self.disabled_icon)
+        icon = self.enabled_icon if is_running else self.disabled_icon
+        self._changes.apply("icon", icon, self.icon.set_label)
 
         if self.tooltip and self.tooltips_enabled:
-            self.set_tooltip_text(f"{self.command} {label.lower()}")
+            if self.command_available:
+                tooltip = f"{self.command} {label.lower()}"
+            else:
+                missing = _("common.not_found", default="not found")
+                tooltip = f"{self.command}: {missing}"
+            self._changes.apply("tooltip", tooltip, self.set_tooltip_text)
 
         return True
