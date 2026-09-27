@@ -13,10 +13,18 @@ from services.battery import BatteryService
 
 
 def _properties_changed(changed: dict[str, object]) -> GLib.Variant:
-    """Build the ``(a{sv}a{sv})`` payload a PropertiesChanged signal carries."""
+    """Build the ``(sa{sv}as)`` payload a PropertiesChanged signal carries.
+
+    The leading interface name is what makes this shape easy to get wrong: the
+    changed keys are element 1, so indexing element 0 filters on characters.
+    """
     return GLib.Variant(
-        "(a{sv}a{sv})",
-        ({name: GLib.Variant("s", str(value)) for name, value in changed.items()}, {}),
+        "(sa{sv}as)",
+        (
+            "org.freedesktop.UPower.Device",
+            {name: GLib.Variant("s", str(value)) for name, value in changed.items()},
+            (),
+        ),
     )
 
 
@@ -46,6 +54,12 @@ class HandlePropertyChangeTest(unittest.TestCase):
                 self._signal({name: 1})
 
                 self.service.emit.assert_called_once_with("changed")
+
+    def test_the_real_signal_signature_re_emits(self):
+        """Element 0 is the interface name, not the changed-properties dict."""
+        self._signal({"Percentage": 42})
+
+        self.service.emit.assert_called_once_with("changed")
 
     def test_only_uninteresting_keys_do_not_re_emit(self):
         self._signal({"Vendor": "Acme", "Technology": "lipo", "PowerSupply": "BAT0"})

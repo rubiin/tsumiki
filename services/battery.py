@@ -42,8 +42,9 @@ def _has_rendered_property(parameters) -> bool:
     if not parameters:
         return True
     try:
-        changed = parameters[0]
-    except (TypeError, IndexError, KeyError):
+        # PropertiesChanged is (interface_name, changed, invalidated).
+        changed = parameters.unpack()[1]
+    except (AttributeError, TypeError, IndexError, KeyError):
         return True
     if not changed:
         return True
