@@ -191,6 +191,75 @@ class ConfigWatcherOnFileChangedTest(unittest.TestCase):
         mock_timeout.assert_not_called()
 
 
+class ConfigWatcherSelfWriteTest(unittest.TestCase):
+    """A config write the app made itself must not restart the app.
+
+    ``auto_restart`` ships true, so a theme toggle used to tear the bar down
+    1.5 s after the click.
+    """
+
+    def setUp(self):
+        import utils.config_watcher as cw
+        from utils import functions as functions_module
+
+        self._functions = functions_module
+        self._cwd = cw
+
+        self._tmpdir = tempfile.TemporaryDirectory()
+        self.addCleanup(self._tmpdir.cleanup)
+        self._path = os.path.join(self._tmpdir.name, "config.toml")
+        self._write('[styling]\nmode = "light"\n')
+
+        self._watcher = _make_bare_watcher(_file_hashes={self._path: "stale"})
+        cw._watcher = self._watcher
+        self.addCleanup(setattr, cw, "_watcher", None)
+
+        self._path_patch = mock.patch.object(
+            functions_module, "get_relative_path", return_value=self._path
+        )
+        self._path_patch.start()
+        self.addCleanup(self._path_patch.stop)
+
+    def _write(self, text: str) -> None:
+        with open(self._path, "w", encoding="utf-8") as handle:
+            handle.write(text)
+
+    def _notify_change(self) -> None:
+        file_mock = mock.Mock()
+        file_mock.get_path.return_value = self._path
+        file_mock.get_basename.return_value = "config.toml"
+        with (
+            mock.patch(
+                "utils.config_watcher.Gio.FileMonitorEvent.CHANGES_DONE_HINT",
+                _DONE_HINT,
+            ),
+            mock.patch("utils.config_watcher.GLib.timeout_add"),
+        ):
+            self._watcher._on_file_changed(None, file_mock, None, _DONE_HINT)
+
+    def test_our_own_write_does_not_schedule_a_restart(self):
+        self._functions._update_config_key(["styling", "mode"], "dark")
+
+        self._notify_change()
+
+        self.assertFalse(self._watcher._restart_pending)
+
+    def test_an_external_change_still_schedules_a_restart(self):
+        self._write('[styling]\nmode = "dark"\ntheme_name = "edited"\n')
+
+        self._notify_change()
+
+        self.assertTrue(self._watcher._restart_pending)
+
+    def test_the_hash_baseline_still_advances_after_our_write(self):
+        self._functions._update_config_key(["styling", "mode"], "dark")
+
+        self.assertEqual(
+            self._watcher._file_hashes[self._path],
+            self._watcher._read_file_hash(self._path),
+        )
+
+
 class ConfigWatcherStopTest(unittest.TestCase):
     """Test stop cleans up monitors and timers."""
 

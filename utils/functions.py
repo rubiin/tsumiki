@@ -1,5 +1,6 @@
 import atexit
 import contextlib
+import copy
 import ctypes
 import html
 import importlib
@@ -25,7 +26,6 @@ from fabric.utils import (
     GLib,
     Gtk,
     cooldown,
-    exec_shell_command,
     exec_shell_command_async,
     get_relative_path,
     idle_add,
@@ -435,6 +435,21 @@ def parse_hyprland_reply(reply: HyprlandReply) -> dict:
 _config_write_lock = threading.Lock()
 
 
+def _absorb_own_config_write(config_file: str) -> None:
+    """Re-baseline the config watcher's hash for a write we just made.
+
+    Without this the watcher reads our own write as an external change and
+    restarts the app. Imported lazily: config_watcher imports us, so a
+    module-level import would be circular.
+    """
+    from utils.config_watcher import _watcher
+
+    if _watcher is None:
+        return
+
+    _watcher._file_hashes[config_file] = _watcher._read_file_hash(config_file)
+
+
 def _update_config_key(key_path: list[str], value: Any) -> None:
     """Update a single key in config.toml under a lock, without truncating it."""
     config_file = get_relative_path("../config.toml")
@@ -447,9 +462,14 @@ def _update_config_key(key_path: list[str], value: Any) -> None:
             node = config
             for k in key_path[:-1]:
                 node = node.setdefault(k, {})
+            # Rewriting an identical value costs a read, an fsync and a
+            # spurious config-change event for no change at all.
+            if node.get(key_path[-1]) == value:
+                return
             node[key_path[-1]] = value
 
             write_toml_file(config_file, config, sync=True)
+            _absorb_own_config_write(config_file)
         except (IOError, OSError, ValueError, KeyError, TypeError) as e:
             logger.exception(
                 f"{Colors.ERROR}[Config] Error updating {'.'.join(key_path)}: {e}"
@@ -473,15 +493,19 @@ def celsius_to_fahrenheit(celsius: float) -> float:
 
 
 def deep_merge(data: dict, target: dict) -> dict:
-    """Recursively merge *data* over *target*."""
-    merged = target.copy()
+    """Recursively merge *data* over *target*.
+
+    Inherited values are deep-copied, so a widget that mutates a config list
+    in place cannot rewrite the shared defaults for the rest of the process.
+    """
+    merged = {key: copy.deepcopy(value) for key, value in target.items()}
     for key, user_value in data.items():
         if (
-            key in merged
-            and isinstance(merged[key], dict)
+            key in target
+            and isinstance(target[key], dict)
             and isinstance(user_value, dict)
         ):
-            merged[key] = deep_merge(user_value, merged[key])
+            merged[key] = deep_merge(user_value, target[key])
         else:
             merged[key] = user_value
     return merged
@@ -647,6 +671,9 @@ def toggle_command(command: str, full_command: str):
         kill_process(command)
     else:
         spawn_detached(shlex.split(full_command))
+    # The button re-reads its state right after this, so the snapshot would
+    # answer with the state from before the toggle.
+    invalidate_process_names()
 
 
 def char_limit_to_px(label_widget, char_limit: int) -> int:
@@ -896,9 +923,84 @@ def run_command(
     return stdout
 
 
-@ttl_lru_cache(seconds_to_live=2, maxsize=32)
+_PROC_ROOT = "/proc"
+# The kernel caps comm at 15 chars, so a name that long may be truncated.
+_COMM_MAX_LEN = 15
+_PROCESS_NAMES_TTL = 1.0
+_process_names_cache: tuple[float, frozenset[bytes]] | None = None
+
+
+def _read_proc_file(path: str, limit: int = 256) -> bytes:
+    """Read a small ``/proc`` file, or b"" when it cannot be read.
+
+    Uses os.open/os.read rather than open(): building the io stack costs more
+    than the syscall here, and this runs once per pid.
+    """
+    try:
+        fd = os.open(path, os.O_RDONLY)
+    except OSError:
+        return b""
+    try:
+        return os.read(fd, limit)
+    except OSError:
+        return b""
+    finally:
+        os.close(fd)
+
+
+def _process_name_bytes() -> frozenset[bytes]:
+    """Every process name currently in procfs, as comm and exe basenames."""
+    try:
+        entries = os.listdir(_PROC_ROOT)
+    except OSError:
+        return frozenset()
+
+    names = set()
+    for entry in entries:
+        if not entry.isdigit():
+            continue
+        process_dir = f"{_PROC_ROOT}/{entry}"
+        comm = _read_proc_file(f"{process_dir}/comm", _COMM_MAX_LEN + 16).strip()
+        if not comm:
+            continue
+        names.add(comm)
+        if len(comm) >= _COMM_MAX_LEN:
+            # Truncated: only the exe link still carries the full name.
+            with contextlib.suppress(OSError):
+                exe = os.readlink(f"{process_dir}/exe")
+                names.add(os.path.basename(exe).encode())
+    return frozenset(names)
+
+
+def _all_process_names() -> frozenset[bytes]:
+    """The process-name snapshot, rebuilt at most once per TTL.
+
+    Walking every pid costs ~8 ms, so 1 Hz pollers would each pay it; the
+    snapshot makes the steady-state cost a set lookup.
+    """
+    global _process_names_cache
+    cached = _process_names_cache
+    if cached is not None and time.monotonic() - cached[0] < _PROCESS_NAMES_TTL:
+        return cached[1]
+
+    names = _process_name_bytes()
+    _process_names_cache = (time.monotonic(), names)
+    return names
+
+
+def invalidate_process_names() -> None:
+    """Force the next lookup to re-read procfs, after starting or killing one."""
+    global _process_names_cache
+    _process_names_cache = None
+
+
 def is_app_running(app_name: str) -> bool:
-    return bool(exec_shell_command(f"pidof {app_name}"))
+    """Whether a process named *app_name* exists, read from procfs.
+
+    Replaces ``pidof``, whose fork+exec cost ~28 ms on the GTK main thread.
+    Answered from a 1 s snapshot, so invalidate it after starting or killing.
+    """
+    return app_name.encode() in _all_process_names()
 
 
 def take_snapshot():

@@ -17,6 +17,7 @@ from utils.functions import (
     CommandError,
     _atomic_write,
     ensure_directory,
+    invalidate_process_names,
     is_app_running,
     read_json_file,
     run_command,
@@ -206,6 +207,130 @@ class UpdateConfigKeyTest(unittest.TestCase):
 
         with open(path, encoding="utf-8") as handle:
             self.assertEqual(original, handle.read())
+
+    def test_unchanged_value_is_not_written(self):
+        """A theme toggle writes two keys; the second one is always a no-op."""
+        path = self._write_config('[styling]\nmode = "dark"\n')
+
+        with (
+            mock.patch.object(functions_module, "get_relative_path", return_value=path),
+            mock.patch.object(functions_module, "write_toml_file") as write,
+        ):
+            functions_module._update_config_key(["styling", "mode"], "dark")
+
+        write.assert_not_called()
+
+    def test_a_changed_value_is_written(self):
+        path = self._write_config('[styling]\nmode = "light"\n')
+
+        with mock.patch.object(
+            functions_module, "get_relative_path", return_value=path
+        ):
+            functions_module._update_config_key(["styling", "mode"], "dark")
+
+        with open(path, encoding="utf-8") as handle:
+            self.assertIn("'dark'", handle.read())
+
+
+class IsAppRunningTest(unittest.TestCase):
+    """``is_app_running`` reads procfs rather than forking ``pidof``."""
+
+    def setUp(self):
+        self._tmpdir = tempfile.TemporaryDirectory()
+        self.addCleanup(self._tmpdir.cleanup)
+        self.proc = os.path.join(self._tmpdir.name, "proc")
+        os.makedirs(self.proc)
+        patcher = mock.patch.object(functions_module, "_PROC_ROOT", self.proc)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        # Each test must build its own snapshot, not reuse the previous test's.
+        functions_module.invalidate_process_names()
+        self.addCleanup(functions_module.invalidate_process_names)
+
+    def _add_process(self, pid: str, comm: str | None, exe: str | None = None):
+        process_dir = os.path.join(self.proc, pid)
+        os.makedirs(process_dir, exist_ok=True)
+        if comm is not None:
+            with open(os.path.join(process_dir, "comm"), "w", encoding="utf-8") as fh:
+                fh.write(f"{comm}\n")
+        if exe is not None:
+            os.symlink(exe, os.path.join(process_dir, "exe"))
+
+    def test_matches_a_process_name(self):
+        self._add_process("100", "hypridle")
+
+        self.assertTrue(is_app_running("hypridle"))
+
+    def test_matches_on_the_exe_basename_when_comm_is_truncated(self):
+        # comm caps at 15 chars, so only the exe link carries the full name.
+        self._add_process("101", "some-very-long-p", exe="/usr/bin/some-very-long-prog")
+
+        self.assertTrue(is_app_running("some-very-long-prog"))
+        self.assertFalse(is_app_running("some-very-long-pro"))
+
+    def test_skips_entries_it_cannot_read(self):
+        self._add_process("102", None)
+        # A directory where the exe symlink belongs: readlink fails on it.
+        os.makedirs(os.path.join(self.proc, "102", "exe"))
+        os.makedirs(os.path.join(self.proc, "not-a-pid"))
+
+        self.assertFalse(is_app_running("anything"))
+
+    def test_a_process_that_is_not_running_is_false(self):
+        self._add_process("103", "other-app")
+
+        self.assertFalse(is_app_running("hypridle"))
+
+    def test_an_unreadable_procfs_is_false_rather_than_an_exception(self):
+        with mock.patch.object(
+            functions_module.os, "listdir", side_effect=OSError("denied")
+        ):
+            self.assertFalse(is_app_running("hypridle"))
+
+    def test_the_snapshot_is_reused_within_the_ttl(self):
+        """Walking every pid is ~8 ms; the pollers must not each pay it."""
+        self._add_process("104", "hypridle")
+        names = frozenset({b"hypridle"})
+        with (
+            mock.patch.object(
+                functions_module, "_process_name_bytes", return_value=names
+            ) as scan,
+            mock.patch.object(functions_module.time, "monotonic", return_value=0),
+        ):
+            first = is_app_running("hypridle")
+            second = is_app_running("hypridle")
+
+        self.assertTrue(first)
+        self.assertTrue(second)
+        self.assertEqual(scan.call_count, 1)
+
+    def test_a_toggle_invalidates_the_snapshot(self):
+        """The button re-reads its state right after toggling, so it must be fresh."""
+        self.assertFalse(is_app_running("hypridle"))
+        self._add_process("105", "hypridle")
+        self.assertFalse(is_app_running("hypridle"))
+
+        functions_module.invalidate_process_names()
+
+        self.assertTrue(is_app_running("hypridle"))
+
+
+class IsAppRunningDoesNotForkTest(unittest.TestCase):
+    """The real procfs, to prove the answer no longer comes from a subprocess."""
+
+    def tearDown(self):
+        invalidate_process_names()
+
+    def test_does_not_spawn_a_process(self):
+        """``pidof`` cost ~28 ms per call, on the GTK main thread."""
+
+        def explode(*_args, **_kwargs):
+            raise AssertionError("is_app_running must not spawn a process")
+
+        with mock.patch.object(
+            functions_module, "exec_shell_command", explode, create=True
+        ):
+            self.assertTrue(is_app_running(psutil.Process().name()))
 
 
 class RunCommandCheckTest(unittest.TestCase):

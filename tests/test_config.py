@@ -11,6 +11,7 @@ from utils.config import (
     _LIST_CONFIG_KEYS,
     TsumikiConfig,
 )
+from utils.constants import DEFAULT_CONFIG
 
 
 class ExcludedKeysTest(unittest.TestCase):
@@ -91,6 +92,47 @@ class LoadConfigTest(unittest.TestCase):
     def test_none_toml_uses_defaults(self):
         cfg = make_tsumiki_config(parsed_data=None)
         self.assertIn("general", cfg.config)
+
+
+class DefaultsNotAliasedTest(unittest.TestCase):
+    """The live config must not share mutable leaves with ``DEFAULT_CONFIG``.
+
+    A widget doing ``config["widgets"]["widget_groups"].sort()`` would rewrite
+    the module-level defaults, silently, for every later reader.
+    """
+
+    def setUp(self):
+        TsumikiConfig.reset_instance()
+        self._groups = DEFAULT_CONFIG["widgets"]["widget_groups"]
+        self.addCleanup(self._restore_defaults)
+
+    def _restore_defaults(self):
+        DEFAULT_CONFIG["widgets"]["widget_groups"] = self._groups
+
+    def _config_without_overrides(self):
+        return make_tsumiki_config(
+            parsed_data={
+                "general": {},
+                "widgets": {},
+                "layout": {},
+                "modules": {},
+                "styling": {},
+            }
+        ).config
+
+    def test_inherited_lists_are_copies(self):
+        groups = self._config_without_overrides()["widgets"]["widget_groups"]
+
+        self.assertIsNot(groups, self._groups)
+        self.assertEqual(groups, self._groups)
+
+    def test_mutating_the_live_config_leaves_the_defaults_alone(self):
+        groups = self._config_without_overrides()["widgets"]["widget_groups"]
+        before = len(self._groups)
+
+        groups.append({"id": "injected", "widgets": ["battery"]})
+
+        self.assertEqual(len(self._groups), before)
 
 
 class ConfigImportIsolationTest(unittest.TestCase):

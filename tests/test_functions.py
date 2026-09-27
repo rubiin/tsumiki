@@ -52,6 +52,57 @@ class FunctionsTest(unittest.TestCase):
         expected = {"a": 1, "b": {"x": 10, "y": 30, "z": 40}, "c": 3}
         self.assertEqual(merged, expected)
 
+
+class DeepMergeAliasingTest(unittest.TestCase):
+    """deep_merge must not hand out references into the shared defaults.
+
+    Widgets mutate their config lists in place (``ignored.append(...)``), which
+    silently rewrote ``DEFAULT_CONFIG`` for the rest of the process.
+    """
+
+    def test_an_unoverridden_sub_dict_is_not_the_same_object(self):
+        target = {"widgets": {"battery": {"icon": "B"}}}
+
+        merged = deep_merge({}, target)
+
+        self.assertIsNot(merged["widgets"], target["widgets"])
+        self.assertIsNot(merged["widgets"]["battery"], target["widgets"]["battery"])
+
+    def test_an_unoverridden_list_is_not_the_same_object(self):
+        target = {"widgets": {"widget_groups": [{"widgets": ["battery"]}]}}
+
+        merged = deep_merge({}, target)
+
+        self.assertIsNot(
+            merged["widgets"]["widget_groups"], target["widgets"]["widget_groups"]
+        )
+
+    def test_mutating_the_merge_leaves_the_target_untouched(self):
+        target = {"widgets": {"widget_groups": [{"widgets": ["battery"]}]}}
+        merged = deep_merge({}, target)
+
+        merged["widgets"]["widget_groups"][0]["widgets"].append("clock")
+        merged["widgets"]["widget_groups"].append({"id": "new"})
+
+        self.assertEqual(target["widgets"]["widget_groups"], [{"widgets": ["battery"]}])
+
+    def test_a_user_override_also_does_not_alias_the_default(self):
+        target = {"widgets": {"battery": {"icon": "B"}}}
+        data = {"widgets": {"battery": {"icon": "C"}}}
+
+        merged = deep_merge(data, target)
+
+        self.assertEqual(merged["widgets"]["battery"], {"icon": "C"})
+        self.assertEqual(target["widgets"]["battery"], {"icon": "B"})
+
+    def test_merging_defaults_twice_does_not_carry_state_over(self):
+        target = {"widgets": {"widget_groups": []}}
+
+        deep_merge({}, target)["widgets"]["widget_groups"].append("leaked")
+
+        self.assertEqual(deep_merge({}, target)["widgets"]["widget_groups"], [])
+
+
     def test_flatten_dict(self):
         d = {"a": 1, "b": {"c": 2, "d": {"e": 3}}}
         flat = flatten_dict(d)
