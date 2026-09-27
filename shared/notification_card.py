@@ -18,7 +18,7 @@ from utils.icons import get_text_icon
 from utils.widget_utils import nerd_font_icon, resolve_notification_icon
 
 #: Header icon edge length, shared by every card so rows line up.
-APP_ICON_SIZE = 25
+APP_ICON_SIZE = 20
 
 
 def app_icon(notification, size: int = APP_ICON_SIZE, **props) -> Image:
