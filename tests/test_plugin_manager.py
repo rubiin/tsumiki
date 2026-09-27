@@ -879,6 +879,16 @@ class KillPluginTest(unittest.TestCase):
         (tmp / "notapid").mkdir()
         return tmp
 
+    def _many_proc(self, tmp: Path) -> Path:
+        """Fake /proc holding many matching PIDs, so a partial scan is visible."""
+        proc = self._fake_proc(tmp)
+        for index in range(20):
+            d = proc / str(2000 + index)
+            d.mkdir()
+            (d / "comm").write_text("matchme\n")
+            (d / "cmdline").write_bytes(b"/usr/bin/matchme\x00")
+        return proc
+
     def test_parse_kill_args(self):
         self.assertEqual(self.parse_kill_args(""), (False, ""))
         self.assertEqual(self.parse_kill_args("firefox"), (False, "firefox"))
@@ -909,6 +919,57 @@ class KillPluginTest(unittest.TestCase):
             proc = self._fake_proc(Path(tmp))
             matches = self.list_processes("e", limit=1, proc_dir=str(proc))
             self.assertLessEqual(len(matches), 1)
+
+    def test_debounce_waits_for_typing_to_settle(self):
+        from plugins.kill import KillPlugin
+
+        # 150 ms is the launcher default; a /proc walk costs ~2 reads per PID.
+        self.assertEqual(KillPlugin.debounce_ms, 400)
+        self.assertGreater(KillPlugin.debounce_ms, 150)
+
+    def test_list_processes_stops_when_cancelled(self):
+        from plugins import kill
+
+        with tempfile.TemporaryDirectory() as tmp:
+            proc = self._many_proc(Path(tmp))
+            full = self.list_processes("matchme", proc_dir=str(proc))
+            self.assertEqual(len(full), 20)
+
+            checks = 0
+
+            def cancelled():
+                nonlocal checks
+                checks += 1
+                return checks > 3  # flip true partway through the scan
+
+            reads = 0
+            real_read_comm = kill.read_comm
+
+            def counting_read_comm(pid, proc_dir="/proc"):
+                nonlocal reads
+                reads += 1
+                return real_read_comm(pid, proc_dir)
+
+            with unittest.mock.patch(
+                "plugins.kill.read_comm", side_effect=counting_read_comm
+            ):
+                partial = self.list_processes(
+                    "matchme", proc_dir=str(proc), cancelled=cancelled
+                )
+        self.assertLess(len(partial), len(full))
+        self.assertEqual(len(partial), 2)  # aborted before the third match
+        # 3 of 23 PIDs read — the rest of the tree was never enumerated.
+        self.assertEqual(reads, 3)
+
+    def test_handle_passes_cancellation_to_proc_scan(self):
+        with unittest.mock.patch(
+            "plugins.kill.list_processes", return_value=[]
+        ) as mock_scan:
+            self.plugin.handle("firefox")
+        callback = mock_scan.call_args.kwargs["cancelled"]
+        self.assertFalse(callback())
+        self.plugin.cancel()
+        self.assertTrue(callback())
 
     def test_kill_process_signals(self):
         import signal
@@ -1117,12 +1178,14 @@ class ClipboardHistoryPluginTest(unittest.TestCase):
         from plugins.clipboard_history import (
             ClipboardHistoryPlugin,
             is_binary,
+            match_items,
             parse_list,
         )
 
         self.plugin = ClipboardHistoryPlugin()
         self.parse_list = parse_list
         self.is_binary = is_binary
+        self.match_items = match_items
 
     def test_parse_list(self):
         output = "713\thello world\n712\tlibqalculate\n"
@@ -1138,6 +1201,51 @@ class ClipboardHistoryPluginTest(unittest.TestCase):
     def test_is_binary(self):
         self.assertTrue(self.is_binary("PNG\x00\x01\x02"))
         self.assertFalse(self.is_binary("hello world"))
+
+    def test_debounce_waits_for_typing_to_settle(self):
+        from plugins.clipboard_history import ClipboardHistoryPlugin
+
+        # `cliphist list` forks a subprocess per query; 150 ms is the default.
+        self.assertEqual(ClipboardHistoryPlugin.debounce_ms, 400)
+        self.assertGreater(ClipboardHistoryPlugin.debounce_ms, 150)
+
+    def test_match_items_stops_when_cancelled(self):
+        items = [(str(index), f"item {index}") for index in range(10)]
+        checks = 0
+
+        def cancelled():
+            nonlocal checks
+            checks += 1
+            return checks > 3  # flip true partway through the scan
+
+        self.assertEqual(
+            self.match_items(items, "item", cancelled=cancelled), items[:3]
+        )
+        self.assertEqual(self.match_items(items, "item"), items)
+
+    def test_handle_passes_cancellation_to_item_match(self):
+        from utils.plugin_manager import SubprocessResult
+
+        fake = SubprocessResult(
+            ["cliphist", "list"], 0, stdout="1\taaa\n2\tbbb\n", stderr=""
+        )
+        with (
+            unittest.mock.patch(
+                "plugins.clipboard_history.find_executable",
+                return_value="/usr/bin/cliphist",
+            ),
+            unittest.mock.patch.object(
+                self.plugin, "run_subprocess", return_value=fake
+            ),
+            unittest.mock.patch(
+                "plugins.clipboard_history.match_items", return_value=[]
+            ) as mock_match,
+        ):
+            self.plugin.handle("a")
+        callback = mock_match.call_args.kwargs["cancelled"]
+        self.assertFalse(callback())
+        self.plugin.cancel()
+        self.assertTrue(callback())
 
     def test_handle_filters_by_query(self):
         from utils.plugin_manager import SubprocessResult
@@ -1357,6 +1465,7 @@ class HistoryPluginTest(unittest.TestCase):
         from plugins.history import (
             HistoryPlugin,
             load_history,
+            match_commands,
             parse_bash_history,
             parse_fish_history,
             parse_zsh_history,
@@ -1364,6 +1473,7 @@ class HistoryPluginTest(unittest.TestCase):
 
         self.plugin = HistoryPlugin()
         self.load_history = load_history
+        self.match_commands = match_commands
         self.parse_bash_history = parse_bash_history
         self.parse_fish_history = parse_fish_history
         self.parse_zsh_history = parse_zsh_history
@@ -1403,6 +1513,68 @@ class HistoryPluginTest(unittest.TestCase):
             commands = self.load_history([str(bash), str(zsh)])
         # "git status" appears twice; the newer epoch wins, list is newest-first.
         self.assertEqual(commands[:3], ["ls -la", "git status", "oldcmd"])
+
+    def test_debounce_waits_for_typing_to_settle(self):
+        from plugins.history import HistoryPlugin
+
+        # Every keystroke would re-read and re-parse whole history files.
+        self.assertEqual(HistoryPlugin.debounce_ms, 400)
+        self.assertGreater(HistoryPlugin.debounce_ms, 150)
+
+    def test_load_history_stops_before_the_next_file_when_cancelled(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            bash = Path(tmp) / ".bash_history"
+            zsh = Path(tmp) / ".zsh_history"
+            bash.write_text("oldcmd\n")
+            zsh.write_text(": 1700000006:0;ls -la\n")
+            self.assertEqual(len(self.load_history([str(bash), str(zsh)])), 2)
+
+            checks = 0
+
+            def cancelled():
+                nonlocal checks
+                checks += 1
+                return checks > 2  # first file's per-entry check passes, next fails
+
+            partial = self.load_history([str(bash), str(zsh)], cancelled=cancelled)
+        self.assertEqual(partial, ["oldcmd"])  # zsh_history never read
+
+    def test_load_history_stops_inside_a_file_when_cancelled(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            bash = Path(tmp) / ".bash_history"
+            bash.write_text("one\ntwo\nthree\n")
+            checks = 0
+
+            def cancelled():
+                nonlocal checks
+                checks += 1
+                return checks > 1  # file check passes, first entry check aborts
+
+            self.assertEqual(self.load_history([str(bash)], cancelled=cancelled), [])
+
+    def test_match_commands_stops_when_cancelled(self):
+        commands = [f"git push {index}" for index in range(10)]
+        checks = 0
+
+        def cancelled():
+            nonlocal checks
+            checks += 1
+            return checks > 2  # flip true partway through the scan
+
+        self.assertEqual(
+            self.match_commands(commands, "git", cancelled=cancelled), commands[:2]
+        )
+        self.assertEqual(self.match_commands(commands, "git"), commands)
+
+    def test_handle_passes_cancellation_to_history_scan(self):
+        with unittest.mock.patch(
+            "plugins.history.load_history", return_value=[]
+        ) as mock_load:
+            self.plugin.handle("git")
+        callback = mock_load.call_args.kwargs["cancelled"]
+        self.assertFalse(callback())
+        self.plugin.cancel()
+        self.assertTrue(callback())
 
     def test_handle_filters_by_query(self):
         with tempfile.TemporaryDirectory() as tmp:

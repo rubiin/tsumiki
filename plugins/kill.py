@@ -7,6 +7,7 @@ the process listening on that port.
 import os
 import re
 import signal
+from collections.abc import Callable
 from typing import ClassVar
 
 from fabric.utils import logger
@@ -43,16 +44,21 @@ def list_processes(
     query: str,
     limit: int = _MAX_RESULTS,
     proc_dir: str = "/proc",
+    cancelled: Callable[[], bool] | None = None,
 ) -> list[tuple[int, str, str]]:
     """Return (pid, comm, cmdline) rows matching *query* against name or cmdline.
 
-    *proc_dir* is injectable so tests need not scan the real ``/proc``.
+    *proc_dir* is injectable so tests need not scan the real ``/proc``. Pass
+    *cancelled* to abandon a scan whose rows the launcher would discard anyway.
     """
     query = query.casefold().strip()
     if not query:
         return []
     matches: list[tuple[int, str, str]] = []
     for entry in sorted(os.listdir(proc_dir)):
+        # Checked per PID: one check saves the next comm + cmdline read pair.
+        if cancelled is not None and cancelled():
+            break
         if not entry.isdigit():
             continue
         pid = int(entry)
@@ -175,7 +181,8 @@ class KillPlugin(LauncherPlugin):
     description = "Search and kill a running process"
     icon = "process-stop-symbolic"
     aliases: ClassVar[list[str]] = ["k", "pkill"]
-    # Local /proc scan only — the launcher's default debounce is plenty.
+    # A /proc walk is ~2 file reads per process; 150 ms lets every keystroke run one.
+    debounce_ms = 400
 
     def handle(self, args: str) -> list[PluginResult]:
         if not args.strip():
@@ -194,7 +201,7 @@ class KillPlugin(LauncherPlugin):
         force, query = parse_kill_args(args)
         if query.isdigit():
             return self._handle_port(force, query)
-        matches = list_processes(query)
+        matches = list_processes(query, cancelled=self.is_cancelled)
         if not matches:
             return [
                 PluginResult(

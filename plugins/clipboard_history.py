@@ -1,5 +1,6 @@
 """Launcher slash command: /clipboard-history — search clipboard history."""
 
+from collections.abc import Callable
 from typing import ClassVar
 
 from utils.functions import find_executable
@@ -33,6 +34,25 @@ def is_binary(content: str) -> bool:
     return any(marker in content for marker in _BINARY_MARKERS)
 
 
+def match_items(
+    items: list[tuple[str, str]],
+    query: str,
+    cancelled: Callable[[], bool] | None = None,
+) -> list[tuple[str, str]]:
+    """Return the items whose content contains *query*, stopping when cancelled.
+
+    The check sits in front of the per-item ``casefold``, which copies and
+    scans every entry — the only per-item cost large histories have.
+    """
+    matches: list[tuple[str, str]] = []
+    for item_id, content in items:
+        if cancelled is not None and cancelled():
+            break
+        if not query or query in content.casefold():
+            matches.append((item_id, content))
+    return matches
+
+
 class ClipboardHistoryPlugin(LauncherPlugin):
     """Slash command: /clipboard-history — search and re-copy history items."""
 
@@ -40,6 +60,8 @@ class ClipboardHistoryPlugin(LauncherPlugin):
     description = "Search clipboard history (cliphist)"
     icon = "edit-paste-symbolic"
     aliases: ClassVar[list[str]] = ["clip", "cb"]  # "history" belongs to /history
+    # `cliphist list` forks and prints the whole history; wait for typing to settle.
+    debounce_ms = 400
 
     def handle(self, args: str) -> list[PluginResult]:
         query = args.strip().casefold()
@@ -78,11 +100,7 @@ class ClipboardHistoryPlugin(LauncherPlugin):
                 )
             ]
 
-        items = [
-            (item_id, content)
-            for item_id, content in parse_list(lines)
-            if not query or query in content.casefold()
-        ]
+        items = match_items(parse_list(lines), query, cancelled=self.is_cancelled)
         if not items:
             return [
                 PluginResult(
