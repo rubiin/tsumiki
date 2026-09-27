@@ -5,11 +5,15 @@ run one after another and ``changed`` is published only once they succeed.
 Built via ``__new__`` and stubs: the real service starts a poller.
 """
 
+import threading
+import time
 import unittest
+from concurrent.futures import ThreadPoolExecutor
 from unittest import mock
 
 from services import dns_switcher as dns_module
 from services.dns_switcher import DnsSwitcherService
+from utils import decorators
 
 
 def make_service() -> DnsSwitcherService:
@@ -226,17 +230,112 @@ class SwitchFinishedTest(unittest.TestCase):
         self.service.emit.assert_not_called()
 
 
+class ActiveConnectionTest(unittest.TestCase):
+    """The ``nmcli con show`` lookup must not run on the GTK main thread."""
+
+    def setUp(self):
+        self.service = make_service()
+        self.output = "9a8b7c6d-5e4f-4a3b-8c2d-1e0f9a8b7c6d\n"
+        self.threads: list[int] = []
+        self.entered = threading.Event()
+        self.idled: list[tuple] = []
+        self.gate = threading.Event()  # held so nmcli is still running
+
+        self.pool = ThreadPoolExecutor(max_workers=1)
+        self._patch(decorators, "thread", self.pool.submit)
+        self._patch(dns_module, "exec_shell_command", self._fake_exec)
+        self._patch(decorators, "GLib", mock.Mock(idle_add=self._capture_idle))
+        runner = mock.patch.object(DnsSwitcherService, "_run_commands")
+        self.run_commands = runner.start()
+        self.addCleanup(runner.stop)
+
+        # Release the worker, then join it, so it cannot reach the next test.
+        self.addCleanup(self.pool.shutdown)
+        self.addCleanup(self.gate.set)
+
+    def _patch(self, target, name, replacement):
+        patcher = mock.patch.object(target, name, replacement)
+        self.addCleanup(patcher.stop)
+        return patcher.start()
+
+    def _fake_exec(self, _command):
+        self.threads.append(threading.get_ident())
+        self.entered.set()
+        self.gate.wait(5)
+        return self.output
+
+    def _capture_idle(self, callback, *args):
+        self.idled.append((callback, args))
+        return 1
+
+    def wait_for_worker(self) -> None:
+        self.assertTrue(self.entered.wait(5), "nmcli was never queried")
+
+    def release_worker(self) -> None:
+        self.gate.set()
+        deadline = time.monotonic() + 5
+        while not self.idled and time.monotonic() < deadline:
+            time.sleep(0.01)
+        self.assertTrue(self.idled, "the worker never reached idle_add")
+
+    def dispatch(self) -> None:
+        for callback, args in self.idled:
+            callback(*args)
+
+    def test_the_lookup_does_not_block_the_caller(self):
+        calling_thread = threading.get_ident()
+
+        self.service.reset_to_default()
+        self.wait_for_worker()
+
+        self.assertNotEqual(calling_thread, self.threads[0], "nmcli blocked the loop")
+        self.assertEqual([], self.idled, "the switch was queued before the lookup")
+
+    def test_the_switch_runs_after_the_main_loop_dispatch(self):
+        self.service.reset_to_default()
+        self.wait_for_worker()
+        self.release_worker()
+        self.assertEqual([], self.run_commands.call_args_list)
+
+        self.dispatch()
+
+        commands = self.run_commands.call_args.args[0]
+        self.assertEqual("9a8b7c6d-5e4f-4a3b-8c2d-1e0f9a8b7c6d", commands[0][4])
+
+    def test_no_active_connection_runs_nothing(self):
+        self.output = ""
+
+        self.service.reset_to_default()
+        self.wait_for_worker()
+        self.release_worker()
+        self.dispatch()
+
+        self.run_commands.assert_not_called()
+        self.service.emit.assert_not_called()
+
+    def test_nmcli_error_text_is_not_mistaken_for_a_connection(self):
+        self.output = "Error: unknown connection"
+
+        self.service.set_dns("1.1.1.1")
+        self.wait_for_worker()
+        self.release_worker()
+        self.dispatch()
+
+        self.run_commands.assert_not_called()
+
+
 class SetDnsTest(unittest.TestCase):
     """set_dns routes through the runner instead of emitting eagerly."""
-
-    """``set_dns`` must route through the sequence, not emit straight away."""
 
     def setUp(self):
         self.service = make_service()
         patcher = mock.patch.object(
-            DnsSwitcherService, "_get_active_connection", return_value="UUID"
+            DnsSwitcherService,
+            "_with_active_connection",
+            # Deliver a UUID, as the main-loop hop would.
+            side_effect=lambda on_found: on_found("UUID"),
         )
-        patcher.start()
+        self.with_connection = patcher.start()
         self.addCleanup(patcher.stop)
         runner = mock.patch.object(DnsSwitcherService, "_run_commands")
         self.run_commands = runner.start()
@@ -246,6 +345,7 @@ class SetDnsTest(unittest.TestCase):
         self.service.set_dns("1.1.1.1", "1.0.0.1")
 
         commands = self.run_commands.call_args.args[0]
+        self.assertEqual("UUID", commands[0][4])
         self.assertEqual("1.1.1.1 1.0.0.1", commands[0][-1])
 
     def test_nothing_is_emitted_before_the_commands_run(self):
@@ -257,6 +357,7 @@ class SetDnsTest(unittest.TestCase):
         self.service.set_dns("1.1.1.1; rm -rf /")
 
         self.run_commands.assert_not_called()
+        self.with_connection.assert_not_called()
         self.service.emit.assert_not_called()
 
     def test_reset_uses_the_same_sequence(self):

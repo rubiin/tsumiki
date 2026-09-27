@@ -1,9 +1,15 @@
+from functools import partial
+
 from fabric.core.service import Signal
 from fabric.utils import exec_shell_command_async, logger
 
+from utils.decorators import run_worker_with_idle
 from utils.functions import run_command
 
 from .base import PollingController, SingletonService
+
+# A toggle whose daemon is wedged must settle; the poller still reports the truth.
+_WARP_CLI_TIMEOUT = 30.0
 
 
 class CloudflareWarpService(SingletonService):
@@ -65,28 +71,39 @@ class CloudflareWarpService(SingletonService):
 
     # ── Actions ─────────────────────────────────────────────────
 
-    def _run_warp_cli(self, action: str) -> bool:
-        """Run a warp-cli command synchronously. Returns success."""
-        return run_command(["warp-cli", action]) is not None
+    def _warp_cli(self, action: str) -> bool:
+        """Worker: ``warp-cli connect`` blocks on the warp-svc daemon for seconds."""
+        return run_command(["warp-cli", action], timeout=_WARP_CLI_TIMEOUT) is not None
 
-    def connect_warp(self) -> bool:
-        ok = self._run_warp_cli("connect")
-        if ok:
-            self._connected = True
-            self.emit("changed")
-            exec_shell_command_async("warp-cli status", self._on_status_line)
-        return ok
+    def _run_warp_cli(self, action: str, connected: bool) -> None:
+        """Dispatch *action* off-thread and publish the outcome on the main loop."""
+        # Bind the target state so the idle callback only carries the success flag.
+        run_worker_with_idle(
+            self._warp_cli,
+            partial(self._on_warp_cli_finished, connected=connected),
+            action,
+        )
 
-    def disconnect_warp(self) -> bool:
-        ok = self._run_warp_cli("disconnect")
-        if ok:
-            self._connected = False
-            self.emit("changed")
-            exec_shell_command_async("warp-cli status", self._on_status_line)
-        return ok
+    def _on_warp_cli_finished(self, ok: bool, connected: bool) -> None:
+        if not ok:
+            return  # run_command already logged why; the poller keeps state honest.
+        self._connected = connected
+        self.emit("changed")
+        exec_shell_command_async("warp-cli status", self._on_status_line)
 
-    def toggle_warp(self) -> bool:
-        return self.disconnect_warp() if self._connected else self.connect_warp()
+    def connect_warp(self) -> None:
+        """Start ``warp-cli connect``; ``changed`` fires once it has actually run."""
+        self._run_warp_cli("connect", True)
+
+    def disconnect_warp(self) -> None:
+        """Start ``warp-cli disconnect``; ``changed`` fires once it has actually run."""
+        self._run_warp_cli("disconnect", False)
+
+    def toggle_warp(self) -> None:
+        if self._connected:
+            self.disconnect_warp()
+        else:
+            self.connect_warp()
 
     # ── Teardown ────────────────────────────────────────────────
 

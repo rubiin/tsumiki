@@ -4,6 +4,8 @@ from collections.abc import Callable
 from fabric.core.service import Property, Signal
 from fabric.utils import GLib, exec_shell_command, exec_shell_command_async, logger
 
+from utils.decorators import run_worker_with_idle
+
 from .base import PollingController, SingletonService
 
 # Matches valid IPv4, IPv6, or hostname — blocks shell metacharacters.
@@ -121,8 +123,8 @@ class DnsSwitcherService(SingletonService):
 
     # ── Actions ─────────────────────────────────────────────────
 
-    def _get_active_connection(self) -> str:
-        """Return the UUID of the active connection, or empty string."""
+    def _query_active_connection(self) -> str:
+        """Worker: ``nmcli con show`` blocks the caller for ~100ms."""
         output = exec_shell_command("nmcli -t -f UUID con show --active") or ""
         # nmcli returns the error text on a non-zero exit, so only a real UUID counts.
         for line in output.splitlines():
@@ -130,6 +132,17 @@ class DnsSwitcherService(SingletonService):
             if _UUID_RE.match(candidate):
                 return candidate
         return ""
+
+    def _with_active_connection(self, on_found: Callable[[str], None]) -> None:
+        """Resolve the UUID off-thread, then continue *on_found* on the main loop."""
+
+        def apply(uuid: str) -> None:
+            if not uuid:
+                logger.warning("[DNS] No active NetworkManager connection found")
+                return
+            on_found(uuid)
+
+        run_worker_with_idle(self._query_active_connection, apply)
 
     def _run_commands(
         self, commands: list[list[str]], on_finished: Callable[[bool], None]
@@ -179,11 +192,6 @@ class DnsSwitcherService(SingletonService):
 
     def set_dns(self, primary: str, secondary: str = ""):
         """Switch to the given DNS servers via pkexec nmcli."""
-        uuid = self._get_active_connection()
-        if not uuid:
-            logger.warning("[DNS] No active NetworkManager connection found")
-            return
-
         if not _is_valid_dns_value(primary) or (
             secondary and not _is_valid_dns_value(secondary)
         ):
@@ -197,9 +205,12 @@ class DnsSwitcherService(SingletonService):
         if secondary:
             servers = f"{primary} {secondary}"
 
-        self._run_commands(
-            self._switch_commands(uuid, servers, "yes"),
-            self._on_switch_finished,
+        # Validated up front so a bad value never pays for the nmcli lookup.
+        self._with_active_connection(
+            lambda uuid: self._run_commands(
+                self._switch_commands(uuid, servers, "yes"),
+                self._on_switch_finished,
+            )
         )
 
     @staticmethod
@@ -228,15 +239,12 @@ class DnsSwitcherService(SingletonService):
 
     def reset_to_default(self):
         """Reset DNS to ISP default (auto)."""
-        uuid = self._get_active_connection()
-        if not uuid:
-            logger.warning("[DNS] No active NetworkManager connection found")
-            return
-
         # An empty value clears the list, which is what the shell form '' meant.
-        self._run_commands(
-            self._switch_commands(uuid, "", "no"),
-            self._on_switch_finished,
+        self._with_active_connection(
+            lambda uuid: self._run_commands(
+                self._switch_commands(uuid, "", "no"),
+                self._on_switch_finished,
+            )
         )
 
     # ── Teardown ────────────────────────────────────────────────

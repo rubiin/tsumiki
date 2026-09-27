@@ -28,7 +28,8 @@ def main():
     def module_enabled(name: str) -> bool:
         return bool((module_options.get(name) or {}).get("enabled", False))
 
-    helpers.ensure_directory(APP_DATA_DIRECTORY)
+    # sync=True: the inline sass compile below writes into this directory.
+    helpers.ensure_directory(APP_DATA_DIRECTORY, sync=True)
 
     language = general_options.get("language", "en")
     i18n = get_i18n()
