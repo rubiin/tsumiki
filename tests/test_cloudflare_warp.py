@@ -67,7 +67,7 @@ class WarpToggleTest(unittest.TestCase):
 
         # A per-test pool, so a stuck worker can be joined instead of leaking.
         self.pool = ThreadPoolExecutor(max_workers=1)
-        self._patch(decorators, "thread", self.pool.submit)
+        self._patch(decorators, "blocking_thread", self.pool.submit)
         self._patch(warp_module, "run_command", self._fake_run_command)
         self._patch(warp_module, "exec_shell_command_async", mock.Mock())
         self._patch(decorators, "GLib", mock.Mock(idle_add=self._capture_idle))

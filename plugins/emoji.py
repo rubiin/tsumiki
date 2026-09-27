@@ -17,16 +17,36 @@ def load_emojis() -> dict:
     return data if isinstance(data, dict) else {}
 
 
+def _haystack(info: dict) -> str:
+    """Lowercased name + slug + group, matched against the query."""
+    fields = [info.get("name", ""), info.get("slug", ""), info.get("group", "")]
+    return " ".join(fields).casefold()
+
+
+def _build_index() -> tuple[tuple[str, dict, str], ...]:
+    """Return (emoji_char, info, haystack) rows.
+
+    Built once instead of per query: the launcher re-queries on every keystroke.
+    """
+    return tuple(
+        (emoji_char, info, _haystack(info))
+        for emoji_char, info in load_emojis().items()
+    )
+
+
+@lru_cache(maxsize=1)
+def search_index() -> tuple[tuple[str, dict, str], ...]:
+    """The cached search index; see _build_index()."""
+    return _build_index()
+
+
 def search_emojis(query: str, limit: int = _MAX_RESULTS) -> list[tuple[str, dict]]:
     """Return up to *limit* (emoji_char, info) rows matching *query*."""
     query = query.casefold().strip()
     if not query:
         return []
     matches = []
-    for emoji_char, info in load_emojis().items():
-        haystack = (
-            f"{info.get('name', '')} {info.get('slug', '')} {info.get('group', '')}"
-        ).casefold()
+    for emoji_char, info, haystack in search_index():
         if query in haystack:
             matches.append((emoji_char, info))
         if len(matches) >= limit:

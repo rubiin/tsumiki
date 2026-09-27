@@ -275,6 +275,11 @@ class CalcPluginTest(unittest.TestCase):
 class TranslatePluginTest(unittest.TestCase):
     """Test the bundled /translate plugin (no network in tests)."""
 
+    def setUp(self):
+        from plugins.translate import parse_target_language
+
+        self.parse_target_language = parse_target_language
+
     def test_usage_hint_without_args(self):
         from plugins.translate import TranslatePlugin
 
@@ -286,6 +291,26 @@ class TranslatePluginTest(unittest.TestCase):
         from plugins.translate import TranslatePlugin
 
         self.assertGreaterEqual(TranslatePlugin.debounce_ms or 0, 400)
+
+    def test_parse_target_language_splits_directive(self):
+        self.assertEqual(self.parse_target_language("hello in nepali"), ("hello", "ne"))
+        self.assertEqual(
+            self.parse_target_language("bonjour to german"), ("bonjour", "de")
+        )
+        self.assertEqual(self.parse_target_language("in nepali"), ("", "ne"))
+        unknown = "hi in klingon"
+        self.assertEqual(self.parse_target_language(unknown), (unknown, None))
+
+    def test_parse_target_language_handles_non_length_preserving_casefold(self):
+        # casefold() grows ß -> ss and ﬃ -> ffi, so slicing the original by a
+        # casefolded length lands mid-word and leaves the directive in the text.
+        self.assertEqual(
+            self.parse_target_language("Straße in german"), ("Straße", "de")
+        )
+        self.assertEqual(self.parse_target_language("aﬃne in french"), ("aﬃne", "fr"))
+        self.assertEqual(
+            self.parse_target_language("deﬁnition in french"), ("deﬁnition", "fr")
+        )
 
 
 class CurrencyPluginTest(unittest.TestCase):
@@ -431,10 +456,13 @@ class CurrencyPluginTest(unittest.TestCase):
             "rates": {"EUR": 1.0, "USD": 1.1},
         }
         self._write_cache(stale)
-        with unittest.mock.patch.object(
-            self.currency_module,
-            "_download_rates",
-            side_effect=RuntimeError("down"),
+        with (
+            unittest.mock.patch.object(
+                self.currency_module,
+                "_download_rates",
+                side_effect=RuntimeError("down"),
+            ),
+            unittest.mock.patch.object(self.currency_module.time, "sleep"),
         ):
             payload = self.load_rates()
         self.assertEqual(payload, stale)
@@ -446,6 +474,7 @@ class CurrencyPluginTest(unittest.TestCase):
                 "_download_rates",
                 side_effect=RuntimeError("down"),
             ),
+            unittest.mock.patch.object(self.currency_module.time, "sleep"),
             self.assertRaises(RuntimeError),
         ):
             self.load_rates()
@@ -459,6 +488,7 @@ class CurrencyPluginTest(unittest.TestCase):
                 "_download_rates",
                 side_effect=RuntimeError("down"),
             ),
+            unittest.mock.patch.object(self.currency_module.time, "sleep"),
             self.assertRaises(RuntimeError),
         ):
             self.load_rates()
@@ -484,13 +514,97 @@ class CurrencyPluginTest(unittest.TestCase):
         self.assertEqual(results[0].data, "86.565097 EUR")
 
     def test_handle_network_failure_without_cache(self):
-        with unittest.mock.patch.object(
-            self.currency_module,
-            "_download_rates",
-            side_effect=RuntimeError("down"),
+        with (
+            unittest.mock.patch.object(
+                self.currency_module,
+                "_download_rates",
+                side_effect=RuntimeError("down"),
+            ),
+            unittest.mock.patch.object(self.currency_module.time, "sleep"),
         ):
             results = self.plugin.handle("100 usd eur")
         self.assertIn("failed", results[0].title.casefold())
+
+    def test_load_rates_backs_off_without_holding_the_lock(self):
+        stale = {
+            "date": "2026-08-11",
+            "fetched": "2026-08-11",
+            "rates": {"EUR": 1.0, "USD": 1.1},
+        }
+        self._write_cache(stale)
+        locked_during_sleep: list[bool] = []
+
+        def record_sleep(_seconds):
+            locked_during_sleep.append(self.currency_module._RATES_LOCK.locked())
+
+        with (
+            unittest.mock.patch.object(
+                self.currency_module,
+                "_download_rates",
+                side_effect=RuntimeError("down"),
+            ),
+            unittest.mock.patch.object(
+                self.currency_module.time, "sleep", side_effect=record_sleep
+            ),
+        ):
+            payload = self.load_rates()
+        self.assertEqual(payload, stale)
+        # A shared-pool worker sleeping on the lock starves battery/network/etc.
+        self.assertTrue(locked_during_sleep)
+        self.assertFalse(any(locked_during_sleep))
+
+    def test_other_thread_reads_rates_while_retry_backs_off(self):
+        import threading
+
+        stale = {
+            "date": "2026-08-11",
+            "fetched": "2026-08-11",
+            "rates": {"EUR": 1.0, "USD": 1.1},
+        }
+        self._write_cache(stale)
+        backing_off = threading.Event()
+        release = threading.Event()
+        calls = {"n": 0}
+        results: dict = {}
+
+        def fake_download(cancelled=None):
+            calls["n"] += 1
+            if calls["n"] == 1:
+                raise RuntimeError("down")  # sends the first caller into backoff
+            return "2026-08-12", {"EUR": 1.0, "USD": 1.2}
+
+        def blocking_sleep(_seconds):
+            backing_off.set()
+            release.wait(5)
+
+        def read_rates(key):
+            results[key] = self.load_rates()
+
+        with (
+            unittest.mock.patch.object(
+                self.currency_module, "_download_rates", side_effect=fake_download
+            ),
+            unittest.mock.patch.object(
+                self.currency_module.time, "sleep", side_effect=blocking_sleep
+            ),
+        ):
+            retrying = threading.Thread(target=read_rates, args=("retrying",))
+            retrying.start()
+            self.assertTrue(backing_off.wait(5))
+
+            reader = threading.Thread(target=read_rates, args=("reader",))
+            reader.start()
+            reader.join(timeout=5)
+            # The second query finished while the first was still sleeping.
+            self.assertFalse(reader.is_alive())
+            self.assertEqual(results["reader"]["rates"]["USD"], 1.2)
+
+            release.set()
+            retrying.join(timeout=5)
+        self.assertFalse(retrying.is_alive())
+        # The retrying caller re-reads the cache and finds the fresh snapshot.
+        self.assertEqual(results["retrying"]["rates"]["USD"], 1.2)
+        self.assertEqual(calls["n"], 2)
 
     def test_download_retries_transient_failure(self):
         class FakeResponse:
@@ -597,7 +711,7 @@ class CurrencyPluginTest(unittest.TestCase):
 
 
 class RunSubprocessTest(unittest.TestCase):
-    """Test the Gio-based run_subprocess helper (no stdlib subprocess)."""
+    """The run_subprocess helper plugins call."""
 
     def test_module_level_run_subprocess_captures_output(self):
         from utils.plugin_manager import SubprocessResult, run_subprocess
@@ -619,6 +733,72 @@ class RunSubprocessTest(unittest.TestCase):
 
         with self.assertRaises(SubprocessTimeoutError):
             run_subprocess(["sleep", "30"], timeout=0.2)
+
+    def test_the_command_leads_its_own_process_group(self):
+        """Without a new session a timeout kill would land on the bar itself."""
+        import sys
+
+        from utils.plugin_manager import run_subprocess
+
+        result = run_subprocess(
+            [sys.executable, "-c", "import os; print(os.getpgid(0) == os.getpid())"]
+        )
+        self.assertEqual("True", result.stdout.strip())
+
+    def test_a_grandchild_holding_the_pipe_cannot_wedge_the_call(self):
+        """The reported hang: the shell exits, its background child keeps the pipe."""
+        import threading
+
+        from utils.plugin_manager import SubprocessTimeoutError, run_subprocess
+
+        outcome: dict = {}
+        done = threading.Event()
+
+        def _run():
+            try:
+                outcome["result"] = run_subprocess(
+                    ["sh", "-c", "sleep 20 & exit 0"], timeout=0.5
+                )
+            except SubprocessTimeoutError as exc:
+                outcome["timeout"] = exc
+            except Exception as exc:  # pragma: no cover - failure detail
+                outcome["error"] = exc
+            finally:
+                done.set()
+
+        worker = threading.Thread(target=_run, daemon=True)
+        worker.start()
+        # A regression leaves the worker blocked reading the pipe for 20 s.
+        self.assertTrue(done.wait(10), "run_subprocess never returned")
+        worker.join(timeout=1)
+        self.assertNotIn("error", outcome, outcome.get("error"))
+        self.assertIn("timeout", outcome, "a command this slow must time out")
+
+    def test_text_false_returns_bytes(self):
+        from utils.plugin_manager import run_subprocess
+
+        result = run_subprocess(["echo", "hi"], text=False)
+        self.assertIsInstance(result.stdout, bytes)
+        self.assertEqual(b"hi\n", result.stdout)
+
+    def test_capture_output_is_accepted_for_subprocess_compatibility(self):
+        from utils.plugin_manager import run_subprocess
+
+        result = run_subprocess(["echo", "hi"], capture_output=True, text=True)
+        self.assertEqual("hi\n", result.stdout)
+
+    def test_an_unknown_keyword_is_rejected(self):
+        """A silently ignored ``cwd=`` looks like it worked and did not."""
+        from utils.plugin_manager import run_subprocess
+
+        with self.assertRaises(TypeError):
+            run_subprocess(["echo", "hi"], cwd="/tmp")
+
+    def test_the_plugin_method_also_rejects_an_unknown_keyword(self):
+        from utils.plugin_manager import LauncherPlugin
+
+        with self.assertRaises(TypeError):
+            LauncherPlugin().run_subprocess(["echo", "hi"], cwd="/tmp")
 
     def test_plugin_run_subprocess_is_cancellable(self):
         import threading
@@ -1108,6 +1288,18 @@ class EmojiPluginTest(unittest.TestCase):
         self.assertTrue(matches)
         self.assertEqual(matches[0][1]["name"], "grinning face")
 
+    def test_search_index_is_built_once_across_queries(self):
+        from plugins import emoji as emoji_module
+
+        emoji_module.search_index.cache_clear()
+        with unittest.mock.patch.object(
+            emoji_module, "_build_index", wraps=emoji_module._build_index
+        ) as builder:
+            self.search_emojis("heart")
+            self.search_emojis("rocket")
+        # The lowercase haystack for all ~2000 rows is built once, not per keystroke.
+        self.assertEqual(builder.call_count, 1)
+
     def test_handle_returns_glyph_rows(self):
         results = self.plugin.handle("rocket")
         self.assertTrue(results)
@@ -1141,6 +1333,18 @@ class UnicodePluginTest(unittest.TestCase):
         matches = self.search_unicode("copyright")
         self.assertTrue(matches)
         self.assertEqual(matches[0][1]["name"], "COPYRIGHT SIGN")
+
+    def test_search_index_is_built_once_across_queries(self):
+        from plugins import unicode as unicode_module
+
+        unicode_module.search_index.cache_clear()
+        with unittest.mock.patch.object(
+            unicode_module, "_build_index", wraps=unicode_module._build_index
+        ) as builder:
+            self.search_unicode("copyright")
+            self.search_unicode("arrow")
+        # The lowercase haystack for all rows is built once, not per keystroke.
+        self.assertEqual(builder.call_count, 1)
 
     def test_search_finds_by_codepoint(self):
         matches = self.search_unicode("U+00A9")

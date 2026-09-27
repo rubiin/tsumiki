@@ -133,19 +133,19 @@ If `execute()` raises, the error is logged and the launcher stays open.
 
 ## Helpers
 
-| Helper                                                  | Purpose                                                                                                                                                           |
-| ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `copy_to_clipboard(text)`                               | Copy text to the system clipboard (`wl-copy`, falling back to `xclip`).                                                                                           |
-| `run_subprocess(args, timeout=..., input=..., env=...)` | Gio-based replacement for `subprocess.run` — returns a `SubprocessResult` (`args`, `returncode`, `stdout`, `stderr`). Raises `SubprocessTimeoutError` on timeout. |
-| `self.run_subprocess(...)`                              | Same, but registers the process with the plugin so `cancel()` force-exits it mid-flight.                                                                          |
-| `get_http_client()`                                     | Shared `httpx` client from `utils.functions` — use it for network requests (connection pooling, timeouts).                                                        |
-| `find_executable(name)`                                 | Locate a binary on `PATH`, returning `None` if missing.                                                                                                           |
+| Helper                                                            | Purpose                                                                                                                                                                                                                                                                                          |
+| ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `copy_to_clipboard(text)`                                         | Copy text to the system clipboard (`wl-copy`, falling back to `xclip`).                                                                                                                                                                                                                          |
+| `run_subprocess(args, timeout=..., input=..., env=..., text=...)` | Replacement for `subprocess.run` — returns a `SubprocessResult` (`args`, `returncode`, `stdout`, `stderr`). Raises `SubprocessTimeoutError` on timeout, killing the whole process group. `text=False` returns bytes; `capture_output` is accepted for compatibility. No other keyword arguments. |
+| `self.run_subprocess(...)`                                        | Same, but registers the process with the plugin so `cancel()` kills it mid-flight.                                                                                                                                                                                                               |
+| `get_http_client()`                                               | Shared `httpx` client from `utils.functions` — use it for network requests (connection pooling, timeouts).                                                                                                                                                                                       |
+| `find_executable(name)`                                           | Locate a binary on `PATH`, returning `None` if missing.                                                                                                                                                                                                                                          |
 
 ## Cancellation and debouncing
 
 The launcher re-dispatches `handle()` as the user types. When a newer query
 supersedes an in-flight one, the launcher calls the plugin's `cancel()` — this
-sets a flag and force-exits any process started via `self.run_subprocess()`.
+sets a flag and kills any process started via `self.run_subprocess()`.
 
 For long-running work:
 

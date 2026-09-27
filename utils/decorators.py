@@ -10,7 +10,13 @@ from fabric.utils import GLib, logger
 
 # Auto-tune max_workers based on CPU count, fallback to 4
 _cpu_count = os.cpu_count() or 4
+#: Workers for work that can block for seconds (HTTP, subprocess, D-Bus). Fixed
+#: rather than CPU-sized: that work is I/O-bound with one call in flight per
+#: service, and the low cap is what keeps a few hung helpers from eating every
+#: thread the quick pool has.
+_BLOCKING_WORKERS = 4
 thread_pool: ThreadPoolExecutor | None = None
+blocking_pool: ThreadPoolExecutor | None = None
 _thread_pool_atexit_registered = False
 _thread_pool_lock = threading.Lock()
 
@@ -44,7 +50,7 @@ def safe_operation(func):
 
 
 def _get_thread_pool() -> ThreadPoolExecutor:
-    """Lazy-initialize thread pool on first use (thread-safe)."""
+    """Lazy-initialize the quick-task thread pool on first use (thread-safe)."""
     global thread_pool, _thread_pool_atexit_registered
     with _thread_pool_lock:
         if thread_pool is None:
@@ -55,31 +61,53 @@ def _get_thread_pool() -> ThreadPoolExecutor:
     return thread_pool
 
 
+def _get_blocking_pool() -> ThreadPoolExecutor:
+    """Lazy-initialize the blocking-work pool, kept separate from the quick one."""
+    global blocking_pool, _thread_pool_atexit_registered
+    with _thread_pool_lock:
+        if blocking_pool is None:
+            blocking_pool = ThreadPoolExecutor(max_workers=_BLOCKING_WORKERS)
+            if not _thread_pool_atexit_registered:
+                atexit.register(_shutdown_thread_pool)
+                _thread_pool_atexit_registered = True
+    return blocking_pool
+
+
 def _shutdown_thread_pool() -> None:
-    """Shut the thread pool down at interpreter exit without blocking joins.
+    """Shut both pools down at interpreter exit without blocking joins.
 
     Ctrl+C can run atexit handlers while another KeyboardInterrupt bubbles.
     """
 
-    global thread_pool
+    global thread_pool, blocking_pool
     with _thread_pool_lock:
-        if thread_pool is None:
-            return
-
-        try:
-            thread_pool.shutdown(wait=False, cancel_futures=True)
-        except KeyboardInterrupt:
-            # Suppress noisy traceback during interpreter teardown.
-            pass
-        except Exception:
-            pass
-        finally:
-            thread_pool = None
+        for pool in (thread_pool, blocking_pool):
+            if pool is None:
+                continue
+            try:
+                pool.shutdown(wait=False, cancel_futures=True)
+            except KeyboardInterrupt:
+                # Suppress noisy traceback during interpreter teardown.
+                pass
+            except Exception:
+                pass
+        thread_pool = None
+        blocking_pool = None
 
 
 def thread(target: Callable[..., T], *args: Any, **kwargs: Any) -> Any:
-    """Submit *target* to the thread pool, returning a Future."""
+    """Submit a short task to the quick pool, returning a Future.
+
+    Reserve this for work that finishes in milliseconds (file writes, state
+    saves); anything that waits on a network or a subprocess belongs on
+    :func:`blocking_thread`.
+    """
     return _get_thread_pool().submit(target, *args, **kwargs)
+
+
+def blocking_thread(target: Callable[..., T], *args: Any, **kwargs: Any) -> Any:
+    """Submit a task that may block for a long time, returning a Future."""
+    return _get_blocking_pool().submit(target, *args, **kwargs)
 
 
 def run_worker_with_idle(
@@ -98,14 +126,18 @@ def run_worker_with_idle(
         GLib.idle_add(callback, result)
         return result
 
-    return thread(_run)
+    return blocking_thread(_run)
 
 
 def run_in_thread(func: Callable[..., T]) -> Callable[..., Any]:
-    """Decorator running the wrapped function in the thread pool."""
+    """Decorator running the wrapped function on the blocking pool.
+
+    The decorated methods fetch over the network or shell out, so they must not
+    occupy the quick pool's workers.
+    """
 
     def wrapper(*args: Any, **kwargs: Any) -> Any:
-        return thread(func, *args, **kwargs)
+        return blocking_thread(func, *args, **kwargs)
 
     return wrapper
 
@@ -128,35 +160,6 @@ def cancel_timeout(owner, attribute: str) -> None:
     if existing:
         GLib.source_remove(existing)
         setattr(owner, attribute, None)
-
-
-def debounce(ms: int):
-    """Debounce a method to prevent UI flicker during fast typing."""
-
-    def decorator(func: Callable):
-        timer_id_attr = f"_debounce_timer_{func.__name__}"
-
-        def wrapper(self, *args, **kwargs):
-            existing_timer = getattr(self, timer_id_attr, None)
-            if existing_timer:
-                GLib.source_remove(existing_timer)
-
-            def timeout_cb():
-                setattr(self, timer_id_attr, 0)
-                func(self, *args, **kwargs)
-                return False
-
-            setattr(self, timer_id_attr, GLib.timeout_add(ms, timeout_cb))
-
-        def cleanup(self):
-            existing_timer = getattr(self, timer_id_attr, None)
-            if existing_timer:
-                GLib.source_remove(existing_timer)
-
-        wrapper._debounce_cleanup = cleanup
-        return wrapper
-
-    return decorator
 
 
 def rate_limit(ms: int, skipped_return: Any = None):

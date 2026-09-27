@@ -6,12 +6,14 @@ import functools
 import importlib.util
 import inspect
 import os
+import signal
+import subprocess
 import sys
 import threading
 from contextlib import suppress
 from typing import Any, ClassVar
 
-from fabric.utils import Gio, GLib, logger
+from fabric.utils import logger
 
 from utils.functions import copy_to_clipboard as copy_to_clipboard_fn
 from utils.functions import get_http_client
@@ -19,6 +21,10 @@ from utils.ttl_cache import CACHE_MISS, TTLCache
 
 # Prefix for imported plugin modules so a plugin file cannot shadow a stdlib one.
 _PLUGIN_MODULE_PREFIX = "tsumiki_plugin_"
+
+#: Grace period for reaping a killed process; the group is already gone, this
+#: only bounds how long we wait for the direct child to be collected.
+_REAP_TIMEOUT_SECONDS = 1.0
 
 
 class PluginResult:
@@ -51,8 +57,8 @@ class SubprocessResult:
         self,
         args: list[str],
         returncode: int,
-        stdout: str = "",
-        stderr: str = "",
+        stdout: str | bytes = "",
+        stderr: str | bytes = "",
     ):
         self.args = args
         self.returncode = returncode
@@ -70,58 +76,72 @@ class SubprocessTimeoutError(TimeoutError):
         super().__init__(f"command timed out after {timeout}s: {args!r}")
 
 
+def _kill_process_group(proc: subprocess.Popen) -> None:
+    """SIGKILL the group the child leads, grandchild processes included.
+
+    Killing only the direct child leaves anything that inherited the output pipe
+    holding it open, and the caller's read would block forever.
+    """
+    with suppress(OSError):
+        os.killpg(proc.pid, signal.SIGKILL)
+
+
 def _spawn_subprocess(
     args: list[str],
     *,
     input: str | None = None,
     env: dict | None = None,
-) -> Gio.Subprocess:
-    """Spawn *args* via :class:`Gio.Subprocess`, surfacing failures as OSError."""
-    flags = Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_PIPE
-    if input is not None:
-        flags |= Gio.SubprocessFlags.STDIN_PIPE
+) -> subprocess.Popen:
+    """Spawn *args* as the leader of a new session, surfacing failures as OSError.
+
+    The new session is what makes :func:`_kill_process_group` safe: without it
+    the child shares this process's group and a timeout would kill the bar.
+    """
     try:
-        if env:
-            launcher = Gio.SubprocessLauncher.new(flags)
-            for key, value in env.items():
-                launcher.setenv(str(key), str(value), True)
-            return launcher.spawnv(list(args))
-        return Gio.Subprocess.new(list(args), flags)
-    except GLib.Error as exc:
+        return subprocess.Popen(
+            list(args),
+            stdin=subprocess.PIPE if input is not None else subprocess.DEVNULL,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            env=env,
+            start_new_session=True,
+        )
+    except OSError as exc:
         raise OSError(f"failed to spawn {' '.join(args)}: {exc}") from exc
 
 
 def _communicate_subprocess(
-    proc: Gio.Subprocess,
+    proc: subprocess.Popen,
     args: list[str],
     *,
     input: str | None = None,
     timeout: float | None = None,
+    text: bool = True,
 ) -> SubprocessResult:
     """Wait for *proc* to finish; raises SubprocessTimeoutError on timeout."""
-    timed_out = threading.Event()
-
-    def _on_timeout():
-        timed_out.set()
-        with suppress(Exception):
-            proc.force_exit()
-
-    timer = threading.Timer(timeout, _on_timeout) if timeout is not None else None
-    if timer is not None:
-        timer.start()
+    stdout: bytes = b""
+    stderr: bytes = b""
+    timed_out = False
     try:
-        _, stdout, stderr = proc.communicate_utf8(input, None)
-    except GLib.Error as exc:
-        raise OSError(f"failed to run {' '.join(args)}: {exc}") from exc
-    finally:
-        if timer is not None:
-            timer.cancel()
-    if timed_out.is_set():
+        stdout, stderr = proc.communicate(input, timeout=timeout)
+    except subprocess.TimeoutExpired:
+        timed_out = True
+        _kill_process_group(proc)
+        # The group is gone, so this only collects the child; bound it anyway.
+        with suppress(subprocess.TimeoutExpired, OSError, ValueError):
+            stdout, stderr = proc.communicate(timeout=_REAP_TIMEOUT_SECONDS)
+        with suppress(subprocess.TimeoutExpired, OSError):
+            proc.wait(timeout=_REAP_TIMEOUT_SECONDS)
+    if timed_out:
         raise SubprocessTimeoutError(args, timeout)
-    returncode = (
-        -proc.get_term_sig() if proc.get_if_signaled() else proc.get_exit_status()
-    )
-    return SubprocessResult(args, returncode, stdout or "", stderr or "")
+    if text:
+        return SubprocessResult(
+            args,
+            proc.returncode,
+            stdout.decode("utf-8", "replace"),
+            stderr.decode("utf-8", "replace"),
+        )
+    return SubprocessResult(args, proc.returncode, stdout, stderr)
 
 
 def run_subprocess(
@@ -131,12 +151,17 @@ def run_subprocess(
     text: bool = True,
     input: str | None = None,
     env: dict | None = None,
-    **kwargs: Any,
+    capture_output: bool = True,
 ) -> SubprocessResult:
-    """Gio-based ``subprocess.run`` for plugins; returns a :class:`SubprocessResult`."""
-    kwargs.pop("capture_output", None)
+    """``subprocess.run`` for plugins; returns a :class:`SubprocessResult`.
+
+    ``capture_output`` and ``text`` are accepted for call compatibility with
+    ``subprocess.run``: output is always captured, and ``text=False`` returns it
+    as bytes. Any other keyword is a TypeError rather than a silent no-op.
+    """
+    del capture_output
     proc = _spawn_subprocess(args, input=input, env=env)
-    return _communicate_subprocess(proc, args, input=input, timeout=timeout)
+    return _communicate_subprocess(proc, args, input=input, timeout=timeout, text=text)
 
 
 #: Maximum cached entries per plugin before the oldest are evicted.
@@ -190,7 +215,7 @@ class LauncherPlugin:
 
     def __init__(self) -> None:
         self._cancel_event = threading.Event()
-        self._subprocess: Gio.Subprocess | None = None
+        self._subprocess: subprocess.Popen | None = None
         #: Session cache of ``handle()`` results, keyed by args.
         self._cache = TTLCache(maxsize=_CACHE_MAX_ENTRIES)
 
@@ -205,11 +230,10 @@ class LauncherPlugin:
     # -- cancellation -------------------------------------------------
 
     def cancel(self) -> None:
-        """Cancel in-flight ``handle()`` work (flag + force-exit subprocess)."""
+        """Cancel in-flight ``handle()`` work (flag + kill the tracked process)."""
         self._cancel_event.set()
         if self._subprocess is not None:
-            with suppress(Exception):
-                self._subprocess.force_exit()
+            _kill_process_group(self._subprocess)
 
     def _reset_cancel(self) -> None:
         """Clear the cancellation flag before dispatching a fresh query."""
@@ -228,14 +252,16 @@ class LauncherPlugin:
         text: bool = True,
         input: str | None = None,
         env: dict | None = None,
-        **kwargs: Any,
+        capture_output: bool = True,
     ) -> SubprocessResult:
         """Like :func:`run_subprocess` but tracked so :meth:`cancel` can kill it."""
-        kwargs.pop("capture_output", None)
+        del capture_output
         proc = _spawn_subprocess(args, input=input, env=env)
         self._subprocess = proc
         try:
-            return _communicate_subprocess(proc, args, input=input, timeout=timeout)
+            return _communicate_subprocess(
+                proc, args, input=input, timeout=timeout, text=text
+            )
         finally:
             if self._subprocess is proc:
                 self._subprocess = None

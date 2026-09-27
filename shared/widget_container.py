@@ -1,7 +1,7 @@
 import contextlib
 from typing import Callable, Iterable
 
-from fabric.utils import GLib, bulk_connect
+from fabric.utils import GLib, Gtk, bulk_connect
 from fabric.widgets.box import Box
 from fabric.widgets.button import Button
 from fabric.widgets.eventbox import EventBox
@@ -11,6 +11,15 @@ from fabric.widgets.wayland import WaylandWindow as Window
 from fabric.widgets.widget import Widget
 
 from utils.functions import safe_disconnect
+
+
+def _source_is_alive(source_id: int) -> bool:
+    """True while *source_id* is still armed on the default main context.
+
+    ``GLib.source_remove`` on a spent id is a GLib-CRITICAL on stderr, so
+    callers use this to avoid removing a source that ended by itself.
+    """
+    return GLib.MainContext.default().find_source_by_id(source_id) is not None
 
 
 class TeardownMixin:
@@ -29,9 +38,31 @@ class TeardownMixin:
         self.connect("destroy", self._teardown)
 
     def _register_repeater(self, repeater_id: int) -> int:
+        """Track *repeater_id* until it is removed or ends on its own.
+
+        Sources that already fired are pruned here: a widget that re-arms on
+        every keystroke would otherwise accumulate a dead id per keystroke.
+        """
         self._ensure_teardown_hooked()
+        self._repeaters = [r for r in self._repeaters if _source_is_alive(r)]
         self._repeaters.append(repeater_id)
         return repeater_id
+
+    def _add_repeater(self, interval_ms: int, callback: Callable[..., bool], *args):
+        """Arm a tracked repeater that untracks itself when it returns ``False``.
+
+        Only a source this mixin created can be dropped on its own, which is why
+        one-shot timers should be armed here rather than by handing in an id.
+        """
+
+        def fire() -> bool:
+            if callback(*args):
+                return True
+            self._unregister_repeater(repeater_id)
+            return False
+
+        repeater_id = GLib.timeout_add(interval_ms, fire)
+        return self._register_repeater(repeater_id)
 
     def _unregister_repeater(self, repeater_id: int) -> None:
         """Remove a repeater id from the tracked list after manual removal."""
@@ -153,8 +184,8 @@ class TeardownMixin:
             GLib.source_remove(store.pop(key))
 
     def _teardown(self, *_):
-        for repeater_id in getattr(self, "_repeaters", []):
-            if repeater_id:
+        for repeater_id in list(getattr(self, "_repeaters", [])):
+            if repeater_id and _source_is_alive(repeater_id):
                 GLib.source_remove(repeater_id)
         for timeout_id in getattr(self, "_timeouts", {}).values():
             if timeout_id:
@@ -174,6 +205,17 @@ class TeardownMixin:
             self.hide()
         else:
             self.show()
+
+
+def tooltips_enabled() -> bool:
+    """Read ``general.tooltips`` — the global kill switch for every tooltip.
+
+    For hosts that are not a :class:`BaseWidget` and cache no copy of the flag.
+    """
+    # Deferred: importing utils.config parses config.toml and validates it.
+    from utils.config import tsumiki_config
+
+    return tsumiki_config.get("general", {}).get("tooltips", True)
 
 
 class BaseWidget(Widget, TeardownMixin):
@@ -296,14 +338,18 @@ class ButtonWidget(Button, BaseWidget):
         self.add(self.container_box)
         self._connect_hover_reveal()
 
-        self.connect(
-            "state-flags-changed",
-            lambda btn, *_: (
-                btn.set_cursor("pointer")
-                if btn.get_state_flags() & 2  # type: ignore
-                else btn.set_cursor("default"),
-            ),
-        )
+        self.connect("state-flags-changed", self._sync_hover_cursor)
+
+    def _sync_hover_cursor(self, *_):
+        """Point at a hand while prelit, and back to the default after.
+
+        Goes through the guarded helper: the bare widget setter rebuilds a
+        Gdk.Cursor per call and raises before the widget has a window.
+        """
+        from utils.widget_utils import set_cursor
+
+        hovered = bool(self.get_state_flags() & Gtk.StateFlags.PRELIGHT)
+        set_cursor(self, "pointer" if hovered else "default")
 
     def add_panel_content(
         self,

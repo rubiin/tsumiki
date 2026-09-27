@@ -105,28 +105,27 @@ class _DownloadCancelledError(RuntimeError):
     """Raised when a superseded query aborts a rates download mid-retry."""
 
 
+def _is_client_error(exc: Exception) -> bool:
+    """A 4xx is the request's own fault — replaying it changes nothing."""
+    status = getattr(getattr(exc, "response", None), "status_code", None)
+    return status is not None and 400 <= status < 500
+
+
 def _download_rates(cancelled=None) -> tuple[str, dict[str, float]]:
-    """Download the latest EUR-based rates; returns (date, {quote: rate})."""
-    for attempt in range(_RETRY_ATTEMPTS):
-        try:
-            response = http_request(cancelled, "GET", _FRANKFURTER_RATES_URL)
-            response.raise_for_status()
-            fx_date, rates = normalize_rows(response.json())
-            # A near-empty table would poison the daily cache; treat as failure.
-            if len(rates) < _MIN_RATES_COUNT:
-                raise ValueError(
-                    f"Frankfurter returned only {len(rates)} currency rate(s)"
-                )
-            return fx_date, rates
-        except PluginCancelledError:
-            raise _DownloadCancelledError()
-        except Exception as exc:
-            status = getattr(getattr(exc, "response", None), "status_code", None)
-            is_client_error = status is not None and 400 <= status < 500
-            if is_client_error or attempt >= _RETRY_ATTEMPTS - 1:
-                raise
-            time.sleep(_RETRY_DELAY_SECONDS)
-    raise RuntimeError("unreachable")  # pragma: no cover - loop returns or raises
+    """Download the latest EUR-based rates; returns (date, {quote: rate}).
+
+    One attempt only; the caller owns the backoff so it can release its lock.
+    """
+    try:
+        response = http_request(cancelled, "GET", _FRANKFURTER_RATES_URL)
+        response.raise_for_status()
+        fx_date, rates = normalize_rows(response.json())
+        # A near-empty table would poison the daily cache; treat as failure.
+        if len(rates) < _MIN_RATES_COUNT:
+            raise ValueError(f"Frankfurter returned only {len(rates)} currency rate(s)")
+        return fx_date, rates
+    except PluginCancelledError:
+        raise _DownloadCancelledError() from None
 
 
 def _read_cache() -> dict | None:
@@ -161,21 +160,30 @@ def _write_cache(payload: dict) -> None:
 
 def load_rates(cancelled=None) -> dict:
     """Return daily rates, downloading at most once a day; falls back to a snapshot."""
-    with _RATES_LOCK:
-        cached = _read_cache()
-        if cached and cached.get("fetched") == _today():
-            return cached
-        try:
-            fx_date, rates = _download_rates(cancelled=cancelled)
-        except _DownloadCancelledError:
-            raise  # superseded — propagate so handle() bails out
-        except Exception:
-            if cached:  # network hiccup — use the last snapshot
+    for attempt in range(_RETRY_ATTEMPTS):
+        with _RATES_LOCK:
+            cached = _read_cache()
+            if cached and cached.get("fetched") == _today():
                 return cached
-            raise
-        payload = {"date": fx_date, "fetched": _today(), "rates": rates}
-        _write_cache(payload)
-        return payload
+            try:
+                fx_date, rates = _download_rates(cancelled=cancelled)
+            except _DownloadCancelledError:
+                raise  # superseded — propagate so handle() bails out
+            except Exception as exc:
+                if attempt < _RETRY_ATTEMPTS - 1 and not _is_client_error(exc):
+                    pass  # fall through to the unlocked backoff below
+                elif cached:  # network hiccup — use the last snapshot
+                    return cached
+                else:
+                    raise
+            else:
+                payload = {"date": fx_date, "fetched": _today(), "rates": rates}
+                _write_cache(payload)
+                return payload
+        # Backoff runs unlocked: the shared worker pool must stay free, and other
+        # queries may refresh the cache (or serve the stale snapshot) meanwhile.
+        time.sleep(_RETRY_DELAY_SECONDS)
+    raise RuntimeError("unreachable")  # pragma: no cover - loop returns or raises
 
 
 def fetch_rate(from_code: str, to_code: str, cancelled=None) -> tuple[float, str]:

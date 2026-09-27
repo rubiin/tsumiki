@@ -2,6 +2,7 @@ import contextlib
 import importlib
 import os
 import threading
+import weakref
 from datetime import datetime
 from numbers import Number
 from time import sleep
@@ -144,33 +145,39 @@ class _LazyFabricator:
 util_fabricator = _LazyFabricator()
 
 
-def on_enter_notify_event(cursor, widget: Widget):
-    widget.get_window().set_cursor(cursor)
+# One cursor per (display, name): hover events are hot and building a
+# Gdk.Cursor per call is pure waste.
+_cursors: weakref.WeakKeyDictionary = weakref.WeakKeyDictionary()
 
 
-def on_leave_notify_event(cursor, widget: Widget):
-    widget.get_window().set_cursor(cursor)
+def named_cursor(display, cursor_name: str):
+    """A cached ``Gdk.Cursor`` for *cursor_name*, or ``None`` without a display."""
+    if display is None:
+        return None
+    cache = _cursors.setdefault(display, {})
+    if cursor_name not in cache:
+        cache[cursor_name] = Gdk.Cursor.new_from_name(display, cursor_name)
+    return cache[cursor_name]
 
 
 def set_cursor(widget, cursor_name: str) -> None:
-    """Point *widget* at a named cursor; a no-op before it is realised."""
+    """Point *widget* at a named cursor; a no-op before it is realised.
+
+    The window check comes first so an unrealised widget costs no cursor.
+    """
     window = widget.get_window()
-    if window is None:
-        return
-    window.set_cursor(Gdk.Cursor.new_from_name(widget.get_display(), cursor_name))
+    if window is not None:
+        window.set_cursor(named_cursor(widget.get_display(), cursor_name))
 
 
 def setup_cursor_hover(
     widget, cursor_name: Literal["pointer", "crosshair", "grab"] = "pointer"
 ):
-    display = Gdk.Display.get_default()
-    cursor = Gdk.Cursor.new_from_name(display, cursor_name)
-
     bulk_connect(
         widget,
         {
-            "enter-notify-event": lambda *_: on_enter_notify_event(cursor, widget),
-            "leave-notify-event": lambda *_: on_leave_notify_event(cursor, widget),
+            "enter-notify-event": lambda *_: set_cursor(widget, cursor_name),
+            "leave-notify-event": lambda *_: set_cursor(widget, cursor_name),
         },
     )
 

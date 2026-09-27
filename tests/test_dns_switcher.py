@@ -388,7 +388,7 @@ class ActiveConnectionTest(unittest.TestCase):
         self.gate = threading.Event()  # held so nmcli is still running
 
         self.pool = ThreadPoolExecutor(max_workers=1)
-        self._patch(decorators, "thread", self.pool.submit)
+        self._patch(decorators, "blocking_thread", self.pool.submit)
         self._patch(dns_module, "exec_shell_command", self._fake_exec)
         self._patch(decorators, "GLib", mock.Mock(idle_add=self._capture_idle))
         runner = mock.patch.object(DnsSwitcherService, "_run_commands")

@@ -11,12 +11,14 @@ signal — no display required.
 """
 
 import unittest
+from time import monotonic, sleep
 from typing import ClassVar
 from unittest import mock
 
 import gi
 
 gi.require_version("Gtk", "3.0")
+from fabric.utils import GLib  # noqa: E402
 from gi.repository import GObject  # noqa: E402
 
 from modules import notification as notification_module  # noqa: E402
@@ -148,30 +150,61 @@ class GLibRecorder:
     """Patch GLib inside TeardownMixin and record every source it touches."""
 
     def __init__(self, test: unittest.TestCase):
-        self.armed: list[tuple[int, object]] = []
+        self.armed: list[tuple[int, int, object]] = []
         self.removed: list[int] = []
+        self.live: set[int] = set()
         self.next_id = 700
         for target, side_effect in (
             ("timeout_add", self._add),
-            ("source_remove", self.removed.append),
+            ("source_remove", self._remove),
         ):
             patcher = mock.patch.object(
                 container.GLib, target, side_effect=side_effect
             )
             test.addCleanup(patcher.stop)
             patcher.start()
+        patcher = mock.patch.object(
+            container, "_source_is_alive", side_effect=self._is_live
+        )
+        test.addCleanup(patcher.stop)
+        patcher.start()
 
     def _add(self, interval_ms, callback):
         self.next_id += 1
-        self.armed.append((interval_ms, callback))
+        self.armed.append((interval_ms, self.next_id, callback))
+        self.live.add(self.next_id)
         return self.next_id
+
+    def _remove(self, source_id):
+        self.removed.append(source_id)
+        self.live.discard(source_id)
+
+    def _is_live(self, source_id) -> bool:
+        return source_id in self.live
 
     @property
     def intervals(self) -> list[int]:
-        return [interval for interval, _ in self.armed]
+        return [interval for interval, _, _ in self.armed]
 
     def fire(self, index: int = -1) -> bool:
-        return self.armed[index][1]()
+        _, source_id, callback = self.armed[index]
+        keep_going = callback()
+        if not keep_going:
+            self.live.discard(source_id)
+        return keep_going
+
+
+def pump_until(predicate, timeout: float = 5.0) -> bool:
+    """Dispatch the real default main loop until *predicate* holds."""
+    context = GLib.MainContext.default()
+    deadline = monotonic() + timeout
+    while not predicate():
+        if monotonic() >= deadline:
+            return False
+        context.iteration(False)
+        sleep(0.001)
+    return True
+
 
 
 class CsideDestroyHarnessTest(unittest.TestCase):
@@ -455,6 +488,80 @@ class OneShotRepeaterTest(unittest.TestCase):
         self.widget.emit("destroy")
 
         self.assertEqual([self.glib.next_id], self.glib.removed)
+
+
+class TrackedRepeaterListTest(unittest.TestCase):
+    """A dead id in the tracked list is a GLib-CRITICAL on every teardown."""
+
+    def setUp(self):
+        self.glib = GLibRecorder(self)
+        self.widget = Destroyable()
+
+    def test_a_one_shot_repeater_leaves_the_list_when_it_fires(self):
+        self.widget._add_repeater(1000, lambda: False)
+        self.assertEqual(1, len(self.widget._repeaters))
+
+        self.assertFalse(self.glib.fire())
+
+        self.assertEqual([], self.widget._repeaters)
+
+    def test_a_still_running_repeater_stays_tracked(self):
+        self.widget._add_repeater(1000, lambda: True)
+
+        self.assertTrue(self.glib.fire())
+
+        self.assertEqual([self.glib.next_id], self.widget._repeaters)
+
+    def test_a_fired_repeater_is_not_removed_again_at_teardown(self):
+        self.widget._add_repeater(1000, lambda: False)
+        self.glib.fire()
+        self.glib.removed.clear()
+
+        ParentDestroyedFromC(self.widget).destroy()
+
+        self.assertEqual([], self.glib.removed, "removed an already-fired source")
+
+    def test_teardown_still_removes_a_running_repeater(self):
+        self.widget._add_repeater(1000, lambda: True)
+
+        ParentDestroyedFromC(self.widget).destroy()
+
+        self.assertEqual([self.glib.next_id], self.glib.removed)
+
+    def test_a_dead_id_is_pruned_when_the_next_repeater_is_registered(self):
+        """Re-arming on every keystroke must not accumulate one id per keystroke."""
+        self.widget._register_repeater(999)  # an id that is already gone
+        self.widget._register_repeater(1234)
+
+        self.assertEqual([1234], self.widget._repeaters)
+
+
+class RealGlibRepeaterTest(unittest.TestCase):
+    """The same guarantees against real sources rather than recorded ones."""
+
+    def setUp(self):
+        self.widget = Destroyable()
+        self.addCleanup(self.widget.emit, "destroy")
+
+    def test_a_one_shot_repeater_frees_its_id(self):
+        self.widget._add_repeater(1, lambda: False)
+        self.assertEqual(1, len(self.widget._repeaters))
+
+        self.assertTrue(pump_until(lambda: not self.widget._repeaters))
+
+        self.assertEqual([], self.widget._repeaters)
+
+    def test_a_fired_foreign_id_is_dropped_on_the_next_registration(self):
+        fired_id = GLib.timeout_add(1, lambda: False)
+        self.widget._register_repeater(fired_id)
+        self.assertTrue(
+            pump_until(lambda: not container._source_is_alive(fired_id)),
+            "the one-shot never fired",
+        )
+
+        self.widget._register_repeater(999_999)
+
+        self.assertEqual([999_999], self.widget._repeaters)
 
 
 if __name__ == "__main__":

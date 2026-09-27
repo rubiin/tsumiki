@@ -1,4 +1,4 @@
-from fabric.utils import invoke_repeater, logger
+from fabric.utils import logger
 from fabric.widgets.label import Label
 
 import utils.functions as helpers
@@ -72,7 +72,7 @@ class CommandSwitcher(ButtonWidget):
         # The 1 Hz tick re-applies unchanged state otherwise, and each apply
         # invalidates style or re-renders a label.
         self._changes = ChangeCache()
-        self._register_repeater(invoke_repeater(1000, self._update_ui))
+        self._add_repeater(1000, self._update_ui)
         # The repeater's first call can land before mapping; refresh again on map.
         self.connect("map", self._update_ui)
         self._update_ui()

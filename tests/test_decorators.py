@@ -26,6 +26,47 @@ def captured_idle_adds():
         yield delivered
 
 
+class PoolIsolationTest(unittest.TestCase):
+    """A hung helper must not be able to starve a queued file write."""
+
+    def test_blocking_work_has_its_own_pool(self):
+        self.assertIsNot(decorators._get_blocking_pool(), decorators._get_thread_pool())
+
+    def test_hung_blocking_work_does_not_stall_the_quick_pool(self):
+        release = threading.Event()
+        self.addCleanup(release.set)
+        # Two more than the quick pool holds, so a merged pool would be full.
+        hung = [
+            decorators.blocking_thread(release.wait, 10)
+            for _ in range(decorators._cpu_count + 2)
+        ]
+        self.addCleanup(lambda: [future.cancel() for future in hung])
+
+        self.assertEqual("written", decorators.thread(lambda: "written").result(5))
+
+    def test_run_in_thread_submits_to_the_blocking_pool(self):
+        with mock.patch.object(decorators, "blocking_thread") as blocking:
+
+            @decorators.run_in_thread
+            def work():
+                return 1
+
+            self.assertIs(blocking.return_value, work())
+
+    def test_run_worker_with_idle_submits_to_the_blocking_pool(self):
+        with mock.patch.object(decorators, "blocking_thread") as blocking:
+            run_worker_with_idle(lambda: 1, lambda *_: None)
+
+        blocking.assert_called_once()
+
+
+class DebounceRemovalTest(unittest.TestCase):
+    """The keyed helpers replaced it; it never wrapped or cleaned up."""
+
+    def test_there_is_no_standalone_debounce_decorator(self):
+        self.assertFalse(hasattr(decorators, "debounce"))
+
+
 class RunWorkerWithIdleTest(unittest.TestCase):
     """The result reaches the callback on the main loop, not the worker."""
 
