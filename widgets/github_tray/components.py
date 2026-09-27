@@ -13,6 +13,9 @@ from fabric.widgets.label import Label
 
 from utils.widget_utils import nerd_font_icon
 
+# fa-brands GitHub mark, used for the bar icon and the avatar fallback.
+BRAND_GLYPH = ""
+
 
 def make_label(
     text: str = "",

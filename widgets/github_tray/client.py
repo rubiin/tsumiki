@@ -1,13 +1,26 @@
-"""GitHub API access for the GitHub tray widget."""
+"""GitHub API access for the GitHub tray widget.
+
+REST goes through the shared pooled ``httpx`` client once a token has been
+minted with ``gh auth token``; ``gh api`` remains the fallback when no token is
+available, and carries every GraphQL call.
+"""
 
 from __future__ import annotations
 
 import json
 import re
+import time
 
-from utils.functions import CommandError, run_command
+from fabric.utils import logger
+
+from utils.functions import CommandError, get_http_client, run_command
+
+from . import state as tray_state
 
 _NOTIFICATION_RE = re.compile(r"/repos/([^/]+)/([^/]+)/(issues|pulls)/(\d+)$")
+_ALIAS_CLEAN = re.compile(r"[^_0-9A-Za-z]")
+# gh prints the raw token; anything else (empty, JSON, a usage error) is no token.
+_TOKEN_RE = re.compile(r"^(gh[pousr]_[A-Za-z0-9]+|[0-9a-f]{40})$")
 
 
 class GitHubClientError(Exception):
@@ -18,17 +31,45 @@ class GitHubClientError(Exception):
         self.needs_auth = needs_auth
 
 
+class _TokenExpiredError(Exception):
+    """Raised internally when the pooled request is rejected as unauthorized."""
+
+
+def _alias_for(notification: dict, taken: set[str]) -> str:
+    """A GraphQL alias per notification: unique, and valid for any id shape.
+
+    Thread ids are base64-ish (``MDM6...OQ==``), so ``"n" + digits`` collapsed
+    digitless ids onto one alias and duplicated fields voided the whole query.
+    """
+    base = "n" + _ALIAS_CLEAN.sub("_", str(notification.get("id") or ""))
+    if base == "n":
+        base = "n0"
+    alias, suffix = base, 2
+    while alias in taken:
+        alias, suffix = f"{base}_{suffix}", suffix + 1
+    taken.add(alias)
+    return alias
+
+
 class GitHubClient:
-    """Thin, synchronous wrapper around the gh CLI."""
+    """Thin, synchronous wrapper around the GitHub API."""
 
     def __init__(self, hostname: str = "", timeout: float = 30):
         self.hostname = str(hostname or "").strip().rstrip("/")
         self.timeout = timeout
+        self._token: str | None = None
+        self._token_tried = False
 
     # -- plumbing --
     @property
     def web_base(self) -> str:
         return f"https://{self.hostname}" if self.hostname else "https://github.com"
+
+    @property
+    def api_base(self) -> str:
+        if not self.hostname:
+            return "https://api.github.com"
+        return f"https://{self.hostname}/api/v3"
 
     def _command(self, args: list[str]) -> list[str]:
         cmd = ["gh", *args]
@@ -94,7 +135,77 @@ class GitHubClient:
             )
         )
 
+    # -- transport: pooled HTTP with a bearer token, gh as the fallback --
+    def _auth_token(self) -> str:
+        """Mint a token once; the pooled client is only usable with one."""
+        if self._token_tried:
+            return self._token or ""
+        self._token_tried = True
+        output = run_command(self._command(["auth", "token"]), timeout=self.timeout)
+        candidate = str(output or "").strip()
+        if not _TOKEN_RE.match(candidate):
+            logger.info(
+                "[github_tray] no usable token from `gh auth token`; using gh api"
+            )
+            return ""
+        self._token = candidate
+        return self._token
+
+    def _forget_token(self) -> None:
+        # A rejected token may simply have expired; mint a fresh one next time.
+        self._token = None
+        self._token_tried = False
+
+    def _rest_http(self, token: str, method: str, path: str) -> dict | list:
+        url = f"{self.api_base}/{str(path).lstrip('/')}"
+        headers = {
+            "Authorization": f"bearer {token}",
+            "Accept": "application/vnd.github+json",
+            "X-GitHub-Api-Version": "2022-11-28",
+        }
+        try:
+            response = get_http_client().request(
+                method, url, headers=headers, timeout=self.timeout
+            )
+        except Exception as error:
+            raise GitHubClientError(f"Request to {path} failed: {error}") from None
+        if response.status_code == 401:
+            raise _TokenExpiredError
+        if response.status_code >= 400:
+            message = self._error_message(response.text)
+            raise GitHubClientError(
+                message, needs_auth=self._looks_like_auth(message)
+            ) from None
+        if not response.content:
+            return {}
+        try:
+            return response.json()
+        except ValueError:
+            raise GitHubClientError("GitHub returned invalid JSON") from None
+
+    def _rest_gh(self, method: str, path: str) -> dict | list:
+        args = ["api", path] if method == "GET" else ["api", "--method", method, path]
+        return self._run(args)
+
+    def _rest(self, method: str, path: str) -> dict | list:
+        """REST through the pooled client, falling back to ``gh api``.
+
+        ``gh`` is only needed to obtain the token in the first place, which is
+        one process for the life of the client rather than one per request.
+        """
+        for _attempt in (0, 1):
+            token = self._auth_token()
+            if not token:
+                break
+            try:
+                return self._rest_http(token, method, path)
+            except _TokenExpiredError:
+                logger.info("[github_tray] token rejected; minting a fresh one")
+                self._forget_token()
+        return self._rest_gh(method, path)
+
     def _graphql(self, query: str) -> dict:
+        # GraphQL stays on `gh`: it already holds the session and the host config.
         data = self._run(["api", "graphql", "-f", f"query={query}"])
         if isinstance(data, dict) and data.get("errors") and not data.get("data"):
             error = data["errors"][0]
@@ -102,7 +213,7 @@ class GitHubClient:
             raise GitHubClientError(str(message))
         return data.get("data", {}) if isinstance(data, dict) else {}
 
-    # -- menu payload (profile + repositories + followers + notifications) --
+    # -- menu payload (profile + repositories + followers + workflow runs) --
     MENU_QUERY = """
 query {
   viewer {
@@ -137,12 +248,78 @@ query {
     }
     followersList: followers(first: 100) { nodes { databaseId login url } }
   }
+%s
 }
 """
 
-    def fetch_menu(self, username_fallback: str = "") -> dict:
-        """Profile, up-to-100 repos and followers in one GraphQL call."""
-        viewer = self._graphql(self.MENU_QUERY).get("viewer") or {}
+    WORKFLOW_FIELDS = """
+        databaseId
+        name
+        displayTitle
+        status
+        conclusion
+        headBranch
+        url
+        createdAt
+        updatedAt
+"""
+
+    def _workflow_aliases(self, full_names, limit: int) -> list[tuple[str, str, str]]:
+        """``(alias, full_name, field)`` root fields to fold into the menu query.
+
+        One alias per mapped repo turns the N-call REST fan-out into zero extra
+        processes; a repo the token cannot see simply comes back null.
+        """
+        per_page = max(1, int(limit))
+        aliases: list[tuple[str, str, str]] = []
+        for index, full_name in enumerate(full_names):
+            owner, _, name = str(full_name).partition("/")
+            if not owner or not name:
+                continue
+            alias = f"wf{index}"
+            aliases.append(
+                (
+                    alias,
+                    str(full_name),
+                    f"{alias}:repository(owner: {json.dumps(owner)}, "
+                    f"name: {json.dumps(name)})"
+                    f"{{ workflowRuns(first: {per_page},"
+                    f" orderBy: {{field: CREATED_AT, direction: DESC}})"
+                    f"{{ nodes {{{self.WORKFLOW_FIELDS}}} }} }}",
+                )
+            )
+        return aliases
+
+    @staticmethod
+    def _shape_run(node: dict, full_name: str) -> dict:
+        """REST-compatible keys so one renderer serves both transports."""
+        return {
+            "id": node.get("databaseId"),
+            "name": node.get("name"),
+            "display_title": node.get("displayTitle"),
+            "status": node.get("status"),
+            "conclusion": node.get("conclusion"),
+            "head_branch": node.get("headBranch"),
+            "html_url": node.get("url"),
+            "created_at": node.get("createdAt"),
+            "updated_at": node.get("updatedAt"),
+            # GraphQL exposes no run_started_at; the created time is the start.
+            "run_started_at": node.get("createdAt"),
+            "repository_full_name": full_name,
+        }
+
+    def fetch_menu(
+        self,
+        username_fallback: str = "",
+        workflow_repos=(),
+        workflow_limit: int = 10,
+    ) -> dict:
+        """Profile, up-to-100 repos, followers and mapped workflow runs in one
+        GraphQL call."""
+        aliases = self._workflow_aliases(workflow_repos, workflow_limit)
+        query = self.MENU_QUERY % "\n".join(entry[2] for entry in aliases)
+        data = self._graphql(query)
+        viewer = data.get("viewer") or {}
         repos = []
         for node in (viewer.get("repositories") or {}).get("nodes", []):
             issues = (node.get("issues") or {}).get("totalCount", 0)
@@ -178,6 +355,14 @@ query {
             }
             for follower in (viewer.get("followersList") or {}).get("nodes", [])
         ]
+        workflows = {}
+        for alias, full_name, _field in aliases:
+            node = data.get(alias) or {}
+            runs = (node.get("workflowRuns") or {}).get("nodes") or []
+            if runs:
+                workflows[full_name] = [
+                    self._shape_run(run, full_name) for run in runs
+                ]
         return {
             "user": {
                 "login": viewer.get("login") or username_fallback,
@@ -189,51 +374,101 @@ query {
             },
             "repos": repos,
             "followers": followers,
+            "workflows": workflows,
             "web": self.web_base,
         }
 
     # -- notifications --
     def fetch_notifications(self) -> list[dict]:
         """Unread notifications via the REST endpoint (gh session)."""
-        data = self._run(["api", "notifications?per_page=100"])
+        data = self._rest("GET", "notifications?per_page=100")
         return data if isinstance(data, list) else []
 
-    def enrich_notification_states(self, notifications: list[dict]) -> list[dict]:
-        """Attach ``_stateInfo`` {state, isDraft} via one aliased GraphQL query."""
-        aliases: list[str] = []
-        lookup: dict[str, dict] = {}
+    def enrich_notification_states(
+        self,
+        notifications: list[dict],
+        cached: dict | None = None,
+        max_age: float = 0.0,
+        now: float | None = None,
+    ) -> list[dict]:
+        """Attach ``_stateInfo`` {state, isDraft}, re-querying only what is stale.
+
+        ``cached`` maps ``owner/repo#number`` to a state entry and is updated
+        in place, pruned to the notifications seen so it cannot grow forever.
+        """
+        store = cached if isinstance(cached, dict) else {}
+        if now is None:
+            now = time.time()
+
+        keep: dict = {}
+        taken: set[str] = set()
+        stale: list[tuple] = []
         for notification in notifications:
             subject = notification.get("subject") or {}
             match = _NOTIFICATION_RE.search(str(subject.get("url") or ""))
             if not match or subject.get("type") not in ("Issue", "PullRequest"):
                 continue
             owner, repo, kind, number = match.groups()
-            alias = "n" + "".join(c for c in str(notification["id"]) if c.isdigit())
-            if not alias:
+            key = tray_state.state_info_key(owner, repo, number)
+            entry = store.get(key)
+            if entry is not None:
+                # Retained even when stale, so one failed query is not a full wipe.
+                keep[key] = entry
+            if tray_state.state_info_is_fresh(
+                entry, max_age, now, notification.get("updated_at")
+            ):
+                notification["_stateInfo"] = tray_state.state_info_payload(entry)
                 continue
-            lookup[alias] = notification
-            field = "pullRequest" if kind == "pulls" else "issue"
-            extras = " isDraft" if field == "pullRequest" else ""
-            aliases.append(
-                f"{alias}:repository(owner: {json.dumps(owner)}, "
-                f"name: {json.dumps(repo)})"
-                f"{{ {field}(number: {number}) {{ state{extras} }} }}"
+            stale.append(
+                (
+                    _alias_for(notification, taken),
+                    notification,
+                    key,
+                    owner,
+                    repo,
+                    kind,
+                    number,
+                )
             )
-        if not aliases:
-            return notifications
-        try:
-            data = self._graphql("{\n" + "\n".join(aliases) + "\n}")
-        except GitHubClientError:
-            return notifications
-        for alias, notification in lookup.items():
-            repo_node = data.get(alias) or {}
-            item = repo_node.get("pullRequest") or repo_node.get("issue")
-            if item:
-                notification["_stateInfo"] = {
-                    "state": item.get("state"),
-                    "isDraft": item.get("isDraft", False),
-                }
+
+        if stale:
+            fields = [self._state_field(entry) for entry in stale]
+            try:
+                data = self._graphql("{\n" + "\n".join(fields) + "\n}")
+            except GitHubClientError as error:
+                # Returning bare notifications silently left every pill blank.
+                logger.warning(
+                    "[github_tray] notification state query failed: %s", error
+                )
+            else:
+                for alias, notification, key, *_rest in stale:
+                    node = data.get(alias) or {}
+                    item = node.get("pullRequest") or node.get("issue")
+                    if not item:
+                        continue
+                    entry = {
+                        "at": now,
+                        "state": item.get("state"),
+                        "isDraft": bool(item.get("isDraft", False)),
+                    }
+                    keep[key] = entry
+                    notification["_stateInfo"] = tray_state.state_info_payload(entry)
+
+        store.clear()
+        store.update(keep)
         return notifications
+
+    @staticmethod
+    def _state_field(entry: tuple) -> str:
+        """One aliased root field fetching the state of a single issue or PR."""
+        alias, _notification, _key, owner, repo, kind, number = entry
+        field = "pullRequest" if kind == "pulls" else "issue"
+        extras = " isDraft" if field == "pullRequest" else ""
+        return (
+            f"{alias}:repository(owner: {json.dumps(owner)}, "
+            f"name: {json.dumps(repo)})"
+            f"{{ {field}(number: {number}) {{ state{extras} }} }}"
+        )
 
     # -- detail payloads: %-placeholders, f-strings would choke on the braces --
     REPO_ITEMS_QUERY = """
@@ -309,7 +544,7 @@ query {
         }
 
     def fetch_workflow_runs(self, full_name: str, limit: int = 10) -> list[dict]:
-        data = self._run(["api", f"repos/{full_name}/actions/runs?per_page={limit}"])
+        data = self._rest("GET", f"repos/{full_name}/actions/runs?per_page={limit}")
         runs = data.get("workflow_runs", []) if isinstance(data, dict) else []
         for run in runs:
             run["repository_full_name"] = full_name
@@ -317,22 +552,17 @@ query {
 
     def fetch_avatar_url(self) -> str:
         """Avatar of the authenticated user (REST), '' when unavailable."""
-        data = self._run(["api", "user"])
+        data = self._rest("GET", "user")
         if isinstance(data, dict):
             return str(data.get("avatar_url") or "")
         return ""
 
     # -- actions --
     def mark_read(self, thread_id: str) -> None:
-        self._run(["api", "--method", "PATCH", f"notifications/threads/{thread_id}"])
+        self._rest("PATCH", f"notifications/threads/{thread_id}")
 
     def rerun_failed_jobs(self, full_name: str, run_id: str) -> None:
         # GitHub accepts an empty POST body for this endpoint.
-        self._run(
-            [
-                "api",
-                "--method",
-                "POST",
-                f"repos/{full_name}/actions/runs/{run_id}/rerun-failed-jobs",
-            ]
+        self._rest(
+            "POST", f"repos/{full_name}/actions/runs/{run_id}/rerun-failed-jobs"
         )

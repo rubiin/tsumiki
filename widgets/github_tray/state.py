@@ -401,6 +401,54 @@ def save_menu_cache(path: str, payload: dict, now: float | None = None) -> Futur
     return save_state_file(path, {"cached_at": now, "payload": payload})
 
 
+def refresh_button_spec(loading: bool) -> tuple[str, str]:
+    """Glyph plus extra style class for the refresh action while a fetch runs.
+
+    A spinner and the dimmed ``busy`` class are the only in-flight cue, so a
+    coalesced click reads as "working" instead of "button is broken".
+    """
+    if loading:
+        return glyph("spinner"), "busy"
+    return glyph("refresh"), ""
+
+
+def state_info_key(owner: str, repo: str, number: str) -> str:
+    """Cache key for a notification's subject; the id is not stable across repos."""
+    return f"{owner}/{repo}#{number}"
+
+
+def state_info_payload(entry: dict) -> dict:
+    """The ``_stateInfo`` shape the renderers read, from a cache entry."""
+    return {
+        "state": entry.get("state"),
+        "isDraft": bool(entry.get("isDraft", False)),
+    }
+
+
+def state_info_is_fresh(
+    entry, max_age: float, now: float, updated_at: str | None = None
+) -> bool:
+    """Whether a cached ``_stateInfo`` may be reused instead of re-queried.
+
+    Entries expire with the repo refresh, and a newer thread ``updated_at``
+    invalidates one outright: new activity means the state may have moved.
+    """
+    if not isinstance(entry, dict):
+        return False
+    cached_at = entry.get("at")
+    if not isinstance(cached_at, (int, float)):
+        return False
+    if now - float(cached_at) > max_age:
+        return False
+    touched = _parse_dt(updated_at)
+    return touched is None or touched.timestamp() <= float(cached_at)
+
+
+def load_state_info(path: str) -> dict:
+    entries = read_json_file(path)
+    return entries if isinstance(entries, dict) else {}
+
+
 def read_menu_cache(
     path: str, ttl: int, now: float | None = None
 ) -> tuple[dict, float] | None:
