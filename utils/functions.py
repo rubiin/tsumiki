@@ -14,14 +14,11 @@ from collections import Counter
 from collections.abc import Sequence
 from datetime import datetime
 from functools import lru_cache
-from io import BytesIO
-from typing import Any, Callable, Iterable, List, Literal, Optional, TypeVar
+from typing import Any, Callable, Literal, Optional
 
 import gi
 from fabric.hyprland import HyprlandReply
 from fabric.utils import (
-    Gdk,
-    GdkPixbuf,
     Gio,
     GLib,
     Gtk,
@@ -43,7 +40,6 @@ from .constants import (
     RGBA_RE,
     TEMP_PATHS,
     URGENCY_LEVELS,
-    WHITE,
 )
 from .decorators import run_in_thread, thread
 from .exceptions import ExecutableNotFoundError
@@ -100,99 +96,13 @@ def cleanup_temp_resources():
 
 atexit.register(cleanup_temp_resources)
 
-T = TypeVar("T")
-U = TypeVar("U")
-
-
-def batch_process(
-    items: Iterable[T], batch_size: int, func: Callable[[List[T]], List[U]]
-) -> List[U]:
-    """Process items in batches for efficiency."""
-    result = []
-    batch = []
-    for item in items:
-        batch.append(item)
-        if len(batch) == batch_size:
-            result.extend(func(batch))
-            batch = []
-    if batch:
-        result.extend(func(batch))
-    return result
-
-
-def get_window_manager_backend() -> Literal["hyprland", "sway", "i3"]:
-    """Detect the current compositor/window-manager backend from session env vars."""
-
-    desktop_markers = " ".join(
-        filter(
-            None,
-            [
-                os.environ.get("XDG_CURRENT_DESKTOP", ""),
-                os.environ.get("XDG_SESSION_DESKTOP", ""),
-                os.environ.get("DESKTOP_SESSION", ""),
-            ],
-        )
-    ).lower()
-
-    if os.environ.get("SWAYSOCK") or "sway" in desktop_markers:
-        return "sway"
-    if os.environ.get("I3SOCK") or "i3" in desktop_markers:
-        return "i3"
-    if os.environ.get("HYPRLAND_INSTANCE_SIGNATURE") or "hyprland" in desktop_markers:
-        return "hyprland"
-
-    # Keep existing behavior as default.
-    return "hyprland"
-
-
-def rgb_to_hex(rgb) -> str:
-    return "#{:02x}{:02x}{:02x}".format(*rgb)
+# dlopen'd once: the library handle is stable for the process lifetime.
+_LIBC = ctypes.CDLL("libc.so.6")
+_PR_SET_NAME = 15
 
 
 def set_process_name(name: str):
-    libc = ctypes.CDLL("libc.so.6")
-    libc.prctl(15, name.encode("utf-8"), 0, 0, 0)  # 15 = PR_SET_NAME
-
-
-def rgb_to_css(rgb) -> str:
-    return f"rgb({rgb[0]}, {rgb[1]}, {rgb[2]})"
-
-
-def mix_colors(color1, color2, ratio=0.5) -> tuple[int, int, int]:
-    r = int(color1[0] * (1 - ratio) + color2[0] * ratio)
-    g = int(color1[1] * (1 - ratio) + color2[1] * ratio)
-    b = int(color1[2] * (1 - ratio) + color2[2] * ratio)
-    return (r, g, b)
-
-
-def tint_color(color, tint_factor=1) -> tuple[int, int, int]:
-    # tint_factor: 0 means original color, 1 means full white
-    return mix_colors(color, WHITE, tint_factor)
-
-
-def delayed_call(
-    delay_ms: int,
-    callback: Callable[..., Any],
-    *args: Any,
-    **kwargs: Any,
-) -> int:
-    """Run *callback* on the GTK main thread after *delay_ms* (setTimeout)."""
-
-    def _wrapper() -> bool:
-        callback(*args, **kwargs)
-        return False  # Don't repeat
-
-    return GLib.timeout_add(delay_ms, _wrapper)
-
-
-def delayed_call_seconds(
-    delay_seconds: float,
-    callback: Callable[..., Any],
-    *args: Any,
-    **kwargs: Any,
-) -> int:
-    """As ``delayed_call`` but in seconds."""
-    return delayed_call(int(delay_seconds * 1000), callback, *args, **kwargs)
+    _LIBC.prctl(_PR_SET_NAME, name.encode("utf-8"), 0, 0, 0)
 
 
 def _pillow_worker(image_path, callback, color_count, resize):
@@ -399,11 +309,6 @@ def write_toml_file(path: str, data: dict, *, sync: bool = False):
         return None
 
 
-def for_monitors(widget: Gtk.Widget) -> list[Gtk.Widget]:
-    n = Gdk.Display.get_default().get_n_monitors() if Gdk.Display.get_default() else 1
-    return [widget(i) for i in range(n)]
-
-
 def ttl_lru_cache(seconds_to_live: int, maxsize: int = 128):
     def wrapper(func):
         @lru_cache(maxsize)
@@ -540,18 +445,37 @@ def convert_bytes(
     return f"{format(bytes / (1024**factor), format_spec)}{to.upper()}"
 
 
+def _parse_time(value: str | None, time_format: str) -> datetime | None:
+    if not value:
+        return None
+    try:
+        return datetime.strptime(value, time_format)
+    except ValueError:
+        return None
+
+
 def check_if_day(
-    sunrise_time,
-    sunset_time,
+    sunrise_time: str | None,
+    sunset_time: str | None,
     current_time: str | None = None,
     time_format: str = "%I:%M %p",
-) -> str:
-    if current_time is None:
-        current_time = datetime.now().strftime(time_format)
+) -> bool:
+    """Whether *current_time* falls between sunrise and sunset.
 
-    current_time_obj = datetime.strptime(current_time, time_format)
-    sunrise_time_obj = datetime.strptime(sunrise_time, time_format)
-    sunset_time_obj = datetime.strptime(sunset_time, time_format)
+    Providers omit the daily sunrise/sunset when they have no forecast for the
+    site, and the empty string must not raise out of the weather signal handler.
+    """
+    sunrise_time_obj = _parse_time(sunrise_time, time_format)
+    sunset_time_obj = _parse_time(sunset_time, time_format)
+    if sunrise_time_obj is None or sunset_time_obj is None:
+        return False
+
+    if current_time is None:
+        current_time_obj = datetime.now()
+    else:
+        current_time_obj = _parse_time(current_time, time_format)
+        if current_time_obj is None:
+            return False
 
     if sunrise_time_obj <= sunset_time_obj:
         return sunrise_time_obj <= current_time_obj < sunset_time_obj
@@ -589,21 +513,6 @@ def unique_list(lst: list[Any]) -> list[Any]:
     return list(set(lst))
 
 
-def get_relative_time(mins: int) -> str:
-    if mins == 0:
-        return "now"
-
-    if mins < 60:
-        return f"{mins} minute{'s' if mins > 1 else ''} ago"
-
-    if mins < 1440:
-        hours = mins // 60
-        return f"{hours} hour{'s' if hours > 1 else ''} ago"
-
-    days = mins // 1440
-    return f"{days} day{'s' if days > 1 else ''} ago"
-
-
 def convert_to_percent(
     current: int | float, max: int | float, is_int=True
 ) -> int | float:
@@ -621,7 +530,7 @@ def is_valid_gjs_color(color: str) -> bool:
     if color_lower in NAMED_COLORS:
         return True
 
-    if HEX_COLOR_RE.match(color):
+    if HEX_COLOR_RE.match(color_lower):
         return True
 
     return bool(RGB_RE.match(color_lower) or RGBA_RE.match(color_lower))
@@ -629,22 +538,6 @@ def is_valid_gjs_color(color: str) -> bool:
 
 def convert_seconds_to_milliseconds(seconds: int) -> int:
     return seconds * 1000
-
-
-def set_scale_adjustment(
-    scale, min_value: float = 0, max_value: float = 100, steps: float = 1
-):
-    adj = scale.get_adjustment()
-    if adj.get_upper() == adj.get_lower():
-        scale.set_adjustment(
-            Gtk.Adjustment(
-                lower=min_value,
-                upper=max_value,
-                step_increment=steps,
-                page_increment=0,
-                page_size=0,
-            )
-        )
 
 
 def spawn_detached(argv: Sequence[str], cwd: str | None = None) -> None:
@@ -694,25 +587,6 @@ def kill_process(process_name: str):
 def lazy_load_class(module_name: str, class_name: str):
     module = importlib.import_module(module_name)
     return getattr(module, class_name)
-
-
-@ttl_lru_cache(3600, 10)
-def make_qrcode(text: str, size: int = 200) -> GdkPixbuf.Pixbuf:
-    import qrcode
-
-    qr = qrcode.make(text)
-    buffer = BytesIO()
-    qr.save(buffer, format="PNG")
-    buffer.seek(0)
-
-    loader = GdkPixbuf.PixbufLoader.new_with_type("png")
-    loader.write(buffer.read())
-    loader.close()
-    pixbuf = loader.get_pixbuf()
-
-    scaled_pixbuf = pixbuf.scale_simple(size, size, GdkPixbuf.InterpType.BILINEAR)
-
-    return scaled_pixbuf
 
 
 @cooldown(1)
@@ -1007,22 +881,6 @@ def is_app_running(app_name: str) -> bool:
     return app_name.encode() in _all_process_names()
 
 
-def take_snapshot():
-    import tracemalloc
-
-    tracemalloc.start()
-    snapshot = tracemalloc.take_snapshot()
-    top_stats = snapshot.statistics("lineno")
-
-    print("stats", tracemalloc.get_traced_memory())
-
-    print("[Top 10 Memory Lines]")
-    for stat in top_stats[:10]:
-        print(stat)
-
-    return True
-
-
 # ── Shared HTTP client ───────────────────────────────────────
 
 _shared_http_client = None
@@ -1135,28 +993,3 @@ def safe_disconnect(signal_source, handler_id: int | None) -> None:
     if handler_id is not None:
         with contextlib.suppress(Exception):
             signal_source.disconnect(handler_id)
-
-
-def load_cover_pixbuf(path: str, width: int, height: int):
-    # new_from_file_at_size avoids a full-resolution decode of large JPEGs.
-    target_size = max(width, height)
-    pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(path, target_size, target_size)
-
-    src_w = pixbuf.get_width()
-    src_h = pixbuf.get_height()
-
-    scale = max(width / src_w, height / src_h)
-
-    scaled_w = int(src_w * scale)
-    scaled_h = int(src_h * scale)
-
-    scaled = pixbuf.scale_simple(
-        scaled_w,
-        scaled_h,
-        GdkPixbuf.InterpType.BILINEAR,
-    )
-
-    x = (scaled_w - width) // 2
-    y = (scaled_h - height) // 2
-
-    return scaled.new_subpixbuf(x, y, width, height)

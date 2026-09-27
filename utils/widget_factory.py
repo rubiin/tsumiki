@@ -22,7 +22,7 @@ class IndexedWidgetHelper:
         if identifier.isdigit():
             index = int(identifier)
             if not isinstance(collection, list) or not (0 <= index < len(collection)):
-                logger.exception(
+                logger.warning(
                     f"{collection_name} index {index} out of range "
                     f"(0-{len(collection) - 1})"
                 )
@@ -36,7 +36,7 @@ class IndexedWidgetHelper:
         except (ValueError, TypeError):
             pass
 
-        logger.exception(f"{collection_name}: no item with id '{identifier}' found")
+        logger.warning(f"{collection_name}: no item with id '{identifier}' found")
         return None
 
     @staticmethod

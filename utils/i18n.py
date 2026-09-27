@@ -21,7 +21,6 @@ class I18n(SingletonMixin):
         self._translations: dict[str, str] = {}
         self._language: str = DEFAULT_LANGUAGE
         self._fallback: dict[str, str] = {}
-        self._initialized = True
 
     def load(self, language: str) -> None:
         """Load translations for the specified language."""

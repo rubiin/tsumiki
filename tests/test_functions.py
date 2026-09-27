@@ -21,14 +21,9 @@ from utils.functions import (
     flatten_dict,
     format_relative_timestamp,
     format_seconds_to_hours_minutes,
-    get_relative_time,
     is_valid_gjs_color,
-    mix_colors,
     parse_markup,
     read_json_file,
-    rgb_to_css,
-    rgb_to_hex,
-    tint_color,
     unique_list,
     write_json_file,
 )
@@ -155,6 +150,22 @@ class DeepMergeAliasingTest(unittest.TestCase):
         self.assertTrue(check_if_day("10:00 PM", "06:00 AM", "11:00 PM"))
         self.assertFalse(check_if_day("10:00 PM", "06:00 AM", "07:00 AM"))
 
+    def test_check_if_day_tolerates_a_missing_sunrise(self):
+        # A provider with no daily forecast sends "", which used to raise out
+        # of the weather service's signal handler.
+        self.assertFalse(check_if_day("", "06:00 PM", "07:00 AM"))
+        self.assertFalse(check_if_day("06:00 AM", "", "07:00 AM"))
+        self.assertFalse(check_if_day("", "", "07:00 AM"))
+        self.assertFalse(check_if_day(None, "06:00 PM", "07:00 AM"))
+
+    def test_check_if_day_tolerates_an_unparsable_time(self):
+        self.assertFalse(check_if_day("nope", "06:00 PM", "07:00 AM"))
+        self.assertFalse(check_if_day("06:00 AM", "06:00 PM", "25:99"))
+
+    def test_check_if_day_returns_a_bool(self):
+        self.assertIs(check_if_day("06:00 AM", "06:00 PM", "07:00 AM"), True)
+        self.assertIs(check_if_day("06:00 AM", "06:00 PM", "05:00 AM"), False)
+
     def test_convert_to_12hr_format(self):
         self.assertEqual(convert_to_12hr_format("0"), "12:00 AM")
         self.assertEqual(convert_to_12hr_format("300"), "3:00 AM")
@@ -165,15 +176,6 @@ class DeepMergeAliasingTest(unittest.TestCase):
         lst = [1, 2, 2, 3, 4, 4, 5]
         result = unique_list(lst)
         self.assertEqual(sorted(result), [1, 2, 3, 4, 5])
-
-    def test_get_relative_time(self):
-        self.assertEqual(get_relative_time(0), "now")
-        self.assertEqual(get_relative_time(1), "1 minute ago")
-        self.assertEqual(get_relative_time(59), "59 minutes ago")
-        self.assertEqual(get_relative_time(60), "1 hour ago")
-        self.assertEqual(get_relative_time(120), "2 hours ago")
-        self.assertEqual(get_relative_time(1440), "1 day ago")
-        self.assertEqual(get_relative_time(2880), "2 days ago")
 
     def test_convert_to_percent(self):
         self.assertEqual(convert_to_percent(50, 100), 50)
@@ -191,6 +193,14 @@ class DeepMergeAliasingTest(unittest.TestCase):
         self.assertTrue(is_valid_gjs_color("rgb(256, 0, 0)"))
         self.assertFalse(is_valid_gjs_color("invalidcolor"))
 
+    def test_is_valid_gjs_color_ignores_surrounding_whitespace(self):
+        # Every form must tolerate stray whitespace, not just the named ones.
+        self.assertTrue(is_valid_gjs_color(" #89b4fa"))
+        self.assertTrue(is_valid_gjs_color("red "))
+        self.assertTrue(is_valid_gjs_color("  #89B4FA"))
+        self.assertTrue(is_valid_gjs_color(" rgb(255, 0, 0) "))
+        self.assertFalse(is_valid_gjs_color(" notacolor "))
+
     def test_uptime(self):
         # uptime() needs psutil/fabric widgets, so import it lazily and skip if absent.
         try:
@@ -205,39 +215,6 @@ class DeepMergeAliasingTest(unittest.TestCase):
         self.assertEqual(convert_seconds_to_milliseconds(1), 1000)
         self.assertEqual(convert_seconds_to_milliseconds(0), 0)
         self.assertEqual(convert_seconds_to_milliseconds(2), 2000)
-
-    def test_rgb_to_hex(self):
-        self.assertEqual(rgb_to_hex((255, 0, 0)), "#ff0000")
-        self.assertEqual(rgb_to_hex((0, 255, 0)), "#00ff00")
-        self.assertEqual(rgb_to_hex((0, 0, 255)), "#0000ff")
-        self.assertEqual(rgb_to_hex((255, 255, 255)), "#ffffff")
-        self.assertEqual(rgb_to_hex((0, 0, 0)), "#000000")
-
-    def test_rgb_to_css(self):
-        self.assertEqual(rgb_to_css((255, 0, 0)), "rgb(255, 0, 0)")
-        self.assertEqual(rgb_to_css((0, 255, 0)), "rgb(0, 255, 0)")
-        self.assertEqual(rgb_to_css((0, 0, 255)), "rgb(0, 0, 255)")
-
-    def test_mix_colors_default_ratio(self):
-        # 50% red and 50% blue should give purple-ish
-        self.assertEqual(mix_colors((255, 0, 0), (0, 0, 255)), (127, 0, 127))
-
-    def test_mix_colors_custom_ratio(self):
-        # 25% red and 75% blue
-        self.assertEqual(mix_colors((255, 0, 0), (0, 0, 255), ratio=0.75), (63, 0, 191))
-
-    def test_tint_color_full_white(self):
-        # Tint factor 1.0 => full white
-        self.assertEqual(tint_color((100, 150, 200), 1.0), (255, 255, 255))
-
-    def test_tint_color_no_tint(self):
-        # Tint factor 0.0 => original color
-        self.assertEqual(tint_color((100, 150, 200), 0.0), (100, 150, 200))
-
-    def test_tint_color_half(self):
-        # Tint factor 0.5 => halfway to white
-        self.assertEqual(tint_color((0, 0, 0), 0.5), (127, 127, 127))
-        self.assertEqual(tint_color((100, 100, 100), 0.5), (177, 177, 177))
 
     def test_validate_config_enums_rejects_invalid_value(self):
         schema_path = Path(__file__).resolve().parents[1] / "tsumiki.schema.json"

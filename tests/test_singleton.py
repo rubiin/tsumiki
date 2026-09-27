@@ -34,15 +34,27 @@ class Failing(SingletonMixin):
         self.ready = True
 
 
+class Slotted(SingletonMixin):
+    """Declares ``__slots__``, which only bites if every base is slotted too."""
+
+    __slots__ = ("value",)
+
+    def __init__(self):
+        if not self._init_once():
+            return
+        self.value = 1
+
+
 class SingletonMixinTest(unittest.TestCase):
     """One instance, one initialisation, and a working reset."""
 
     def setUp(self):
-        for cls in (Example, Failing):
+        for cls in (Example, Failing, Slotted):
             cls.reset_instance()
             cls.attempts = 0
         self.addCleanup(Example.reset_instance)
         self.addCleanup(Failing.reset_instance)
+        self.addCleanup(Slotted.reset_instance)
 
     def test_repeat_construction_returns_one_instance(self):
         self.assertIs(Example(), Example())
@@ -84,6 +96,40 @@ class SingletonMixinTest(unittest.TestCase):
         self.addCleanup(Sub.reset_instance)
 
         self.assertIsNot(Sub(), Example())
+
+    def test_a_subclass_does_not_inherit_the_initialised_flag(self):
+        class Sub(Example):
+            inits = 0
+
+            def __init__(self):
+                if not self._init_once():
+                    return
+                type(self).inits += 1
+
+        Sub.reset_instance()
+        self.addCleanup(Sub.reset_instance)
+        Example()
+
+        Sub()
+
+        self.assertEqual(1, Sub.inits)
+
+    def test_slots_are_honoured(self):
+        instance = Slotted()
+
+        # An unslotted mixin hands every subclass a __dict__, so the __slots__
+        # tuple on Slotted would be inert.
+        self.assertFalse(hasattr(instance, "__dict__"))
+        with self.assertRaises(AttributeError):
+            instance.unexpected = 1
+
+    def test_the_flag_lives_on_the_class_not_the_instance(self):
+        # config.py used to write ``self._initialized`` next to the mixin's own
+        # flag, so a slotted subclass could not be made coherent.
+        instance = Slotted()
+
+        with self.assertRaises(AttributeError):
+            instance._initialized = True
 
 
 if __name__ == "__main__":

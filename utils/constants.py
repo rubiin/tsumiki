@@ -41,7 +41,8 @@ LOG_FILE = f"{LOG_DIR}/{APPLICATION_NAME}.log"
 LOG_FORMAT = "{time:YYYY-MM-DD HH:mm:ss} [<level>{level}</level>] {message}"
 
 
-# Default configuration values
+# Default configuration values. ``widget_groups``/``collapsible_groups`` are
+# user-supplied: the schema puts them at the top level and neither has a default.
 DEFAULT_CONFIG = {
     "$schema": f"./{APPLICATION_NAME}.schema.json",
     "widgets": {
@@ -262,22 +263,6 @@ DEFAULT_CONFIG = {
             "truncation_size": 2,
             "show_icon": True,
         },
-        "widget_groups": [
-            {
-                "widgets": ["updates", "battery"],
-                "spacing": 4,
-                "style_classes": ["bordered"],
-                "hover_reveal": False,
-                "reveal_duration": 500,
-            },
-            {
-                "widgets": ["quick_settings", "cpu"],
-                "spacing": 0,
-                "style_classes": ["compact"],
-                "hover_reveal": False,
-                "reveal_duration": 500,
-            },
-        ],
         "memory": {
             "show_icon": True,
             "icon": "",

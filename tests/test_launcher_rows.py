@@ -212,10 +212,9 @@ class AppScoringTest(unittest.TestCase):
         launcher._all_apps = [firefox, gimp]
         launcher._first_app = None
 
-        matched, should_resize = launcher._filter_applications("fire")
+        matched = launcher._filter_applications("fire")
 
         self.assertEqual([firefox], list(matched))
-        self.assertFalse(should_resize)
 
     def test_a_substring_match_beats_a_fuzzy_one(self):
         app = make_desktop_app()

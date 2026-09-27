@@ -527,7 +527,7 @@ class Launcher(PopupWindow):
             app.generic_name or "",
         )
 
-    def _filter_applications(self, query: str) -> tuple[Iterator[DesktopApp], bool]:
+    def _filter_applications(self, query: str) -> Iterator[DesktopApp]:
         """Filter applications by query, best first; ties keep source order."""
         query_lower = query.casefold()
         if not query_lower:
@@ -539,13 +539,11 @@ class Launcher(PopupWindow):
             scored.sort(key=lambda pair: pair[0], reverse=True)
             filtered_apps = [app for score, app in scored if score > 0]
         self._first_app = filtered_apps[0] if filtered_apps else None
-        should_resize = len(filtered_apps) == len(self._all_apps)
-        return iter(filtered_apps), should_resize
+        return iter(filtered_apps)
 
     def _render_step(
         self,
         apps_iter: Iterator[DesktopApp],
-        should_resize: bool,
     ) -> bool:
         """Lazy renderer callback used by GLib idle loop."""
         return bool(self.add_next_application(apps_iter))
@@ -553,13 +551,11 @@ class Launcher(PopupWindow):
     def _schedule_viewport_render(
         self,
         apps_iter: Iterator[DesktopApp],
-        should_resize: bool,
     ) -> int:
         """Schedule lazy viewport render and return handler id."""
         return idle_add(
             self._render_step,
             apps_iter,
-            should_resize,
             pin=True,
         )
 
@@ -580,10 +576,8 @@ class Launcher(PopupWindow):
                     )
                     handler_id = 0
                 else:
-                    filtered_apps_iter, should_resize = self._filter_applications(query)
                     handler_id = self._schedule_viewport_render(
-                        filtered_apps_iter,
-                        should_resize,
+                        self._filter_applications(query)
                     )
 
             handler_mgr.set_new_handler(handler_id)

@@ -15,7 +15,6 @@ from .widget_settings import BarConfig
 
 # Pre-computed excluded keys for config merging
 _EXCLUDED_SCHEMA_KEYS = frozenset(["$schema"])
-_LIST_CONFIG_KEYS = frozenset(["widget_groups", "collapsible_groups"])
 
 
 class TsumikiConfig(SingletonMixin):
@@ -34,8 +33,6 @@ class TsumikiConfig(SingletonMixin):
 
         self.toml_config_file = f"{self.root_dir}/config.toml"
         self.config = self._load_config()
-
-        self._initialized = True
 
     def _load_config(self) -> BarConfig:
         """Load and merge configuration from JSON or TOML file."""
@@ -62,9 +59,9 @@ class TsumikiConfig(SingletonMixin):
             if key in _EXCLUDED_SCHEMA_KEYS:
                 continue
 
-            if key in _LIST_CONFIG_KEYS:
-                # For lists, use the user's value or default if not present
-                parsed_data[key] = parsed_data.get(key, default_value)
+            if isinstance(default_value, list):
+                # deep_merge is dict-only, so list defaults are taken whole.
+                parsed_data.setdefault(key, default_value)
             else:
                 # For dictionaries, merge with defaults
                 parsed_data[key] = deep_merge(parsed_data.get(key, {}), default_value)

@@ -508,8 +508,6 @@ Weather = TypedDict(
         "label_format": str,
         "hover_reveal": bool,
         "reveal_duration": int,
-        "expanded": bool,
-        "interval": int,
         "provider": Weather_Provider,
     },
 )
@@ -573,7 +571,6 @@ DateTimeMenu = TypedDict(
         "hover_reveal": bool,
         "transition_type": str,
         "transition_duration": int,
-        "hover_reveal": bool,
         "reveal_duration": int,
     },
 )
@@ -700,7 +697,6 @@ Media = TypedDict(
     "Media",
     {
         "ignore": list[str],
-        "truncation_size": int,
         "truncation_size": int,
         "show_album": bool,
         "show_artist": bool,
@@ -904,5 +900,5 @@ class BarConfig(TypedDict):
     layout: Layout
     modules: Modules
     general: General
-    collapsible_group: Collapsible_Group
+    collapsible_groups: list[Collapsible_Group]
     widget_groups: Widget_Groups

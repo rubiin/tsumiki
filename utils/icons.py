@@ -145,12 +145,14 @@ text_nerd_icons = {
 
 def get_path(d, path, sep=".", fallback=""):
     for key in path.split(sep):
+        # An icon name can be deeper than the tree, so a leaf is a miss, not a crash.
+        if not isinstance(d, dict):
+            return fallback
         d = d.get(key, {})
     return d or fallback
 
 
 def get_text_icon(name: str, fallback: str = "") -> str:
-
     return get_path(text_nerd_icons, name, fallback=fallback)
 
 

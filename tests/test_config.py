@@ -8,7 +8,6 @@ from pathlib import Path
 from tests.helpers import make_tsumiki_config
 from utils.config import (
     _EXCLUDED_SCHEMA_KEYS,
-    _LIST_CONFIG_KEYS,
     TsumikiConfig,
 )
 from utils.constants import DEFAULT_CONFIG
@@ -20,9 +19,13 @@ class ExcludedKeysTest(unittest.TestCase):
     def test_schema_key_excluded(self):
         self.assertIn("$schema", _EXCLUDED_SCHEMA_KEYS)
 
-    def test_list_config_keys(self):
-        self.assertIn("widget_groups", _LIST_CONFIG_KEYS)
-        self.assertIn("collapsible_groups", _LIST_CONFIG_KEYS)
+    def test_group_keys_have_no_defaults(self):
+        # The schema puts both at the top level, so a default under ``widgets``
+        # would be unreachable; neither is defaulted.
+        self.assertNotIn("widget_groups", DEFAULT_CONFIG)
+        self.assertNotIn("collapsible_groups", DEFAULT_CONFIG)
+        self.assertNotIn("widget_groups", DEFAULT_CONFIG["widgets"])
+        self.assertNotIn("collapsible_groups", DEFAULT_CONFIG["widgets"])
 
 
 class TsumikiConfigSingletonTest(unittest.TestCase):
@@ -71,7 +74,7 @@ class LoadConfigTest(unittest.TestCase):
         self.assertIn("widgets", cfg.config)
         self.assertIn("layout", cfg.config)
 
-    def test_list_keys_not_deep_merged(self):
+    def test_user_group_list_survives_the_merge(self):
         parsed = {
             "widget_groups": [{"widgets": ["battery"]}],
             "general": {},
@@ -97,17 +100,17 @@ class LoadConfigTest(unittest.TestCase):
 class DefaultsNotAliasedTest(unittest.TestCase):
     """The live config must not share mutable leaves with ``DEFAULT_CONFIG``.
 
-    A widget doing ``config["widgets"]["widget_groups"].sort()`` would rewrite
+    A widget doing ``config["widgets"]["mpris"]["ignore"].sort()`` would rewrite
     the module-level defaults, silently, for every later reader.
     """
 
     def setUp(self):
         TsumikiConfig.reset_instance()
-        self._groups = DEFAULT_CONFIG["widgets"]["widget_groups"]
+        self._ignore = DEFAULT_CONFIG["widgets"]["mpris"]["ignore"]
         self.addCleanup(self._restore_defaults)
 
     def _restore_defaults(self):
-        DEFAULT_CONFIG["widgets"]["widget_groups"] = self._groups
+        DEFAULT_CONFIG["widgets"]["mpris"]["ignore"] = self._ignore
 
     def _config_without_overrides(self):
         return make_tsumiki_config(
@@ -121,18 +124,18 @@ class DefaultsNotAliasedTest(unittest.TestCase):
         ).config
 
     def test_inherited_lists_are_copies(self):
-        groups = self._config_without_overrides()["widgets"]["widget_groups"]
+        ignore = self._config_without_overrides()["widgets"]["mpris"]["ignore"]
 
-        self.assertIsNot(groups, self._groups)
-        self.assertEqual(groups, self._groups)
+        self.assertIsNot(ignore, self._ignore)
+        self.assertEqual(ignore, self._ignore)
 
     def test_mutating_the_live_config_leaves_the_defaults_alone(self):
-        groups = self._config_without_overrides()["widgets"]["widget_groups"]
-        before = len(self._groups)
+        ignore = self._config_without_overrides()["widgets"]["mpris"]["ignore"]
+        before = len(self._ignore)
 
-        groups.append({"id": "injected", "widgets": ["battery"]})
+        ignore.append("injected")
 
-        self.assertEqual(len(self._groups), before)
+        self.assertEqual(len(self._ignore), before)
 
 
 class ConfigImportIsolationTest(unittest.TestCase):
