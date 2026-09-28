@@ -110,7 +110,7 @@ class _NotificationProbe(Destroyable):
     resume_timeout = NotificationWidget.resume_timeout
     _tick = NotificationWidget._tick
 
-    def __init__(self, timeout_ms=3000, *args, **kwargs):
+    def __init__(self, timeout_ms=3000, config=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._time_remaining = 0
         self._last_tick_time = 0
@@ -119,6 +119,7 @@ class _NotificationProbe(Destroyable):
         self.ticks_armed: list = []
         self.ticks_removed: list[int] = []
         self._timeout_ms = timeout_ms
+        self.config = {} if config is None else config
 
     def get_timeout(self):
         return self._timeout_ms
@@ -353,6 +354,49 @@ class SineWaveSliderTeardownTest(unittest.TestCase):
         self.slider._on_motion(self.slider, mock.Mock(x=50))
 
         self.assertEqual(1, self.slider.draws)
+
+
+class NotificationAutoDismissTest(unittest.TestCase):
+    """``auto_dismiss = false`` must leave the card up until the user acts."""
+
+    def setUp(self):
+        self.glib = GLibRecorder(self)
+
+    def test_the_countdown_runs_by_default(self):
+        widget = _NotificationProbe()
+
+        widget.start_timeout()
+
+        self.assertEqual(1, len(self.glib.armed))
+
+    def test_no_timer_is_armed_when_auto_dismiss_is_off(self):
+        widget = _NotificationProbe(config={"auto_dismiss": False})
+
+        widget.start_timeout()
+
+        self.assertEqual([], self.glib.armed)
+        self.assertFalse(
+            widget._has_timeout(notification_module._EXPIRY_TIMER),
+            "a timer was armed anyway, so the card still expires",
+        )
+
+    def test_the_countdown_does_not_start_when_auto_dismiss_is_off(self):
+        widget = _NotificationProbe(config={"auto_dismiss": False})
+
+        widget.start_timeout()
+
+        self.assertEqual(0, widget._time_remaining)
+
+    def test_disabling_it_cancels_an_already_running_countdown(self):
+        """Config can be re-read on a replaced notification; never leave one armed."""
+        widget = _NotificationProbe()
+        widget.start_timeout()
+        widget.config = {"auto_dismiss": False}
+
+        widget.start_timeout()
+
+        self.assertEqual(1, len(self.glib.removed))
+        self.assertFalse(widget._has_timeout(notification_module._EXPIRY_TIMER))
 
 
 class NotificationExpiryTimerTest(unittest.TestCase):

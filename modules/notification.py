@@ -447,7 +447,14 @@ class NotificationWidget(EventBox, TeardownMixin):
         self.stop_timeout()
 
     def start_timeout(self):
+        """Arm the expiry countdown, unless auto-dismiss is turned off.
+
+        Guarded here rather than at the call sites so a notification swapped in
+        while the flag is off cannot inherit a running countdown.
+        """
         self.stop_timeout()
+        if not self.config.get("auto_dismiss", True):
+            return
         self._time_remaining = self.get_timeout()
         self._last_tick_time = GLib.get_monotonic_time()
         self._schedule_repeater(_EXPIRY_TIMER, _EXPIRY_INTERVAL_MS, self._tick)
