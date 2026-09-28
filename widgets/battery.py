@@ -80,16 +80,16 @@ class BatteryWidget(ButtonWidget):
         self._update_ui()
 
     def _update_ui(self, *_args):
-        """Update the battery status by fetching the current battery information
-        and updating the widget accordingly.
-        """
+        """Update the widget from the current battery properties."""
         is_present = self.client.get_property("IsPresent") == 1
 
         if not is_present:
             if self.config.get("hide_when_missing", True):
                 self.set_visible(False)
             icon = get_text_icon("battery.low", "󰂎")
-            self.set_tooltip_text(f"{icon} {_('widget.battery.no_battery')}")
+            self.set_tooltip_if_enabled(
+                f"{icon} {_('widget.battery.no_battery')}", default=True
+            )
             if self.config.get("label", True):
                 self.battery_icon.set_text("N/A")
             return True
@@ -104,7 +104,8 @@ class BatteryWidget(ButtonWidget):
 
         temperature = self.client.get_property("Temperature") or 0
 
-        energy = self.client.get_property("Energy") or 0
+        # Design capacity is the battery-health figure UPower publishes here.
+        capacity = self.client.get_property("Capacity") or 0
 
         time_remaining = (
             self.client.get_property("TimeToFull")
@@ -144,7 +145,7 @@ class BatteryWidget(ButtonWidget):
                 "󰂄 Status: Charging" if is_charging else "󱠴 Status: Discharging"
             )
             tool_tip_text = (
-                f"󱐋 Energy : {round(energy, 2)} Wh\n Temperature: {temperature}°C"
+                f"󱐋 Capacity : {round(capacity)}%\n Temperature: {temperature}°C"
             )
 
             if battery_percent == self.full_battery_level:
@@ -172,8 +173,7 @@ class BatteryWidget(ButtonWidget):
         return True
 
     def _get_notification_message(self, event_type, percentage):
-        """Return the body text for a battery notification.
-        Uses custom message from config if provided, otherwise falls back to i18n."""
+        """Battery notification body: config message if set, else i18n."""
         notifications = self.config.get("notifications", {})
         event_config = notifications.get(event_type, {})
         if isinstance(event_config, dict):

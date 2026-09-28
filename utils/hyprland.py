@@ -6,18 +6,15 @@ from fabric.utils import logger
 from utils.functions import normalize_address, parse_hyprland_reply
 from utils.singleton import SingletonMixin
 
-# Hyprland 0.55+ evaluates /dispatch as Lua, so the old
-# ``dispatch <name> <args>`` form is a syntax error and every command has to be
-# a ``hl.dsp.*`` call. Window targets are given as an ``address:`` selector
-# string; a bare address parses but silently matches nothing.
+# /dispatch is Lua in 0.55+: a bare window address matches nothing, so use a selector.
 _ADDRESS_RE = re.compile(r"\A0x[0-9a-fA-F]+\Z")
 
 
 def _window_selector(address: str) -> str | None:
     """Return *address* as a Lua window selector, or None if it is unusable.
 
-    The value is interpolated into a Lua string literal, so anything that is
-    not a plain hex address is rejected rather than escaped.
+    The value lands in a Lua string literal, so non-hex input is rejected
+    rather than escaped.
     """
     if not address or not _ADDRESS_RE.match(address):
         logger.error(f"[HyprlandService] Refusing to dispatch bad address {address!r}")
@@ -26,11 +23,7 @@ def _window_selector(address: str) -> str | None:
 
 
 class HyprlandService(SingletonMixin):
-    """Singleton service for all Hyprland IPC interactions.
-
-    Centralises connection management, query methods, and dispatch helpers
-    so widgets no longer call ``get_hyprland_connection()`` directly.
-    """
+    """Singleton for all Hyprland IPC, so widgets never touch the connection."""
 
     def __init__(self):
         if not self._init_once():
@@ -41,8 +34,7 @@ class HyprlandService(SingletonMixin):
 
     @property
     def connection(self):
-        """The raw Fabric Hyprland connection — only for consumers that
-        need ``bulk_connect`` or direct signal subscription."""
+        """The raw connection — only for ``bulk_connect`` or direct signals."""
         return self._connection
 
     @property
@@ -50,10 +42,7 @@ class HyprlandService(SingletonMixin):
         return self._connection.ready
 
     def connect(self, signal: str, callback) -> int:
-        """Subscribe to a Hyprland event signal.
-
-        Returns the handler id (pass to ``disconnect`` later).
-        """
+        """Subscribe to a Hyprland event; returns the id for ``disconnect``."""
         return self._connection.connect(signal, callback)
 
     def disconnect(self, handler_id: int):
@@ -68,11 +57,7 @@ class HyprlandService(SingletonMixin):
         self._connection.send_command_async(command, callback or self._send_noop)
 
     def on_ready(self, callback):
-        """Invoke *callback* when the Hyprland socket is ready.
-
-        If already ready, calls immediately; otherwise subscribes to
-        the ``event::ready`` signal.
-        """
+        """Call *callback* once the socket is ready (immediately if it is)."""
         if self._connection.ready:
             callback()
         else:
@@ -124,10 +109,10 @@ class HyprlandService(SingletonMixin):
         )
 
     def get_submap_async(self, callback):
-        """Fetch current submap and pass the string to *callback*.
+        """Fetch the current submap and pass the string to *callback*.
 
-        ``hyprctl submap`` returns a plain string, not JSON, so this
-        uses its own reply handler instead of ``_parse_and_callback``.
+        ``hyprctl submap`` returns a plain string, not JSON, so it needs its
+        own reply handler.
         """
         self._connection.send_command_async(
             "submap",
@@ -147,9 +132,8 @@ class HyprlandService(SingletonMixin):
     def _dispatch(self, lua: str) -> None:
         """Run a ``hl.dsp.*`` expression, logging anything but a clean ack.
 
-        Hyprland answers a malformed or unmatched dispatch with an error
-        string, and this used to be dropped on the floor - which is how a
-        wholesale API break stayed invisible.
+        Hyprland answers a bad dispatch with an error string, and dropping it
+        is how a wholesale API break stayed invisible.
         """
         self._connection.send_command_async(f"dispatch {lua}", self._on_dispatch_reply)
 
@@ -174,10 +158,7 @@ class HyprlandService(SingletonMixin):
         self._dispatch_to_window("hl.dsp.window.close({window=WINDOW})", address)
 
     def close_windows_by_class(self, window_class: str) -> None:
-        """Close every window whose class matches *window_class*.
-
-        *window_class* is a regex, matching the legacy ``class:`` selector.
-        """
+        """Close every window whose class regex matches *window_class*."""
         if not window_class:
             return
         self._dispatch(f'hl.dsp.window.close({{window="class:{window_class}"}})')
@@ -185,8 +166,7 @@ class HyprlandService(SingletonMixin):
     def move_window_to_workspace(
         self, address: str, workspace: int, silent: bool = False
     ):
-        # follow=false is the old movetoworkspacesilent: the window moves but
-        # focus stays where it is.
+        # follow=false is movetoworkspacesilent: the window moves, focus stays.
         follow = "false" if silent else "true"
         self._dispatch_to_window(
             f"hl.dsp.window.move({{workspace={workspace}, follow={follow}, "
@@ -211,12 +191,7 @@ hyprland_service = HyprlandService()
 
 
 class HyprlandClient:
-    """Lightweight Hyprland client (window) adapter.
-
-    Wraps a single window's data dict from Hyprland's ``j/clients``
-    and delegates IPC commands to the shared ``HyprlandService``
-    singleton — callers no longer need to pass a connection.
-    """
+    """Window adapter over one ``j/clients`` entry, delegating IPC to the singleton."""
 
     __slots__ = ("_active", "_data")
 
@@ -226,11 +201,7 @@ class HyprlandClient:
 
     @property
     def raw_data(self) -> dict:
-        """Return the underlying Hyprland client data dict.
-
-        Exposed for code that needs spatial fields (``size``, ``at``,
-        ``workspace``, ``monitor``) not available via the typed API.
-        """
+        """The raw client dict, for spatial fields absent from the typed API."""
         return self._data
 
     def get_app_id(self) -> str:

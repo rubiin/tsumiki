@@ -70,8 +70,7 @@ class WifiSubMenu(QuickSubMenu):
             self._adjustment_handler = None
 
     def on_child_revealed(self, revealer, *_):
-        # Always delegate visibility to the base class so the submenu is
-        # hidden when the revealer finishes its hide animation.
+        # The base class hides the submenu once the hide animation finishes.
         super().on_child_revealed(revealer)
 
         # Only start a scan when the submenu is being revealed, not hidden.

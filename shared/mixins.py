@@ -1,8 +1,4 @@
-"""
-Reusable mixins for reducing code duplication across widgets.
-
-These mixins provide common patterns used throughout the codebase
-"""
+"""Reusable mixins for reducing code duplication across widgets."""
 
 from collections import deque
 from typing import Callable
@@ -13,9 +9,7 @@ from utils.widget_utils import create_progress, get_bar_graph, nerd_font_icon
 
 
 class PopoverMixin:
-    """
-    Mixin for lazy popover initialization.
-    """
+    """Mixin for lazy popover initialization."""
 
     _popup = None
     _popover_content_factory: Callable | None = None
@@ -26,14 +20,7 @@ class PopoverMixin:
         connect_clicked: bool = True,
         on_close_callback: Callable | None = None,
     ) -> None:
-        """
-        Setup lazy popover initialization.
-
-        Args:
-            content_factory: Callable that returns the popover content widget
-            connect_clicked: Whether to auto-connect "clicked" signal
-            on_close_callback: Optional callback when popover closes
-        """
+        """Register the popover content factory; the popover is built on first use."""
         self._popover_content_factory = content_factory
         self._popover_on_close = on_close_callback
 
@@ -45,9 +32,7 @@ class PopoverMixin:
         if self._popup is None and self._popover_content_factory is not None:
             from .popover import Popover
 
-            # Create the popover first so self._popup is set before the content
-            # factory runs — child widgets often reference self._popup (e.g.
-            # popup=self._popup) and need a non-None value.
+            # Children reference self._popup, so it must exist before they build.
             self._popup = Popover(point_to=self)
             self._popup.set_content(self._popover_content_factory())
 
@@ -87,10 +72,7 @@ class PopoverMixin:
 
 
 class StatDisplayMixin:
-    """
-    Mixin for stats widgets (CPU, GPU, Memory, Storage) that share
-    common display modes: label, graph, and progress (circular).
-    """
+    """Mixin for stat widgets sharing the label/graph/progress display modes."""
 
     # DO NOT USE SLOTS HERE
 
@@ -134,9 +116,7 @@ class StatDisplayMixin:
             self._setup_label_mode(self._stat_container)
 
     def setup_stat_display(self, container) -> None:
-        """
-        Setup the display mode (graph, progress, or label) based on config.
-        """
+        """Setup the display mode (graph, progress, or label) based on config."""
         self._stat_container = container
         self._last_stat_value = 0.0
         self._last_stat_label = "0%"
@@ -205,12 +185,9 @@ class StatDisplayMixin:
         container.children = (self.icon, self.level_label)
 
     def update_stat_display(self, value: float, label_text: str) -> None:
-        """
-        Update the stat display based on current mode.
+        """Update the stat display based on current mode.
 
-        Args:
-            value: The stat value (0-100 for percentage)
-            label_text: Text to display in label mode
+        *value* is 0-100 for percentage; *label_text* shows in label mode.
         """
         self._last_stat_value = value
         self._last_stat_label = label_text

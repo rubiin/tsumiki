@@ -18,11 +18,7 @@ class AudioOSDContainer(AudioDeviceOSDContainer):
 
     device_attribute: ClassVar[str] = "speaker"
     changed_signal: ClassVar[str] = "volume-changed"
-    # Keep previous_volume/previous_muted across a device re-announcement:
-    # PipeWire re-announces the default sink on profile/port changes and sink
-    # suspend/resume with an identical volume, and resetting the state here made
-    # update_volume() treat that as a change and pop the OSD with no actual
-    # value change.
+    # PipeWire re-announces the sink unchanged; resetting pops the OSD needlessly.
     reset_state_on_device_change: ClassVar[bool] = False
 
     def _icon_for(self, volume: int, muted: bool) -> str:

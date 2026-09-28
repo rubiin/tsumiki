@@ -194,6 +194,9 @@ class BreathingMenu(BoxWidget):
         self._build_ui()
         self.connect("destroy", lambda *_: self._stop_exercise())
         self._select_exercise(0)
+        # Reveal children once here: show_all() in the update path would undo
+        # the set_visible(False) that hides the exercise and duration frames.
+        self.show_all()
 
     # ── Build UI ──────────────────────────────────────────────────────────────
 
@@ -519,8 +522,6 @@ class BreathingMenu(BoxWidget):
             self._start_btn.set_label(_("widget.breathing.start"))
             self._stop_btn.set_sensitive(False)
 
-        self.show_all()
-
     # ── Callbacks ─────────────────────────────────────────────────────────────
 
     def _on_start_clicked(self, _btn):
@@ -531,12 +532,6 @@ class BreathingMenu(BoxWidget):
 
     def _on_spin_value_changed(self, spin):
         self._selected_duration = int(spin.get_value())
-
-    def _on_duration_clicked(self, btn, minutes):
-        self._selected_duration = minutes
-        for b in self._dur_buttons:
-            b.get_style_context().remove_class("active")
-        btn.get_style_context().add_class("active")
 
     def _show_info(self, message: str):
         dialog = Gtk.MessageDialog(

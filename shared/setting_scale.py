@@ -45,3 +45,12 @@ class SettingSlider(Box, BaseWidget):
             max_value=max,
         )
         self.children = (self.icon_button, self.scale)
+
+    def set_scale_tooltip(self, text: str) -> None:
+        """Set the scale's value tooltip, honouring the global tooltip switch.
+
+        The scale is a plain Gtk widget, so it cannot use the BaseWidget helper
+        that puts the tooltip on ``self``.
+        """
+        if self.tooltips_enabled:
+            self.scale.set_tooltip_text(text)

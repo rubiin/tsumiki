@@ -14,7 +14,6 @@ from fabric.utils import (
     logger,
     os,
     re,
-    remove_handler,
     time,
 )
 from fabric.widgets.box import Box
@@ -63,7 +62,6 @@ class ClipHistoryMenu(Box, TeardownMixin):
         self.MAX_IMAGE_CACHE = 10  # Limit cache size to prevent memory bloat
 
         self.selected_index = -1  # Track the selected item index
-        self._arranger_handler = 0
         self.clipboard_items = []
         self.filtered_items = []
         self._loading = False
@@ -293,10 +291,9 @@ class ClipHistoryMenu(Box, TeardownMixin):
 
     def _display_clipboard_items(self, filter_text=""):
         """Display clipboard items in the viewport"""
-        remove_handler(self._arranger_handler) if self._arranger_handler else None
         self.viewport.remove_all()
         self._item_widgets.clear()
-        self.selected_index = -1  # Reset selection
+        self.selected_index = -1
 
         # Reset scroll to top
         self.vadj.set_value(0)
@@ -317,8 +314,7 @@ class ClipHistoryMenu(Box, TeardownMixin):
             )
 
         self.filtered_items = filtered_items
-        self.viewport.v_align = "start"  # Align to top when showing items
-        # Show message if no items are found
+        self.viewport.v_align = "start"
         if not filtered_items:
             self.filtered_items = []
             # Create a container box to better center the message
@@ -480,8 +476,7 @@ class ClipHistoryMenu(Box, TeardownMixin):
         for child in children:
             self.viewport.remove(child)
 
-        # Rebuild from cache in sorted order
-        # Use items_loaded to preserve scroll position and loaded state
+        # items_loaded preserves the scroll position and loaded state
         visible_count = min(self.items_loaded, len(self.filtered_items))
         for i in range(visible_count):
             item = self.filtered_items[i]
@@ -894,10 +889,6 @@ class ClipHistoryMenu(Box, TeardownMixin):
     def _cleanup_resources(self):
         """Best-effort cleanup for timers, caches, and temporary resources."""
         self._search_timer_id = None
-
-        if self._arranger_handler:
-            remove_handler(self._arranger_handler)
-            self._arranger_handler = 0
 
         self.viewport.remove_all()
         self.clipboard_items.clear()

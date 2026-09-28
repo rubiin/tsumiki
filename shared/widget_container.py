@@ -1,6 +1,7 @@
+import contextlib
 from typing import Callable, Iterable
 
-from fabric.utils import GLib, bulk_connect
+from fabric.utils import GLib, Gtk, bulk_connect
 from fabric.widgets.box import Box
 from fabric.widgets.button import Button
 from fabric.widgets.eventbox import EventBox
@@ -12,57 +13,141 @@ from fabric.widgets.widget import Widget
 from utils.functions import safe_disconnect
 
 
-class TeardownMixin:
-    """Track GLib repeaters and signal handlers for teardown on destroy.
+def _source_is_alive(source_id: int) -> bool:
+    """True while *source_id* is still armed on the default main context.
 
-    Widgets call ``_register_repeater`` / ``_register_handler``; the first call
-    wires a ``destroy`` handler that removes every tracked source. This stops
-    the leaks that stack when bars are recreated on config edit / hotplug.
+    ``GLib.source_remove`` on a spent id is a GLib-CRITICAL on stderr, so
+    callers use this to avoid removing a source that ended by itself.
+    """
+    return GLib.MainContext.default().find_source_by_id(source_id) is not None
+
+
+class TeardownMixin:
+    """Track GLib timers and signal handlers so ``destroy`` can remove them.
+
+    Cleanup hangs off the ``destroy`` *signal*, not a ``destroy()`` override:
+    GTK destroys children from C, which never dispatches to a Python override.
     """
 
+    def _ensure_teardown_hooked(self) -> None:
+        """Connect ``_teardown`` to ``destroy`` once, on first tracked resource."""
+        if hasattr(self, "_repeaters"):
+            return
+        self._repeaters = []
+        self._handlers = []
+        self.connect("destroy", self._teardown)
+
     def _register_repeater(self, repeater_id: int) -> int:
-        if not hasattr(self, "_repeaters"):
-            self._repeaters = []
-            self._handlers = []
-            self.connect("destroy", self._teardown)
+        """Track *repeater_id* until it is removed or ends on its own.
+
+        Sources that already fired are pruned here: a widget that re-arms on
+        every keystroke would otherwise accumulate a dead id per keystroke.
+        """
+        self._ensure_teardown_hooked()
+        self._repeaters = [r for r in self._repeaters if _source_is_alive(r)]
         self._repeaters.append(repeater_id)
         return repeater_id
 
+    def _add_repeater(self, interval_ms: int, callback: Callable[..., bool], *args):
+        """Arm a tracked repeater that untracks itself when it returns ``False``.
+
+        Only a source this mixin created can be dropped on its own, which is why
+        one-shot timers should be armed here rather than by handing in an id.
+        """
+
+        def fire() -> bool:
+            if callback(*args):
+                return True
+            self._unregister_repeater(repeater_id)
+            return False
+
+        repeater_id = GLib.timeout_add(interval_ms, fire)
+        return self._register_repeater(repeater_id)
+
     def _unregister_repeater(self, repeater_id: int) -> None:
         """Remove a repeater id from the tracked list after manual removal."""
-        import contextlib
-
         with contextlib.suppress(ValueError):
             getattr(self, "_repeaters", []).remove(repeater_id)
 
     def _register_handler(self, source, handler_id) -> int:
-        if not hasattr(self, "_repeaters"):
-            self._repeaters = []
-            self._handlers = []
-            self.connect("destroy", self._teardown)
+        self._ensure_teardown_hooked()
         self._handlers.append((source, handler_id))
         return handler_id
 
-    def _register_handlers(self, source, signal_map: dict[str, Callable]) -> list[int]:
-        """Connect every signal in *signal_map* on *source*, tracked for teardown.
+    def _unregister_handler(self, source, handler_id) -> None:
+        """Forget a tracked handler after it has been disconnected by hand."""
+        with contextlib.suppress(ValueError):
+            getattr(self, "_handlers", []).remove((source, handler_id))
 
-        This is the tracked counterpart of fabric's ``bulk_connect``. The plain
-        call returns the handler ids and throws them away, which is what lets
-        those connections outlive the widget; here they all go to ``_teardown``.
-        """
+    def _register_handlers(self, source, signal_map: dict[str, Callable]) -> list[int]:
+        """Tracked counterpart of ``bulk_connect``, so ids reach ``_teardown``."""
         return [
             self._register_handler(source, source.connect(signal, callback))
             for signal, callback in signal_map.items()
         ]
 
     def _timeout_store(self) -> dict[str, int]:
+        self._ensure_teardown_hooked()
         if not hasattr(self, "_timeouts"):
             self._timeouts = {}
         return self._timeouts
 
+    def _tick_store(self) -> dict[str, tuple[object, int]]:
+        self._ensure_teardown_hooked()
+        if not hasattr(self, "_ticks"):
+            self._ticks = {}
+        return self._ticks
+
     def _has_timeout(self, key: str) -> bool:
         """True while a timer armed under *key* has not fired yet."""
         return key in self._timeout_store()
+
+    def _has_tick(self, key: str) -> bool:
+        """True while a frame-clock tick armed under *key* is still pending."""
+        return key in self._tick_store()
+
+    def _schedule_repeater(
+        self,
+        key: str,
+        interval_ms: int,
+        callback: Callable[[], bool],
+    ) -> bool:
+        """Arm a repeating timer under *key*; return whether it was armed.
+
+        Keyed like :meth:`_schedule_timeout` but keeps firing until *callback*
+        returns ``False``, at which point the key is freed.
+        """
+        if self._has_timeout(key):
+            return False
+        store = self._timeout_store()
+
+        def fire() -> bool:
+            if callback():
+                return True
+            # Free the key before returning so a re-arm is not clobbered.
+            store.pop(key, None)
+            return False
+
+        store[key] = GLib.timeout_add(interval_ms, fire)
+        return True
+
+    def _schedule_tick(self, widget, key: str, callback: Callable[..., bool]) -> bool:
+        """Arm a frame-clock tick on *widget* under *key*.
+
+        A tick self-throttles to the display's refresh rate and is only serviced
+        while the widget is actually being drawn, unlike a fixed ``timeout_add``.
+        """
+        if self._has_tick(key):
+            return False
+        self._tick_store()[key] = (widget, widget.add_tick_callback(callback))
+        return True
+
+    def _cancel_tick(self, key: str) -> None:
+        """Cancel a tick armed by :meth:`_schedule_tick`, if one is pending."""
+        entry = getattr(self, "_ticks", {}).pop(key, None)
+        if entry is not None:
+            widget, tick_id = entry
+            widget.remove_tick_callback(tick_id)
 
     def _schedule_timeout(
         self,
@@ -74,14 +159,7 @@ class TeardownMixin:
     ) -> bool:
         """Arm a one-shot timer under *key*; return whether it was armed.
 
-        A pending timer for the same key is left alone by default, which is
-        what a debounce wants: repeated events collapse into the one already
-        armed. Pass ``replace=True`` for a timer that must count from the
-        latest call.
-
-        The timer is tracked for teardown, so a widget cannot leak one by
-        forgetting to cancel it. A repeating poll re-arms itself from inside the
-        callback; *key* is free by then.
+        A pending timer for the same key survives unless ``replace=True``.
         """
         if self._has_timeout(key) and not replace:
             return False
@@ -93,8 +171,7 @@ class TeardownMixin:
 
     def _fire_timeout(self, key: str, callback: Callable[[], bool]):
         def fire() -> bool:
-            # The source is spent once it fires: drop the key before running so
-            # a callback that re-arms the same key is not clobbered.
+            # Drop the key before running so a re-arming callback is not clobbered.
             self._timeout_store().pop(key, None)
             return callback()
 
@@ -107,17 +184,20 @@ class TeardownMixin:
             GLib.source_remove(store.pop(key))
 
     def _teardown(self, *_):
-        for repeater_id in getattr(self, "_repeaters", []):
-            if repeater_id:
+        for repeater_id in list(getattr(self, "_repeaters", [])):
+            if repeater_id and _source_is_alive(repeater_id):
                 GLib.source_remove(repeater_id)
         for timeout_id in getattr(self, "_timeouts", {}).values():
             if timeout_id:
                 GLib.source_remove(timeout_id)
+        for widget, tick_id in getattr(self, "_ticks", {}).values():
+            widget.remove_tick_callback(tick_id)
         for source, handler_id in getattr(self, "_handlers", []):
             safe_disconnect(source, handler_id)
         self._repeaters = []
         self._handlers = []
         self._timeouts = {}
+        self._ticks = {}
 
     def toggle(self):
         """Toggle the visibility of this widget/window."""
@@ -125,6 +205,17 @@ class TeardownMixin:
             self.hide()
         else:
             self.show()
+
+
+def tooltips_enabled() -> bool:
+    """Read ``general.tooltips`` — the global kill switch for every tooltip.
+
+    For hosts that are not a :class:`BaseWidget` and cache no copy of the flag.
+    """
+    # Deferred: importing utils.config parses config.toml and validates it.
+    from utils.config import tsumiki_config
+
+    return tsumiki_config.get("general", {}).get("tooltips", True)
 
 
 class BaseWidget(Widget, TeardownMixin):
@@ -146,9 +237,7 @@ class BaseWidget(Widget, TeardownMixin):
         return merged
 
     def _init_widget_settings(self, widget_name: str) -> None:
-        # Imported here rather than at module scope: importing utils.config
-        # parses config.toml and validates it against the ~122 KB schema, a cost
-        # anything that merely imports this shared widget layer should not pay.
+        # Deferred: importing utils.config parses config.toml and validates it.
         from utils.config import tsumiki_config
 
         self.config: dict = tsumiki_config.get("widgets", {}).get(widget_name, {})
@@ -183,13 +272,7 @@ class BaseWidget(Widget, TeardownMixin):
     def set_tooltip_if_enabled(self, text: str, default: bool = False) -> None:
         """Set tooltip text only when tooltips are enabled.
 
-        Replaces the two-line guard in almost every widget:
-            ``if self.config.get("tooltip", ...) and self.tooltips_enabled:``
-
-        Args:
-            text: The tooltip string to display.
-            default: Fallback when ``widgets.<name>.tooltip`` is absent.
-                Use ``True`` for widgets whose tooltip is on by convention.
+        *default* is the fallback when ``widgets.<name>.tooltip`` is absent.
         """
         if self.config.get("tooltip", default) and self.tooltips_enabled:
             self.set_tooltip_text(text)
@@ -255,14 +338,18 @@ class ButtonWidget(Button, BaseWidget):
         self.add(self.container_box)
         self._connect_hover_reveal()
 
-        self.connect(
-            "state-flags-changed",
-            lambda btn, *_: (
-                btn.set_cursor("pointer")
-                if btn.get_state_flags() & 2  # type: ignore
-                else btn.set_cursor("default"),
-            ),
-        )
+        self.connect("state-flags-changed", self._sync_hover_cursor)
+
+    def _sync_hover_cursor(self, *_):
+        """Point at a hand while prelit, and back to the default after.
+
+        Goes through the guarded helper: the bare widget setter rebuilds a
+        Gdk.Cursor per call and raises before the widget has a window.
+        """
+        from utils.widget_utils import set_cursor
+
+        hovered = bool(self.get_state_flags() & Gtk.StateFlags.PRELIGHT)
+        set_cursor(self, "pointer" if hovered else "default")
 
     def add_panel_content(
         self,
@@ -273,14 +360,9 @@ class ButtonWidget(Button, BaseWidget):
     ) -> None:
         """Fill the container box with the panel icon and an optional label.
 
-        Every panel widget is an icon plus, optionally, a text label; the only
-        per-widget differences are whether the label is enabled and what it
-        says. Either argument may be an already-built widget, for the widgets
-        that need a revealer or update their text later.
+        Either argument may be an already-built widget that updates its own text.
         """
-        # Imported here, not at module scope: utils.widget_utils reaches
-        # utils.config, and this module must stay importable without loading
-        # the user's configuration (see test_config.ConfigImportIsolationTest).
+        # Deferred: this module must import without the user's config.
         from utils.widget_utils import nerd_font_icon
 
         self.container_box.children = (

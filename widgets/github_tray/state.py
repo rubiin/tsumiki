@@ -1,7 +1,5 @@
 """Pure helpers for the GitHub tray widget: display formatting, notification
-semantics, repository sorting, mapping parsing and alert diffing.
-
-"""
+semantics, repository sorting, mapping parsing and alert diffing."""
 
 from __future__ import annotations
 
@@ -13,8 +11,7 @@ from datetime import datetime, timezone
 from utils.decorators import thread
 from utils.functions import ensure_directory, read_json_file, write_json_file
 
-# Nerd Font (Material Design) glyphs referenced by codepoint so they survive
-# editors/tooling that strip private-use characters.
+# Nerd Font glyphs by codepoint, so they survive editors that strip PUA chars.
 _ICONS = {
     "github": 0xF02A4,
     "star": 0xF04CE,
@@ -214,12 +211,7 @@ def workflow_icon(run: dict) -> str:
 
 
 def run_tint(run: dict) -> str:
-    """Semantic colour class for a workflow run's icon (status is already
-    conveyed by the pill text + glyph, the tint only reinforces it).
-
-    Returns one of ``"running"``, ``"success"``, ``"failure"`` or ``""``
-    (neutral — queued/skipped/cancelled read as muted, like GitHub).
-    """
+    """Semantic colour class for a run's icon; neutral means queued/skipped."""
     status = run.get("status")
     conclusion = run.get("conclusion")
     if status != "completed":
@@ -272,9 +264,7 @@ def language_color(language: str | None, fallback: str) -> str:
     return _LANGUAGE_COLORS.get(str(language or ""), fallback)
 
 
-# --------------------------------------------------------------------------- #
-# Repositories
-# --------------------------------------------------------------------------- #
+# -- Repositories --
 
 _SORT_KEYS = {
     "stars": lambda repo: repo.get("stargazers_count") or 0,
@@ -304,8 +294,7 @@ def is_own_repo(repo: dict, username: str) -> bool:
 def filter_own_repos(
     repos: list[dict], username: str, enabled: bool = False
 ) -> list[dict]:
-    """Repos to display; with ``enabled`` keep only repos owned by the user
-    and drop organization/collaborator ones."""
+    """Repos to display; ``enabled`` drops org and collaborator repos."""
     if not enabled:
         return repos
     return [repo for repo in repos if is_own_repo(repo, username)]
@@ -323,9 +312,7 @@ def sort_label(sort_by: str, sort_order: str) -> str:
     return text + (" ↑" if str(sort_order) == "asc" else " ↓")
 
 
-# --------------------------------------------------------------------------- #
-# Notification web URLs
-# --------------------------------------------------------------------------- #
+# -- Notification web URLs --
 
 
 def web_notification_url(item: dict, web_base: str) -> str:
@@ -350,9 +337,7 @@ def web_notification_url(item: dict, web_base: str) -> str:
     return repo.get("html_url") or f"{web_base}/notifications"
 
 
-# --------------------------------------------------------------------------- #
-# Local project mappings
-# --------------------------------------------------------------------------- #
+# -- Local project mappings --
 
 
 def parse_local_projects(text: str) -> dict:
@@ -374,8 +359,12 @@ def expand_home(path: str, home: str) -> str:
     return value
 
 
+def mapped_path(mappings: dict, full_name: str, home: str) -> str:
+    return expand_home(mappings.get(full_name, ""), home)
+
+
 def local_path(mappings_text: str, full_name: str, home: str) -> str:
-    return expand_home(parse_local_projects(mappings_text).get(full_name, ""), home)
+    return mapped_path(parse_local_projects(mappings_text), full_name, home)
 
 
 def sorted_mappings(mappings_text: str) -> list[dict]:
@@ -385,9 +374,7 @@ def sorted_mappings(mappings_text: str) -> list[dict]:
     ]
 
 
-# --------------------------------------------------------------------------- #
-# State cache & alert diffing
-# --------------------------------------------------------------------------- #
+# -- State cache & alert diffing --
 
 
 def load_state_file(path: str) -> dict:
@@ -397,9 +384,7 @@ def load_state_file(path: str) -> dict:
 
 def _write_state_file(path: str, data: dict) -> None:
     try:
-        # Both calls must complete before returning: callers await this future
-        # and then read the file back, and this already runs on a worker
-        # thread, so off-thread writes would race the read.
+        # Callers read the file back right after this future resolves.
         ensure_directory(os.path.dirname(path), sync=True)
         write_json_file(path, data, sync=True)
     except OSError:
@@ -420,12 +405,59 @@ def save_menu_cache(path: str, payload: dict, now: float | None = None) -> Futur
     return save_state_file(path, {"cached_at": now, "payload": payload})
 
 
+def refresh_button_spec(loading: bool) -> tuple[str, str]:
+    """Glyph plus extra style class for the refresh action while a fetch runs.
+
+    A spinner and the dimmed ``busy`` class are the only in-flight cue, so a
+    coalesced click reads as "working" instead of "button is broken".
+    """
+    if loading:
+        return glyph("spinner"), "busy"
+    return glyph("refresh"), ""
+
+
+def state_info_key(owner: str, repo: str, number: str) -> str:
+    """Cache key for a notification's subject; the id is not stable across repos."""
+    return f"{owner}/{repo}#{number}"
+
+
+def state_info_payload(entry: dict) -> dict:
+    """The ``_stateInfo`` shape the renderers read, from a cache entry."""
+    return {
+        "state": entry.get("state"),
+        "isDraft": bool(entry.get("isDraft", False)),
+    }
+
+
+def state_info_is_fresh(
+    entry, max_age: float, now: float, updated_at: str | None = None
+) -> bool:
+    """Whether a cached ``_stateInfo`` may be reused instead of re-queried.
+
+    Entries expire with the repo refresh, and a newer thread ``updated_at``
+    invalidates one outright: new activity means the state may have moved.
+    """
+    if not isinstance(entry, dict):
+        return False
+    cached_at = entry.get("at")
+    if not isinstance(cached_at, (int, float)):
+        return False
+    if now - float(cached_at) > max_age:
+        return False
+    touched = _parse_dt(updated_at)
+    return touched is None or touched.timestamp() <= float(cached_at)
+
+
+def load_state_info(path: str) -> dict:
+    entries = read_json_file(path)
+    return entries if isinstance(entries, dict) else {}
+
+
 def read_menu_cache(
     path: str, ttl: int, now: float | None = None
 ) -> tuple[dict, float] | None:
-    """Return ``(payload, age_seconds)`` when a menu cache file exists and is
-    younger than ``ttl`` seconds, otherwise ``None``. A ``ttl`` of ``0`` or
-    less disables the cache entirely."""
+    """Return ``(payload, age_seconds)`` for a menu cache file younger than
+    ``ttl`` seconds, else ``None``. A ``ttl`` of ``0`` or less disables it."""
     import time
 
     if ttl <= 0:
@@ -450,10 +482,8 @@ def _repos_by_id(repos: list[dict]) -> dict[str, dict]:
 
 
 def diff_alerts(previous: dict, current: dict, flags: dict) -> list[tuple[str, str]]:
-    """Compare a previous state snapshot with the current one and return
-    ``(title, body)`` desktop-alert pairs for everything that changed,
-    honouring the boolean ``flags`` dict (stars/forks/issues/followers/
-    notifications/workflow_*)."""
+    """Return ``(title, body)`` alert pairs for everything that changed,
+    honouring the boolean ``flags`` dict."""
     alerts: list[tuple[str, str]] = []
     if not previous:
         return alerts

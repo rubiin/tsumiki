@@ -1,56 +1,41 @@
-"""One shared singleton implementation.
-
-Eight classes each cached their instance in ``__new__`` and guarded ``__init__``
-with a slightly different flag. They all wanted the same two things: one
-instance per class, and an initialisation body that runs exactly once.
-"""
+"""One shared singleton, replacing eight near-identical ``__new__`` caches."""
 
 from __future__ import annotations
 
 from typing import Any
 
+# Keyed by the exact class: a class attribute would be inherited, so a
+# subclass would read its parent's "already initialised" flag.
+_INSTANCES: dict[type, Any] = {}
+_INITIALIZED: set[type] = set()
+
 
 class SingletonMixin:
     """One instance per class, with an initialisation body that runs once.
 
-    ``__new__`` does the instance caching, so that part is automatic. The guard
-    is explicit - ``_init_once()`` - rather than a wrapped ``__init__``: a
-    wrapped one silently stops guarding the first time a subclass forgets to call
-    ``super().__init__()``, which is exactly what a shared base must not do.
-
-    Set the flag *before* the body runs, so a re-entrant construction during
-    initialisation cannot run it twice.
+    The guard is an explicit ``_init_once()`` rather than a wrapped
+    ``__init__``, which stops guarding when a subclass forgets ``super()``.
     """
 
-    _instance: Any = None
-    _initialized: bool = False
+    # Empty, so a subclass declaring its own ``__slots__`` actually gets one.
+    __slots__ = ()
 
     def __new__(cls, *args, **kwargs):
-        # *args/**kwargs are accepted and dropped: they belong to __init__, and
-        # object.__new__ rejects them. Without this, a singleton whose __init__
-        # takes arguments cannot be constructed at all.
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-        return cls._instance
+        # Dropped: object.__new__ rejects them, and they belong to __init__.
+        if cls not in _INSTANCES:
+            _INSTANCES[cls] = super().__new__(cls)
+        return _INSTANCES[cls]
 
     def _init_once(self) -> bool:
-        """Return whether this is the first construction.
-
-        Typical use::
-
-            def __init__(self):
-                if not self._init_once():
-                    return
-                ...
-        """
+        """Return whether this is the first construction, e.g. guard an ``__init__``."""
         cls = type(self)
-        if cls._initialized:
+        if cls in _INITIALIZED:
             return False
-        cls._initialized = True
+        _INITIALIZED.add(cls)
         return True
 
     @classmethod
     def reset_instance(cls) -> None:
         """Forget the cached instance. For tests, and for reconfiguration."""
-        cls._instance = None
-        cls._initialized = False
+        _INSTANCES.pop(cls, None)
+        _INITIALIZED.discard(cls)

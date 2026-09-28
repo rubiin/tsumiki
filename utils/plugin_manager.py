@@ -6,20 +6,25 @@ import functools
 import importlib.util
 import inspect
 import os
+import signal
+import subprocess
 import sys
 import threading
 from contextlib import suppress
 from typing import Any, ClassVar
 
-from fabric.utils import Gio, GLib, logger
+from fabric.utils import logger
 
 from utils.functions import copy_to_clipboard as copy_to_clipboard_fn
 from utils.functions import get_http_client
 from utils.ttl_cache import CACHE_MISS, TTLCache
 
-# Module-name prefix used when importing plugin files so that a plugin file
-# can never shadow a stdlib or third-party module.
+# Prefix for imported plugin modules so a plugin file cannot shadow a stdlib one.
 _PLUGIN_MODULE_PREFIX = "tsumiki_plugin_"
+
+#: Grace period for reaping a killed process; the group is already gone, this
+#: only bounds how long we wait for the direct child to be collected.
+_REAP_TIMEOUT_SECONDS = 1.0
 
 
 class PluginResult:
@@ -52,8 +57,8 @@ class SubprocessResult:
         self,
         args: list[str],
         returncode: int,
-        stdout: str = "",
-        stderr: str = "",
+        stdout: str | bytes = "",
+        stderr: str | bytes = "",
     ):
         self.args = args
         self.returncode = returncode
@@ -71,58 +76,72 @@ class SubprocessTimeoutError(TimeoutError):
         super().__init__(f"command timed out after {timeout}s: {args!r}")
 
 
+def _kill_process_group(proc: subprocess.Popen) -> None:
+    """SIGKILL the group the child leads, grandchild processes included.
+
+    Killing only the direct child leaves anything that inherited the output pipe
+    holding it open, and the caller's read would block forever.
+    """
+    with suppress(OSError):
+        os.killpg(proc.pid, signal.SIGKILL)
+
+
 def _spawn_subprocess(
     args: list[str],
     *,
     input: str | None = None,
     env: dict | None = None,
-) -> Gio.Subprocess:
-    """Spawn *args* via :class:`Gio.Subprocess`, surfacing failures as OSError."""
-    flags = Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_PIPE
-    if input is not None:
-        flags |= Gio.SubprocessFlags.STDIN_PIPE
+) -> subprocess.Popen:
+    """Spawn *args* as the leader of a new session, surfacing failures as OSError.
+
+    The new session is what makes :func:`_kill_process_group` safe: without it
+    the child shares this process's group and a timeout would kill the bar.
+    """
     try:
-        if env:
-            launcher = Gio.SubprocessLauncher.new(flags)
-            for key, value in env.items():
-                launcher.setenv(str(key), str(value), True)
-            return launcher.spawnv(list(args))
-        return Gio.Subprocess.new(list(args), flags)
-    except GLib.Error as exc:
+        return subprocess.Popen(
+            list(args),
+            stdin=subprocess.PIPE if input is not None else subprocess.DEVNULL,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            env=env,
+            start_new_session=True,
+        )
+    except OSError as exc:
         raise OSError(f"failed to spawn {' '.join(args)}: {exc}") from exc
 
 
 def _communicate_subprocess(
-    proc: Gio.Subprocess,
+    proc: subprocess.Popen,
     args: list[str],
     *,
     input: str | None = None,
     timeout: float | None = None,
+    text: bool = True,
 ) -> SubprocessResult:
     """Wait for *proc* to finish; raises SubprocessTimeoutError on timeout."""
-    timed_out = threading.Event()
-
-    def _on_timeout():
-        timed_out.set()
-        with suppress(Exception):
-            proc.force_exit()
-
-    timer = threading.Timer(timeout, _on_timeout) if timeout is not None else None
-    if timer is not None:
-        timer.start()
+    stdout: bytes = b""
+    stderr: bytes = b""
+    timed_out = False
     try:
-        _, stdout, stderr = proc.communicate_utf8(input, None)
-    except GLib.Error as exc:
-        raise OSError(f"failed to run {' '.join(args)}: {exc}") from exc
-    finally:
-        if timer is not None:
-            timer.cancel()
-    if timed_out.is_set():
+        stdout, stderr = proc.communicate(input, timeout=timeout)
+    except subprocess.TimeoutExpired:
+        timed_out = True
+        _kill_process_group(proc)
+        # The group is gone, so this only collects the child; bound it anyway.
+        with suppress(subprocess.TimeoutExpired, OSError, ValueError):
+            stdout, stderr = proc.communicate(timeout=_REAP_TIMEOUT_SECONDS)
+        with suppress(subprocess.TimeoutExpired, OSError):
+            proc.wait(timeout=_REAP_TIMEOUT_SECONDS)
+    if timed_out:
         raise SubprocessTimeoutError(args, timeout)
-    returncode = (
-        -proc.get_term_sig() if proc.get_if_signaled() else proc.get_exit_status()
-    )
-    return SubprocessResult(args, returncode, stdout or "", stderr or "")
+    if text:
+        return SubprocessResult(
+            args,
+            proc.returncode,
+            stdout.decode("utf-8", "replace"),
+            stderr.decode("utf-8", "replace"),
+        )
+    return SubprocessResult(args, proc.returncode, stdout, stderr)
 
 
 def run_subprocess(
@@ -132,12 +151,17 @@ def run_subprocess(
     text: bool = True,
     input: str | None = None,
     env: dict | None = None,
-    **kwargs: Any,
+    capture_output: bool = True,
 ) -> SubprocessResult:
-    """Gio-based ``subprocess.run`` for plugins; returns a :class:`SubprocessResult`."""
-    kwargs.pop("capture_output", None)
+    """``subprocess.run`` for plugins; returns a :class:`SubprocessResult`.
+
+    ``capture_output`` and ``text`` are accepted for call compatibility with
+    ``subprocess.run``: output is always captured, and ``text=False`` returns it
+    as bytes. Any other keyword is a TypeError rather than a silent no-op.
+    """
+    del capture_output
     proc = _spawn_subprocess(args, input=input, env=env)
-    return _communicate_subprocess(proc, args, input=input, timeout=timeout)
+    return _communicate_subprocess(proc, args, input=input, timeout=timeout, text=text)
 
 
 #: Maximum cached entries per plugin before the oldest are evicted.
@@ -150,14 +174,8 @@ _CACHE_MISS = CACHE_MISS
 def cached_handle(ttl: float | None = None):
     """Decorator: cache a plugin's ``handle(args)`` results keyed by args.
 
-    On a hit the cached result list is returned without running ``handle``
-    again, so repeated lookups (e.g. the same /translate text, /search query
-    or /define word) skip the network call. The effective TTL is *ttl* if
-    given, else the plugin's ``cache_ttl_seconds`` class attribute;
-    ``None`` or ``0`` disables caching.
-
-    A superseded query's empty result is never cached, so a cancelled
-    ``handle()`` can't shadow a real result for the same args.
+    TTL is *ttl*, else ``cache_ttl_seconds``; a cancelled result is never
+    cached, so it cannot shadow a real one.
     """
 
     def decorate(handle):
@@ -184,30 +202,20 @@ class LauncherPlugin:
 
     name: str = ""
     description: str = ""
-    #: GTK icon name (e.g. ``"accessories-calculator-symbolic"``) or a Nerd
-    #: Font glyph string. Falls back to the launcher default when unset.
+    #: GTK icon name (e.g. ``"accessories-calculator-symbolic"``) or a Nerd Font glyph.
     icon: str | None = None
     #: Extra slash-command names that trigger this plugin.
     aliases: ClassVar[list[str]] = []
-    #: Optional per-plugin debounce (ms) before ``handle()`` is dispatched
-    #: while typing. ``None`` or ``0`` falls back to the launcher's default
-    #: debounce. Set a larger value for expensive plugins (e.g. those that
-    #: spawn a subprocess like /calc) to avoid one query per keystroke.
+    #: Debounce (ms) before ``handle()`` dispatches; ``None``/``0`` means default.
     debounce_ms: int | None = None
-    #: Optional session-cache TTL (seconds) for ``handle()`` results, keyed
-    #: by query args. ``None`` (or ``0``) disables caching; set it on
-    #: network plugins to cache repeat lookups. Combine with the
-    #: :func:`cached_handle` decorator, or use :meth:`cache_get` /
-    #: :meth:`cache_put` / :meth:`cached` directly for finer control.
+    #: Session-cache TTL (seconds) for ``handle()``; ``None``/``0`` disables it.
     cache_ttl_seconds: float | None = None
-    #: When True, the launcher stays open after ``execute()`` (useful for
-    #: converters that want to keep showing results). ``execute()`` may also
-    #: return True to keep the launcher open.
+    #: Keep the launcher open after ``execute()``.
     keep_open: bool = False
 
     def __init__(self) -> None:
         self._cancel_event = threading.Event()
-        self._subprocess: Gio.Subprocess | None = None
+        self._subprocess: subprocess.Popen | None = None
         #: Session cache of ``handle()`` results, keyed by args.
         self._cache = TTLCache(maxsize=_CACHE_MAX_ENTRIES)
 
@@ -222,11 +230,10 @@ class LauncherPlugin:
     # -- cancellation -------------------------------------------------
 
     def cancel(self) -> None:
-        """Cancel in-flight ``handle()`` work (flag + force-exit subprocess)."""
+        """Cancel in-flight ``handle()`` work (flag + kill the tracked process)."""
         self._cancel_event.set()
         if self._subprocess is not None:
-            with suppress(Exception):
-                self._subprocess.force_exit()
+            _kill_process_group(self._subprocess)
 
     def _reset_cancel(self) -> None:
         """Clear the cancellation flag before dispatching a fresh query."""
@@ -245,14 +252,16 @@ class LauncherPlugin:
         text: bool = True,
         input: str | None = None,
         env: dict | None = None,
-        **kwargs: Any,
+        capture_output: bool = True,
     ) -> SubprocessResult:
         """Like :func:`run_subprocess` but tracked so :meth:`cancel` can kill it."""
-        kwargs.pop("capture_output", None)
+        del capture_output
         proc = _spawn_subprocess(args, input=input, env=env)
         self._subprocess = proc
         try:
-            return _communicate_subprocess(proc, args, input=input, timeout=timeout)
+            return _communicate_subprocess(
+                proc, args, input=input, timeout=timeout, text=text
+            )
         finally:
             if self._subprocess is proc:
                 self._subprocess = None
@@ -285,11 +294,7 @@ class LauncherPlugin:
         return self._cache.get(key, _CACHE_MISS)
 
     def cache_put(self, key: Any, value: Any, ttl: float | None = None) -> None:
-        """Store *value* for *key* under the given *ttl* (or ``cache_ttl_seconds``).
-
-        Expired and oldest entries are evicted once the cache grows past
-        ``_CACHE_MAX_ENTRIES``. ``None``/``0`` TTL is a no-op.
-        """
+        """Store *value* for *key* under *ttl* (or ``cache_ttl_seconds``)."""
         if ttl is None:
             ttl = self.cache_ttl_seconds
         self._cache.put(key, value, ttl=ttl)
@@ -305,11 +310,7 @@ class LauncherPlugin:
 
 
 class PluginCancelledError(RuntimeError):
-    """Raised when a superseded query aborts an in-flight plugin operation.
-
-    ``handle()`` should catch it and return an empty list (no results to
-    show) rather than surfacing it as an error row.
-    """
+    """A superseded query aborted the plugin; ``handle()`` should return []."""
 
 
 def _materialize_response(response, content: bytes) -> Any:
@@ -337,15 +338,8 @@ def http_request(
 ) -> Any:
     """Run an HTTP request that aborts as soon as *cancelled()* is true.
 
-    The response body is streamed in chunks, so a superseded query stops
-    downloading and parsing immediately instead of running to completion
-    and being discarded. Returns a fully-read ``httpx.Response`` — ``.text``,
-    ``.json()`` and ``.raise_for_status()`` behave as usual. Raises the
-    normal httpx exceptions on failure and :class:`PluginCancelledError`
-    when the query was superseded mid-flight.
-
-    *cancelled* is a zero-arg callable returning a truthy value when the
-    query has been superseded; pass ``None`` for fire-and-forget requests.
+    The body is streamed in chunks so a superseded query stops downloading at
+    once. Pass ``None`` for *cancelled* when no cancellation is possible.
     """
     if cancelled is not None and cancelled():
         raise PluginCancelledError()
@@ -368,9 +362,7 @@ def http_request(
     return _materialize_response(response, b"".join(chunks))
 
 
-# Re-exported for the plugin API: plugins (including out-of-tree ones) import
-# the clipboard helper from here, but it is not plugin infrastructure - the
-# implementation lives with the other shared helpers.
+# Re-exported for plugins (including out-of-tree ones), but not plugin infrastructure.
 copy_to_clipboard = copy_to_clipboard_fn
 
 
@@ -383,9 +375,7 @@ class PluginManager:
         plugin_names: list[str] | None = None,
     ):
         self.plugins_dir = os.path.expanduser(plugins_dir)
-        #: Allowlist of plugin names to load (case-insensitive, whitespace
-        #: trimmed). ``None`` loads every discovered plugin; an empty list
-        #: loads none.
+        #: Allowlist of plugin names (case-insensitive, trimmed); ``None`` loads all.
         self._plugin_names = (
             {name.strip().casefold() for name in plugin_names if name and name.strip()}
             if plugin_names is not None

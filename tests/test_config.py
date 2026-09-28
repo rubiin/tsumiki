@@ -8,9 +8,9 @@ from pathlib import Path
 from tests.helpers import make_tsumiki_config
 from utils.config import (
     _EXCLUDED_SCHEMA_KEYS,
-    _LIST_CONFIG_KEYS,
     TsumikiConfig,
 )
+from utils.constants import DEFAULT_CONFIG
 
 
 class ExcludedKeysTest(unittest.TestCase):
@@ -19,9 +19,13 @@ class ExcludedKeysTest(unittest.TestCase):
     def test_schema_key_excluded(self):
         self.assertIn("$schema", _EXCLUDED_SCHEMA_KEYS)
 
-    def test_list_config_keys(self):
-        self.assertIn("widget_groups", _LIST_CONFIG_KEYS)
-        self.assertIn("collapsible_groups", _LIST_CONFIG_KEYS)
+    def test_group_keys_have_no_defaults(self):
+        # The schema puts both at the top level, so a default under ``widgets``
+        # would be unreachable; neither is defaulted.
+        self.assertNotIn("widget_groups", DEFAULT_CONFIG)
+        self.assertNotIn("collapsible_groups", DEFAULT_CONFIG)
+        self.assertNotIn("widget_groups", DEFAULT_CONFIG["widgets"])
+        self.assertNotIn("collapsible_groups", DEFAULT_CONFIG["widgets"])
 
 
 class TsumikiConfigSingletonTest(unittest.TestCase):
@@ -70,7 +74,7 @@ class LoadConfigTest(unittest.TestCase):
         self.assertIn("widgets", cfg.config)
         self.assertIn("layout", cfg.config)
 
-    def test_list_keys_not_deep_merged(self):
+    def test_user_group_list_survives_the_merge(self):
         parsed = {
             "widget_groups": [{"widgets": ["battery"]}],
             "general": {},
@@ -93,12 +97,49 @@ class LoadConfigTest(unittest.TestCase):
         self.assertIn("general", cfg.config)
 
 
-class ConfigImportIsolationTest(unittest.TestCase):
-    """Importing the shared widget layer must not parse config.toml.
+class DefaultsNotAliasedTest(unittest.TestCase):
+    """The live config must not share mutable leaves with ``DEFAULT_CONFIG``.
 
-    Runs in a subprocess because this test process has already imported
-    utils.config through other modules.
+    A widget doing ``config["widgets"]["mpris"]["ignore"].sort()`` would rewrite
+    the module-level defaults, silently, for every later reader.
     """
+
+    def setUp(self):
+        TsumikiConfig.reset_instance()
+        self._ignore = DEFAULT_CONFIG["widgets"]["mpris"]["ignore"]
+        self.addCleanup(self._restore_defaults)
+
+    def _restore_defaults(self):
+        DEFAULT_CONFIG["widgets"]["mpris"]["ignore"] = self._ignore
+
+    def _config_without_overrides(self):
+        return make_tsumiki_config(
+            parsed_data={
+                "general": {},
+                "widgets": {},
+                "layout": {},
+                "modules": {},
+                "styling": {},
+            }
+        ).config
+
+    def test_inherited_lists_are_copies(self):
+        ignore = self._config_without_overrides()["widgets"]["mpris"]["ignore"]
+
+        self.assertIsNot(ignore, self._ignore)
+        self.assertEqual(ignore, self._ignore)
+
+    def test_mutating_the_live_config_leaves_the_defaults_alone(self):
+        ignore = self._config_without_overrides()["widgets"]["mpris"]["ignore"]
+        before = len(self._ignore)
+
+        ignore.append("injected")
+
+        self.assertEqual(len(self._ignore), before)
+
+
+class ConfigImportIsolationTest(unittest.TestCase):
+    """Importing the shared widget layer must not parse config.toml."""
 
     def test_widget_layer_import_does_not_load_config(self):
         project_root = Path(__file__).resolve().parents[1]

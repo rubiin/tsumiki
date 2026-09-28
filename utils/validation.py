@@ -131,6 +131,34 @@ def _validate_schema_enums(
     ):
         raise ValueError(f"{path}: invalid value {_format_config_value(value)}")
 
+    if isinstance(value, (int, float)):
+        minimum = schema_node.get("minimum")
+        if isinstance(minimum, (int, float)) and value < minimum:
+            raise ValueError(
+                f"{path}: {_format_config_value(value)} is below the minimum "
+                f"of {minimum}"
+            )
+        maximum = schema_node.get("maximum")
+        if isinstance(maximum, (int, float)) and value > maximum:
+            raise ValueError(
+                f"{path}: {_format_config_value(value)} is above the maximum "
+                f"of {maximum}"
+            )
+
+    if isinstance(value, list):
+        min_items = schema_node.get("minItems")
+        if isinstance(min_items, int) and len(value) < min_items:
+            raise ValueError(
+                f"{path}: expected at least {min_items} item(s), "
+                f"got {len(value)}"
+            )
+        max_items = schema_node.get("maxItems")
+        if isinstance(max_items, int) and len(value) > max_items:
+            raise ValueError(
+                f"{path}: expected at most {max_items} item(s), "
+                f"got {len(value)}"
+            )
+
     if isinstance(value, dict):
         properties = schema_node.get("properties", {})
         if isinstance(properties, dict):
@@ -169,9 +197,8 @@ def _validate_schema_enums(
 def _load_schema(schema_file_path: str) -> dict:
     """Parse a JSON schema file, memoized per path.
 
-    The schema is static for the life of the process, so re-reading and
-    re-parsing the ~122 KB file on every validation (e.g. each
-    ``reload_config``) is pure waste.
+    The schema is static for the process, so re-reading the ~122 KB file on
+    every validation is pure waste.
     """
     schema = read_json_file(schema_file_path)
     if not isinstance(schema, dict):
@@ -187,7 +214,7 @@ def validate_config_enums(config_data: dict, schema_file_path: str) -> None:
 
 
 def _get_config_collection(parsed_data: dict, widget_type: str) -> list:
-    """Get collection for widget type - DRY principle."""
+    """Return the collection for *widget_type* in *parsed_data*."""
     if widget_type == "custom_button":
         return (
             parsed_data.get("widgets", {})
@@ -206,19 +233,14 @@ def _get_config_collection(parsed_data: dict, widget_type: str) -> list:
 def _validate_indexed_reference(
     identifier: str, collection: list, collection_name: str, section: str
 ) -> int:
-    """Helper function to validate indexed references (groups, buttons, etc.).
+    """Return the index *identifier* names in *collection*.
 
-    Supports both numeric indices and string-based ``id`` lookup.  For
-    supported collection types, string ``id`` matching takes priority over
-    numeric index interpretation so that all-digit ids like ``"2024"``
-    resolve correctly when a matching ``id`` field exists.
+    String ``id`` matching is tried before the numeric reading, so an all-digit
+    id like ``"2024"`` still resolves.
     """
     if not isinstance(collection, list):
         raise ValueError(f"{collection_name} must be an array")
 
-    # For supported collection types, try string id lookup first. This takes
-    # priority over numeric index interpretation so that all-digit ids
-    # (e.g. id = "2024") work correctly.
     supports_id_lookup = collection_name in (
         "collapsible group",
         "custom widget",
@@ -230,7 +252,6 @@ def _validate_indexed_reference(
             if isinstance(item, dict) and item.get("id") == identifier:
                 return idx
 
-    # Fall back to numeric index lookup
     if identifier.isdigit():
         idx = int(identifier)
 
@@ -254,7 +275,6 @@ def _validate_indexed_reference(
     )
 
 
-# Pre-defined collection names mapping
 _COLLECTION_NAMES = {
     "custom_button": "custom button",
     "group": "widget group",
@@ -266,7 +286,7 @@ _COLLECTION_NAMES = {
 def _validate_special_widget(
     widget_type: str, identifier: str, parsed_data: dict, section: str
 ) -> None:
-    """Unified validation for special widget types - DRY principle."""
+    """Validate a ``@type:id`` reference in *section*."""
     collection = _get_config_collection(parsed_data, widget_type)
     collection_name = _COLLECTION_NAMES.get(widget_type, widget_type)
     _validate_indexed_reference(identifier, collection, collection_name, section)
@@ -329,8 +349,7 @@ def _has_named_custom_widget(widget_spec: str, parsed_data: dict) -> bool:
 def validate_widget_reference(
     widget_spec: str, parsed_data: dict, default_config: dict, section: str = "layout"
 ):
-    """Unified validation for any widget reference using dispatcher pattern."""
-    # Handle special references
+    """Validate any widget reference in *section*."""
     if widget_spec.startswith("@"):
         if ":" not in widget_spec:
             raise ValueError(
@@ -339,7 +358,6 @@ def validate_widget_reference(
 
         widget_type, identifier = widget_spec[1:].split(":", 1)
 
-        # Unified validation for all special widget types
         if widget_type in SPECIAL_WIDGET_TYPES:
             _validate_special_widget(widget_type, identifier, parsed_data, section)
         else:
@@ -347,7 +365,6 @@ def validate_widget_reference(
                 f"Unknown widget type '{widget_type}' in section {section}"
             )
     else:
-        # Regular widget validation
         _validate_regular_widget(widget_spec, parsed_data, default_config, section)
 
 
@@ -382,7 +399,6 @@ _VALID_LABEL_FORMATS = {
 }
 
 
-# validate format strings in widget settings
 def validate_format_strings(parsed_data: dict) -> None:
     """Warn when format strings in widget settings reference unknown keys."""
     widgets = parsed_data.get("widgets", {})
@@ -410,11 +426,38 @@ def validate_format_strings(parsed_data: dict) -> None:
                 )
 
 
+def _validate_unique_ids(parsed_data: dict) -> None:
+    """Warn when an indexed collection reuses an ``id``.
+
+    Lookup resolves the first match, so a duplicate id leaves every later entry
+    unreachable by name and addressable only by numeric index.
+    """
+    for widget_type in sorted(SPECIAL_WIDGET_TYPES):
+        collection = _get_config_collection(parsed_data, widget_type)
+        if not isinstance(collection, list):
+            continue
+
+        seen: dict[str, int] = {}
+        for idx, item in enumerate(collection):
+            identifier = item.get("id") if isinstance(item, dict) else None
+            if not isinstance(identifier, str) or not identifier:
+                continue
+            if identifier in seen:
+                logger.warning(
+                    f"[Config] Duplicate {widget_type} id '{identifier}' at index "
+                    f"{idx}; '{identifier}' resolves to index {seen[identifier]}. "
+                    "Only the first entry is reachable by id."
+                )
+            else:
+                seen[identifier] = idx
+
+
 def validate_widgets(parsed_data, default_config):
     """Validates the widgets defined in the layout configuration."""
+    _validate_unique_ids(parsed_data)
+
     layout = parsed_data.get("layout", {})
 
-    # Validate widgets in all sections
     for section_name, widgets in layout.items():
         if isinstance(widgets, list):
             for widget in widgets:
@@ -422,7 +465,6 @@ def validate_widgets(parsed_data, default_config):
                     widget, parsed_data, default_config, section_name
                 )
 
-    # Validate widgets inside groups
     for group_type in GROUP_TYPES:
         groups = parsed_data.get(group_type, [])
         if isinstance(groups, list):

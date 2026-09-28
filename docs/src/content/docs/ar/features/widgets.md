@@ -24,7 +24,6 @@ icon = ""
 tooltip = true
 round = true
 temperature_unit = "celsius"
-show_unit = true
 sensor = "acpitz"
 mode = "graph"          # "label" | "graph" | "circular"
 graph_length = 4
@@ -108,13 +107,12 @@ flatpak = true
 
 ### البطارية
 
-تعرض مستوى البطارية مع أيقونات وإشعارات قابلة للتخصيص.
+تعرض مستوى البطارية مع إشعارات.
 
 ```toml
 [widgets.battery]
 full_battery_level = 100
 hide_percent_when_full = true
-icons = ["", "", "", "", ""]
 tooltip = true
 label_format = "{icon} {percent}"
 ```
@@ -371,8 +369,6 @@ enable_pinning = true
 icon = "󰕓"
 label = false
 tooltip = true
-auto_refresh = true
-refresh_interval = 5
 ```
 
 ---

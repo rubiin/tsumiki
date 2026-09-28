@@ -1,22 +1,43 @@
-"""Tests for the launcher's selectable row builder.
+"""Tests for the launcher's selectable row builder and its search scoring.
 
 A command row and a plugin-result row are the same widget tree with different
-content, so these assert the parts that still differ: the item name, whether the
-title is ellipsized, and what a click does. The GTK classes are mocked because
-real construction needs a display.
+content, so these assert the parts that still differ: the item name, whether
+the title is ellipsized, and what a click does. The scoring tests pin down that
+searching works at all: the scorer is TTL-cached, and a cache key that included
+the app object made every non-empty query raise. The GTK classes are mocked
+because real construction needs a display.
 """
 
 import functools
 import sys
 import unittest
+from itertools import count
 from pathlib import Path
 from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+from fabric.utils import DesktopApp
+
 from modules import launcher as launcher_module
-from modules.launcher import Launcher
+from modules.launcher import Launcher, _score_app_match
 from utils.plugin_manager import PluginResult
+
+# The TTL cache is process-wide and never cleared, so keys must be unique.
+_unique = count()
+
+
+def make_desktop_app(
+    name: str = "Firefox",
+    display_name: str | None = "Firefox",
+    generic_name: str | None = "Web Browser",
+) -> DesktopApp:
+    """A real DesktopApp without needing a display or a D-Bus session."""
+    app = DesktopApp.__new__(DesktopApp)
+    app.name = name
+    app.display_name = display_name
+    app.generic_name = generic_name
+    return app
 
 
 class Recorder:
@@ -163,6 +184,85 @@ class SelectableRowTest(unittest.TestCase):
         self.launcher._create_plugin_result_row(self.plugin, result)
 
         self.assertEqual("accessories-calculator-symbolic", self.launcher._last_icon)
+
+
+class AppScoringTest(unittest.TestCase):
+    """Scoring an app against a query, which is what renders the result list."""
+
+    def test_the_app_itself_is_unhashable(self):
+        # DesktopApp is a dataclass, so __eq__ makes __hash__ None.
+        self.assertIsNone(DesktopApp.__hash__)
+        with self.assertRaises(TypeError):
+            hash(make_desktop_app())
+
+    def test_scoring_a_real_desktop_app_does_not_raise(self):
+        app = make_desktop_app()
+
+        score = self.launcher_score(app, "fire")
+
+        self.assertGreater(score, 0)
+
+    def test_filtering_a_non_empty_query_keeps_the_matching_app(self):
+        # This raised for every app, so the result list never rendered.
+        launcher = Launcher.__new__(Launcher)
+        firefox = make_desktop_app()
+        gimp = make_desktop_app(
+            name="GIMP", display_name="GIMP", generic_name="Image Editor"
+        )
+        launcher._all_apps = [firefox, gimp]
+        launcher._first_app = None
+
+        matched = launcher._filter_applications("fire")
+
+        self.assertEqual([firefox], list(matched))
+
+    def test_a_substring_match_beats_a_fuzzy_one(self):
+        app = make_desktop_app()
+
+        # "fire" is a prefix of "Firefox"; "ffx" only survives the fuzzy pass.
+        self.assertGreater(
+            self.launcher_score(app, "fire"), self.launcher_score(app, "ffx")
+        )
+        self.assertGreater(self.launcher_score(app, "ffx"), 0)
+
+    def test_an_empty_query_scores_nothing(self):
+        self.assertEqual(0.0, _score_app_match("", "Firefox", "Firefox", "Web Browser"))
+        self.assertEqual(0.0, self.launcher_score(make_desktop_app(), ""))
+
+    def test_an_unrelated_query_scores_nothing(self):
+        self.assertEqual(0.0, self.launcher_score(make_desktop_app(), "xyz"))
+
+    def test_apps_sharing_a_name_are_scored_on_their_own_fields(self):
+        # A name-only key would collide; the fields are what separate them.
+        browser = make_desktop_app(
+            name="Claws", display_name="Claws", generic_name="Mail"
+        )
+        editor = make_desktop_app(
+            name="Claws", display_name="Claws", generic_name="Text Editor"
+        )
+
+        self.assertGreater(self.launcher_score(editor, "text"), 0)
+        self.assertEqual(0.0, self.launcher_score(browser, "text"))
+
+    def test_repeated_scoring_is_served_from_the_cache(self):
+        # A unique key so an earlier test cannot have populated the entry.
+        query = f"q{next(_unique)}"
+        fields = (query, "Firefox", "firefox", "Web Browser")
+
+        with mock.patch.object(
+            launcher_module, "SequenceMatcher", wraps=launcher_module.SequenceMatcher
+        ) as matcher:
+            first = _score_app_match(*fields)
+            calls_after_first = matcher.call_count
+            second = _score_app_match(*fields)
+
+        self.assertEqual(first, second)
+        # "q<unique>" is not a substring, so the first call took the fuzzy path.
+        self.assertGreater(calls_after_first, 0)
+        self.assertEqual(calls_after_first, matcher.call_count)
+
+    def launcher_score(self, app, query: str) -> float:
+        return Launcher._match_score(app, query)
 
 
 if __name__ == "__main__":

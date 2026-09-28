@@ -43,7 +43,7 @@ class OCRWidget(ButtonWidget):
             self.script_file = f"{ASSETS_DIR}/scripts/ocr.sh"
             if not os.path.isfile(self.script_file):
                 self.set_sensitive(False)
-                self.set_tooltip_text(_("common.error"))
+                self.set_tooltip_if_enabled(_("common.error"))
                 return
             self.initialized = True
 
@@ -74,8 +74,7 @@ class OCRWidget(ButtonWidget):
 
     def _on_lang_line(self, line):
         self._lang_lines.append(line)
-        # The async API fires once per stdout line; re-arm a short timer so the
-        # menu is built ~200ms after the final line arrives.
+        # One stdout line at a time; re-arm so the menu builds after the last.
         if self._lang_finalize_id:
             self._unregister_repeater(self._lang_finalize_id)
             GLib.source_remove(self._lang_finalize_id)
@@ -122,4 +121,4 @@ class OCRWidget(ButtonWidget):
 
     def on_language_selected(self, _sender, lang):
         self.current_lang = lang
-        self.set_tooltip_text(_("widget.ocr.lang_selected", lang=lang))
+        self.set_tooltip_if_enabled(_("widget.ocr.lang_selected", lang=lang))

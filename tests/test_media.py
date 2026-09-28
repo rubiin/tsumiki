@@ -1,6 +1,8 @@
 import unittest
 from unittest import mock
 
+from tests.helpers import bare_quotes
+
 try:
     import gi
 
@@ -10,10 +12,13 @@ try:
     from shared import media as media_module
     from shared.media import (
         _LIGHT_ART_LUMINANCE_THRESHOLD,
+        _SEEKBAR_TIMER,
         PlayerBox,
         PlayerBoxStack,
         _average_luminance,
+        css_image_url,
     )
+    from utils.change_cache import ChangeCache
 
     HAS_GDKPIXBUF = True
 except (ImportError, ValueError):
@@ -161,8 +166,7 @@ class PlayerBoxStackLostPlayerTest(unittest.TestCase):
         self.assertIsNone(stack.player_stack.visible_child)
 
     def test_vanished_after_exit_destroy_is_a_safe_noop_for_the_card(self):
-        # The player's own exit path may already have destroyed the card
-        # before the manager emits player-vanished.
+        # The card may already be gone before player-vanished is emitted.
         stack = self._make_stack(["vlc", "mpd"], current=0)
         vlc = self._box(stack, "vlc")
         mpd = self._box(stack, "mpd")
@@ -213,7 +217,9 @@ class PlayerBoxSeekbarTickTest(unittest.TestCase):
         box = PlayerBox.__new__(PlayerBox)
         box.player = player
         box.exit = False
-        box._seekbar_timer_id = None
+        box._repeaters = []
+        box._handlers = []
+        box._timeouts = {}
         box.time_label = mock.Mock()
         box.progress_bar = mock.Mock()
         box.progress_bar.get_dragging.return_value = False
@@ -225,7 +231,6 @@ class PlayerBoxSeekbarTickTest(unittest.TestCase):
 
         self.assertFalse(box._move_seekbar())
 
-        self.assertIsNone(box._seekbar_timer_id)
         box.time_label.set_label.assert_not_called()
         box.progress_bar.set_value.assert_not_called()
 
@@ -234,7 +239,6 @@ class PlayerBoxSeekbarTickTest(unittest.TestCase):
 
         self.assertFalse(box._move_seekbar())
 
-        self.assertIsNone(box._seekbar_timer_id)
         box.time_label.set_label.assert_not_called()
 
     def test_playing_player_keeps_ticking_and_redraws(self):
@@ -258,31 +262,29 @@ class PlayerBoxSeekbarTickTest(unittest.TestCase):
 
         self.assertFalse(box._move_seekbar())
 
-        self.assertIsNone(box._seekbar_timer_id)
-
     def test_pause_stops_the_running_tick(self):
         box = self._make_box(self._make_player(status="paused"))
-        box._seekbar_timer_id = 5
+        box._timeouts[_SEEKBAR_TIMER] = 5
 
-        with mock.patch("shared.media.GLib") as glib:
+        with mock.patch("shared.widget_container.GLib") as glib:
             box.on_playback_change(box.player, None)
 
         glib.source_remove.assert_called_once_with(5)
-        self.assertIsNone(box._seekbar_timer_id)
+        self.assertNotIn(_SEEKBAR_TIMER, box._timeouts)
 
     def test_resume_restarts_the_tick(self):
         box = self._make_box(self._make_player(status="playing"))
 
-        with mock.patch("shared.media.GLib") as glib:
+        with mock.patch("shared.widget_container.GLib") as glib:
             glib.timeout_add.return_value = 4321
             box.on_playback_change(box.player, None)
 
-        self.assertEqual(box._seekbar_timer_id, 4321)
+        self.assertEqual(box._timeouts[_SEEKBAR_TIMER], 4321)
 
     def test_starting_the_tick_is_idempotent(self):
         box = self._make_box(self._make_player(status="playing"))
 
-        with mock.patch("shared.media.GLib") as glib:
+        with mock.patch("shared.widget_container.GLib") as glib:
             glib.timeout_add.return_value = 4321
             box._start_seekbar_timer()
             box._start_seekbar_timer()
@@ -293,15 +295,91 @@ class PlayerBoxSeekbarTickTest(unittest.TestCase):
         box = self._make_box(self._make_player(status="playing"))
         box.exit = True
 
-        with mock.patch("shared.media.GLib") as glib:
+        with mock.patch("shared.widget_container.GLib") as glib:
             box._start_seekbar_timer()
 
         glib.timeout_add.assert_not_called()
-        self.assertIsNone(box._seekbar_timer_id)
+        self.assertEqual({}, box._timeouts)
 
 
-if __name__ == "__main__":
-    unittest.main()
+@unittest.skipUnless(HAS_GDKPIXBUF, "GdkPixbuf bindings unavailable")
+class CssImageUrlTest(unittest.TestCase):
+    """A quote in an artwork path silently drops the whole CSS declaration."""
+
+    def test_a_quote_in_the_path_is_escaped(self):
+        self.assertEqual(
+            "/music/Bob\\'s cover.jpg", css_image_url("/music/Bob's cover.jpg")
+        )
+
+    def test_backslashes_are_escaped_before_quotes(self):
+        self.assertEqual("C:\\\\art\\\\x.jpg", css_image_url("C:\\art\\x.jpg"))
+
+    def test_a_plain_path_is_untouched(self):
+        self.assertEqual("/music/cover.png", css_image_url("/music/cover.png"))
+
+
+@unittest.skipUnless(HAS_GDKPIXBUF, "GdkPixbuf bindings unavailable")
+class PlayerBoxArtworkTest(unittest.TestCase):
+    """Artwork changes must not reparse the same CSS over and over."""
+
+    def _make_box(self, light_art=False):
+        box = PlayerBox.__new__(PlayerBox)
+        box.exit = False
+        box.fallback_cover_path = "/fallback.png"
+        box._last_temp_art_path = None
+        box._art_cache = ChangeCache()
+        box.set_style = mock.Mock()
+        box.add_style_class = mock.Mock()
+        box.remove_style_class = mock.Mock()
+        box._classify_art = mock.Mock(return_value=light_art)
+        return box
+
+    def _update(self, box, path):
+        with mock.patch("shared.media.os.path.isfile", return_value=True):
+            box._update_art(path)
+
+    def test_a_quoted_artwork_path_stays_valid_css(self):
+        box = self._make_box()
+
+        self._update(box, "/music/Bob's cover.jpg")
+
+        style = box.set_style.call_args[0][0]
+        self.assertIn("/music/Bob\\'s cover.jpg", style)
+        # Only the two url() delimiters may be unescaped quotes.
+        self.assertEqual(2, bare_quotes(style))
+
+    def test_a_backslashed_artwork_path_stays_valid_css(self):
+        box = self._make_box()
+
+        self._update(box, "C:\\music\\cover.png")
+
+        style = box.set_style.call_args[0][0]
+        self.assertIn("C:\\\\music\\\\cover.png", style)
+        self.assertEqual(2, bare_quotes(style))
+
+    def test_an_unchanged_cover_is_not_reapplied(self):
+        box = self._make_box()
+
+        for _ in range(5):
+            self._update(box, "/music/cover.png")
+
+        box.set_style.assert_called_once()
+
+    def test_a_new_cover_is_applied(self):
+        box = self._make_box()
+
+        self._update(box, "/music/a.png")
+        self._update(box, "/music/b.png")
+
+        self.assertEqual(2, box.set_style.call_count)
+
+    def test_a_missing_file_falls_back_to_the_cover(self):
+        box = self._make_box()
+
+        with mock.patch("shared.media.os.path.isfile", return_value=False):
+            box._update_art("/music/gone.png")
+
+        self.assertIn("/fallback.png", box.set_style.call_args[0][0])
 
 
 if __name__ == "__main__":

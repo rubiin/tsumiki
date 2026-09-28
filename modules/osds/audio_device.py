@@ -1,8 +1,6 @@
 """Shared behaviour for the volume OSD of an audio device.
 
-The speaker and microphone OSDs are the same widget watching a different
-device, so the device attribute, the container's own signal name and the icon
-set are the only things that differ.
+The speaker and microphone OSDs are the same widget on a different device.
 """
 
 from typing import ClassVar
@@ -15,11 +13,7 @@ from ..osd import GenericOSDContainer
 
 
 class AudioDeviceOSDContainer(GenericOSDContainer):
-    """Watches one audio device and reflects its level and mute state.
-
-    Subclasses set :attr:`device_attribute`, :attr:`changed_signal` and
-    :attr:`reset_state_on_device_change`, and implement :meth:`_icon_for`.
-    """
+    """Watch one audio device's level and mute state; subclasses set the ClassVars."""
 
     #: Attribute on the audio service holding the device to watch.
     device_attribute: ClassVar[str] = ""

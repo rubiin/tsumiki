@@ -72,10 +72,7 @@ class PopupRevealer(EventBox):
         )
 
 
-# Maps anchor name -> (vertical position, horizontal alignment, inner h_expand)
-# v_pos: "top" | "center" | "bottom"
-# h_align: "left" | "center" | "right"
-# inner_h_expand: True | False | None (omit kwarg)
+# anchor name -> (vertical position, horizontal alignment, inner h_expand)
 _ANCHOR_LAYOUT: dict[str, tuple[str, str, bool | None]] = {
     "center-left": ("center", "left", None),
     "center": ("center", "center", None),
@@ -228,9 +225,7 @@ class PopupWindow(BaseWindow):
         self._set_popup_visible(not self.popup_visible)
 
     def _on_monitor_resolved(self, curr_monitor, gen):
-        # If another toggle or dismiss happened while the async request was
-        # in flight, this callback is stale — ignore it to prevent double
-        # toggling or re-opening a popup the user just closed.
+        # Stale if a dismiss landed mid-flight; it would re-open the popup.
         if not self._monitor_toggle_pending or gen != self._monitor_toggle_gen:
             return
         self._monitor_toggle_pending = False

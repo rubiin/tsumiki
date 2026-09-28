@@ -40,28 +40,15 @@ _PLUGIN_DEBOUNCE_MS = 150
 _FUZZY_MATCH_THRESHOLD = 0.6
 
 
+# The dataclass is unhashable, so its text fields must be the cache key.
 @ttl_lru_cache(seconds_to_live=3600, maxsize=4096)
-def _score_app_match(app: DesktopApp, query_lower: str) -> float:
-    """Return a match score for *app* against a lowercased query.
-
-    ``0.0`` means no match. Substring matches score highest (with a bonus
-    for word-boundary prefixes); otherwise an ordered subsequence match
-    via :func:`difflib.SequenceMatcher` is accepted above a similarity
-    threshold, so "ffx" still finds Firefox but "xyz" doesn't.
-
-    TTL-cached per (app, query): the same query is re-scored on every
-    Tab-autocomplete step and on repeat viewport arrangements, so caching
-    avoids recomputing SequenceMatcher ratios over all apps each time.
-    """
+def _score_app_match(
+    query_lower: str, display_name: str, name: str, generic_name: str
+) -> float:
+    """Return a match score for an app's text fields; ``0.0`` means no match."""
     if not query_lower:
         return 0.0
-    text = (
-        (app.display_name or "")
-        + " "
-        + (app.name or "")
-        + " "
-        + (app.generic_name or "")
-    ).casefold()
+    text = (display_name + " " + name + " " + generic_name).casefold()
 
     if query_lower in text:
         idx = text.find(query_lower)
@@ -71,7 +58,7 @@ def _score_app_match(app: DesktopApp, query_lower: str) -> float:
 
     # Fuzzy fallback: per-field, so long generic names don't dilute it.
     best = 0.0
-    for field in (app.display_name, app.name, app.generic_name):
+    for field in (display_name, name, generic_name):
         if not field:
             continue
         ratio = SequenceMatcher(None, query_lower, field.casefold()).ratio()
@@ -83,7 +70,6 @@ def _score_app_match(app: DesktopApp, query_lower: str) -> float:
 class LauncherConfig:
     """Configuration validator and defaults for AppLauncher."""
 
-    # Only essential constants
     DEFAULT_WIDTH = 280
     DEFAULT_HEIGHT = 320
     DEFAULT_ICON_SIZE = 24
@@ -127,7 +113,6 @@ class LauncherConfig:
         self.anchor = self.raw_config.get("anchor", self.DEFAULT_ANCHOR)
         self.show_tooltips = bool(self.raw_config.get("tooltip", False))
 
-        # Slash-command plugin system
         self.plugins_enabled = bool(self.raw_config.get("plugins_enabled", True))
         configured_dir = self.raw_config.get("plugins_dir", "")
         self.plugins_dir = os.path.expanduser(
@@ -147,12 +132,7 @@ class AppWidgetFactory:
 
     @staticmethod
     def _icon(app: DesktopApp, icon_size: int):
-        """Load *app*'s icon at *icon_size*.
-
-        Not ``app.get_icon_pixbuf``: that caches the first size asked for on the
-        shared ``DesktopApp``, so the launcher would upscale whatever tiny pixbuf
-        a panel widget resolved first.
-        """
+        """Load *app*'s icon; not get_icon_pixbuf, which caches the first size."""
         return IconResolver().get_icon_pixbuf_by_name(app.icon_name, icon_size)
 
     @staticmethod
@@ -247,9 +227,7 @@ class HandlerManager:
         self.old_handler = None
 
     def __enter__(self):
-        # Remove old handler if exists and is valid
         if self.launcher._arranger_handler and self.launcher._arranger_handler > 0:
-            # Check if the source still exists before removing
             main_context = GLib.MainContext.default()
             handler_id = self.launcher._arranger_handler
             if main_context.find_source_by_id(handler_id):
@@ -257,13 +235,12 @@ class HandlerManager:
                     remove_handler(handler_id)
                     self.old_handler = handler_id
                 except (GLib.Error, Exception):
-                    # Handler removal failed, just continue silently
+                    # The source may already be gone; the id is reset below anyway.
                     pass
         self.launcher._arranger_handler = 0
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        # Cleanup is automatic, nothing to do
         pass
 
     def set_new_handler(self, handler_id):
@@ -277,20 +254,17 @@ class Launcher(PopupWindow):
     _PLUGIN_QUERY_TIMER = "plugin-query"
 
     def __init__(self, config: dict, **kwargs):
-        # Initialize configuration with validation
         self.config = LauncherConfig(config)
 
-        # Initialize remaining instance variables
         self._arranger_handler: int = 0
         self.app_util = AppUtils()
         self._all_apps = self.app_util.all_applications
-        self._grid_position = 0  # Track current position in grid
+        self._grid_position = 0
         self._first_app = None  # First app matching the current query (Enter)
         # Rendered app results: (widget, app) pairs in display order.
         self._app_rows: list[tuple[Button, DesktopApp]] = []
         self._app_selected = -1  # Index of the highlighted app result
 
-        # Slash-command plugin state
         self.plugin_manager = (
             get_plugin_manager(self.config.plugins_dir, self.config.plugins)
             if self.config.plugins_enabled
@@ -309,7 +283,6 @@ class Launcher(PopupWindow):
         self._completion_candidates: list[str] = []
         self._completion_index = -1
 
-        # Create widgets - viewport depends on layout mode
         if self.config.layout_mode == "grid":
             self.viewport = Grid(
                 column_homogeneous=True,
@@ -317,7 +290,7 @@ class Launcher(PopupWindow):
                 column_spacing=self.config.grid_spacing,
                 row_spacing=self.config.grid_spacing,
             )
-        else:  # list mode
+        else:
             self.viewport = Box(spacing=2, orientation="v")
         self.search_entry = Entry(
             name="launcher-prompt",
@@ -329,7 +302,6 @@ class Launcher(PopupWindow):
         )
 
         self.search_entry.props.xalign = 0.1
-        # Connect handler for icon clicks
         self.search_entry.connect("icon-press", self.on_icon_press)
 
         self.scrolled_window = ScrolledWindow(
@@ -339,25 +311,20 @@ class Launcher(PopupWindow):
             child=self.viewport,
         )
 
-        # Enable kinetic scrolling
         with suppress(AttributeError):
             self.scrolled_window.set_kinetic_scrolling(True)
 
-        # Create the main content
         launcher_content = Box(
             name="launcher-contents",
             spacing=2,
             orientation="v",
             size_request=(self.config.width, self.config.height),
             children=[
-                # Header with search
                 self.search_entry,
-                # Apps list
                 self.scrolled_window,
             ],
         )
 
-        # Choose transition based on anchor
         transition = (
             "slide-up" if self.config.anchor.startswith("bottom") else "slide-down"
         )
@@ -399,8 +366,7 @@ class Launcher(PopupWindow):
             self.close_launcher()
             return True
         if keyval in (Gdk.KEY_Tab, Gdk.KEY_KP_Tab):
-            # Tab cycles the query through every matching result instead of
-            # moving focus away from the entry.
+            # Tab cycles the query instead of moving focus off the entry.
             self._autocomplete_query(1)
             return True
         if keyval == Gdk.KEY_ISO_Left_Tab:
@@ -438,8 +404,7 @@ class Launcher(PopupWindow):
             self._reset_completion_state()
             return
 
-        # Mid-cycle: the entry still holds the candidate we last set, so just
-        # advance/rewind through the snapshot and wrap around.
+        # Mid-cycle: the entry still holds our last candidate, so step the snapshot.
         if (
             self._completion_candidates
             and 0 <= self._completion_index < len(self._completion_candidates)
@@ -526,7 +491,6 @@ class Launcher(PopupWindow):
                 for child in children:
                     self.viewport.remove(child)
             except (AttributeError, TypeError) as e:
-                # Log error and recreate grid as fallback
                 logger.exception(
                     f"Warning: Grid clear failed ({e}), recreating viewport"
                 )
@@ -543,7 +507,6 @@ class Launcher(PopupWindow):
                         f"Error: Failed to recreate grid: {fallback_error}"
                     )
         else:
-            # For list layout, simple clear
             self.viewport.children = []
 
     def _prepare_viewport_render(self):
@@ -556,18 +519,16 @@ class Launcher(PopupWindow):
 
     @staticmethod
     def _match_score(app: DesktopApp, query_lower: str) -> float:
-        """Return a match score for *app* against a lowercased query.
+        """Return a match score for *app* against a lowercased query."""
+        return _score_app_match(
+            query_lower,
+            app.display_name or "",
+            app.name or "",
+            app.generic_name or "",
+        )
 
-        Thin wrapper over the TTL-cached :func:`_score_app_match`.
-        """
-        return _score_app_match(app, query_lower)
-
-    def _filter_applications(self, query: str) -> tuple[Iterator[DesktopApp], bool]:
-        """Filter applications by query and return iterator + resize hint.
-
-        Matches are ranked by :meth:`_match_score` (best first); ties keep the
-        original application order.
-        """
+    def _filter_applications(self, query: str) -> Iterator[DesktopApp]:
+        """Filter applications by query, best first; ties keep source order."""
         query_lower = query.casefold()
         if not query_lower:
             filtered_apps = list(self._all_apps)
@@ -578,13 +539,11 @@ class Launcher(PopupWindow):
             scored.sort(key=lambda pair: pair[0], reverse=True)
             filtered_apps = [app for score, app in scored if score > 0]
         self._first_app = filtered_apps[0] if filtered_apps else None
-        should_resize = len(filtered_apps) == len(self._all_apps)
-        return iter(filtered_apps), should_resize
+        return iter(filtered_apps)
 
     def _render_step(
         self,
         apps_iter: Iterator[DesktopApp],
-        should_resize: bool,
     ) -> bool:
         """Lazy renderer callback used by GLib idle loop."""
         return bool(self.add_next_application(apps_iter))
@@ -592,13 +551,11 @@ class Launcher(PopupWindow):
     def _schedule_viewport_render(
         self,
         apps_iter: Iterator[DesktopApp],
-        should_resize: bool,
     ) -> int:
         """Schedule lazy viewport render and return handler id."""
         return idle_add(
             self._render_step,
             apps_iter,
-            should_resize,
             pin=True,
         )
 
@@ -619,19 +576,15 @@ class Launcher(PopupWindow):
                     )
                     handler_id = 0
                 else:
-                    filtered_apps_iter, should_resize = self._filter_applications(query)
                     handler_id = self._schedule_viewport_render(
-                        filtered_apps_iter,
-                        should_resize,
+                        self._filter_applications(query)
                     )
 
             handler_mgr.set_new_handler(handler_id)
 
         return False
 
-    # ------------------------------------------------------------------
     # Slash-command plugins
-    # ------------------------------------------------------------------
 
     def _arrange_plugins(self, query: str) -> int:
         """Dispatch a ``/command args`` query to the plugin system."""
@@ -667,8 +620,7 @@ class Launcher(PopupWindow):
                 )
             return 0
 
-        # Full command match — run the plugin off the main thread and render
-        # a lightweight "working" row until the results come back.
+        # Full match: render a "working" row, then run the plugin off-thread.
         self._render_plugin_hint(
             f"/{plugin.name}{' ' + args if args else ''}",
             "Running...",
@@ -678,8 +630,7 @@ class Launcher(PopupWindow):
 
     def _schedule_plugin_query(self, plugin, args: str, gen: int):
         """Debounce plugin dispatch; use the plugin's ``debounce_ms`` override."""
-        # A newer query is superseding whatever is still in flight — cancel
-        # it now so its subprocess/request is killed rather than wasted.
+        # Cancel the in-flight worker now so its subprocess is killed, not wasted.
         self._cancel_active_plugin()
 
         def _fire() -> bool:
@@ -796,15 +747,7 @@ class Launcher(PopupWindow):
         on_clicked: Callable[[], None],
         ellipsize: bool = True,
     ) -> Button:
-        """Build one selectable row: an icon, a title and an optional subtitle.
-
-        *item_name* and *ellipsize* are the only points on which the callers
-        disagree, so both are explicit rather than inferred. The item name
-        keeps command and result rows distinguishable when reading the widget
-        tree; nothing in the stylesheet keys off it. Ellipsizing is on for
-        result rows, whose title is arbitrary result text, and off for command
-        rows, whose title is a short "/name" from the plugin's own metadata.
-        """
+        """Build one selectable row: an icon, a title and an optional subtitle."""
         children = []
         icon_widget = self._plugin_icon_widget(icon)
         if icon_widget is not None:
@@ -944,10 +887,8 @@ class Launcher(PopupWindow):
         current_value = adj.get_value()
 
         if y < current_value:
-            # Row above the viewport - align to top
             adj.set_value(y)
         elif y + height > current_value + page_size:
-            # Row below the viewport - align to bottom
             adj.set_value(y + height - page_size)
         return False
 
@@ -986,8 +927,7 @@ class Launcher(PopupWindow):
             app, self.config.layout_mode, self.config.icon_size, self.config
         )
         self._app_rows.append((app_widget, app))
-        # Same as above: on_clicked must be a constructor kwarg — connect the
-        # signal explicitly so clicking an app tile actually launches it.
+        # on_clicked is a constructor kwarg only, so connect the signal explicitly.
         app_widget.connect("clicked", lambda *_: (app.launch(), self.close_launcher()))
 
         if self.config.layout_mode == "grid":
@@ -1007,15 +947,10 @@ class Launcher(PopupWindow):
         if self.popup_visible:
             self.close_launcher()
         else:
-            # Refresh apps list
             self._reset_plugin_state()
             self._all_apps = self.app_util.all_applications
             self.search_entry.set_text("")
-
-            # Focus search entry for filtering
             self.search_entry.grab_focus_without_selecting()
-
-            # Show the popup using PopupWindow's method
             self.toggle_popup()
 
     def launch(self, command: str):

@@ -7,6 +7,7 @@ the process listening on that port.
 import os
 import re
 import signal
+from collections.abc import Callable
 from typing import ClassVar
 
 from fabric.utils import logger
@@ -43,17 +44,21 @@ def list_processes(
     query: str,
     limit: int = _MAX_RESULTS,
     proc_dir: str = "/proc",
+    cancelled: Callable[[], bool] | None = None,
 ) -> list[tuple[int, str, str]]:
-    """Return up to *limit* (pid, comm, cmdline) rows matching *query*.
+    """Return (pid, comm, cmdline) rows matching *query* against name or cmdline.
 
-    Matches against the process name and full command line. *proc_dir* is
-    injectable for tests; unreadable or non-numeric entries are skipped.
+    *proc_dir* is injectable so tests need not scan the real ``/proc``. Pass
+    *cancelled* to abandon a scan whose rows the launcher would discard anyway.
     """
     query = query.casefold().strip()
     if not query:
         return []
     matches: list[tuple[int, str, str]] = []
     for entry in sorted(os.listdir(proc_dir)):
+        # Checked per PID: one check saves the next comm + cmdline read pair.
+        if cancelled is not None and cancelled():
+            break
         if not entry.isdigit():
             continue
         pid = int(entry)
@@ -99,11 +104,7 @@ def parse_ss_output(output: str, port: int) -> list[int]:
 
 
 def find_pids_on_port(port: int, runner=None) -> list[int]:
-    """Return PIDs listening on *port* (via ss, falling back to lsof).
-
-    *runner* is an optional :func:`run_subprocess`-compatible callable so
-    the caller can kill the scan when the query is superseded.
-    """
+    """Return PIDs listening on *port*; *runner* overrides subprocess running."""
     run = runner or run_subprocess
     ss = find_executable("ss")
     if ss is not None:
@@ -161,10 +162,7 @@ def _read_cmdline(pid: int, proc_dir: str) -> str:
 
 
 def kill_process(pid: int, force: bool = False) -> str | None:
-    """Send SIGTERM (or SIGKILL when *force*) to *pid*.
-
-    Returns None on success, or a user-facing error message on failure.
-    """
+    """Send SIGTERM (or SIGKILL when *force*); None on success, else an error."""
     try:
         os.kill(pid, signal.SIGKILL if force else signal.SIGTERM)
         return None
@@ -183,7 +181,8 @@ class KillPlugin(LauncherPlugin):
     description = "Search and kill a running process"
     icon = "process-stop-symbolic"
     aliases: ClassVar[list[str]] = ["k", "pkill"]
-    # Local /proc scan only — the launcher's default debounce is plenty.
+    # A /proc walk is ~2 file reads per process; 150 ms lets every keystroke run one.
+    debounce_ms = 400
 
     def handle(self, args: str) -> list[PluginResult]:
         if not args.strip():
@@ -202,7 +201,7 @@ class KillPlugin(LauncherPlugin):
         force, query = parse_kill_args(args)
         if query.isdigit():
             return self._handle_port(force, query)
-        matches = list_processes(query)
+        matches = list_processes(query, cancelled=self.is_cancelled)
         if not matches:
             return [
                 PluginResult(

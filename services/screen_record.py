@@ -38,7 +38,7 @@ class ScreenRecorderService(SingletonService):
         self._start_recording_timer_id = None
         exec_shell_command_async(command, lambda *_: None)
         self.emit("recording", True)
-        return False  # Only run once
+        return False
 
     def screenrecord_start(
         self,
@@ -98,8 +98,8 @@ class ScreenRecorderService(SingletonService):
     def _open_in_file_manager(self, directory: str) -> None:
         """Open a directory in the user's file manager.
 
-        A list, not a shell string: the paths are user-configured and must not
-        be re-parsed by a shell.
+        A list, not a shell string: the path is user-configured and must not be
+        re-parsed by a shell.
         """
         exec_shell_command_async(["xdg-open", directory])
 
@@ -120,9 +120,8 @@ class ScreenRecorderService(SingletonService):
     ) -> None:
         """Show a notification whose buttons run *actions*.
 
-        ``notify-send`` prints the chosen action's key on stdout when one is
-        invoked, so each entry is ``(key, label, handler)`` and the key is what
-        comes back to dispatch on.
+        ``notify-send`` prints the chosen action's key on stdout, so each entry
+        is ``(key, label, handler)``; the key dispatches the handler.
         """
         cmd = ["notify-send"]
         for key, label, _handler in actions:
@@ -159,8 +158,7 @@ class ScreenRecorderService(SingletonService):
 
     def send_screenshot_notification(self, file_path=None):
         if not file_path:
-            # Clipboard capture: there is no file to point at, so no actions,
-            # icon hint or timeout override.
+            # Clipboard capture has no file to point at, so no actions or icon hint.
             proc = Gio.Subprocess.new(
                 ["notify-send", "Screenshot Sent to Clipboard"],
                 Gio.SubprocessFlags.STDOUT_PIPE,
@@ -208,14 +206,12 @@ class ScreenRecorderService(SingletonService):
 
         annotate = config.get("annotation", False)
 
-        temp_path = file_path  # Default to final path if no annotation
+        temp_path = file_path
 
-        # Determine the target screenshot file
         if annotate:
             with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as temp_file:
                 temp_path = temp_file.name
 
-        # Prepare grimblast command
         command = (
             ["grimblast", "copysave", "screen", temp_path]
             if save_copy
@@ -226,7 +222,10 @@ class ScreenRecorderService(SingletonService):
             command[2] = "area"
 
         def _annotate_and_notify():
-            """Run satty off the main thread, then marshal back."""
+            """Run satty off the main thread, then marshal back.
+
+            A list, not a shell string: a temp path with a space would split.
+            """
             try:
                 if (
                     helpers.run_command(
@@ -258,15 +257,13 @@ class ScreenRecorderService(SingletonService):
         def after_screenshot(*_):
             try:
                 if annotate:
-                    # Run satty off the main thread to avoid blocking the
-                    # GTK event loop while the annotation window is open.
+                    # Off the main thread; satty blocks the GTK loop while open.
                     thread(_annotate_and_notify)
                     return
 
                 if config.get("capture_sound", False):
                     helpers.play_sound(self.shutter_sound)
 
-                # Send notification after annotation or direct capture
                 self.send_screenshot_notification(file_path=file_path)
 
             except OSError as e:

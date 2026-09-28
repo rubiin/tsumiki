@@ -86,8 +86,6 @@ behavior = "intellihide"            # "intellihide" | "always_show"
 tooltip = false
 layer = "top"
 show_when_no_windows = false
-preview_apps = true
-preview_size = [200, 130]
 group_apps = true
 truncation_size = 20
 orientation = "horizontal"
@@ -99,7 +97,7 @@ ignored = []
 ```
 
 - **`behavior`**: `intellihide` يخفي الإرساء عندما تتداخل نافذة؛ `always_show` يبقيه مرئياً.
-- **`preview_apps`**: يعرض صوراً مصغرة للنوافذ عند تمرير المؤشر.
+- **`s`**: يعرض صوراً مصغرة للنوافذ عند تمرير المؤشر.
 - **`group_apps`**: يجمع نوافذ متعددة من نفس التطبيق.
 - **`show_launcher`**: يضيف أيقونة مشغل تطبيقات إلى الإرساء.
 - **`hide_special_workspace_apps`**: يخفي التطبيقات في مساحات العمل الخاصة.
@@ -141,19 +139,18 @@ transition_duration = 350
 enabled = false
 tooltip = true
 icon_size = 35
-ignored = []
 anchor = "center"
 width = 280
 height = 320
 layout = "grid"                    # "grid" | "list"
 grid_columns = 3
+grid_spacing = 12
 plugins_enabled = true              # إضافات الأوامر المائلة (/calc, /translate)
 plugins_dir = ""                    # الافتراضي: <config>/plugins
 ```
 
 - **`layout`**: `grid` يعرض أيقونات التطبيقات في شبكة؛ `list` يعرضها كقائمة بالأسماء.
 - **`anchor`**: الموضع على الشاشة (`center`, `top`, `bottom`, إلخ).
-- **`ignored`**: قائمة أسماء ملفات .desktop لاستبعادها من نتائج البحث.
 - **`plugins_enabled`**: تفعيل إضافات الأوامر المائلة (`/calc`, `/translate`, ...).
 - **`plugins_dir`**: مجلد يحتوي على إضافات بايثون؛ الافتراضي `<config>/plugins`.
 

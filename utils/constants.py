@@ -41,7 +41,8 @@ LOG_FILE = f"{LOG_DIR}/{APPLICATION_NAME}.log"
 LOG_FORMAT = "{time:YYYY-MM-DD HH:mm:ss} [<level>{level}</level>] {message}"
 
 
-# Default configuration values
+# Default configuration values. ``widget_groups``/``collapsible_groups`` are
+# user-supplied: the schema puts them at the top level and neither has a default.
 DEFAULT_CONFIG = {
     "$schema": f"./{APPLICATION_NAME}.schema.json",
     "widgets": {
@@ -56,6 +57,7 @@ DEFAULT_CONFIG = {
             "tooltip": True,
             "item_tooltip": False,
             "show_images": True,
+            "enable_pinning": True,
         },
         "breathe": {
             "icon": "",
@@ -78,7 +80,6 @@ DEFAULT_CONFIG = {
             "full_battery_level": 100,
             "hide_percent_when_full": True,
             "hide_when_missing": True,
-            "icons": ["", "", "", "", ""],
             "tooltip": True,
             "label_format": "{icon} {percent}",
             "notifications": {
@@ -142,16 +143,28 @@ DEFAULT_CONFIG = {
         "cava": {"bars": 10, "color": "#89b4fa"},
         "overview_button": {"icon": "󰡃", "tooltip": True, "label": False},
         "click_counter": {"count": 0},
-        "dns_switcher": {"count": 0},
-        "cloudflare_warp": {"count": 0},
+        "dns_switcher": {
+            "tooltip": True,
+            "label": False,
+            "label_text": "DNS",
+            "icon": "󰚘",
+            "count": 0,
+        },
+        "cloudflare_warp": {
+            "tooltip": True,
+            "label": False,
+            "label_text": "WARP",
+            "connected_icon": "",
+            "disconnected_icon": "",
+            "count": 0,
+        },
         "cpu": {
             "show_icon": True,
             "icon": "",
             "tooltip": True,
             "round": True,
             "temperature_unit": "celsius",
-            "show_unit": True,
-            "sensor": "",
+            "sensor": "acpitz",
             "mode": "circular",
             "graph_length": 4,
         },
@@ -169,6 +182,7 @@ DEFAULT_CONFIG = {
             "clock_format": "12h",
             "hover_reveal": False,
             "reveal_duration": 500,
+            "nepali_date": False,
             "extended_date": False,
             "notification": {
                 "enabled": True,
@@ -177,7 +191,7 @@ DEFAULT_CONFIG = {
                 "notification_grouping": True,  # Group history by app in the date menu
             },
         },
-        "divider": {"size": 2},
+        "divider": {},
         "cheatsheet": {},
         "github_tray": {
             "icon": "",
@@ -224,7 +238,12 @@ DEFAULT_CONFIG = {
             "label_text": "Pomo",
             "tooltip": True,
         },
-        "ip_monitor": {},
+        "ip_monitor": {
+            "tooltip": True,
+            "label": False,
+            "label_text": "IP",
+            "icon": "󰖟",
+        },
         "hypridle": {
             "enabled_icon": "",
             "disabled_icon": "",
@@ -262,22 +281,6 @@ DEFAULT_CONFIG = {
             "truncation_size": 2,
             "show_icon": True,
         },
-        "widget_groups": [
-            {
-                "widgets": ["updates", "battery"],
-                "spacing": 4,
-                "style_classes": ["bordered"],
-                "hover_reveal": False,
-                "reveal_duration": 500,
-            },
-            {
-                "widgets": ["quick_settings", "cpu"],
-                "spacing": 0,
-                "style_classes": ["compact"],
-                "hover_reveal": False,
-                "reveal_duration": 500,
-            },
-        ],
         "memory": {
             "show_icon": True,
             "icon": "",
@@ -322,6 +325,7 @@ DEFAULT_CONFIG = {
             "show_icon": True,
             "label": False,
             "confirm": True,
+            "item_shortcuts": {},
             "buttons": {
                 "shutdown": "systemctl poweroff",
                 "reboot": "systemctl reboot",
@@ -403,15 +407,13 @@ DEFAULT_CONFIG = {
             "icon": "",
             "label": False,
             "tooltip": True,
-            "auto_refresh": True,
-            "refresh_interval": 5,
         },
         "volume": {
             "tooltip": True,
             "step_size": 5,
         },
         "weather": {
-            "location": "",
+            "location": "kathmandu",
             "label_format": "{condition} {temperature}",
             "tooltip": True,
             "expanded": True,
@@ -419,6 +421,8 @@ DEFAULT_CONFIG = {
             "wind_speed_unit": "kmh",
             "interval": HIGH_POLL_INTERVAL,
             "hover_reveal": False,
+            "reveal_duration": 500,
+            "provider": "open-meteo",
         },
         "window_title": {
             "icon": True,
@@ -439,9 +443,10 @@ DEFAULT_CONFIG = {
             "label_format": "{id}",
             "icon_map": {},
             "show_special": False,
+            "show_urgent": False,
         },
         "world_clock": {
-            "icon": "󱉊'",
+            "icon": "󱉊",
             "use_24hr": True,
             "show_icon": True,
             "timezones": ["America/New_York", "Asia/Tokyo"],
@@ -477,18 +482,23 @@ DEFAULT_CONFIG = {
             "orientation": "horizontal",
             "percentage": True,
             "icon_size": 28,
-            "play_sound": False,
             "transition_type": "slide-up",
             "transition_duration": 500,
             "osds": ["brightness", "volume"],
-            "poll_interval": 200,
         },
         "launcher": {
             "enabled": False,
             "tooltip": True,
             "icon_size": 16,
+            "anchor": "center",
+            "width": 280,
+            "height": 320,
+            "layout": "list",
+            "grid_columns": 3,
+            "grid_spacing": 12,
             "plugins_enabled": True,
             "plugins": [],
+            "plugins_dir": "",
         },
         "notification": {
             "enabled": True,
@@ -503,6 +513,8 @@ DEFAULT_CONFIG = {
             "per_app_limits": {},
             "play_sound": False,
             "max_actions": 3,
+            "max_lines": 4,
+            "max_expanded_lines": 20,
             "copy_code_action": True,  # Offer COPY for one-time (2FA) codes in body
             "show_timestamp": True,  # Relative timestamp in notification header
             "dismiss_on_hover": False,
@@ -530,18 +542,28 @@ DEFAULT_CONFIG = {
             "group_apps": True,
             "truncation_size": 20,
             "orientation": "horizontal",
-            "always_show_focused": True,
             "show_launcher": True,
             "launcher_position": "first",
-            "hide_special_workspace_apps": False,
         },
         "desktop_clock": {
             "enabled": False,
+            "type": "default",
             "layer": "bottom",
             "anchor": "center",
             "date_format": "%A, %d %B %Y",
             "time_format": "%H:%M",
-            "extended_date": False,
+            "cookie_size": 230,
+            "cookie_sides": 9,
+            "cookie_dial_style": "dots",
+            "cookie_hour_hand_style": "fill",
+            "cookie_minute_hand_style": "medium",
+            "cookie_second_hand_style": "dot",
+            "cookie_date_style": "bubble",
+            "cookie_show_seconds": True,
+            "cookie_show_hour_marks": False,
+            "cookie_background_opacity": 1.0,
+            "cookie_widget_scale": 1.0,
+            "nepali_date": False,
         },
         "desktop_quotes": {
             "enabled": False,

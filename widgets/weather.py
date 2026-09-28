@@ -45,8 +45,6 @@ class BaseWeatherWidget:
         # Get the hourly forecast
         self.hourly_forecast = self.data["hourly"]
 
-        # Update sunrise and sunset times
-        # Get the sunrise and sunset times
         self.sunrise_time = self.data["astronomy"]["sunrise"]
         self.sunset_time = self.data["astronomy"]["sunset"]
 

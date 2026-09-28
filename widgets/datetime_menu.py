@@ -138,8 +138,7 @@ class DateMenuNotification(Box):
 
     def remove_notification(self, *_):
         notification_service.remove_notification(self._id)
-        # The notification_count handler may already have reloaded the list,
-        # destroying this row - only destroy if it is still in the tree.
+        # A count handler may have already reloaded the list, destroying this row.
         if self.get_parent() is not None:
             self.destroy()
 
@@ -173,6 +172,8 @@ class DateNotificationMenu(Box):
             self.all_notifications: list[Notification] = (
                 notification_service.get_deserialized()
             )
+            # Seeded so the first count event is not mistaken for a change.
+            self._last_synced_count = notification_service.count
 
             self.notifications_listbox = ListBox(
                 name="notification-list",
@@ -320,6 +321,7 @@ class DateNotificationMenu(Box):
         self.all_notifications.clear()
         self.grouped_entries.clear()
         self.loaded_count = 0
+        self._last_synced_count = 0
 
         notification_service.clear_all_notifications()
         self.clear_icon.set_label(get_text_icon("trash.empty", ""))
@@ -355,8 +357,7 @@ class DateNotificationMenu(Box):
         return str(app_name or "Unknown")
 
     def _notification_urgency(self, notification: Notification) -> int:
-        """Get urgency (0=low, 1=normal, 2=critical) for both serialized
-        and deserialized objects."""
+        """Urgency (0=low, 1=normal, 2=critical) for either notification shape."""
         urgency = getattr(notification, "urgency", None)
         if urgency is None and hasattr(notification, "__getitem__"):
             try:
@@ -371,8 +372,7 @@ class DateNotificationMenu(Box):
     def _rebuild_grouped_entries(self):
         """Build app-wise deck entries."""
         if not self.grouping_enabled:
-            # Flat list (grouping disabled): one entry per notification,
-            # newest first.
+            # Flat list (grouping disabled): one entry per notification.
             ordered = sorted(
                 self.all_notifications,
                 key=lambda n: self._notification_id(n) or 0,
@@ -399,8 +399,7 @@ class DateNotificationMenu(Box):
                 reverse=True,
             )
 
-        # Order app decks by urgency first (any critical member), then by
-        # latest notification (matches SwayNC's list_box_sort_func).
+        # Order app decks by urgency, then latest notification (SwayNC's order).
         app_order = sorted(
             grouped,
             key=lambda app: (
@@ -474,8 +473,7 @@ class DateNotificationMenu(Box):
             ids = {self._notification_id(n) for n in notifications}
             ids.discard(None)
             for nid in ids:
-                # Each removal emits notification_count, which triggers the
-                # on_notification_count handler to re-sync and reload the list.
+                # Each removal re-syncs the list via notification_count.
                 notification_service.remove_notification(nid)
 
         # Unified expanded group header: icon + name + collapse + close-all
@@ -502,8 +500,7 @@ class DateNotificationMenu(Box):
             style_classes="notification-group-count",
         )
 
-        # Every row carries its own app icon, so the deck header only labels
-        # the group.
+        # Every row carries its own app icon, so the header only labels the group.
         group_header = header(
             leading=[
                 Label(
@@ -652,6 +649,7 @@ class DateNotificationMenu(Box):
         self.grouped_entries.clear()
         self._app_expand_state.clear()
         self.loaded_count = 0
+        self._last_synced_count = 0
         self.clear_icon.set_label(get_text_icon("trash.empty", ""))
         self.placeholder.set_visible(True)
         self.notifications_listbox.set_visible(False)
@@ -661,12 +659,17 @@ class DateNotificationMenu(Box):
         """Re-sync notifications from the service when the count changes."""
         if getattr(self, "_syncing_notification_count", False):
             return
-        if notification_service.count == len(self.all_notifications):
+        # Track the count we last materialised, not the list length: under DND
+        # new notifications never reach the list, so the length stays put and
+        # would otherwise trigger a full re-deserialize on every arrival.
+        service_count = notification_service.count
+        if service_count == getattr(self, "_last_synced_count", None):
             return
 
         self._syncing_notification_count = True
         try:
             self.all_notifications = notification_service.get_deserialized()
+            self._last_synced_count = service_count
             self._reload_grouped_list()
         finally:
             self._syncing_notification_count = False
@@ -679,18 +682,19 @@ class DateNotificationMenu(Box):
         self.all_notifications = [
             n for n in self.all_notifications if self._notification_id(n) != id
         ]
+        self._last_synced_count = notification_service.count
         self._reload_grouped_list()
 
     def on_new_notification(self, fabric_notification, id):
         if notification_service.dont_disturb:
+            # Deferred to the count handler, which resyncs in one pass.
             return
 
         fabric_notification: Notification = (
             fabric_notification.get_notification_from_id(id)
         )
 
-        # A replacement supersedes the entry it targets - drop the stale one
-        # so in-place updates don't stack up duplicates in the menu.
+        # A replacement supersedes its target, so drop the stale entry.
         replaces_id = getattr(fabric_notification, "replaces_id", 0) or 0
         if replaces_id:
             self.all_notifications = [
@@ -699,12 +703,13 @@ class DateNotificationMenu(Box):
                 if self._notification_id(n) != replaces_id
             ]
 
-        # The notification_count handler may already have synced this
-        # notification in from the service - avoid inserting it twice.
+        # The count handler may already have synced this one in.
         if any(self._notification_id(n) == id for n in self.all_notifications):
             return
 
         self.all_notifications.insert(0, fabric_notification)
+        # The list is current, so a later count event must not force a resync.
+        self._last_synced_count = notification_service.count
         self._reload_grouped_list()
 
 

@@ -8,32 +8,27 @@ from shared.custom_button import CustomButtonWidget
 
 
 class IndexedWidgetHelper:
-    """Helper class to eliminate duplication in indexed widget handling."""
+    """Indexed widget resolution shared by every collection type."""
 
     @staticmethod
     def validate_and_get_index(
         identifier: str, collection: list, collection_name: str
     ) -> Optional[int]:
-        """Unified index/id validation - DRY principle.
+        """Return the index *identifier* names in *collection*, or None.
 
-        Supports both numeric indices and string-based ``id`` lookup for
-        collapsible groups.  When the identifier is not a digit, it
-        searches for an item whose ``id`` field matches.
-
-        Returns:
-            Valid index or None if invalid
+        Digits are read as an index; anything else is matched against each
+        item's ``id`` field.
         """
         if identifier.isdigit():
             index = int(identifier)
             if not isinstance(collection, list) or not (0 <= index < len(collection)):
-                logger.exception(
+                logger.warning(
                     f"{collection_name} index {index} out of range "
                     f"(0-{len(collection) - 1})"
                 )
                 return None
             return index
 
-        # String-based id lookup
         try:
             for idx, item in enumerate(collection):
                 if isinstance(item, dict) and item.get("id") == identifier:
@@ -41,12 +36,12 @@ class IndexedWidgetHelper:
         except (ValueError, TypeError):
             pass
 
-        logger.exception(f"{collection_name}: no item with id '{identifier}' found")
+        logger.warning(f"{collection_name}: no item with id '{identifier}' found")
         return None
 
     @staticmethod
     def get_config_path(config: dict, *path_parts: str) -> list:
-        """Navigate config path safely - DRY principle."""
+        """Walk *path_parts* into *config*, or [] if the result is not a list."""
         result = config
         for part in path_parts:
             result = result.get(part, {})
@@ -63,14 +58,12 @@ class WidgetResolver:
     def resolve_widget(
         self, widget_spec: str, context: dict[str, Any]
     ) -> Optional[Any]:
-        """Unified method to resolve ALL widget types."""
+        """Resolve any widget spec, logging and swallowing failures."""
         try:
-            # Unified pattern: extract type and identifier
             if widget_spec.startswith("@"):
                 widget_type, identifier = self._parse_reference(widget_spec)
                 return self._resolve_by_type(widget_type, identifier, context)
             else:
-                # Normal widget: treated as special "widget" type
                 return self._resolve_by_type("widget", widget_spec, context)
 
         except Exception:
@@ -85,7 +78,7 @@ class WidgetResolver:
     def _resolve_by_type(
         self, widget_type: str, identifier: str, context: dict[str, Any]
     ) -> Optional[Any]:
-        """Unified resolution by type - all widgets follow the same pattern."""
+        """Dispatch to the builder registered for *widget_type*."""
         resolvers = {
             "widget": lambda: self._create_simple_widget(identifier, context),
             "custom_button": lambda: self._create_indexed_widget(
@@ -124,7 +117,7 @@ class WidgetResolver:
     def _create_simple_widget(
         self, widget_name: str, context: dict[str, Any]
     ) -> Optional[Any]:
-        """Create normal widget - same pattern as custom button."""
+        """Create a plain widget, or a named custom one for ``custom/`` specs."""
         if widget_name.startswith("custom/"):
             return self._create_named_custom_widget(widget_name, context)
 
@@ -192,7 +185,7 @@ class WidgetResolver:
         config_path: list,
         instantiator_func,
     ) -> Optional[Any]:
-        """Unified indexed widget creation - DRY principle."""
+        """Resolve *identifier* under *config_path* and instantiate it."""
 
         config = context.get("config", {})
 

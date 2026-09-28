@@ -1,15 +1,28 @@
 import re
 from collections.abc import Callable
 
+import gi
 from fabric.core.service import Property, Signal
-from fabric.utils import GLib, exec_shell_command_async, logger
+from fabric.utils import GLib, exec_shell_command, exec_shell_command_async, logger
 
-from utils.functions import run_command
+from utils.decorators import run_worker_with_idle
 
-from .base import PollingController, SingletonService
+from .base import IGNORED, PolledCommandService
+
+try:  # Optional: without the bindings the safety-net poll alone keeps this alive.
+    gi.require_version("NM", "1.0")
+    from gi.repository import NM
+except (ImportError, ValueError):
+    NM = None
 
 # Matches valid IPv4, IPv6, or hostname — blocks shell metacharacters.
 _DNS_VALUE_RE = re.compile(r"^[a-zA-Z0-9.:\[\]-]+$")
+
+_UUID_RE = re.compile(r"^[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}$")
+
+# A safety net only, since NM signals drive the real updates: at 3 s it was
+# 28,800 nmcli spawns a day for a label that changes a few times a day.
+_POLL_INTERVAL_MS = 30_000
 
 
 def _is_valid_dns_value(value: str) -> bool:
@@ -27,55 +40,101 @@ DEFAULT_PROVIDERS = [
 ]
 
 
-class DnsSwitcherService(SingletonService):
+def _label_for(dns: str | None) -> str:
+    """Name a known provider, fall back to the address, or report the default."""
+    if not dns:
+        return "Default"
+    for provider in DEFAULT_PROVIDERS:
+        if provider["primary"] == dns:
+            return provider["label"]
+    return dns
+
+
+class DnsSwitcherService(PolledCommandService):
     """Detect and switch DNS servers via NetworkManager (polls ``nmcli``)."""
 
     _dns_line_re = None
 
     @Signal
     def changed(self) -> None:
-        """Emitted every poll cycle regardless of change."""
+        """Emitted when the current DNS server changes."""
 
     def _get_dns_line_re(self):
         if self._dns_line_re is None:
             self.__class__._dns_line_re = re.compile(r"IP4\.DNS\[\d+\]:\s*(\S+)")
         return self._dns_line_re
 
-    def __init__(self, poll_interval_ms: int = 3000, **kwargs):
-        super().__init__(**kwargs)
-
-        self._poll_interval = poll_interval_ms
-        self._current: str | None = None
-        self._current_label: str = "Default"
-
-        self._first_line_of_poll = True
-
-        # A list, not a shell string: Fabric runs the argv directly, so a
-        # "2>/dev/null" style redirect would arrive as a literal argument.
-        self._poller = PollingController(
-            ["nmcli", "-t", "-f", "IP4.DNS", "con", "show", "--active"],
+    def __init__(self, poll_interval_ms: int = _POLL_INTERVAL_MS, **kwargs):
+        super().__init__(
+            # ``IP4.DNS`` is a device field, not a connection field, so ``con`` fails.
+            ["nmcli", "-t", "-f", "IP4.DNS", "dev", "show"],
             poll_interval_ms,
-            self._on_dns_line,
+            "_on_dns_line",
             tag="DNS",
             on_start=self._mark_poll_start,
+            **kwargs,
         )
-        self._poller.start()
+        self._current_label = "Default"
+        self._first_line_of_poll = True
+        self._nm_client = None
+        self._nm_handlers: list[tuple] = []
+        self._watch_network_manager()
 
     # ── Properties ──────────────────────────────────────────────
 
     @Property(str, "readable", default_value="Default")
     def current(self) -> str:
-        return self._current or "Default"
+        return self._state or "Default"
 
-    # ── Polling ─────────────────────────────────────────────────
+    # ── NetworkManager signals ──────────────────────────────────
 
-    def pause_polling(self):
-        """Stop polling — call when the widget is destroyed."""
-        self._poller.stop()
+    def _watch_network_manager(self) -> None:
+        """Follow the active connection so a DNS change does not wait on a poll.
 
-    def resume_polling(self):
-        """Restart polling — call when the widget is created."""
-        self._poller.start()
+        NM exposes no ``dns`` property, so a new IP config on the connection or
+        on one of its devices is the signal that the servers have moved.
+        """
+        if NM is None:
+            logger.info("[DNS] NM bindings unavailable; falling back to polling")
+            return
+        NM.Client.new_async(cancellable=None, callback=self._on_nm_client)
+
+    def _on_nm_client(self, client, _task, *_args) -> None:
+        if client is None:
+            # No NM daemon to talk to; the safety-net poll carries the service.
+            return
+        self._nm_client = client
+        client.connect("notify::primary-connection", self._on_primary_connection)
+        self._on_primary_connection()
+
+    def _on_primary_connection(self, *_args) -> None:
+        self._disconnect_nm()
+        connection = self._nm_client.get_primary_connection()
+        if connection is not None:
+            self._connect_nm(connection, "notify::ip4-config")
+            for device in connection.get_devices():
+                self._connect_nm(device, "notify::ip4-config")
+        self._on_nm_dns_changed()
+
+    def _connect_nm(self, target, signal: str) -> None:
+        handler = target.connect(signal, self._on_nm_dns_changed)
+        self._nm_handlers.append((target, handler))
+
+    def _disconnect_nm(self) -> None:
+        for target, handler in self._nm_handlers:
+            target.disconnect(handler)
+        self._nm_handlers.clear()
+
+    def _on_nm_dns_changed(self, *_args) -> None:
+        # Re-read through nmcli rather than parsing NM: one parser, one truth.
+        self._poller.poll_now()
+
+    def destroy(self) -> None:
+        """Drop the NM handlers, then stop the poller the base owns."""
+        self._disconnect_nm()
+        super().destroy()
+
+    # ── Parsing ─────────────────────────────────────────────────
 
     def _mark_poll_start(self) -> None:
         """Reset the per-run state before each nmcli invocation."""
@@ -84,64 +143,50 @@ class DnsSwitcherService(SingletonService):
     def _on_dns_line(self, line: str):
         # Called once per stdout line; only the first carries the primary DNS.
         if not self._first_line_of_poll:
-            return
+            return IGNORED
         self._first_line_of_poll = False
 
         raw = line.strip()
         if not raw:
-            was = self._current
-            self._current = None
-            self._current_label = "Default"
-            if was != self._current:
-                self.notify("current")
-                self.emit("changed")
-            return
+            return None  # nmcli printed no DNS field, so the device has none
 
-        # Parse DNS entries from nmcli output
-        dns_ips: list[str] = [m.group(1) for m in self._get_dns_line_re().finditer(raw)]
+        match = self._get_dns_line_re().search(raw)
+        return match.group(1) if match else IGNORED
 
-        if not dns_ips:
-            return
-
-        primary = dns_ips[0]
-        if primary == self._current:
-            return
-
-        was = self._current
-        self._current = primary
-
-        # Try to match against known providers
-        for prov in DEFAULT_PROVIDERS:
-            if prov["primary"] == primary:
-                self._current_label = prov["label"]
-                break
-        else:
-            self._current_label = primary
-
-        if was != self._current:
-            self.notify("current")
-            self.emit("changed")
+    def _on_state_changed(self, value) -> None:
+        self._current_label = _label_for(value)
+        self.notify("current")
 
     # ── Actions ─────────────────────────────────────────────────
 
-    def _get_active_connection(self) -> str:
-        """Return the UUID of the active connection, or empty string."""
-        output = run_command(["nmcli", "-t", "-f", "UUID", "con", "show", "--active"])
-        if output is None:
-            return ""
-        lines = [line.strip() for line in output.strip().split("\n") if line.strip()]
-        return lines[0] if lines else ""
+    def _query_active_connection(self) -> str:
+        """Worker: ``nmcli con show`` blocks the caller for ~100ms."""
+        output = exec_shell_command("nmcli -t -f UUID con show --active") or ""
+        # nmcli returns the error text on a non-zero exit, so only a real UUID counts.
+        for line in output.splitlines():
+            candidate = line.strip()
+            if _UUID_RE.match(candidate):
+                return candidate
+        return ""
+
+    def _with_active_connection(self, on_found: Callable[[str], None]) -> None:
+        """Resolve the UUID off-thread, then continue *on_found* on the main loop."""
+
+        def apply(uuid: str) -> None:
+            if not uuid:
+                logger.warning("[DNS] No active NetworkManager connection found")
+                return
+            on_found(uuid)
+
+        run_worker_with_idle(self._query_active_connection, apply)
 
     def _run_commands(
         self, commands: list[list[str]], on_finished: Callable[[bool], None]
     ) -> None:
         """Run *commands* one after another, then report whether all succeeded.
 
-        A list of commands rather than a ``&&`` chain, because Fabric's
-        ``exec_shell_command_async`` does not use a shell: it splits the string
-        and runs the result directly, so ``&&`` would arrive as a literal
-        argument and every step after the first would be silently dropped.
-        Sequential because each step depends on the previous one.
+        A list, not a ``&&`` chain: ``exec_shell_command_async`` uses no shell, so
+        ``&&`` would arrive as a literal argument and drop every later step.
         """
 
         def step(index: int):
@@ -183,11 +228,6 @@ class DnsSwitcherService(SingletonService):
 
     def set_dns(self, primary: str, secondary: str = ""):
         """Switch to the given DNS servers via pkexec nmcli."""
-        uuid = self._get_active_connection()
-        if not uuid:
-            logger.warning("[DNS] No active NetworkManager connection found")
-            return
-
         if not _is_valid_dns_value(primary) or (
             secondary and not _is_valid_dns_value(secondary)
         ):
@@ -201,9 +241,12 @@ class DnsSwitcherService(SingletonService):
         if secondary:
             servers = f"{primary} {secondary}"
 
-        self._run_commands(
-            self._switch_commands(uuid, servers, "yes"),
-            self._on_switch_finished,
+        # Validated up front so a bad value never pays for the nmcli lookup.
+        self._with_active_connection(
+            lambda uuid: self._run_commands(
+                self._switch_commands(uuid, servers, "yes"),
+                self._on_switch_finished,
+            )
         )
 
     @staticmethod
@@ -232,23 +275,13 @@ class DnsSwitcherService(SingletonService):
 
     def reset_to_default(self):
         """Reset DNS to ISP default (auto)."""
-        uuid = self._get_active_connection()
-        if not uuid:
-            logger.warning("[DNS] No active NetworkManager connection found")
-            return
-
         # An empty value clears the list, which is what the shell form '' meant.
-        self._run_commands(
-            self._switch_commands(uuid, "", "no"),
-            self._on_switch_finished,
+        self._with_active_connection(
+            lambda uuid: self._run_commands(
+                self._switch_commands(uuid, "", "no"),
+                self._on_switch_finished,
+            )
         )
 
-    # ── Teardown ────────────────────────────────────────────────
 
-    def destroy(self):
-        self._stop_polling()
-        return super().destroy()
-
-
-# Singleton instance
 dns_switcher_service = DnsSwitcherService()

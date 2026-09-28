@@ -86,7 +86,7 @@ transition_duration = 350
 
 [modules.osd]
 enabled = false
-timeout = 3000
+timeout = 1500
 anchor = "bottom-center"
 orientation = "horizontal"
 osds = ["brightness", "volume"]
@@ -95,12 +95,12 @@ osds = ["brightness", "volume"]
 enabled = false
 tooltip = true
 icon_size = 35
-ignored = []
 anchor = "center"
 width = 280
 height = 320
 layout = "grid"
 grid_columns = 3
+grid_spacing = 12
 plugins_enabled = true
 plugins_dir = ""
 # Allowlist of slash-command plugins to load, by plugin name.
@@ -170,7 +170,6 @@ step_size = 5
 [widgets.battery]
 hide_percent_when_full = true
 hide_when_missing = true
-icons = ["", "", "", "", ""]
 tooltip = true
 label_format = "{icon} {percent}"
 

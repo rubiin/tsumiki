@@ -26,8 +26,13 @@ class BrightnessOSDContainer(GenericOSDContainer):
         self.config = config
 
         self.update_brightness()
-        self.brightness_service.connect(
-            "brightness_changed", self.on_brightness_changed
+        self._watch_brightness()
+
+    def _watch_brightness(self) -> None:
+        """Tracked so a rebuilt bar drops the handler with the widget."""
+        self._register_handlers(
+            self.brightness_service,
+            {"brightness_changed": self.on_brightness_changed},
         )
 
     @cooldown(0.1)

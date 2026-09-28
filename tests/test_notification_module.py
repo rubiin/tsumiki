@@ -8,7 +8,6 @@ import unittest
 from unittest import mock
 
 from fabric.notifications import Notification
-from fabric.widgets.revealer import Revealer
 
 from modules import notification as notification_module
 from modules.notification import NotificationRevealer
@@ -16,17 +15,16 @@ from tests.helpers import make_notification
 
 
 class NotificationRevealerClosedHandlerTest(unittest.TestCase):
-    """The ``closed`` handler must follow the current notification, not stack.
-
-    A revealer is reused when a notification is replaced (``replaces_id``), so a
-    rebind that forgets to disconnect leaves the previous notification holding a
-    live handler into a widget that outlives it.
-    """
+    """The ``closed`` handler must follow the current notification, not stack."""
 
     def _make_revealer(self, notification: Notification) -> NotificationRevealer:
         revealer = NotificationRevealer.__new__(NotificationRevealer)
         revealer._notification = notification
         revealer._closed_handler_id = None
+        # Seeded so TeardownMixin does not call connect() on an uninitialised GObject.
+        revealer._repeaters = []
+        revealer._handlers = []
+        revealer._timeouts = {}
         revealer.resolved = []
         revealer.on_resolved = lambda *args: revealer.resolved.append(args)
         return revealer
@@ -100,10 +98,9 @@ class NotificationRevealerClosedHandlerTest(unittest.TestCase):
         revealer = self._make_revealer(notification)
         revealer._bind_closed_handler()
 
-        with mock.patch.object(Revealer, "destroy", return_value=None):
-            NotificationRevealer.destroy(revealer)
-
-        self.assertIsNone(revealer._closed_handler_id)
+        # The destroy signal, not a destroy() override: GTK destroys children
+        # from C and never dispatches to a Python override.
+        revealer._teardown()
 
         notification.emit("closed", None)
         self.assertEqual(revealer.resolved, [], "handler survived destroy")

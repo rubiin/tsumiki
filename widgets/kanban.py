@@ -19,7 +19,6 @@ from utils.icons import get_text_icon
 from utils.widget_utils import create_surface_from_widget
 
 
-# fix the kanban :TODO
 class InlineEditor(Box):
     """A simple inline editor for editing text in a Gtk.TextView."""
 
@@ -36,7 +35,6 @@ class InlineEditor(Box):
         buffer = self.text_view.get_buffer()
         buffer.set_text(initial_text)
 
-        # Connect key press events to handle Return and SHIFT+Return.
         self.text_view.connect("key-press-event", self.on_key_press)
 
         confirm_btn = Button(
@@ -56,7 +54,6 @@ class InlineEditor(Box):
             on_clicked=self.on_cancel,
         )
 
-        # Pack the TextView inside a ScrolledWindow for better appearance.
         sw = ScrolledWindow(
             h_scrollbar_policy="never",
             v_scrollbar_policy="automatic",
@@ -83,22 +80,18 @@ class InlineEditor(Box):
         self.emit("canceled")
 
     def on_key_press(self, widget: Gtk.Widget, event):
-        # Check for Escape to cancel.
         if event.keyval == Gdk.KEY_Escape:
             self.emit("canceled")
             return True
 
-        # If Return is pressed...
         if event.keyval in (Gdk.KEY_Return, Gdk.KEY_KP_Enter):
             state = event.get_state()
             if state & Gdk.ModifierType.SHIFT_MASK:
-                # SHIFT+Return: insert a newline.
                 buffer = self.text_view.get_buffer()
                 cursor_iter = buffer.get_iter_at_mark(buffer.get_insert())
                 buffer.insert(cursor_iter, "\n")
                 return True  # Prevent further handling.
             else:
-                # Plain Return: confirm the edit.
                 self.on_confirm(widget)
                 return True
         return False
@@ -115,16 +108,14 @@ class KanbanNote(EventBox):
         super().__init__()
         self.text = text
         self._focus_timer_id: int | None = None
-        # Variables to store the click offset for drag preview.
         self.setup_ui()
         self.setup_dnd()
         self.connect("button-press-event", self.on_button_press)
 
     def setup_ui(self):
         self.box = Box(name="kanban-note", spacing=4)
-        self.label = Label(label=self.text, line_wrap=True, v_expand=True)
+        self.label = Label(label=self.text, v_expand=True)
         self.label.set_line_wrap(True)
-        # Wrap long lines.
         self.label.set_line_wrap_mode(Gtk.WrapMode.WORD)
 
         self.delete_btn = Button(
@@ -286,7 +277,7 @@ class KanbanColumn(Gtk.Frame):
             row.remove(editor)
             row.add(note)
             self.listbox.show_all()
-            self.emit("changed")  # Emit on add
+            self.emit("changed")
 
         def on_canceled(editor):
             row.destroy()
@@ -342,7 +333,7 @@ class KanbanColumn(Gtk.Frame):
 
             self.listbox.show_all()
             drag_context.finish(True, True, time)
-            self.emit("changed")  # Emit on move
+            self.emit("changed")
 
     def on_drag_motion(self, widget: Gtk.Widget, drag_context, x, y, time):
         Gdk.drag_status(drag_context, Gdk.DragAction.MOVE, time)
@@ -357,6 +348,9 @@ class Kanban(Box):
 
     def __init__(self):
         super().__init__(name="kanban-board", spacing=4)
+
+        # Row destroys emit "changed", saving a half-empty board over our read.
+        self._loading = False
 
         self.grid = Grid(column_spacing=4, column_homogeneous=True, v_expand=True)
 
@@ -376,6 +370,8 @@ class Kanban(Box):
         self.show_all()
 
     def save_state(self):
+        if self._loading:
+            return
         state = {
             "columns": [
                 {"title": col.title, "notes": col.get_notes()} for col in self.columns
@@ -387,6 +383,13 @@ class Kanban(Box):
         )
 
     def load_state(self):
+        self._loading = True
+        try:
+            self._load_state()
+        finally:
+            self._loading = False
+
+    def _load_state(self):
         state = read_json_file(KANBAN_FILE)
         if not state or not isinstance(state.get("columns"), list):
             logger.info(

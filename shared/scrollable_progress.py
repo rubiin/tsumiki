@@ -1,8 +1,4 @@
-"""Shared base for widgets that display a circular progress bar and respond to scroll.
-
-Used by VolumeWidget and BrightnessWidget (and any future scroll-to-adjust
-widget with a circular indicator).
-"""
+"""Shared base for circular-progress widgets that respond to scroll."""
 
 from shared.widget_container import EventBoxWidget
 from utils.icons import get_text_icon
@@ -10,12 +6,7 @@ from utils.widget_utils import create_progress, nerd_font_icon
 
 
 class ScrollableProgressWidget(EventBoxWidget):
-    """Base class for scrollable circular-progress widgets.
-
-    Provides the common icon + circular progress bar layout and a helper
-    for updating the display.  Subclasses implement the service-specific
-    scroll handling and value reading.
-    """
+    """Provide the icon + progress layout; subclasses handle scroll and reading."""
 
     def __init__(
         self,

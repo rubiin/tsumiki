@@ -10,6 +10,7 @@ from fabric.widgets.stack import Stack
 
 from services.mpris import MprisPlayer, MprisPlayerManager
 from shared.sinewave_slider import SineWaveSlider
+from utils.change_cache import ChangeCache
 from utils.constants import APP_DATA_DIRECTORY, ASSETS_DIR, NEWLINE_RE
 from utils.functions import ensure_directory, get_http_client
 from utils.i18n import _
@@ -19,6 +20,7 @@ from utils.pixbuf import load_file_pixbuf
 from utils.widget_utils import nerd_font_icon
 
 from .buttons import HoverButton
+from .widget_container import TeardownMixin
 
 
 def _format_seconds(micro_seconds: int) -> str:
@@ -39,6 +41,17 @@ _LIGHT_ART_LUMINANCE_THRESHOLD = 0.5
 _ART_SCRIM_GRADIENT = (
     "linear-gradient(to right, rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.1))"
 )
+
+_SEEKBAR_TIMER = "seekbar"
+
+
+def css_image_url(path: str) -> str:
+    """Return *path* quoted for a CSS ``url()``, escaping what would break it.
+
+    A track named ``Bob's cover.jpg`` yields a path GTK's CSS parser rejects, so
+    the whole declaration — and the artwork with it — is silently dropped.
+    """
+    return path.replace("\\", "\\\\").replace("'", "\\'")
 
 
 def _average_luminance(pixbuf: GdkPixbuf.Pixbuf) -> float | None:
@@ -69,8 +82,7 @@ def _average_luminance(pixbuf: GdkPixbuf.Pixbuf) -> float | None:
 def _classify_art_cached(image_path: str, mtime: float) -> bool | None:
     """Classify artwork light-or-dark, cached per (path, mtime); None on failure.
 
-    The decode is cached separately by :func:`load_file_pixbuf`, against the
-    file's mtime; this layer only has to redo the cheap luminance pass.
+    The decode is already cached by mtime, so this only redoes luminance.
     """
     pixbuf = load_file_pixbuf(image_path, 16, 16)
     if pixbuf is None:
@@ -189,7 +201,7 @@ class PlayerBoxStack(Box):
         self._sync_dots()
 
 
-class PlayerBox(Box):
+class PlayerBox(Box, TeardownMixin):
     """Glassmorphism player card: metadata, waveform, playback."""
 
     def __init__(
@@ -213,8 +225,10 @@ class PlayerBox(Box):
         self.player_name = player_name
         self.fallback_cover_path = f"{ASSETS_DIR}/images/disk.png"
         self._last_temp_art_path: str | None = None
-        self._seekbar_timer_id: int | None = None
+        self._art_cache = ChangeCache()
         self.exit = False
+        # GTK destroys children from C, so cleanup hangs off the signal.
+        self.connect("destroy", self._on_destroy)
 
         # ─── Track Info ───
         self.title_label = Label(
@@ -371,8 +385,7 @@ class PlayerBox(Box):
             },
         )
 
-        # Seed the seekbar at the track position, then tick it only while
-        # playback advances (see _move_seekbar / on_playback_change).
+        # Seed the seekbar, then tick only while playback advances.
         if self.player is not None:
             self._sync_seekbar()
         self._start_seekbar_timer()
@@ -443,7 +456,12 @@ class PlayerBox(Box):
         light_art = self._classify_art(art_path)
         # Dark scrim under light text on dark art; skipped on light art.
         scrim = "" if light_art else f"{_ART_SCRIM_GRADIENT}, "
-        self.set_style(f"background-image: {scrim}url('{art_path}');")
+        # set_style reparses the whole declaration, so only reapply on a change.
+        self._art_cache.apply(
+            "background",
+            f"background-image: {scrim}url('{css_image_url(art_path)}');",
+            self.set_style,
+        )
         for cls in ("on-light-art", "on-dark-art"):
             self.remove_style_class(cls)
         if light_art is not None:
@@ -452,8 +470,7 @@ class PlayerBox(Box):
     def _classify_art(self, image_path: str | None) -> bool | None:
         """Classify artwork brightness: True light, False dark, None unknown.
 
-        Drives the ``on-light-art``/``on-dark-art`` classes SCSS uses to pick
-        readable text colors against the (theme-generated) album art.
+        Drives the ``on-light-art``/``on-dark-art`` classes SCSS uses.
         """
         if not image_path or not os.path.isfile(image_path):
             return None
@@ -467,13 +484,11 @@ class PlayerBox(Box):
         """Update dot navigation for player switching in place."""
         current_dots = list(self.dot_box.get_children())
 
-        # Remove excess dots
         while len(current_dots) > count:
             dot = current_dots.pop()
             dot.destroy()
             self.dot_box.remove(dot)
 
-        # Add new dots if needed
         while len(current_dots) < count:
             i = len(current_dots)
             dot = HoverButton(
@@ -486,7 +501,6 @@ class PlayerBox(Box):
             current_dots.append(dot)
             self.dot_box.add(dot)
 
-        # Update style classes in place
         for i, dot in enumerate(current_dots):
             if i == active_index:
                 dot.add_style_class("active")
@@ -521,8 +535,7 @@ class PlayerBox(Box):
             self.play_pause_icon.set_label(get_text_icon("mpris.paused", ""))
             self.progress_bar.set_active(True)
 
-        # Only a running player advances the position, so only then is there a
-        # reason to tick; _move_seekbar stops the timer for anything else.
+        # Only a running player advances the position, so only then tick.
         if status == "playing":
             self._start_seekbar_timer()
         else:
@@ -538,30 +551,24 @@ class PlayerBox(Box):
 
     def _move_seekbar(self, *_):
         if self.player is None or self.exit:
-            self._seekbar_timer_id = None
             return False
         # Don't fight the user's hand while they are dragging the seekbar.
         if self.progress_bar.get_dragging():
             return True
         if self.player.playback_status != "playing":
-            # A paused/stopped position does not advance, so there is nothing to
-            # redraw: stop the 1 Hz tick rather than re-measuring the label and
-            # slider every second. Resuming restarts it via on_playback_change.
-            self._seekbar_timer_id = None
+            # A paused position does not advance, so stop the 1 Hz tick.
             return False
         self._sync_seekbar()
         return True
 
     def _start_seekbar_timer(self):
         """Start the 1 Hz position tick unless it is already running."""
-        if self._seekbar_timer_id is not None or self.exit:
+        if self.exit:
             return
-        self._seekbar_timer_id = GLib.timeout_add(1000, self._move_seekbar)
+        self._schedule_repeater(_SEEKBAR_TIMER, 1000, self._move_seekbar)
 
     def _stop_seekbar_timer(self):
-        if self._seekbar_timer_id is not None:
-            GLib.source_remove(self._seekbar_timer_id)
-            self._seekbar_timer_id = None
+        self._cancel_timeout(_SEEKBAR_TIMER)
 
     # ─── Lifecycle ──────────────────────────────────────────────────────────
 
@@ -570,15 +577,12 @@ class PlayerBox(Box):
         self._stop_seekbar_timer()
         self.destroy()
 
-    def destroy(self):
+    def _on_destroy(self, *_):
+        """Drop the temp download and the tick; GTK emits this for C-side destroys."""
         self._stop_seekbar_timer()
-        if self._last_temp_art_path and os.path.exists(self._last_temp_art_path):
+        path, self._last_temp_art_path = self._last_temp_art_path, None
+        if path and os.path.exists(path):
             try:
-                os.remove(self._last_temp_art_path)
+                os.remove(path)
             except OSError:
-                logger.debug(
-                    f"[Media] Failed to remove temp file: {self._last_temp_art_path}"
-                )
-            finally:
-                self._last_temp_art_path = None
-        super().destroy()
+                logger.debug(f"[Media] Failed to remove temp file: {path}")

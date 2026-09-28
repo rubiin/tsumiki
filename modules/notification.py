@@ -48,6 +48,10 @@ from utils.widget_utils import (
 _SWIPE_DISMISS_THRESHOLD = 0.35
 BAR_COLOR = (1.0, 0.36, 0.36)  # RGB for the progress bar color
 
+# The progress bar is a 2px sliver, so a 60 Hz vsync tick bought nothing visible.
+_EXPIRY_TIMER = "expiry"
+_EXPIRY_INTERVAL_MS = 33  # ~30 Hz
+
 
 class NotificationPopup(BaseWindow):
     """A widget to grab and display notifications."""
@@ -100,10 +104,7 @@ class NotificationPopup(BaseWindow):
 
         replaces_id = getattr(notification, "replaces_id", 0) or 0
 
-        # Check if the notification is in the "do not disturb" mode, hacky way.
-        # A hidden replacement still removes the old notification (SwayNC
-        # parity): DND/ignored notifications never reach the popup, but a
-        # stale visible revealer for the replaced one must not linger.
+        # SwayNC parity: a hidden replacement still drops the stale revealer.
         if self._server.dont_disturb or notification.app_name in self.ignored_apps:
             if replaces_id:
                 self._server.drop_registry_entry(replaces_id)
@@ -114,16 +115,13 @@ class NotificationPopup(BaseWindow):
             return
 
         if replaces_id:
-            # Drop the replaced notification from the server's in-memory
-            # registry so its Notification object doesn't leak there.
+            # Drop the replaced notification so its object doesn't leak.
             self._server.drop_registry_entry(replaces_id)
 
             old_box = self._active_notifications.pop(replaces_id, None)
             if old_box is not None:
                 old_box.replace_notification(notification)
-                # Disconnect the old destroy handler (wired to replaces_id)
-                # and re-register with the new id so cleanup targets the
-                # correct key when the box eventually self-destroys.
+                # Re-register under the new id so cleanup targets the right key.
                 if hasattr(old_box, "_destroy_handler_id"):
                     old_box.disconnect(old_box._destroy_handler_id)
                 old_box._destroy_handler_id = old_box.connect(
@@ -179,11 +177,9 @@ class NotificationWidget(EventBox, TeardownMixin):
 
         self.config = config
         self._notification = notification
-        self._timeout_id = None
         self._time_remaining = 0
         self._last_tick_time = 0
 
-        # Swipe gesture state
         self._drag_start_x: float | None = None
         self._drag_start_y: float | None = None
         self._is_dragging = False
@@ -212,8 +208,7 @@ class NotificationWidget(EventBox, TeardownMixin):
 
         self._wire_events()
 
-        # Strip inline <img src=...> tags from the body; the first source is
-        # rendered as an image when the notification has no image hint.
+        # Strip inline <img src=...>; first source renders absent an image hint.
         body_text, body_image_src = helpers.extract_body_image(
             self._notification.body or ""
         )
@@ -242,20 +237,11 @@ class NotificationWidget(EventBox, TeardownMixin):
         )
         self.add(self.notification_box)
 
-        # Stop the countdown whenever the notification closes, whichever path
-        # closed it (swipe, close button, expiry, or the sending app). Tracked
-        # by TeardownMixin so the connection dies with this widget instead of
-        # outliving it on the notification.
+        # Stops the countdown on every close path; TeardownMixin owns the link.
         self._register_handlers(
             self._notification,
             {"closed": lambda *_: self.stop_timeout()},
         )
-
-    def destroy(self):
-        # Drop the frame-clock tick while the widget tree is still alive, then
-        # let TeardownMixin release the notification's ``closed`` connection.
-        self.stop_timeout()
-        return super().destroy()
 
     def _wire_events(self):
         """Connect all input event handlers."""
@@ -408,11 +394,7 @@ class NotificationWidget(EventBox, TeardownMixin):
         if not path or not os.path.exists(path):
             return None
         size = constants.NOTIFICATION_IMAGE_SIZE
-        # Only ask GdkPixbuf to shrink the image. new_from_file_at_size enlarges
-        # a source smaller than the target (and stretches a non-square one to a
-        # square), so a small attachment would arrive pre-blurred. The header
-        # gives the real dimensions without a full decode, which keeps the cheap
-        # path for the large images that actually benefit from one.
+        # Only let GdkPixbuf shrink; the header gives real dimensions cheaply.
         info = GdkPixbuf.Pixbuf.get_file_info(path)
         if info.width >= size and info.height >= size:
             pixbuf = load_file_pixbuf(path, size, size)
@@ -423,11 +405,7 @@ class NotificationWidget(EventBox, TeardownMixin):
         return pixbuf
 
     def _build_actions(self, notification: Notification, body_text: str) -> Grid:
-        """Build the actions grid from notification actions.
-
-        When the body contains a one-time (2FA) code, a COPY button is
-        prepended that copies the code and dismisses the notification.
-        """
+        """Build the actions grid; prepend COPY for a 2FA code in the body."""
         max_actions = self.config.get("max_actions", 3)
         actions = notification.actions[:max_actions]
 
@@ -469,13 +447,20 @@ class NotificationWidget(EventBox, TeardownMixin):
         self.stop_timeout()
 
     def start_timeout(self):
+        """Arm the expiry countdown, unless auto-dismiss is turned off.
+
+        Guarded here rather than at the call sites so a notification swapped in
+        while the flag is off cannot inherit a running countdown.
+        """
         self.stop_timeout()
+        if not self.config.get("auto_dismiss", True):
+            return
         self._time_remaining = self.get_timeout()
         self._last_tick_time = GLib.get_monotonic_time()
-        self._timeout_id = self.progress_timeout.add_tick_callback(self._tick_callback)
+        self._schedule_repeater(_EXPIRY_TIMER, _EXPIRY_INTERVAL_MS, self._tick)
 
-    def _tick_callback(self, widget, frame_clock) -> bool:
-        """Called on every frame (vsync). Updates progress bar smoothly."""
+    def _tick(self) -> bool:
+        """Advance the countdown; returns False once the notification expires."""
         now = GLib.get_monotonic_time()
         elapsed_ms = (now - self._last_tick_time) / 1000
         self._last_tick_time = now
@@ -485,14 +470,12 @@ class NotificationWidget(EventBox, TeardownMixin):
 
         if self._time_remaining <= 0:
             self.close_notification()
-            return False  # Stop ticking
+            return False
 
-        return True  # Keep ticking on next frame
+        return True
 
     def stop_timeout(self):
-        if self._timeout_id is not None:
-            self.progress_timeout.remove_tick_callback(self._timeout_id)
-            self._timeout_id = None
+        self._cancel_timeout(_EXPIRY_TIMER)
 
     def close_notification(self):
         self._notification.close("expired")
@@ -502,14 +485,12 @@ class NotificationWidget(EventBox, TeardownMixin):
     def on_button_press(self, widget, event):
         """Handle button press - start drag tracking for swipe gestures."""
         if event.button == 1:
-            # Left click: start tracking for potential swipe
             self._drag_start_x = event.x
             self._drag_start_y = event.y
             self._is_dragging = False
             self._swipe_offset = 0.0
             return True
         else:
-            # Right/middle click: dismiss immediately
             self._notification.close("dismissed-by-user")
             self.stop_timeout()
             return True
@@ -550,7 +531,6 @@ class NotificationWidget(EventBox, TeardownMixin):
             else:
                 self._reset_swipe_position()
 
-        # Reset drag state
         self._drag_start_x = None
         self._drag_start_y = None
         self._is_dragging = False
@@ -591,10 +571,10 @@ class NotificationWidget(EventBox, TeardownMixin):
 
     def resume_timeout(self):
         """Resume the countdown from where it left off after a pause."""
-        if self._timeout_id is not None:
+        if self._has_timeout(_EXPIRY_TIMER):
             return
         self._last_tick_time = GLib.get_monotonic_time()
-        self._timeout_id = self.progress_timeout.add_tick_callback(self._tick_callback)
+        self._schedule_repeater(_EXPIRY_TIMER, _EXPIRY_INTERVAL_MS, self._tick)
 
     def on_hover(self, *_):
         self.pause_timeout()
@@ -608,7 +588,7 @@ class NotificationWidget(EventBox, TeardownMixin):
         set_cursor(self, "arrow")
 
 
-class NotificationRevealer(Revealer):
+class NotificationRevealer(Revealer, TeardownMixin):
     """A widget to reveal a notification with open/close animations."""
 
     def __init__(self, config: dict, notification: Notification, **kwargs):
@@ -633,16 +613,18 @@ class NotificationRevealer(Revealer):
     def _bind_closed_handler(self):
         """Watch ``closed`` on the current notification, dropping any old link."""
         self._unbind_closed_handler()
-        self._closed_handler_id = self._notification.connect("closed", self.on_resolved)
+        self._closed_handler_id = self._register_handler(
+            self._notification,
+            self._notification.connect("closed", self.on_resolved),
+        )
 
     def _unbind_closed_handler(self):
         """Disconnect the ``closed`` handler from the current notification."""
+        if self._closed_handler_id is None:
+            return
         helpers.safe_disconnect(self._notification, self._closed_handler_id)
+        self._unregister_handler(self._notification, self._closed_handler_id)
         self._closed_handler_id = None
-
-    def destroy(self):
-        self._unbind_closed_handler()
-        return super().destroy()
 
     def replace_notification(self, notification: Notification):
         config = self.notification_box.config
@@ -685,11 +667,7 @@ class NotificationRevealer(Revealer):
 
 
 class NotificationActionButton(HoverButton):
-    """Base for the notification card's action row.
-
-    Subclasses only supply their label and what a click does; the styling and
-    the position-dependent edge class are identical for every action.
-    """
+    """Base for the notification card's action row."""
 
     def __init__(
         self,

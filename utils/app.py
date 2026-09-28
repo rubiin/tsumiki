@@ -49,7 +49,6 @@ class AppUtils(SingletonMixin):
 
         normalized = class_name.lower()
 
-        # Check suffixes using frozenset
         for suffix in NORMALIZE_SUFFIXES:
             if normalized.endswith(suffix):
                 return normalized[: -len(suffix)]
@@ -61,16 +60,12 @@ class AppUtils(SingletonMixin):
         if not class1 or not class2:
             return False
 
-        # Normalize both classes
         norm1 = self._normalize_window_class(class1)
         norm2 = self._normalize_window_class(class2)
 
-        # Direct match after normalization
         return norm1 == norm2
 
-    # -------------------------
-    # App Lookup Helpers
-    # -------------------------
+    # -- App lookup helpers --
 
     def _build_app_identifiers_map(self) -> dict:
         """Create a fast lookup dictionary for app identifiers."""
@@ -97,8 +92,7 @@ class AppUtils(SingletonMixin):
         """Find an app by dict or direct identifier."""
         if not app_identifier:
             return None
-        # Load before the identifier map is touched: find_app is the entry
-        # point callers reach for first, so it cannot assume a property ran.
+        # find_app is the first thing callers call, so it cannot assume the load ran.
         self._ensure_loaded()
         if isinstance(app_identifier, dict):
             for key in (
@@ -122,12 +116,10 @@ class AppUtils(SingletonMixin):
             return None
         normalized_id = str(key_value).lower()
 
-        # Fast path: direct lookup
         app = self._app_identifiers.get(normalized_id)
         if app:
             return app
 
-        # Fallback partial matching
         return next(
             (
                 app

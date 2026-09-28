@@ -12,8 +12,7 @@ from utils.plugin_manager import (
     http_request,
 )
 
-#: provider -> (endpoint, extra params). Both return the short URL as plain
-#: text when ``format=simple`` / ``api-create.php`` are used.
+#: provider -> (endpoint, params); both return the short URL as plain text.
 _SHORTENERS = {
     "is.gd": ("https://is.gd/create.php", {"format": "simple"}),
     "tinyurl": ("https://tinyurl.com/api-create.php", {}),
@@ -40,10 +39,7 @@ def normalize_url(text: str) -> str | None:
 
 
 def shorten_url(url: str, provider: str = "is.gd", cancelled=None) -> str:
-    """Shorten *url* with *provider*; returns the short URL or raises.
-
-    *cancelled* aborts a superseded request mid-flight.
-    """
+    """Shorten *url*; *cancelled* aborts a superseded request mid-flight."""
     base, extra_params = _SHORTENERS[provider]
     response = http_request(cancelled, "GET", base, params={**extra_params, "url": url})
     response.raise_for_status()

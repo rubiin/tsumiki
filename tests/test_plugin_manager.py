@@ -165,8 +165,7 @@ class PluginManagerTest(unittest.TestCase):
             manager = PluginManager(str(plugins_dir), plugin_names=["gamma"])
             self.assertEqual(manager.load(), 1)
             self.assertIsNotNone(manager.get("g"))
-            # Allowlisting an alias alone does not load the plugin — the
-            # allowlist matches plugin names, not aliases.
+            # The allowlist matches plugin names, not aliases.
             manager = PluginManager(str(plugins_dir), plugin_names=["g"])
             self.assertEqual(manager.load(), 0)
             self.assertIsNone(manager.get("gamma"))
@@ -269,13 +268,17 @@ class CalcPluginTest(unittest.TestCase):
         self.assertIn("Usage:", results[0].title)
 
     def test_debounce_before_calculation(self):
-        # /calc forks qalc per query, so it must debounce harder than the
-        # launcher default (150ms) rather than recalculate per keystroke.
+        # /calc forks qalc per query, so it must debounce past the 150ms default.
         self.assertGreaterEqual(self.plugin.debounce_ms or 0, 400)
 
 
 class TranslatePluginTest(unittest.TestCase):
     """Test the bundled /translate plugin (no network in tests)."""
+
+    def setUp(self):
+        from plugins.translate import parse_target_language
+
+        self.parse_target_language = parse_target_language
 
     def test_usage_hint_without_args(self):
         from plugins.translate import TranslatePlugin
@@ -284,11 +287,30 @@ class TranslatePluginTest(unittest.TestCase):
         self.assertIn("Usage:", results[0].title)
 
     def test_debounce_before_translation(self):
-        # /translate hits a network endpoint per query, so it must debounce
-        # harder than the launcher default (150ms), like /calc.
+        # /translate hits the network per query, so it must debounce past 150ms.
         from plugins.translate import TranslatePlugin
 
         self.assertGreaterEqual(TranslatePlugin.debounce_ms or 0, 400)
+
+    def test_parse_target_language_splits_directive(self):
+        self.assertEqual(self.parse_target_language("hello in nepali"), ("hello", "ne"))
+        self.assertEqual(
+            self.parse_target_language("bonjour to german"), ("bonjour", "de")
+        )
+        self.assertEqual(self.parse_target_language("in nepali"), ("", "ne"))
+        unknown = "hi in klingon"
+        self.assertEqual(self.parse_target_language(unknown), (unknown, None))
+
+    def test_parse_target_language_handles_non_length_preserving_casefold(self):
+        # casefold() grows ß -> ss and ﬃ -> ffi, so slicing the original by a
+        # casefolded length lands mid-word and leaves the directive in the text.
+        self.assertEqual(
+            self.parse_target_language("Straße in german"), ("Straße", "de")
+        )
+        self.assertEqual(self.parse_target_language("aﬃne in french"), ("aﬃne", "fr"))
+        self.assertEqual(
+            self.parse_target_language("deﬁnition in french"), ("deﬁnition", "fr")
+        )
 
 
 class CurrencyPluginTest(unittest.TestCase):
@@ -434,10 +456,13 @@ class CurrencyPluginTest(unittest.TestCase):
             "rates": {"EUR": 1.0, "USD": 1.1},
         }
         self._write_cache(stale)
-        with unittest.mock.patch.object(
-            self.currency_module,
-            "_download_rates",
-            side_effect=RuntimeError("down"),
+        with (
+            unittest.mock.patch.object(
+                self.currency_module,
+                "_download_rates",
+                side_effect=RuntimeError("down"),
+            ),
+            unittest.mock.patch.object(self.currency_module.time, "sleep"),
         ):
             payload = self.load_rates()
         self.assertEqual(payload, stale)
@@ -449,6 +474,7 @@ class CurrencyPluginTest(unittest.TestCase):
                 "_download_rates",
                 side_effect=RuntimeError("down"),
             ),
+            unittest.mock.patch.object(self.currency_module.time, "sleep"),
             self.assertRaises(RuntimeError),
         ):
             self.load_rates()
@@ -462,6 +488,7 @@ class CurrencyPluginTest(unittest.TestCase):
                 "_download_rates",
                 side_effect=RuntimeError("down"),
             ),
+            unittest.mock.patch.object(self.currency_module.time, "sleep"),
             self.assertRaises(RuntimeError),
         ):
             self.load_rates()
@@ -487,13 +514,97 @@ class CurrencyPluginTest(unittest.TestCase):
         self.assertEqual(results[0].data, "86.565097 EUR")
 
     def test_handle_network_failure_without_cache(self):
-        with unittest.mock.patch.object(
-            self.currency_module,
-            "_download_rates",
-            side_effect=RuntimeError("down"),
+        with (
+            unittest.mock.patch.object(
+                self.currency_module,
+                "_download_rates",
+                side_effect=RuntimeError("down"),
+            ),
+            unittest.mock.patch.object(self.currency_module.time, "sleep"),
         ):
             results = self.plugin.handle("100 usd eur")
         self.assertIn("failed", results[0].title.casefold())
+
+    def test_load_rates_backs_off_without_holding_the_lock(self):
+        stale = {
+            "date": "2026-08-11",
+            "fetched": "2026-08-11",
+            "rates": {"EUR": 1.0, "USD": 1.1},
+        }
+        self._write_cache(stale)
+        locked_during_sleep: list[bool] = []
+
+        def record_sleep(_seconds):
+            locked_during_sleep.append(self.currency_module._RATES_LOCK.locked())
+
+        with (
+            unittest.mock.patch.object(
+                self.currency_module,
+                "_download_rates",
+                side_effect=RuntimeError("down"),
+            ),
+            unittest.mock.patch.object(
+                self.currency_module.time, "sleep", side_effect=record_sleep
+            ),
+        ):
+            payload = self.load_rates()
+        self.assertEqual(payload, stale)
+        # A shared-pool worker sleeping on the lock starves battery/network/etc.
+        self.assertTrue(locked_during_sleep)
+        self.assertFalse(any(locked_during_sleep))
+
+    def test_other_thread_reads_rates_while_retry_backs_off(self):
+        import threading
+
+        stale = {
+            "date": "2026-08-11",
+            "fetched": "2026-08-11",
+            "rates": {"EUR": 1.0, "USD": 1.1},
+        }
+        self._write_cache(stale)
+        backing_off = threading.Event()
+        release = threading.Event()
+        calls = {"n": 0}
+        results: dict = {}
+
+        def fake_download(cancelled=None):
+            calls["n"] += 1
+            if calls["n"] == 1:
+                raise RuntimeError("down")  # sends the first caller into backoff
+            return "2026-08-12", {"EUR": 1.0, "USD": 1.2}
+
+        def blocking_sleep(_seconds):
+            backing_off.set()
+            release.wait(5)
+
+        def read_rates(key):
+            results[key] = self.load_rates()
+
+        with (
+            unittest.mock.patch.object(
+                self.currency_module, "_download_rates", side_effect=fake_download
+            ),
+            unittest.mock.patch.object(
+                self.currency_module.time, "sleep", side_effect=blocking_sleep
+            ),
+        ):
+            retrying = threading.Thread(target=read_rates, args=("retrying",))
+            retrying.start()
+            self.assertTrue(backing_off.wait(5))
+
+            reader = threading.Thread(target=read_rates, args=("reader",))
+            reader.start()
+            reader.join(timeout=5)
+            # The second query finished while the first was still sleeping.
+            self.assertFalse(reader.is_alive())
+            self.assertEqual(results["reader"]["rates"]["USD"], 1.2)
+
+            release.set()
+            retrying.join(timeout=5)
+        self.assertFalse(retrying.is_alive())
+        # The retrying caller re-reads the cache and finds the fresh snapshot.
+        self.assertEqual(results["retrying"]["rates"]["USD"], 1.2)
+        self.assertEqual(calls["n"], 2)
 
     def test_download_retries_transient_failure(self):
         class FakeResponse:
@@ -515,8 +626,7 @@ class CurrencyPluginTest(unittest.TestCase):
                         "rate": 183.91,
                     },
                 ]
-                # Pad with more currencies so the payload passes the size
-                # sanity check (_MIN_RATES_COUNT).
+                # Pad currencies so the payload passes _MIN_RATES_COUNT.
                 for i, code in enumerate(
                     ["GBP", "CHF", "CAD", "AUD", "INR", "CNY", "KRW", "MXN"]
                 ):
@@ -587,8 +697,7 @@ class CurrencyPluginTest(unittest.TestCase):
         self.assertEqual(calls["n"], 1)
 
     def test_debounce_before_conversion(self):
-        # /currency hits a network endpoint per query, so it must debounce
-        # harder than the launcher default (150ms), like /calc and /translate.
+        # /currency hits the network per query, so it must debounce past 150ms.
         self.assertGreaterEqual(self.plugin.debounce_ms or 0, 400)
 
     def test_execute_copies_converted_amount(self):
@@ -602,7 +711,7 @@ class CurrencyPluginTest(unittest.TestCase):
 
 
 class RunSubprocessTest(unittest.TestCase):
-    """Test the Gio-based run_subprocess helper (no stdlib subprocess)."""
+    """The run_subprocess helper plugins call."""
 
     def test_module_level_run_subprocess_captures_output(self):
         from utils.plugin_manager import SubprocessResult, run_subprocess
@@ -624,6 +733,72 @@ class RunSubprocessTest(unittest.TestCase):
 
         with self.assertRaises(SubprocessTimeoutError):
             run_subprocess(["sleep", "30"], timeout=0.2)
+
+    def test_the_command_leads_its_own_process_group(self):
+        """Without a new session a timeout kill would land on the bar itself."""
+        import sys
+
+        from utils.plugin_manager import run_subprocess
+
+        result = run_subprocess(
+            [sys.executable, "-c", "import os; print(os.getpgid(0) == os.getpid())"]
+        )
+        self.assertEqual("True", result.stdout.strip())
+
+    def test_a_grandchild_holding_the_pipe_cannot_wedge_the_call(self):
+        """The reported hang: the shell exits, its background child keeps the pipe."""
+        import threading
+
+        from utils.plugin_manager import SubprocessTimeoutError, run_subprocess
+
+        outcome: dict = {}
+        done = threading.Event()
+
+        def _run():
+            try:
+                outcome["result"] = run_subprocess(
+                    ["sh", "-c", "sleep 20 & exit 0"], timeout=0.5
+                )
+            except SubprocessTimeoutError as exc:
+                outcome["timeout"] = exc
+            except Exception as exc:  # pragma: no cover - failure detail
+                outcome["error"] = exc
+            finally:
+                done.set()
+
+        worker = threading.Thread(target=_run, daemon=True)
+        worker.start()
+        # A regression leaves the worker blocked reading the pipe for 20 s.
+        self.assertTrue(done.wait(10), "run_subprocess never returned")
+        worker.join(timeout=1)
+        self.assertNotIn("error", outcome, outcome.get("error"))
+        self.assertIn("timeout", outcome, "a command this slow must time out")
+
+    def test_text_false_returns_bytes(self):
+        from utils.plugin_manager import run_subprocess
+
+        result = run_subprocess(["echo", "hi"], text=False)
+        self.assertIsInstance(result.stdout, bytes)
+        self.assertEqual(b"hi\n", result.stdout)
+
+    def test_capture_output_is_accepted_for_subprocess_compatibility(self):
+        from utils.plugin_manager import run_subprocess
+
+        result = run_subprocess(["echo", "hi"], capture_output=True, text=True)
+        self.assertEqual("hi\n", result.stdout)
+
+    def test_an_unknown_keyword_is_rejected(self):
+        """A silently ignored ``cwd=`` looks like it worked and did not."""
+        from utils.plugin_manager import run_subprocess
+
+        with self.assertRaises(TypeError):
+            run_subprocess(["echo", "hi"], cwd="/tmp")
+
+    def test_the_plugin_method_also_rejects_an_unknown_keyword(self):
+        from utils.plugin_manager import LauncherPlugin
+
+        with self.assertRaises(TypeError):
+            LauncherPlugin().run_subprocess(["echo", "hi"], cwd="/tmp")
 
     def test_plugin_run_subprocess_is_cancellable(self):
         import threading
@@ -729,8 +904,7 @@ class HttpRequestTest(unittest.TestCase):
         ):
             result = http_request(lambda: False, "GET", "https://example.com")
         self.assertEqual(result, ("materialized", "hello world"))
-        # The helper must read the whole body before materializing, so
-        # superseded queries abort instead of parsing a partial response.
+        # Read the whole body before materializing, so stale queries abort early.
         args, _ = mock_materialize.call_args
         self.assertEqual(args[1], b"hello world")
 
@@ -885,6 +1059,16 @@ class KillPluginTest(unittest.TestCase):
         (tmp / "notapid").mkdir()
         return tmp
 
+    def _many_proc(self, tmp: Path) -> Path:
+        """Fake /proc holding many matching PIDs, so a partial scan is visible."""
+        proc = self._fake_proc(tmp)
+        for index in range(20):
+            d = proc / str(2000 + index)
+            d.mkdir()
+            (d / "comm").write_text("matchme\n")
+            (d / "cmdline").write_bytes(b"/usr/bin/matchme\x00")
+        return proc
+
     def test_parse_kill_args(self):
         self.assertEqual(self.parse_kill_args(""), (False, ""))
         self.assertEqual(self.parse_kill_args("firefox"), (False, "firefox"))
@@ -915,6 +1099,57 @@ class KillPluginTest(unittest.TestCase):
             proc = self._fake_proc(Path(tmp))
             matches = self.list_processes("e", limit=1, proc_dir=str(proc))
             self.assertLessEqual(len(matches), 1)
+
+    def test_debounce_waits_for_typing_to_settle(self):
+        from plugins.kill import KillPlugin
+
+        # 150 ms is the launcher default; a /proc walk costs ~2 reads per PID.
+        self.assertEqual(KillPlugin.debounce_ms, 400)
+        self.assertGreater(KillPlugin.debounce_ms, 150)
+
+    def test_list_processes_stops_when_cancelled(self):
+        from plugins import kill
+
+        with tempfile.TemporaryDirectory() as tmp:
+            proc = self._many_proc(Path(tmp))
+            full = self.list_processes("matchme", proc_dir=str(proc))
+            self.assertEqual(len(full), 20)
+
+            checks = 0
+
+            def cancelled():
+                nonlocal checks
+                checks += 1
+                return checks > 3  # flip true partway through the scan
+
+            reads = 0
+            real_read_comm = kill.read_comm
+
+            def counting_read_comm(pid, proc_dir="/proc"):
+                nonlocal reads
+                reads += 1
+                return real_read_comm(pid, proc_dir)
+
+            with unittest.mock.patch(
+                "plugins.kill.read_comm", side_effect=counting_read_comm
+            ):
+                partial = self.list_processes(
+                    "matchme", proc_dir=str(proc), cancelled=cancelled
+                )
+        self.assertLess(len(partial), len(full))
+        self.assertEqual(len(partial), 2)  # aborted before the third match
+        # 3 of 23 PIDs read — the rest of the tree was never enumerated.
+        self.assertEqual(reads, 3)
+
+    def test_handle_passes_cancellation_to_proc_scan(self):
+        with unittest.mock.patch(
+            "plugins.kill.list_processes", return_value=[]
+        ) as mock_scan:
+            self.plugin.handle("firefox")
+        callback = mock_scan.call_args.kwargs["cancelled"]
+        self.assertFalse(callback())
+        self.plugin.cancel()
+        self.assertTrue(callback())
 
     def test_kill_process_signals(self):
         import signal
@@ -1053,6 +1288,18 @@ class EmojiPluginTest(unittest.TestCase):
         self.assertTrue(matches)
         self.assertEqual(matches[0][1]["name"], "grinning face")
 
+    def test_search_index_is_built_once_across_queries(self):
+        from plugins import emoji as emoji_module
+
+        emoji_module.search_index.cache_clear()
+        with unittest.mock.patch.object(
+            emoji_module, "_build_index", wraps=emoji_module._build_index
+        ) as builder:
+            self.search_emojis("heart")
+            self.search_emojis("rocket")
+        # The lowercase haystack for all ~2000 rows is built once, not per keystroke.
+        self.assertEqual(builder.call_count, 1)
+
     def test_handle_returns_glyph_rows(self):
         results = self.plugin.handle("rocket")
         self.assertTrue(results)
@@ -1086,6 +1333,18 @@ class UnicodePluginTest(unittest.TestCase):
         matches = self.search_unicode("copyright")
         self.assertTrue(matches)
         self.assertEqual(matches[0][1]["name"], "COPYRIGHT SIGN")
+
+    def test_search_index_is_built_once_across_queries(self):
+        from plugins import unicode as unicode_module
+
+        unicode_module.search_index.cache_clear()
+        with unittest.mock.patch.object(
+            unicode_module, "_build_index", wraps=unicode_module._build_index
+        ) as builder:
+            self.search_unicode("copyright")
+            self.search_unicode("arrow")
+        # The lowercase haystack for all rows is built once, not per keystroke.
+        self.assertEqual(builder.call_count, 1)
 
     def test_search_finds_by_codepoint(self):
         matches = self.search_unicode("U+00A9")
@@ -1123,12 +1382,14 @@ class ClipboardHistoryPluginTest(unittest.TestCase):
         from plugins.clipboard_history import (
             ClipboardHistoryPlugin,
             is_binary,
+            match_items,
             parse_list,
         )
 
         self.plugin = ClipboardHistoryPlugin()
         self.parse_list = parse_list
         self.is_binary = is_binary
+        self.match_items = match_items
 
     def test_parse_list(self):
         output = "713\thello world\n712\tlibqalculate\n"
@@ -1144,6 +1405,51 @@ class ClipboardHistoryPluginTest(unittest.TestCase):
     def test_is_binary(self):
         self.assertTrue(self.is_binary("PNG\x00\x01\x02"))
         self.assertFalse(self.is_binary("hello world"))
+
+    def test_debounce_waits_for_typing_to_settle(self):
+        from plugins.clipboard_history import ClipboardHistoryPlugin
+
+        # `cliphist list` forks a subprocess per query; 150 ms is the default.
+        self.assertEqual(ClipboardHistoryPlugin.debounce_ms, 400)
+        self.assertGreater(ClipboardHistoryPlugin.debounce_ms, 150)
+
+    def test_match_items_stops_when_cancelled(self):
+        items = [(str(index), f"item {index}") for index in range(10)]
+        checks = 0
+
+        def cancelled():
+            nonlocal checks
+            checks += 1
+            return checks > 3  # flip true partway through the scan
+
+        self.assertEqual(
+            self.match_items(items, "item", cancelled=cancelled), items[:3]
+        )
+        self.assertEqual(self.match_items(items, "item"), items)
+
+    def test_handle_passes_cancellation_to_item_match(self):
+        from utils.plugin_manager import SubprocessResult
+
+        fake = SubprocessResult(
+            ["cliphist", "list"], 0, stdout="1\taaa\n2\tbbb\n", stderr=""
+        )
+        with (
+            unittest.mock.patch(
+                "plugins.clipboard_history.find_executable",
+                return_value="/usr/bin/cliphist",
+            ),
+            unittest.mock.patch.object(
+                self.plugin, "run_subprocess", return_value=fake
+            ),
+            unittest.mock.patch(
+                "plugins.clipboard_history.match_items", return_value=[]
+            ) as mock_match,
+        ):
+            self.plugin.handle("a")
+        callback = mock_match.call_args.kwargs["cancelled"]
+        self.assertFalse(callback())
+        self.plugin.cancel()
+        self.assertTrue(callback())
 
     def test_handle_filters_by_query(self):
         from utils.plugin_manager import SubprocessResult
@@ -1298,8 +1604,7 @@ class SearchPluginTest(unittest.TestCase):
         self.assertEqual(self.resolve_url("https://x.example/"), "https://x.example/")
 
     def test_resolve_url_keeps_literal_percent_encoding(self):
-        # A target URL containing %xx must not be double-decoded into a
-        # broken link (parse_qs already decodes the uddg value once).
+        # A %xx in the target must not be double-decoded into a broken link.
         self.assertEqual(
             self.resolve_url(
                 "//duckduckgo.com/l/?uddg=https%3A%2F%2Fexample.com%2Fa%2520b&rut=1"
@@ -1353,8 +1658,7 @@ class SearchPluginTest(unittest.TestCase):
         mock_copy.assert_called_once_with("https://example.com/")
 
     def test_debounce_before_search(self):
-        # /search hits a network endpoint per query, so it must debounce
-        # harder than the launcher default (150ms), like /translate.
+        # /search hits the network per query, so it must debounce past 150ms.
         self.assertGreaterEqual(self.plugin.debounce_ms or 0, 400)
 
 
@@ -1365,6 +1669,7 @@ class HistoryPluginTest(unittest.TestCase):
         from plugins.history import (
             HistoryPlugin,
             load_history,
+            match_commands,
             parse_bash_history,
             parse_fish_history,
             parse_zsh_history,
@@ -1372,6 +1677,7 @@ class HistoryPluginTest(unittest.TestCase):
 
         self.plugin = HistoryPlugin()
         self.load_history = load_history
+        self.match_commands = match_commands
         self.parse_bash_history = parse_bash_history
         self.parse_fish_history = parse_fish_history
         self.parse_zsh_history = parse_zsh_history
@@ -1409,9 +1715,70 @@ class HistoryPluginTest(unittest.TestCase):
             bash.write_text("oldcmd\ngit status\n")
             zsh.write_text(": 1700000005:0;git status\n: 1700000006:0;ls -la\n")
             commands = self.load_history([str(bash), str(zsh)])
-        # "git status" appears twice — the zsh copy (newer epoch) wins, and
-        # the list is most-recent-first.
+        # "git status" appears twice; the newer epoch wins, list is newest-first.
         self.assertEqual(commands[:3], ["ls -la", "git status", "oldcmd"])
+
+    def test_debounce_waits_for_typing_to_settle(self):
+        from plugins.history import HistoryPlugin
+
+        # Every keystroke would re-read and re-parse whole history files.
+        self.assertEqual(HistoryPlugin.debounce_ms, 400)
+        self.assertGreater(HistoryPlugin.debounce_ms, 150)
+
+    def test_load_history_stops_before_the_next_file_when_cancelled(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            bash = Path(tmp) / ".bash_history"
+            zsh = Path(tmp) / ".zsh_history"
+            bash.write_text("oldcmd\n")
+            zsh.write_text(": 1700000006:0;ls -la\n")
+            self.assertEqual(len(self.load_history([str(bash), str(zsh)])), 2)
+
+            checks = 0
+
+            def cancelled():
+                nonlocal checks
+                checks += 1
+                return checks > 2  # first file's per-entry check passes, next fails
+
+            partial = self.load_history([str(bash), str(zsh)], cancelled=cancelled)
+        self.assertEqual(partial, ["oldcmd"])  # zsh_history never read
+
+    def test_load_history_stops_inside_a_file_when_cancelled(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            bash = Path(tmp) / ".bash_history"
+            bash.write_text("one\ntwo\nthree\n")
+            checks = 0
+
+            def cancelled():
+                nonlocal checks
+                checks += 1
+                return checks > 1  # file check passes, first entry check aborts
+
+            self.assertEqual(self.load_history([str(bash)], cancelled=cancelled), [])
+
+    def test_match_commands_stops_when_cancelled(self):
+        commands = [f"git push {index}" for index in range(10)]
+        checks = 0
+
+        def cancelled():
+            nonlocal checks
+            checks += 1
+            return checks > 2  # flip true partway through the scan
+
+        self.assertEqual(
+            self.match_commands(commands, "git", cancelled=cancelled), commands[:2]
+        )
+        self.assertEqual(self.match_commands(commands, "git"), commands)
+
+    def test_handle_passes_cancellation_to_history_scan(self):
+        with unittest.mock.patch(
+            "plugins.history.load_history", return_value=[]
+        ) as mock_load:
+            self.plugin.handle("git")
+        callback = mock_load.call_args.kwargs["cancelled"]
+        self.assertFalse(callback())
+        self.plugin.cancel()
+        self.assertTrue(callback())
 
     def test_handle_filters_by_query(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -1508,8 +1875,7 @@ class DefinePluginTest(unittest.TestCase):
         self.assertEqual(self.split_senses(block), ["a plain gcide-style definition"])
 
     def test_split_senses_handles_indented_dictorg_format(self):
-        # dict.org WordNet indents senses and uses full part-of-speech
-        # markers; continuation senses of the same POS are bare numbers.
+        # dict.org indents senses with full POS markers; continuations are bare numbers.
         block = {
             "body": [
                 "set",
@@ -1563,8 +1929,7 @@ class DefinePluginTest(unittest.TestCase):
         self.assertIn("failed", results[0].title.casefold())
 
     def test_debounce_before_lookup(self):
-        # /define opens a TCP connection per query, so it must debounce
-        # harder than the launcher default (150ms), like /translate.
+        # /define opens a TCP connection per query, so it must debounce past 150ms.
         self.assertGreaterEqual(self.plugin.debounce_ms or 0, 400)
 
     def test_execute_copies_definition(self):
@@ -1658,8 +2023,7 @@ class ShortenPluginTest(unittest.TestCase):
         self.assertIn("failed", results[0].title.casefold())
 
     def test_debounce_before_shorten(self):
-        # /shorten hits a network endpoint per query, so it must debounce
-        # harder than the launcher default (150ms), like /search.
+        # /shorten hits the network per query, so it must debounce past 150ms.
         self.assertGreaterEqual(self.plugin.debounce_ms or 0, 400)
 
     def test_execute_copies_short_url(self):

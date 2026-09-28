@@ -6,21 +6,14 @@ from fabric.widgets.widget import Widget
 
 
 def next_batch_size(loaded: int, total: int, batch_size: int) -> int:
-    """How many more items a batched list can take this pass.
-
-    Shared by the long lists that are filled a batch at a time (clipboard
-    history, notification history, wifi networks): 0 once the list is
-    exhausted, otherwise a full or partial batch.
-    """
+    """How many more items a batched list can take this pass."""
     return max(0, min(batch_size, total - loaded))
 
 
 def near_list_end(adjustment: Gtk.Adjustment, threshold: int = 50) -> bool:
     """Whether a vertical adjustment is within *threshold* px of its end.
 
-    *threshold* is per-list: the clipboard history prefetches earlier because
-    its rows are tall. It must stay positive - GTK3 ignores a scrollbar policy
-    of "never", and a zero threshold would mean "already at the end".
+    *threshold* must stay positive: GTK3 ignores a "never" scrollbar policy.
     """
     return (
         adjustment.get_value() + adjustment.get_page_size()

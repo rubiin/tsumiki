@@ -230,15 +230,19 @@ class TaskBarWidget(BoxWidget):
             [*_BUTTON_BASE_CLASSES, "active"] if is_active else _BUTTON_BASE_CLASSES
         )
 
+    def _client_tooltip(self, client: HyprlandClient) -> str | None:
+        """Window title for a task button, or None when tooltips are off."""
+        if not (self.config.get("tooltip", True) and self.tooltips_enabled):
+            return None
+        return client.get_title()
+
     def _update_button_visuals(self, entry: dict, client: HyprlandClient):
         entry["image"].set_from_pixbuf(
             self._icon_resolver.resolve_icon_pixbuf(
                 client.get_app_id(), self.config.get("icon_size", 22)
             )
         )
-        entry["button"].set_tooltip_text(
-            client.get_title() if self.config.get("tooltip", True) else None
-        )
+        entry["button"].set_tooltip_text(self._client_tooltip(client))
         self._set_button_active_state(entry["button"], client.get_activated())
 
     def _add_client_button(self, address: str, client: HyprlandClient):
@@ -256,9 +260,7 @@ class TaskBarWidget(BoxWidget):
                 addr
             ),
         )
-        client_button.set_tooltip_text(
-            client.get_title() if self.config.get("tooltip", True) else None
-        )
+        client_button.set_tooltip_text(self._client_tooltip(client))
 
         self._set_button_active_state(client_button, client.get_activated())
 
@@ -285,5 +287,4 @@ class TaskBarWidget(BoxWidget):
             client = self._clients_by_address.get(address)
             if client:
                 self._set_button_active_state(entry["button"], client.get_activated())
-                if self.config.get("tooltip", True):
-                    entry["button"].set_tooltip_text(client.get_title())
+                entry["button"].set_tooltip_text(self._client_tooltip(client))

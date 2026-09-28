@@ -17,6 +17,39 @@ DeviceState = {
     6: "PENDING_DISCHARGE",
 }
 
+# UPower republishes every property it knows; only these are read back, and a
+# change to any other one only costs the consumer a rebuild of identical markup.
+_RENDERED_PROPERTIES = frozenset(
+    {
+        "Percentage",
+        "State",
+        "IsPresent",
+        "Temperature",
+        "Capacity",
+        "TimeToEmpty",
+        "TimeToFull",
+        "IconName",
+    }
+)
+
+
+def _has_rendered_property(parameters) -> bool:
+    """Whether a ``PropertiesChanged`` payload touches a rendered property.
+
+    Stays permissive when the payload cannot be read: an unrecognised shape must
+    refresh the bar rather than freeze it.
+    """
+    if not parameters:
+        return True
+    try:
+        # PropertiesChanged is (interface_name, changed, invalidated).
+        changed = parameters.unpack()[1]
+    except (AttributeError, TypeError, IndexError, KeyError):
+        return True
+    if not changed:
+        return True
+    return bool(set(changed) & _RENDERED_PROPERTIES)
+
 
 class BatteryService(SingletonService):
     """Service to interact with UPower via GIO D-Bus"""
@@ -67,7 +100,21 @@ class BatteryService(SingletonService):
         except Exception as e:
             logger.exception(f"[Battery] Error retrieving '{property}': {e}")
 
-    def handle_property_change(self, *_):
-        # You may filter which property changed by checking parameters[1]
+    def handle_property_change(
+        self,
+        _connection=None,
+        _sender=None,
+        _object_path=None,
+        _interface=None,
+        _signal_name=None,
+        parameters=None,
+    ):
+        """Re-emit only when a property the bar renders actually changed.
+
+        The signal is unfiltered and undebounced, so an ignored key still used
+        to cost a D-Bus read storm plus a full markup rebuild in the widget.
+        """
+        if not _has_rendered_property(parameters):
+            return
 
         self.emit("changed")

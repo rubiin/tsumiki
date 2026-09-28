@@ -16,5 +16,4 @@ class HyprIdleWidget(CommandSwitcher):
         self.enabled_icon = self.config.get("enabled_icon", self.enabled_icon)
         self.disabled_icon = self.config.get("disabled_icon", self.disabled_icon)
         self.icon.set_label(self.enabled_icon)
-        if self.config.get("tooltip", True):
-            self.set_tooltip_text("Control the hypridle command")
+        self.set_tooltip_if_enabled("Control the hypridle command", default=True)

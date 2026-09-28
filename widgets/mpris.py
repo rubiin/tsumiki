@@ -6,7 +6,7 @@ from fabric.utils import GLib, bulk_connect, idle_add, logger
 from fabric.widgets.box import Box
 
 from services.mpris import MprisPlayer, MprisPlayerManager
-from shared.media import PlayerBoxStack
+from shared.media import PlayerBoxStack, css_image_url
 from shared.mixins import PopoverMixin
 from shared.scrollable_text import ScrollingLabel
 from shared.widget_container import ButtonWidget
@@ -42,7 +42,8 @@ class MprisWidget(ButtonWidget, PopoverMixin):
             style=f"background-image: url('{self.default_cover}');",
         )
 
-        # Progress bar — styled via SCSS (#mpris-progress)
+        # Progress bar — themed by SCSS (#mpris-progress), sized via the
+        # geometry API: a min-width style string would reparse CSS every tick.
         self.progress = Box(name="mpris-progress")
         self.progress_fill = Box(
             name="mpris-progress-fill",
@@ -60,6 +61,7 @@ class MprisWidget(ButtonWidget, PopoverMixin):
         )
 
         self._last_progress_pct: float | None = None
+        self._last_fill_px: int = 0
         self._last_temp_art_path: str | None = None
         self.exit = False
         self._set_default_values()
@@ -98,8 +100,9 @@ class MprisWidget(ButtonWidget, PopoverMixin):
         self.setup_popover(
             lambda: PlayerBoxStack(self.mpris_manager, config=self.config),
         )
-        # The 1 Hz progress tick is started/stopped by get_current() from the
-        # player's playback status, so there is nothing to start here.
+        # GTK destroys panel widgets from C, so cleanup hangs off the signal.
+        self.connect("destroy", self._on_destroy)
+        # The 1 Hz progress tick is started/stopped by get_current().
 
     def _bind_player_updates(self):
         self._unbind_player_updates()
@@ -180,7 +183,7 @@ class MprisWidget(ButtonWidget, PopoverMixin):
 
         if not show_progress:
             self._last_progress_pct = None
-            self.progress_fill.set_style("")
+            self._set_fill_width(0)
             return
 
         rounded = round(progress_pct, 1)
@@ -190,15 +193,19 @@ class MprisWidget(ButtonWidget, PopoverMixin):
         self._last_progress_pct = rounded
         alloc_width = self.progress.get_allocated_width()
         if alloc_width > 0:
-            fill_px = max(1, round(alloc_width * rounded / 100.0))
-            self.progress_fill.set_style(f"min-width: {fill_px}px;")
+            self._set_fill_width(max(1, round(alloc_width * rounded / 100.0)))
         else:
-            self.progress_fill.set_style("")
-            # Widget not yet allocated -- retry on next idle so the bar
-            # appears as soon as the layout pass assigns a width.
-            # Reset the sentinel so the retry isn't short-circuited.
+            self._set_fill_width(0)
+            # Not allocated yet: retry on idle, and clear the sentinel.
             self._last_progress_pct = None
             GLib.idle_add(self._update_progress)
+
+    def _set_fill_width(self, fill_px: int):
+        """Resize the fill through the geometry API instead of recompiling CSS."""
+        if fill_px == self._last_fill_px:
+            return
+        self._last_fill_px = fill_px
+        self.progress_fill.set_size_request(fill_px, -1)
 
     def _unbind_player_updates(self):
         if self.player is None:
@@ -227,8 +234,7 @@ class MprisWidget(ButtonWidget, PopoverMixin):
             return
         self._unbind_player_updates()
         self.player = None
-        # The fallback below re-evaluates the player, and get_current() syncs
-        # the progress tick to whatever it finds (including no player at all).
+        # get_current() below re-syncs the progress tick to whatever it finds.
 
         for raw_player in self.mpris_manager.players:
             if raw_player.props.player_name in self.config.get("ignore", []):
@@ -294,15 +300,13 @@ class MprisWidget(ButtonWidget, PopoverMixin):
             return
         has_art = bool(image_path) and os.path.isfile(image_path)
         art_path = image_path if has_art else self.default_cover
-        safe_url = art_path.replace("\\", "\\\\").replace("'", "\\'")
-        self.cover.set_style(f"background-image: url('{safe_url}');")
+        self.cover.set_style(f"background-image: url('{css_image_url(art_path)}');")
 
     def get_current(self):
         if self.exit:
             return
         playback_status = self.player.playback_status if self.player else None
-        # A paused/stopped player's position never advances, so the tick would
-        # only re-render an unchanged progress bar.
+        # A paused player's position never advances, so the tick would be a no-op.
         self._sync_progress_timer(playback_status)
         if playback_status not in {"playing", "paused"}:
             self._set_default_values()
@@ -336,20 +340,18 @@ class MprisWidget(ButtonWidget, PopoverMixin):
         self.label.set_text(_("widget.mpris.nothing_playing"))
         self.meta_box.v_align = "center"
         self.progress.set_visible(False)
-        self.progress_fill.set_style("")
+        self._set_fill_width(0)
         if self.config.get("hide_when_no_player", True):
             self.hide()
 
-    def destroy(self):
+    def _on_destroy(self, *_):
+        """Detach from the player and drop the temp download; runs for C destroys."""
         self._stop_progress_timer()
         self._unbind_player_updates()
         self.exit = True
-        if self._last_temp_art_path and os.path.exists(self._last_temp_art_path):
+        path, self._last_temp_art_path = self._last_temp_art_path, None
+        if path and os.path.exists(path):
             try:
-                os.remove(self._last_temp_art_path)
+                os.remove(path)
             except OSError:
-                logger.debug(
-                    f"[Mpris] Failed to remove temp file: {self._last_temp_art_path}"
-                )
-            self._last_temp_art_path = None
-        return super().destroy()
+                logger.debug(f"[Mpris] Failed to remove temp file: {path}")

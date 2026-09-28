@@ -1,8 +1,8 @@
 """Small reusable GTK widgets for the GitHub tray popover.
 
-Every element carries a stable GTK name/style class that the SCSS in
-``styles/_github_tray.scss`` targets. Keep this module free of business
-logic; rendering helpers that need data live in ``widget.py``.
+Every element carries a stable GTK name/style class that
+``styles/_github_tray.scss`` targets. No business logic here; data-driven
+rendering lives in ``widget.py``.
 """
 
 from __future__ import annotations
@@ -12,6 +12,9 @@ from fabric.widgets.button import Button
 from fabric.widgets.label import Label
 
 from utils.widget_utils import nerd_font_icon
+
+# fa-brands GitHub mark, used for the bar icon and the avatar fallback.
+BRAND_GLYPH = ""
 
 
 def make_label(
@@ -96,14 +99,7 @@ class ActionIconButton(Button):
 
 
 class Card(Button):
-    """A bordered, hoverable card row (notification / repo / detail).
-
-    Only use this when the card contains no other interactive widgets. GTK3
-    buttons are windowless and claim the whole subtree for themselves, so any
-    button nested inside a ``Card`` never receives pointer events. Rows that
-    host sibling action buttons must use ``CardBox`` + ``CardMainButton``
-    instead.
-    """
+    """A bordered, hoverable card row; nested buttons never get pointer events."""
 
     def __init__(
         self,
@@ -133,12 +129,7 @@ class Card(Button):
 
 
 class CardBox(Box):
-    """Card chrome as a plain ``Box`` (no click semantics).
-
-    Interactive rows put their default action on a ``CardMainButton`` and
-    their action controls as *siblings* inside this box; because nothing here
-    is a ``Button`` ancestor, every control stays clickable.
-    """
+    """Card chrome as a plain ``Box``; action controls are *siblings*."""
 
     def __init__(
         self,
@@ -161,11 +152,7 @@ class CardBox(Box):
 
 
 class CardMainButton(Button):
-    """Transparent full-row button used inside a ``CardBox``.
-
-    Gives the row its default action (e.g. open the repo / notification)
-    without swallowing presses aimed at sibling action buttons.
-    """
+    """Transparent full-row button giving a ``CardBox`` its default action."""
 
     def __init__(
         self,

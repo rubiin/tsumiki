@@ -1,6 +1,4 @@
-"""
-Simple configuration file watcher for auto-reloading Tsumiki when config files change.
-"""
+"""Watch config files and restart Tsumiki when they change."""
 
 import hashlib
 import threading
@@ -16,8 +14,8 @@ from fabric.utils import (
 from utils.colors import Colors
 from utils.config import tsumiki_config
 from utils.constants import APPLICATION_NAME
+from utils.functions import spawn_detached
 
-# Constants
 # Debounce first, then enforce a minimum gap between restart attempts.
 _DEFAULT_RESTART_DELAY = 1500
 _RESTART_COOLDOWN_MS = 3000
@@ -63,9 +61,8 @@ class ConfigWatcher:
     def _monitor_directory(self):
         """Monitor the config directory, reacting only to watched files.
 
-        Monitoring the directory (rather than each file) keeps the watcher
-        alive when an editor saves atomically by replacing the file via rename,
-        which would otherwise silently drop a per-file inotify watch.
+        Watching the directory survives an editor's atomic save-by-rename,
+        which would drop a per-file inotify watch.
         """
         try:
             directory = Gio.File.new_for_path(self.root_dir)
@@ -112,9 +109,33 @@ class ConfigWatcher:
         except OSError:
             return None
 
+    def _is_relevant_event(self, event_type) -> bool:
+        """Whether an inotify event may have changed a watched file.
+
+        An atomic save reports several event types (and a fresh file may only
+        ever report CREATED), so the content hash — not the event — decides
+        whether this is a real change.
+        """
+        events = Gio.FileMonitorEvent
+        return event_type in (
+            events.CHANGED,
+            events.CHANGES_DONE_HINT,
+            events.CREATED,
+            events.RENAMED,
+            events.MOVED_IN,
+        )
+
+    def note_self_write(self, file_path: str) -> None:
+        """Record *file_path* as already-current, for a write we just made.
+
+        Without this the monitor reports the app's own write as an external
+        change and the bar restarts itself.
+        """
+        self._file_hashes[file_path] = self._read_file_hash(file_path)
+
     def _on_file_changed(self, monitor, file, other_file, event_type):
         """Handle file change events."""
-        if event_type != Gio.FileMonitorEvent.CHANGES_DONE_HINT:
+        if not self._is_relevant_event(event_type):
             return
 
         file_path = file.get_path()
@@ -134,7 +155,6 @@ class ConfigWatcher:
         logger.info(
             f"{Colors.INFO}[ConfigWatcher] Config changed: {file.get_basename()}"
         )
-        # Cancel any pending restart timer
         if self._restart_timer_id is not None:
             GLib.source_remove(self._restart_timer_id)
         # Delay restart slightly to batch rapid config writes.
@@ -150,7 +170,6 @@ class ConfigWatcher:
             elapsed_ms = (now_us - self._last_restart_at_us) // 1000
             if elapsed_ms < _RESTART_COOLDOWN_MS:
                 wait_ms = max(1, _RESTART_COOLDOWN_MS - elapsed_ms)
-                # Cancel any existing cooldown timer
                 if self._cooldown_timer_id is not None:
                     GLib.source_remove(self._cooldown_timer_id)
                 self._cooldown_timer_id = GLib.timeout_add(
@@ -170,17 +189,10 @@ class ConfigWatcher:
             logger.info(
                 f"{Colors.INFO}[ConfigWatcher] Restarting {APPLICATION_NAME.title()}..."
             )
-            # Run restart in background to avoid blocking.
-            # Must detach with start_new_session so the child survives
-            # the parent bar being killed during restart.
-            import subprocess
-
-            subprocess.Popen(
+            # Detached so the restart outlives the bar it is about to kill.
+            spawn_detached(
                 [self.init_script, "-restart"],
                 cwd=os.path.dirname(self.init_script),
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-                start_new_session=True,
             )
         except Exception as e:
             logger.exception(f"{Colors.ERROR}[ConfigWatcher] Failed to restart: {e}")
@@ -201,7 +213,6 @@ class ConfigWatcher:
             self._cooldown_timer_id = None
 
 
-# Global watcher instance
 _watcher: ConfigWatcher | None = None
 _watcher_lock = threading.Lock()
 

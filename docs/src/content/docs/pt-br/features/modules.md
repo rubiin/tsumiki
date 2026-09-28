@@ -30,7 +30,8 @@ auto_dismiss = true
 enabled = false
 icon_size = 40
 behavior = "intellihide"
-preview_apps = true
+group_apps = true
+orientation = "horizontal"
 ```
 
 ## Visão Geral
@@ -49,12 +50,12 @@ anchor = "center"
 enabled = false
 tooltip = true
 icon_size = 35
-ignored = []
 anchor = "center"
 width = 280
 height = 320
 layout = "grid"
 grid_columns = 3
+grid_spacing = 12
 plugins_enabled = true
 plugins_dir = ""
 ```

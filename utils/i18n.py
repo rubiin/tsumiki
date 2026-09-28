@@ -6,10 +6,7 @@ from fabric.utils import logger
 
 from utils.singleton import SingletonMixin
 
-# Default language
 DEFAULT_LANGUAGE = "en"
-
-# Singleton instance
 
 
 class I18n(SingletonMixin):
@@ -24,7 +21,6 @@ class I18n(SingletonMixin):
         self._translations: dict[str, str] = {}
         self._language: str = DEFAULT_LANGUAGE
         self._fallback: dict[str, str] = {}
-        self._initialized = True
 
     def load(self, language: str) -> None:
         """Load translations for the specified language."""
@@ -34,7 +30,6 @@ class I18n(SingletonMixin):
         if language != DEFAULT_LANGUAGE:
             self._fallback = self._load_language_file(DEFAULT_LANGUAGE)
 
-        # Load requested language
         self._translations = self._load_language_file(language)
 
         logger.info(f"[I18n] Loaded translations for '{language}'")
@@ -55,7 +50,6 @@ class I18n(SingletonMixin):
             logger.error(f"[I18n] Failed to load {file_path}: invalid JSON data")
             return {}
 
-        # Flatten nested keys to dot notation
         return self._flatten_dict(data)
 
     def _flatten_dict(self, d: dict, prefix: str = "") -> dict[str, str]:
@@ -70,27 +64,19 @@ class I18n(SingletonMixin):
         return items
 
     def translate(self, key: str, **kwargs) -> str:
-        """Translate a key to the current language.
+        """Translate a dot-notation *key*, falling back to English then to the key.
 
-        Args:
-            key: The translation key (dot-notation for nested keys).
-            **kwargs: Optional format arguments for string interpolation.
-
-        Returns:
-            The translated string, or the key itself if not found.
+        **kwargs are interpolated with :meth:`str.format`; a bad format spec
+        returns the untranslated text.
         """
-        # Try current language first
         text = self._translations.get(key)
 
-        # Fall back to English
         if text is None:
             text = self._fallback.get(key)
 
-        # Fall back to key itself
         if text is None:
             return key
 
-        # Apply formatting if kwargs provided
         if kwargs:
             try:
                 return text.format(**kwargs)

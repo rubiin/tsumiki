@@ -19,7 +19,7 @@ from utils.widget_utils import nerd_font_icon
 class IPMonitorPopoverContent(Box):
     """Popup content that mirrors the Noctalia IP monitor preview."""
 
-    def __init__(self, config: dict, parent=None, **kwargs):
+    def __init__(self, parent=None, **kwargs):
         super().__init__(
             name="ip-monitor-window",
             orientation="v",
@@ -28,7 +28,6 @@ class IPMonitorPopoverContent(Box):
         )
 
         self._parent = parent
-        self._config = config.get("widgets", {}).get("ip_monitor", {})
         self._last_updated = None
 
         self._request_generation = 0
@@ -310,10 +309,7 @@ class IPMonitorWidget(ButtonWidget, PopoverMixin):
         self.set_tooltip_if_enabled(_("widget.ip_monitor.tooltip"), default=True)
 
         self.setup_popover(
-            lambda: IPMonitorPopoverContent(
-                config={"widgets": {"ip_monitor": self.config}},
-                parent=self,
-            ),
+            lambda: IPMonitorPopoverContent(parent=self),
             connect_clicked=False,
         )
         self.connect("clicked", self._on_click)

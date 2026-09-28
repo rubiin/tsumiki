@@ -163,16 +163,130 @@ class IconResolverCacheTest(unittest.TestCase):
         self.assertEqual({"nm-signal-75": "nm-signal-75"}, resolver._icon_dict)
 
 
-class ResolveIconPixbufCacheKeyTest(unittest.TestCase):
-    """``resolve_icon_pixbuf`` is TTL-cached, so its key must stay hashable.
+class IconLookupMissCacheTest(unittest.TestCase):
+    """A miss must be remembered, or every tick re-scans and re-logs it."""
 
-    Regression: a ``DesktopApp`` used to be passed in as an argument, and the
-    lookup died with ``TypeError: unhashable type: 'DesktopApp'`` - fabric
-    declares it ``@dataclass(init=False)``, which generates ``__eq__`` and so
-    leaves ``__hash__`` unset. Because the overview button then failed to
-    finish constructing, every window fell back to the missing-image glyph.
-    The app is looked up from ``app_id`` instead.
-    """
+    def setUp(self):
+        IconResolver.reset_instance()
+        self.addCleanup(IconResolver.reset_instance)
+
+        for patcher in (
+            mock.patch.object(icon_resolver_module, "ICON_CACHE_FILE", "/nonexistent"),
+            mock.patch.object(IconResolver, "_schedule_cache_write"),
+        ):
+            patcher.start()
+            self.addCleanup(patcher.stop)
+
+        self.resolver = IconResolver()
+        self.resolver._icon_theme = FakeIconTheme()
+
+    def test_a_miss_is_not_rescanned_on_the_next_call(self):
+        with mock.patch.object(
+            IconResolver, "_compositor_find_icon", return_value=None
+        ) as find_icon:
+            self.assertIsNone(self.resolver.get_icon_name("HyDE Power"))
+            self.assertIsNone(self.resolver.get_icon_name("HyDE Power"))
+
+        find_icon.assert_called_once_with("HyDE Power")
+
+    def test_a_miss_is_logged_once(self):
+        with mock.patch.object(icon_resolver_module, "logger") as logger:
+            for _ in range(5):
+                self.resolver.get_icon_name("HyDE Power")
+
+        misses = [
+            call
+            for call in logger.info.call_args_list
+            if "no icon found" in call.args[0]
+        ]
+        self.assertEqual(1, len(misses))
+
+    def test_the_miss_expires_and_a_later_hit_is_cached(self):
+        with mock.patch.object(icon_resolver_module, "time") as clock:
+            clock.monotonic.return_value = 1000.0
+            self.resolver.get_icon_name("HyDE Power")
+            clock.monotonic.return_value = (
+                1000.0 + icon_resolver_module._MISS_TTL_SECONDS + 1
+            )
+            with mock.patch.object(
+                IconResolver, "_compositor_find_icon", return_value="hyde-power"
+            ) as find_icon:
+                self.assertEqual(
+                    "hyde-power", self.resolver.get_icon_name("HyDE Power")
+                )
+
+        find_icon.assert_called_once()
+        self.assertEqual({"HyDE Power": "hyde-power"}, self.resolver._icon_dict)
+        self.assertEqual({}, self.resolver._miss_cache)
+
+    def test_a_miss_is_not_written_to_the_shared_cache(self):
+        with mock.patch.object(
+            IconResolver, "_compositor_find_icon", return_value=None
+        ):
+            self.resolver.get_icon_name("HyDE Power")
+
+        self.assertEqual({}, self.resolver._icon_dict)
+
+
+class DesktopFileListingCacheTest(unittest.TestCase):
+    """The listing must be re-read when a desktop directory actually changes."""
+
+    def setUp(self):
+        IconResolver._desktop_files_cache = {}
+        self.addCleanup(setattr, IconResolver, "_desktop_files_cache", {})
+
+        self._tmpdir = tempfile.TemporaryDirectory()
+        self.addCleanup(self._tmpdir.cleanup)
+        self.apps_dir = os.path.join(self._tmpdir.name, "applications")
+        os.mkdir(self.apps_dir)
+        self._write_desktop_file("firefox.desktop")
+
+        self.resolver = IconResolver()
+        IconResolver._desktop_files_cache = {}
+        patcher = mock.patch.object(
+            icon_resolver_module.GLib,
+            "get_system_data_dirs",
+            return_value=[self._tmpdir.name],
+        )
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def _write_desktop_file(self, name):
+        with open(os.path.join(self.apps_dir, name), "w", encoding="utf-8") as handle:
+            handle.write("[Desktop Entry]\nIcon=icon-name\n")
+
+    def test_a_new_desktop_file_is_seen_without_a_restart(self):
+        self.assertIsNone(self.resolver._get_desktop_file("newapp"))
+
+        self._write_desktop_file("newapp.desktop")
+        # The directory mtime is what invalidates; force it forward.
+        os.utime(self.apps_dir, (0, 0))
+
+        self.assertTrue(
+            self.resolver._get_desktop_file("newapp").endswith("newapp.desktop")
+        )
+
+    def test_an_unchanged_directory_is_not_relisted(self):
+        with mock.patch.object(
+            icon_resolver_module.os, "listdir", wraps=os.listdir
+        ) as listdir:
+            for _ in range(5):
+                self.resolver._get_desktop_file("firefox")
+
+        self.assertEqual(1, listdir.call_count)
+
+    def test_an_unreadable_directory_is_retried_not_remembered(self):
+        with mock.patch.object(
+            icon_resolver_module.os, "listdir", side_effect=OSError("denied")
+        ):
+            self.assertIsNone(self.resolver._get_desktop_file("firefox"))
+
+        self.assertEqual({}, IconResolver._desktop_files_cache)
+        self.assertIsNotNone(self.resolver._get_desktop_file("firefox"))
+
+
+class ResolveIconPixbufCacheKeyTest(unittest.TestCase):
+    """``resolve_icon_pixbuf`` is TTL-cached, so its key must stay hashable."""
 
     def setUp(self):
         IconResolver.reset_instance()
@@ -229,13 +343,7 @@ class ResolveIconPixbufCacheKeyTest(unittest.TestCase):
 
 
 class IconSizeTest(unittest.TestCase):
-    """Each caller must get a pixbuf rendered at the size it asked for.
-
-    Regression: the icons looked blurry because ``DesktopApp`` caches the first
-    size it is asked for on an instance shared for the whole process. A panel
-    widget resolved the app at 16px, so the overview's 71px icon was a
-    bilinear upscale of that 16px render - roughly 40% of the edge contrast.
-    """
+    """Each caller must get a pixbuf rendered at the size it asked for."""
 
     def setUp(self):
         IconResolver.reset_instance()
@@ -251,8 +359,7 @@ class IconSizeTest(unittest.TestCase):
         self._resolver = IconResolver()
         self._resolver._icon_theme = FakeIconTheme(["wezterm"])
         self._resolver._icon_dict = {}
-        # FakeIconTheme hands back marker strings, not real pixbufs, so the
-        # measurement in scale_pixbuf_to_size is stubbed out here.
+        # FakeIconTheme returns marker strings, so scale_pixbuf_to_size is stubbed.
         patcher = mock.patch.object(
             IconResolver, "scale_pixbuf_to_size", side_effect=lambda pixbuf, _: pixbuf
         )
@@ -278,13 +385,7 @@ class IconSizeTest(unittest.TestCase):
         self.assertIsNone(self._resolver.get_icon_pixbuf_by_name(None, 32))
 
     def test_large_request_ignores_a_sticky_small_desktop_app_cache(self):
-        """The reported bug, reproduced through the resolver's public API.
-
-        fabric's ``DesktopApp.get_icon_pixbuf`` caches the first size it is
-        asked for, so a panel widget resolving the app at 16px leaves every
-        later caller upscaling that. Mirrors the real object here: the large
-        request must come from the theme, not the cache.
-        """
+        """Reproduce the blurry-icon bug through the resolver's public API."""
 
         class StickyDesktopApp:
             """Mimics fabric's first-size-wins ``_pixbuf`` cache."""
@@ -333,13 +434,7 @@ class IconSizeTest(unittest.TestCase):
 
 
 class ScalePixbufTest(unittest.TestCase):
-    """``scale_pixbuf_to_size`` must never enlarge a pixbuf.
-
-    Bilinearly upscaling a small source softens it - a 32px notification icon
-    enlarged to 78px loses ~16% of its edge contrast - and it discards the
-    display's real scale factor. Downscaling a larger source is effectively
-    lossless, so only that direction is done here.
-    """
+    """``scale_pixbuf_to_size`` must never enlarge a pixbuf."""
 
     def setUp(self):
         IconResolver.reset_instance()

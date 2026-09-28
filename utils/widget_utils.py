@@ -2,6 +2,7 @@ import contextlib
 import importlib
 import os
 import threading
+import weakref
 from datetime import datetime
 from numbers import Number
 from time import sleep
@@ -33,21 +34,18 @@ _fabricator_lock = threading.Lock()
 _poll_generation = 0
 
 
-# Function to get the system uptime
 def uptime() -> str:
     boot_time = psutil.boot_time()
     now = datetime.now()
 
     diff = now.timestamp() - boot_time
 
-    # Convert the difference in seconds to hours and minutes
     hours, remainder = divmod(diff, 3600)
     minutes, _ = divmod(remainder, 60)
 
     return f"{int(hours):02}:{int(minutes):02}"
 
 
-# Function to get the system stats using psutil
 def stats_poll(*_):
     cpu_freq = None
     temperature = {}
@@ -147,55 +145,51 @@ class _LazyFabricator:
 util_fabricator = _LazyFabricator()
 
 
-def on_enter_notify_event(cursor, widget: Widget):
-    widget.get_window().set_cursor(cursor)
+# One cursor per (display, name): hover events are hot and building a
+# Gdk.Cursor per call is pure waste.
+_cursors: weakref.WeakKeyDictionary = weakref.WeakKeyDictionary()
 
 
-def on_leave_notify_event(cursor, widget: Widget):
-    widget.get_window().set_cursor(cursor)
+def named_cursor(display, cursor_name: str):
+    """A cached ``Gdk.Cursor`` for *cursor_name*, or ``None`` without a display."""
+    if display is None:
+        return None
+    cache = _cursors.setdefault(display, {})
+    if cursor_name not in cache:
+        cache[cursor_name] = Gdk.Cursor.new_from_name(display, cursor_name)
+    return cache[cursor_name]
 
 
-# Function to point a widget's window at a named cursor
 def set_cursor(widget, cursor_name: str) -> None:
-    """Point *widget* at a named cursor, if it has a window yet.
+    """Point *widget* at a named cursor; a no-op before it is realised.
 
-    A widget that has not been realised has no window, so this is a no-op
-    rather than an error.
+    The window check comes first so an unrealised widget costs no cursor.
     """
     window = widget.get_window()
-    if window is None:
-        return
-    window.set_cursor(Gdk.Cursor.new_from_name(widget.get_display(), cursor_name))
+    if window is not None:
+        window.set_cursor(named_cursor(widget.get_display(), cursor_name))
 
 
-# Function to setup cursor hover
 def setup_cursor_hover(
     widget, cursor_name: Literal["pointer", "crosshair", "grab"] = "pointer"
 ):
-    display = Gdk.Display.get_default()
-    cursor = Gdk.Cursor.new_from_name(display, cursor_name)
-
     bulk_connect(
         widget,
         {
-            "enter-notify-event": lambda *_: on_enter_notify_event(cursor, widget),
-            "leave-notify-event": lambda *_: on_leave_notify_event(cursor, widget),
+            "enter-notify-event": lambda *_: set_cursor(widget, cursor_name),
+            "leave-notify-event": lambda *_: set_cursor(widget, cursor_name),
         },
     )
 
 
 ## TODO: move to icon resolver
-# Function to resolve a notification image to a pixbuf, safely
 def get_notification_image_pixbuf(
     notification, size: int = NOTIFICATION_IMAGE_SIZE
 ) -> GdkPixbuf.Pixbuf | None:
     """Resolve a notification's image to a pixbuf, or ``None`` when unavailable.
 
-    The ``image-path`` hint sent by apps can be either a file path or a
-    themed icon name (e.g. ``xfce4-battery-critical``). Fabric's
-    ``Notification.image_pixbuf`` property only handles file paths and
-    raises ``GLib.GError`` for icon names, so resolve both cases here and
-    return ``None`` instead of raising.
+    The ``image-path`` hint may be a file path or a themed icon name; Fabric's
+    ``image_pixbuf`` only handles the former and raises on the latter.
     """
     if notification is None:
         return None
@@ -224,40 +218,33 @@ def get_notification_image_pixbuf(
     return IconResolver().get_icon_theme_icon(image_file, size - 5)
 
 
-# Function to resolve a notification's app icon to a pixbuf, safely
 def resolve_notification_icon(
     notification,
     size: int = 25,
     default_icon: str = symbolic_icons["fallback"]["notification"],
 ):
-    """Resolve a notification's app icon to a pixbuf.
-
-    Uses the app icon name when present, falling back to the app id via the
-    shared ``IconResolver`` (single source of truth for the fallback chain).
-    """
+    """Resolve a notification's app icon, falling back to the app id."""
     if notification is None:
         return None
 
     return IconResolver().resolve_icon(
         None,
         getattr(notification, "app_icon", None) or "",
-        getattr(notification, "app_name", None) or "",
+        # Prefer a real app id: the cache is keyed on it, and a display name is
+        # a different key space, so the same app ends up stored twice.
+        getattr(notification, "app_id", None)
+        or getattr(notification, "app_name", None)
+        or "",
         size,
         default_icon=default_icon,
     )
 
 
-# Function to get the widget class dynamically
 def lazy_load_widget(widget_name: str, widgets_list):
     if widget_name in widgets_list:
-        # Get the full module path (e.g., "widgets.BatteryWidget")
         class_path = widgets_list[widget_name]
-
-        # Dynamically import the module
         module_name, class_name = class_path.rsplit(".", 1)
         module = importlib.import_module(module_name)
-
-        # Get the class from the module
         widget_class = getattr(module, class_name)
 
         return widget_class
@@ -265,13 +252,12 @@ def lazy_load_widget(widget_name: str, widgets_list):
         raise KeyError(f"Widget {widget_name} not found in the dictionary.")
 
 
-# Function to create a text icon label
 def nerd_font_icon(icon: str, props=None, name="nerd-icon") -> Label:
     label_props = {
-        "markup": str(icon),  # Directly use the provided icon name
+        "markup": str(icon),
         "name": name,
-        "h_align": "center",  # Align horizontally
-        "v_align": "center",  # Align vertically
+        "h_align": "center",
+        "v_align": "center",
     }
 
     if props:
@@ -280,14 +266,12 @@ def nerd_font_icon(icon: str, props=None, name="nerd-icon") -> Label:
     return Label(**label_props)
 
 
-# Function to create a surface from a widget
 def create_surface_from_widget(
     widget: Widget, color=(0, 0, 0, 0)
 ) -> cairo.ImageSurface:
     alloc = widget.get_allocation()
     surface = cairo.ImageSurface(cairo.Format.ARGB32, alloc.width, alloc.height)
     cr = cairo.Context(surface)
-    # Use a transparent background.
     cr.set_source_rgba(*color)
     cr.rectangle(0, 0, alloc.width, alloc.height)
     cr.fill()
@@ -295,7 +279,6 @@ def create_surface_from_widget(
     return surface
 
 
-# Function to get the bar graph representation
 def get_bar_graph(usage: Number | str) -> str:
     if isinstance(usage, str):
         usage = int(usage)
@@ -317,7 +300,6 @@ def get_bar_graph(usage: Number | str) -> str:
     return "█"
 
 
-# Function to get the brightness icons
 def get_brightness_icon_name(level: int) -> dict[Literal["icon_text", "icon"], str]:
     if level <= 0:
         return {
@@ -341,7 +323,6 @@ def get_brightness_icon_name(level: int) -> dict[Literal["icon_text", "icon"], s
     }
 
 
-# Create a scale widget
 def create_scale(
     name,
     marks=None,
@@ -379,7 +360,6 @@ def create_scale(
     )
 
 
-# Function to get the volume icons
 def get_audio_icon_name(
     volume: int, is_muted: bool
 ) -> dict[Literal["icon_text", "icon"], str]:

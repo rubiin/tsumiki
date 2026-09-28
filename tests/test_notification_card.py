@@ -35,8 +35,7 @@ class HeaderTest(unittest.TestCase):
     def test_trailing_controls_are_packed_in_visual_order(self):
         timestamp, close = "timestamp", "close"
 
-        # pack_end prepends, so the builder must feed it back-to-front for
-        # the header to read timestamp-then-close.
+        # pack_end prepends, so feed it back-to-front for timestamp-then-close.
         notification_card.header(leading=["summary"], trailing=[timestamp, close])
 
         self.assertEqual([close, timestamp], self._packed_end())

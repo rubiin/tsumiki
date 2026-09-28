@@ -552,6 +552,8 @@ https://fabric-development.github.io/fabric-wiki/installing-stubs.html
 - Keep comments concise and valuable: state why, not what. Run the `unslop` skill when writing or rewriting comments.
 - Run the `brainstorming` skill to generate and evaluate ideas before implementing them in code.
 - Use sub-agent-driven development whenever working on multiple independent tasks.
+- Never write comments that state the obvious; focus on explaining why the code exists or any non-trivial decisions.
+- Always restrict comments to under 2 lines.
 
 ## Commit standards
 

@@ -1,6 +1,7 @@
 import math
 from datetime import datetime
 
+import cairo
 from fabric.utils import GLib, Gtk
 from fabric.widgets.box import Box
 
@@ -28,6 +29,7 @@ class CookieClockFace(Gtk.DrawingArea, TeardownMixin):
 
         self._pad = round(30 * self.widget_scale)
         self._scaled_clock_size = round(self.clock_size * self.widget_scale)
+        self._cookie_paths: dict = {}
 
         self.col_background = (0.12, 0.07, 0.13, 1.0)
         self.col_on_background = (0.84, 0.82, 0.86, 0.95)
@@ -52,15 +54,11 @@ class CookieClockFace(Gtk.DrawingArea, TeardownMixin):
             self._scaled_clock_size + self._pad,
         )
         self.connect("draw", self._on_draw)
-        self.connect("destroy", self._on_destroy)
 
     def _tick(self) -> bool:
         self.now = datetime.now()
         self.queue_draw()
         return True
-
-    def _on_destroy(self, *_):
-        self._tick_id = None
 
     @staticmethod
     def _draw_badge(cr, x, y, radius, fill, text, font_size):
@@ -88,20 +86,41 @@ class CookieClockFace(Gtk.DrawingArea, TeardownMixin):
         cr.move_to(tx, ty)
         cr.show_text(text)
 
-    def _draw_cookie_shape(self, cr, cx, cy, base_radius):
+    def _cookie_path(self, base_radius):
+        """The silhouette only depends on the radius, so build it once."""
+        path = self._cookie_paths.get(base_radius)
+        if path is None:
+            path = self._build_cookie_path(base_radius)
+            self._cookie_paths[base_radius] = path
+        return path
+
+    def _build_cookie_path(self, base_radius):
+        # pycairo cannot construct a Path, so build on a scratch context and
+        # copy it out; the outline is built once per radius, not once per draw.
+        scratch = cairo.Context(cairo.ImageSurface(cairo.FORMAT_ARGB32, 1, 1))
         points = 360
         amplitude = base_radius / 24
         for i in range(points + 1):
             angle = (2 * math.pi * i) / points
             wave = math.sin(angle * self.sides + math.pi / 2) * amplitude
             radius = (base_radius - amplitude) + wave
-            x = cx + radius * math.cos(angle)
-            y = cy + radius * math.sin(angle)
+            x = radius * math.cos(angle)
+            y = radius * math.sin(angle)
             if i == 0:
-                cr.move_to(x, y)
+                scratch.move_to(x, y)
             else:
-                cr.line_to(x, y)
-        cr.close_path()
+                scratch.line_to(x, y)
+        scratch.close_path()
+        return scratch.copy_path()
+
+    def _draw_cookie_shape(self, cr, cx, cy, base_radius):
+        cr.new_path()
+        # cairo's path is not part of the saved state, so the translate only
+        # positions the appended outline and leaves the path behind.
+        cr.save()
+        cr.translate(cx, cy)
+        cr.append_path(self._cookie_path(base_radius))
+        cr.restore()
 
     @staticmethod
     def _draw_round_rect(cr, x, y, width, height, radius):
@@ -158,6 +177,7 @@ class CookieClockFace(Gtk.DrawingArea, TeardownMixin):
             return
 
         if self.dial_style == "full":
+            cr.set_line_cap(1)
             for index in range(60):
                 angle = (2 * math.pi * index / 60) - math.pi / 2
                 is_hour = index % 5 == 0
@@ -178,7 +198,6 @@ class CookieClockFace(Gtk.DrawingArea, TeardownMixin):
                 y2 = cy + outer * math.sin(angle)
                 cr.set_source_rgba(*self.col_on_background)
                 cr.set_line_width(width)
-                cr.set_line_cap(1)
                 cr.move_to(x1, y1)
                 cr.line_to(x2, y2)
                 cr.stroke()

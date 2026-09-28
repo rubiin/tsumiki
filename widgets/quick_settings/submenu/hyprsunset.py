@@ -11,6 +11,7 @@ from fabric.widgets.scale import Scale
 
 from shared.buttons import QSChevronButton
 from shared.submenu import QuickSubMenu
+from shared.widget_container import tooltips_enabled
 from utils.functions import is_app_running, toggle_command
 from utils.i18n import _
 from utils.icons import get_text_icon
@@ -47,8 +48,7 @@ class HyprSunsetSubMenu(QuickSubMenu):
         # Connect the slider immediately
         self.scale.connect("value-changed", self.on_scale_move)
         self._repeater_id = invoke_repeater(1000, self.update_scale)
-        # Refresh when first shown; the repeater's initial call may run before
-        # mapping, when the visibility gate skips it.
+        # The repeater's first call can land before mapping, when the gate skips it.
         self.connect("map", self.update_scale)
         self.connect("destroy", self._on_destroy)
 
@@ -90,7 +90,8 @@ class HyprSunsetSubMenu(QuickSubMenu):
             return
 
         self.scale.set_value(sanitized_value)
-        self.scale.set_tooltip_text(f"{sanitized_value}K")
+        if tooltips_enabled():
+            self.scale.set_tooltip_text(f"{sanitized_value}K")
 
 
 class HyprSunsetToggle(QSChevronButton):
@@ -116,8 +117,7 @@ class HyprSunsetToggle(QSChevronButton):
         self.connect("action-clicked", self.on_action)
 
         self._register_repeater(invoke_repeater(1000, self.update_action_button))
-        # Refresh when first shown; the repeater's initial call may run before
-        # mapping, when the visibility gate skips it.
+        # The repeater's first call can land before mapping, when the gate skips it.
         self.connect("map", self.update_action_button)
 
     def on_action(self, *_):

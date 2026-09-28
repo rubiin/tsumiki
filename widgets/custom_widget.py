@@ -114,9 +114,16 @@ class CustomWidgetPresenter:
         if alt and alt in format_icons:
             icon = format_icons[alt]
         elif percentage is not None:
-            for key, val in format_icons.items():
-                if isinstance(key, str) and key.isdigit() and percentage >= int(key):
-                    icon = val
+            # Dict order is the user's, so thresholds must be walked high to low
+            # or 80% would match a "50" entry that happens to come first.
+            thresholds = sorted(
+                (int(k) for k in format_icons if isinstance(k, str) and k.isdigit()),
+                reverse=True,
+            )
+            for threshold in thresholds:
+                if percentage >= threshold:
+                    icon = format_icons[str(threshold)]
+                    break
 
         if icon:
             self._icon.set_label(icon)
@@ -135,7 +142,9 @@ class CustomWidgetPresenter:
             if self._tooltip_enabled:
                 tooltip = data.get("tooltip", "")
                 if tooltip:
-                    self._host_widget.set_tooltip_markup(
+                    # Plain text: command output can hold '&' or '<' that is not
+                    # valid Pango, which silently renders an empty tooltip.
+                    self._host_widget.set_tooltip_text(
                         self._format_tooltip(str(tooltip))
                     )
                 else:
@@ -360,6 +369,9 @@ class CustomWidget(ButtonWidget):
 
         self._start_execution()
 
+        # GTK destroys children from C, so cleanup hangs off the signal.
+        self.connect("destroy", self._on_destroy)
+
     def _register_signal(self, sig_num: int):
         """Register a Unix signal handler to trigger updates."""
         self._executor.register_signal(sig_num)
@@ -451,7 +463,6 @@ class CustomWidget(ButtonWidget):
 
         return True
 
-    def destroy(self):
-        """Clean up resources."""
+    def _on_destroy(self, *_):
+        """Stop the command timers and kill the subprocess; runs for C destroys."""
         self._executor.cleanup()
-        super().destroy()

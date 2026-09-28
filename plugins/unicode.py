@@ -17,21 +17,41 @@ def load_unicode_chars() -> dict:
     return data if isinstance(data, dict) else {}
 
 
+def _haystack(info: dict) -> str:
+    """Lowercased name + aliases + codepoint + category, matched against the query."""
+    return " ".join(
+        [
+            info.get("name", ""),
+            *info.get("aliases", []),
+            info.get("codepoint", ""),
+            info.get("category", ""),
+        ]
+    ).casefold()
+
+
+def _build_index() -> tuple[tuple[str, dict, str], ...]:
+    """Return (char, info, haystack) rows.
+
+    Built once instead of per query: the launcher re-queries on every keystroke.
+    """
+    return tuple(
+        (char, info, _haystack(info)) for char, info in load_unicode_chars().items()
+    )
+
+
+@lru_cache(maxsize=1)
+def search_index() -> tuple[tuple[str, dict, str], ...]:
+    """The cached search index; see _build_index()."""
+    return _build_index()
+
+
 def search_unicode(query: str, limit: int = _MAX_RESULTS) -> list[tuple[str, dict]]:
     """Return up to *limit* (char, info) rows matching *query*."""
     query = query.casefold().strip()
     if not query:
         return []
     matches = []
-    for char, info in load_unicode_chars().items():
-        haystack = " ".join(
-            [
-                info.get("name", ""),
-                *info.get("aliases", []),
-                info.get("codepoint", ""),
-                info.get("category", ""),
-            ]
-        ).casefold()
+    for char, info, haystack in search_index():
         if query in haystack:
             matches.append((char, info))
         if len(matches) >= limit:

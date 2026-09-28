@@ -37,10 +37,9 @@ class HyprPickerWidget(ButtonWidget):
         self.lazy_init()
 
         if not self.initialized:
-            return  # Early exit if script not available
+            return
 
-        # A list, not a shell string: the script path is a filesystem path and
-        # must not be re-parsed.
+        # A list, not a shell string: the path must not be re-parsed.
         base_command = [self.script_file]
         if self.config.get("quiet", False):
             base_command.append("--no-notify")

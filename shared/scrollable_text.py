@@ -10,8 +10,7 @@ gi.require_version("PangoCairo", "1.0")
 
 
 class ScrollingLabel(Gtk.DrawingArea):
-    """A custom Gtk widget that displays text and scrolls it horizontally if it exceeds
-    the available width."""
+    """Displays text, scrolling it horizontally when it exceeds the width."""
 
     def __init__(
         self,
@@ -81,7 +80,6 @@ class ScrollingLabel(Gtk.DrawingArea):
         self.queue_draw()
 
     def on_animator_finished(self, *args):
-        # Swap min/max to reverse direction
         current_min = self.animator.min_value
         current_max = self.animator.max_value
         self.animator.min_value = current_max
@@ -124,7 +122,6 @@ class ScrollingLabel(Gtk.DrawingArea):
         if self.text != str(new_text):
             self.text = str(new_text)
 
-            # Reset Animator State
             self.animator.pause()
             if self._pause_source_id:
                 GLib.source_remove(self._pause_source_id)
@@ -176,11 +173,9 @@ class ScrollingLabel(Gtk.DrawingArea):
             # Convert speed (pixels per 16ms tick) to pixels per second
             pixels_per_second = self.speed * (1000 / 16)
 
-            # Dynamically calculate the duration needed to cover the distance
-            # at the given speed
+            # Duration must cover the scroll distance at the given speed.
             target_duration = scroll_distance / pixels_per_second
 
-            # Update the animator's duration if it has changed
             if abs(self.animator.duration - target_duration) > 0.01:
                 self.animator.duration = target_duration
 

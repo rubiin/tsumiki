@@ -24,7 +24,6 @@ icon = ""
 tooltip = true
 round = true
 temperature_unit = "celsius"
-show_unit = true
 sensor = "acpitz"
 mode = "graph"          # "label" | "graph" | "circular"
 graph_length = 4
@@ -126,14 +125,13 @@ brew = false
 
 ### Batería
 
-Muestra el nivel de batería con iconos y notificaciones personalizables.
+Muestra el nivel de batería con notificaciones.
 
 ```toml
 [widgets.battery]
 full_battery_level = 100
 hide_percent_when_full = true
 hide_when_missing = true
-icons = ["", "", "", "", ""]
 tooltip = true
 label_format = "{icon} {percent}"
 
@@ -497,8 +495,6 @@ Gestiona el montaje y expulsión de unidades USB.
 icon = "󰕓"
 label = false
 tooltip = true
-auto_refresh = true
-refresh_interval = 5
 ```
 
 ---

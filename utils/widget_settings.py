@@ -260,7 +260,6 @@ OSD = TypedDict(
         "anchor": Anchor,
         "percentage": bool,
         "icon_size": int,
-        "play_sound": bool,
         "transition_type": Reveal_Animations,
         "transition_duration": int,
         "osds": list[Osd_Type],
@@ -283,8 +282,6 @@ Dock = TypedDict(
         "group_apps": bool,
         "truncation_size": int,
         "ignored": list[str],
-        "always_show_focused": bool,
-        "hide_special_workspace_apps": bool,
         "layer": Layer,
     },
 )
@@ -356,7 +353,6 @@ Cpu = TypedDict(
         "show_icon": bool,
         "sensor": str,
         "temperature_unit": Temperature_Unit,
-        "show_unit": bool,
         "round": bool,
         "graph_length": int,
     },
@@ -508,8 +504,6 @@ Weather = TypedDict(
         "label_format": str,
         "hover_reveal": bool,
         "reveal_duration": int,
-        "expanded": bool,
-        "interval": int,
         "provider": Weather_Provider,
     },
 )
@@ -573,7 +567,6 @@ DateTimeMenu = TypedDict(
         "hover_reveal": bool,
         "transition_type": str,
         "transition_duration": int,
-        "hover_reveal": bool,
         "reveal_duration": int,
     },
 )
@@ -649,8 +642,6 @@ USBManager = TypedDict(
     {
         **BaseConfig.__annotations__,
         "icon": str,
-        "auto_refresh": bool,
-        "refresh_interval": int,
     },
 )
 
@@ -700,7 +691,6 @@ Media = TypedDict(
     "Media",
     {
         "ignore": list[str],
-        "truncation_size": int,
         "truncation_size": int,
         "show_album": bool,
         "show_artist": bool,
@@ -904,5 +894,5 @@ class BarConfig(TypedDict):
     layout: Layout
     modules: Modules
     general: General
-    collapsible_group: Collapsible_Group
+    collapsible_groups: list[Collapsible_Group]
     widget_groups: Widget_Groups

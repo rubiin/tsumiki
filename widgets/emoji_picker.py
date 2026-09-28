@@ -1,4 +1,4 @@
-from fabric.utils import Gdk, Gio, GLib, idle_add, logger, os, remove_handler
+from fabric.utils import Gdk, Gio, GLib, idle_add, logger, os
 from fabric.widgets.box import Box
 from fabric.widgets.button import Button
 from fabric.widgets.entry import Entry
@@ -37,7 +37,6 @@ class EmojiPickerMenu(Box):
         self.filtered_emojis = []
         self.total_pages = 0
 
-        self._arranger_handler: int = 0
         self._all_emojis = None  # Lazy loaded
         self._emoji_loading = False  # Loading state flag
         self._pending_query = None  # Query to execute after loading
@@ -73,8 +72,6 @@ class EmojiPickerMenu(Box):
                 self.stack,
             ],
         )
-
-        self.resize_viewport()
 
         self.add(self.picker_box)
 
@@ -163,7 +160,6 @@ class EmojiPickerMenu(Box):
         self.stack.add(loading_box)
 
     def _do_arrange_viewport(self, query: str = ""):
-        remove_handler(self._arranger_handler) if self._arranger_handler else None
         self.stack.children = []
         self.selected_index = -1
         self.current_page_index = 0
@@ -184,19 +180,13 @@ class EmojiPickerMenu(Box):
         )
 
         self._page_cache: dict[int, Box] = {}
-        # Build only the first page eagerly; remaining pages are built lazily
-        # on navigation. Rebuilding ~60 button trees on every keystroke caused
-        # heavy style/layout churn while typing in the search box.
+        # Only page 0 is built eagerly; the rest cost ~60 button trees per keystroke.
         if self.total_pages > 0:
             self._build_page(0)
         # Show first page
         if self.total_pages > 0:
             self.stack.set_visible_child_name("page-0")
 
-        should_resize = not query
-
-        if should_resize:
-            self.resize_viewport()
         if query.strip() != "" and self._get_all_emoji_buttons():
             self.update_selection(0)
 
@@ -238,9 +228,6 @@ class EmojiPickerMenu(Box):
             else:
                 self.update_selection(len(buttons) - 1)
 
-    def resize_viewport(self):
-        return False
-
     def _bake_emoji_slot(self, emoji_char: str, emoji_info: dict, **kwargs) -> Button:
         # Label can be child directly - no need for wrapper Box
         button = Button(
@@ -271,8 +258,6 @@ class EmojiPickerMenu(Box):
         if self.selected_index != -1 and self.selected_index < len(buttons):
             current_button = buttons[self.selected_index]
             current_button.get_style_context().remove_class("selected")
-            if not buttons or current_button not in buttons:
-                self.selected_index = -1
 
         if 0 <= new_index < len(buttons):
             new_button = buttons[new_index]
@@ -283,15 +268,26 @@ class EmojiPickerMenu(Box):
 
     def _get_all_emoji_buttons(self):
         buttons = []
+        for row_box in self._get_row_boxes():
+            buttons.extend(row_box.get_children())
+        return buttons
+
+    def _get_row_boxes(self):
         current_page = self.stack.get_visible_child()
         if (
             current_page
             and current_page.get_children()
             and current_page.get_children()[0].get_children()
         ):
-            for row_box in current_page.get_children()[0].get_children():
-                buttons.extend(row_box.get_children())
-        return buttons
+            return list(current_page.get_children()[0].get_children())
+        return []
+
+    def _grid_shape(self) -> tuple[int, int]:
+        """Row and column count of the visible page, as the layout built it.
+
+        A hardcoded shape sends the arrow keys to the wrong configured row.
+        """
+        return len(self._get_row_boxes()), max(1, self._per_row)
 
     def on_search_entry_activate(self, text):
         buttons = self._get_all_emoji_buttons()
@@ -316,8 +312,9 @@ class EmojiPickerMenu(Box):
         if total_items_current_page == 0:
             return
 
-        rows = 3
-        columns = 9
+        rows, columns = self._grid_shape()
+        if rows < 1 or columns < 1:
+            return
 
         if self.selected_index == -1:
             if keyval in (Gdk.KEY_Down, Gdk.KEY_Right):

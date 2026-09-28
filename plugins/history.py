@@ -5,6 +5,7 @@ Press Enter to copy a command back to the clipboard — nothing is executed.
 
 import os
 import re
+from collections.abc import Callable
 from typing import ClassVar
 
 from utils.plugin_manager import LauncherPlugin, PluginResult, copy_to_clipboard
@@ -13,8 +14,7 @@ _MAX_RESULTS = 24
 #: Preview length of a command row in the launcher.
 _PREVIEW_LENGTH = 100
 
-#: Extended-history timestamp prefix: ``: <epoch>:<seconds>;<command>``
-#: (written when EXTENDED_HISTORY is set in zsh).
+#: Extended zsh history prefix: ``: <epoch>:<seconds>;<command>``
 _ZSH_EXTENDED_RE = re.compile(r"^:\s*(\d+):\d*;(.*)$")
 
 
@@ -31,11 +31,7 @@ def default_history_files() -> list[str]:
 
 
 def parse_bash_history(content: str) -> list[tuple[int, str]]:
-    """Return ``[(line_ordinal, command)]`` from a bash-style history file.
-
-    Each entry gets a line-position ordinal so later lines rank as more
-    recent, matching the convention used by zsh plain entries.
-    """
+    """Return ``[(line_ordinal, command)]``; later lines rank as more recent."""
     return [
         (index + 1, line.strip())
         for index, line in enumerate(content.splitlines())
@@ -44,11 +40,7 @@ def parse_bash_history(content: str) -> list[tuple[int, str]]:
 
 
 def parse_zsh_history(content: str) -> list[tuple[int, str]]:
-    """Return ``[(epoch, command)]`` from a zsh history file.
-
-    Handles plain and extended (``: ts:0;cmd``) formats; plain lines get a
-    position ordinal so later lines sort as more recent.
-    """
+    """Return ``[(epoch, command)]``; handles plain and extended zsh formats."""
     entries: list[tuple[int, str]] = []
     for index, line in enumerate(content.splitlines()):
         if not line.strip() or line.startswith("#"):
@@ -83,11 +75,40 @@ def parse_fish_history(content: str) -> list[tuple[int, str]]:
     return entries
 
 
-def load_history(paths: list[str] | None = None) -> list[str]:
-    """Return de-duplicated commands, most recent first, across all files."""
+def match_commands(
+    commands: list[str],
+    query: str,
+    cancelled: Callable[[], bool] | None = None,
+) -> list[str]:
+    """Return the commands containing *query*, stopping when cancelled.
+
+    The check precedes the per-command ``casefold``, which copies and scans
+    every history line — thousands of entries on a busy shell.
+    """
+    matches: list[str] = []
+    for cmd in commands:
+        if cancelled is not None and cancelled():
+            break
+        if query in cmd.casefold():
+            matches.append(cmd)
+    return matches
+
+
+def load_history(
+    paths: list[str] | None = None,
+    cancelled: Callable[[], bool] | None = None,
+) -> list[str]:
+    """Return de-duplicated commands, most recent first, across all files.
+
+    Pass *cancelled* to stop before reading the next history file; a partial
+    merge is fine because the launcher drops results from superseded queries.
+    """
     merged: list[tuple[int, int, str]] = []
     order = 0
     for path in paths or default_history_files():
+        # Checked per file: one check saves a whole read plus parse.
+        if cancelled is not None and cancelled():
+            break
         try:
             with open(path, "r", encoding="utf-8", errors="replace") as file:
                 content = file.read()
@@ -100,6 +121,8 @@ def load_history(paths: list[str] | None = None) -> list[str]:
         else:
             entries = parse_bash_history(content)
         for recency, cmd in entries:
+            if cancelled is not None and cancelled():
+                break
             if cmd:
                 merged.append((recency, order, cmd))
             order += 1
@@ -121,13 +144,14 @@ class HistoryPlugin(LauncherPlugin):
     description = "Search your shell command history"
     icon = "utilities-terminal-symbolic"
     aliases: ClassVar[list[str]] = ["h", "hist"]
-    # Local file reads only — the launcher's default debounce is plenty.
+    # Every keystroke re-reads and re-parses whole history files; let typing settle.
+    debounce_ms = 400
 
     def handle(self, args: str) -> list[PluginResult]:
         query = args.strip().casefold()
         if self.is_cancelled():
             return []  # superseded before we started reading
-        commands = load_history()
+        commands = load_history(cancelled=self.is_cancelled)
         if not commands:
             return [
                 PluginResult(
@@ -137,7 +161,7 @@ class HistoryPlugin(LauncherPlugin):
                 )
             ]
         if query:
-            commands = [cmd for cmd in commands if query in cmd.casefold()]
+            commands = match_commands(commands, query, cancelled=self.is_cancelled)
         if not commands:
             return [
                 PluginResult(

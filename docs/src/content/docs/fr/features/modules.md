@@ -46,7 +46,6 @@ Lanceur d'applications épinglées avec intellihide.
 enabled = false
 icon_size = 40
 behavior = "intellihide"
-preview_apps = true
 group_apps = true
 orientation = "horizontal"
 ```
@@ -73,12 +72,12 @@ Lanceur d'applications piloté par clavier.
 enabled = false
 tooltip = true
 icon_size = 35
-ignored = []
 anchor = "center"
 width = 280
 height = 320
 layout = "grid"
 grid_columns = 3
+grid_spacing = 12
 plugins_enabled = true
 plugins_dir = ""
 ```
@@ -104,7 +103,7 @@ Superpositions transitoires pour le volume, la luminosité, etc.
 ```toml
 [modules.osd]
 enabled = false
-timeout = 3000
+timeout = 1500
 anchor = "bottom-center"
 orientation = "horizontal"
 osds = ["brightness", "volume"]

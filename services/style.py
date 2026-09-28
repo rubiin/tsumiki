@@ -35,8 +35,8 @@ _theme_file_cache: dict[str, dict] = {}
 def _run_inline(callback: Callable[..., None], *args) -> None:
     """Run *callback* now - the inline counterpart of ``idle_add``.
 
-    Shares ``idle_add``'s ``(callback, *args)`` shape so the compile path can be
-    dispatched either to the main thread or run where it stands.
+    Same ``(callback, *args)`` shape, so the compile path can be dispatched
+    either to the main thread or run where it stands.
     """
     callback(*args)
 
@@ -133,7 +133,6 @@ class StyleService(SingletonService):
         self._current_theme = theme_name
         self._copy_and_apply(theme_name, self._mode)
 
-        # Persist the choice to config.toml
         update_theme_config(theme_name)
 
         self.emit("theme_changed", theme_name)
@@ -180,18 +179,13 @@ class StyleService(SingletonService):
 
         self._mode = mode
         self.apply_theme(self._current_theme)
-        # Persist the choice to config.toml (theme is unchanged here, so the
-        # write from apply_theme and this one don't conflict).
+        # Unchanged here, so this write cannot conflict with apply_theme's.
         update_styling_mode(mode)
 
     def refresh(self) -> None:
         """Recompile and re-apply the current CSS without changing the theme.
 
-        Concurrent requests coalesce rather than being dropped: a refresh that
-        lands while a compile is in flight is remembered, and the worker runs
-        once more when it finishes, so the newest SCSS always ends up applied.
-        ``css_recompiled`` is emitted only once the CSS has actually been
-        applied (see ``_finish_compile``).
+        A refresh landing during a compile is remembered and run once more.
         """
         with self._compile_lock:
             self._compile_pending = True
@@ -206,11 +200,8 @@ class StyleService(SingletonService):
     def refresh_blocking(self) -> None:
         """Compile and apply CSS synchronously on the calling thread.
 
-        Used on the startup path, before any widget exists, so the whole tree
-        is built and laid out already styled. Going through the async path
-        instead meant widgets were mapped unstyled and then restyled once the
-        first compile landed - a second full style/layout pass and a visible
-        flash. Must not be called while a compile is in flight.
+        Used at startup so widgets are built already styled; the async path
+        mapped them unstyled, then restyled them. Not safe during a compile.
         """
         self._compile_and_apply(_run_inline)
 
@@ -264,7 +255,6 @@ class StyleService(SingletonService):
         """Parse the theme TOML and cache the active mode's section."""
         contents = self._get_raw_theme(theme_name)
         if contents is None:
-            # Fall back to default
             contents = self._get_raw_theme("catpuccin-mocha")
 
         self._theme_contents = contents.get(mode, contents) if contents else None
@@ -326,21 +316,19 @@ class StyleService(SingletonService):
         """Load the compiled CSS file into the running application."""
         try:
             if file:
-                # Belt-and-braces: GTK3's CSS provider rejects ``@charset``
-                # (``unknown @ rule``), and fabric feeds the file through
-                # ``load_from_data``. The compiler is asked for ``--no-charset``,
-                # but strip any stragglers so a stale file can never fail the
-                # whole stylesheet load.
                 with open(file, encoding="utf-8") as handle:
                     content = handle.read()
-                stripped = "\n".join(
-                    line
-                    for line in content.splitlines()
-                    if not line.lstrip().startswith("@charset")
-                )
-                if stripped != content:
-                    with open(file, "w", encoding="utf-8") as handle:
-                        handle.write(stripped)
+                # Belt-and-braces: GTK3 rejects @charset as an unknown @ rule,
+                # but the compile passes --no-charset, so skip the rewrite.
+                if "@charset" in content:
+                    stripped = "\n".join(
+                        line
+                        for line in content.splitlines()
+                        if not line.lstrip().startswith("@charset")
+                    )
+                    if stripped != content:
+                        with open(file, "w", encoding="utf-8") as handle:
+                            handle.write(stripped)
             app = Application.get_default()
             if app:
                 app.set_stylesheet_from_file(file)
@@ -359,8 +347,7 @@ class StyleService(SingletonService):
                     self._compile_pending = False
                 self._compile_and_apply(idle_add)
         except Exception as exc:
-            # Never leave the flag set: a stuck flag would silently drop every
-            # later refresh, which is the bug this worker exists to fix.
+            # A stuck flag would silently drop every later refresh.
             with self._compile_lock:
                 self._compiling = False
                 self._compile_pending = False
@@ -369,16 +356,11 @@ class StyleService(SingletonService):
     def _compile_and_apply(self, dispatch: Callable[..., None]) -> None:
         """Run ``sass`` once and route the result through *dispatch*.
 
-        *dispatch* takes a callback plus its arguments, like ``idle_add``: the
-        worker passes ``idle_add`` so the apply lands on the main thread, and
-        the startup path passes ``_run_inline`` so it happens where it stands.
+        The worker passes ``idle_add`` so the apply lands on the main thread;
+        the startup path passes ``_run_inline`` to run where it stands.
         """
         logger.info(f"{Colors.INFO}[Theme] Recompiling CSS")
-        # ``--no-charset``: dart-sass emits ``@charset "UTF-8";`` when the
-        # compiled CSS contains non-ASCII bytes, and GTK3's CSS provider
-        # rejects that at-rule (``unknown @ rule``), failing the whole
-        # stylesheet. Unicode inside values/comments is still fine — we
-        # just skip the declaration.
+        # --no-charset: dart-sass emits @charset, which GTK3 rejects.
         output = exec_shell_command(
             f"sass styles/main.scss {CSS_PATH} --no-source-map --no-charset"
         )
@@ -405,5 +387,4 @@ class StyleService(SingletonService):
         )
 
 
-# Module-level singleton instance
 style_service = StyleService()

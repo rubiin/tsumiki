@@ -4,6 +4,7 @@ The target language can be given with "in <language>" or "to <language>",
 e.g. ``/translate hello in nepali``; otherwise the plugin default is used.
 """
 
+import re
 from typing import ClassVar
 
 from utils.plugin_manager import (
@@ -18,8 +19,7 @@ _TRANSLATE_URL = "https://translate.googleapis.com/translate_a/single"
 #: Google rejects longer payloads ("400. That's an error...").
 _MAX_TEXT_LENGTH = 1830
 
-#: Language name -> Google language code. Covers common languages; unknown
-#: names fall back to the plugin default target language.
+#: Language name -> Google code; unknown names fall back to the default target.
 _LANGUAGES = {
     "afrikaans": "af",
     "albanian": "sq",
@@ -130,22 +130,30 @@ _LANGUAGES = {
 }
 
 
+#: Matched against the original text, never a casefolded copy: casefold() is not
+#: length-preserving (ß -> ss, ﬃ -> ffi), so casefolded offsets cut mid-word.
+_DIRECTIVE_RE = re.compile(r"\s+(?:in|to)\s+(\S.*?)\s*$", re.IGNORECASE)
+#: Bare directive with no text, e.g. "/translate in nepali".
+_BARE_DIRECTIVE_RE = re.compile(r"^(?:in|to)\s+(\S.*?)\s*$", re.IGNORECASE)
+
+
+def _find_directive(pattern: re.Pattern[str], text: str) -> tuple[int, str] | None:
+    """Return (split_index, language_code) for the last directive in *text*."""
+    for match in reversed(list(pattern.finditer(text))):
+        code = _LANGUAGES.get(match.group(1).casefold())
+        if code is not None:
+            return match.start(), code
+    return None
+
+
 def parse_target_language(text: str) -> tuple[str, str]:
     """Split *text* into (translate_text, target_lang) from a trailing
     "in <language>" / "to <language>" directive."""
-    lowered = text.casefold().strip()
-    for separator in (" in ", " to "):
-        if separator in lowered:
-            phrase, _, lang_name = lowered.rpartition(separator)
-            code = _LANGUAGES.get(lang_name.strip())
-            if code is not None:
-                return text[: len(phrase)], code
-    # Bare directive with no text, e.g. "/translate in nepali".
-    for prefix in ("in ", "to "):
-        if lowered.startswith(prefix):
-            code = _LANGUAGES.get(lowered[len(prefix) :])
-            if code is not None:
-                return "", code
+    stripped = text.strip()
+    for pattern in (_DIRECTIVE_RE, _BARE_DIRECTIVE_RE):
+        found = _find_directive(pattern, stripped)
+        if found is not None:
+            return stripped[: found[0]], found[1]
     return text, None
 
 
@@ -156,8 +164,7 @@ class TranslatePlugin(LauncherPlugin):
     description = "Translate text (e.g. 'hello in nepali')"
     icon = "preferences-desktop-locale-symbolic"
     aliases: ClassVar[list[str]] = ["tr", "t"]
-    # Each query is a network request, so wait for the user to pause typing
-    # before translating instead of hitting the API on every keystroke.
+    # Each query is a network request; debounce instead of firing per keystroke.
     debounce_ms = 500
     #: Session cache TTL — repeat translations skip the network.
     cache_ttl_seconds = 300
