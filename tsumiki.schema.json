@@ -273,14 +273,6 @@
               "default": 100,
               "description": "Percentage at or above which the battery counts as full."
             },
-            "icons": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              },
-              "default": ["", "", "", "", ""],
-              "description": "Determines the battery icons"
-            },
             "notifications": {
               "type": "object",
               "properties": {
@@ -357,8 +349,7 @@
             "hide_percent_when_full",
             "label_format",
             "tooltip",
-            "notifications",
-            "icons"
+            "notifications"
           ]
         },
         "overview_button": {
@@ -1438,11 +1429,6 @@
               "default": true,
               "description": "Round CPU usage values."
             },
-            "show_unit": {
-              "type": "boolean",
-              "default": true,
-              "description": "Show measurement unit next to CPU value."
-            },
             "sensor": {
               "type": "string",
               "default": "acpitz",
@@ -1461,7 +1447,6 @@
             "tooltip",
             "temperature_unit",
             "round",
-            "show_unit",
             "sensor",
             "graph_length"
           ]
@@ -2907,12 +2892,6 @@
               "enum": ["top", "overlay", "bottom", "background"],
               "description": "Layer on which the bar is displayed.",
               "default": "top"
-            },
-            "location": {
-              "type": "string",
-              "enum": ["background", "bottom", "top", "overlay"],
-              "default": "top",
-              "description": "Determines the layer of the dock."
             }
           }
         },
@@ -3325,11 +3304,6 @@
               "description": "Duration in milliseconds to show the OSD",
               "default": 1500
             },
-            "play_sound": {
-              "type": "boolean",
-              "description": "Determines whether to play a sound when the OSD is shown",
-              "default": false
-            },
             "icon_size": {
               "type": "integer",
               "description": "Size of the OSD icons",
@@ -3339,11 +3313,6 @@
               "type": "boolean",
               "description": "Determines whether to show the percentage in the OSD",
               "default": true
-            },
-            "style": {
-              "type": "string",
-              "enum": ["default", "leaf", "leaf-inverse", "flat", "shadow", "bordered"],
-              "description": "Determines the style of the widget."
             }
           }
         },
@@ -3383,14 +3352,6 @@
                 "type": "string"
               },
               "description": "Allowlist of plugin names to load (e.g. [\"calc\", \"emoji\"]). An empty list loads no plugins.",
-              "default": []
-            },
-            "ignored": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              },
-              "description": "List of application names to ignore",
               "default": []
             },
             "anchor": {
@@ -3434,6 +3395,12 @@
               "minimum": 1,
               "maximum": 10,
               "default": 3
+            },
+            "grid_spacing": {
+              "type": "integer",
+              "description": "Gap in pixels between items in grid layout mode",
+              "minimum": 0,
+              "default": 12
             }
           }
         }

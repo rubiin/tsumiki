@@ -145,12 +145,12 @@ Keyboard-driven application launcher with search, grid/list layout, and drag-to-
 enabled = false
 tooltip = true
 icon_size = 35
-ignored = []
 anchor = "center"
 width = 280
 height = 320
 layout = "grid"                    # "grid" | "list"
 grid_columns = 3
+grid_spacing = 12
 plugins_enabled = true              # slash-command plugins (/calc, /translate)
 plugins_dir = ""                    # default: <config>/plugins
 plugins = ["calc", "emoji"]          # allowlist of plugins to load (empty = none)
@@ -158,7 +158,6 @@ plugins = ["calc", "emoji"]          # allowlist of plugins to load (empty = non
 
 - **`layout`**: `grid` shows app icons in a grid; `list` shows them as a list with names.
 - **`anchor`**: Position on screen (`center`, `top`, `bottom`, etc.).
-- **`ignored`**: List of desktop file names to exclude from search results.
 - **`plugins_enabled`**: Enables slash-command plugins (`/calc`, `/translate`, ...).
 - **`plugins_dir`**: Directory containing Python plugins; defaults to `<config>/plugins`.
 - **`plugins`**: Strict allowlist of plugin names to load (e.g. `["calc", "emoji"]`).
@@ -262,12 +261,11 @@ Transient overlays for volume, brightness, and other adjustments.
 ```toml
 [modules.osd]
 enabled = false
-timeout = 3000
+timeout = 1500
 anchor = "bottom-center"
 orientation = "horizontal"
 percentage = true
-icon_size = 25
-play_sound = false
+icon_size = 28
 transition_type = "slide-up"       # "slide-up" | "slide-down" | "slide-left" | "slide-right" | "crossfade"
 transition_duration = 500
 osds = ["brightness", "volume"]
@@ -275,7 +273,6 @@ osds = ["brightness", "volume"]
 
 - **`osds`**: Which OSD types to show. Available: `brightness`, `volume`, `microphone`, `lockkeys`.
 - **`percentage`**: Shows a percentage indicator alongside the icon.
-- **`play_sound`**: Plays a sound when the OSD appears.
 
 ---
 

@@ -143,19 +143,18 @@ Lanzador de aplicaciones controlado por teclado con búsqueda, diseño de cuadr�
 enabled = false
 tooltip = true
 icon_size = 35
-ignored = []
 anchor = "center"
 width = 280
 height = 320
 layout = "grid"                    # "grid" | "list"
 grid_columns = 3
+grid_spacing = 12
 plugins_enabled = true              # comandos slash (/calc, /translate)
 plugins_dir = ""                    # predeterminado: <config>/plugins
 ```
 
 - **`layout`**: `grid` muestra iconos en cuadrícula; `list` los muestra como lista con nombres.
 - **`anchor`**: Posición en pantalla (`center`, `top`, `bottom`, etc.).
-- **`ignored`**: Lista de nombres de archivos .desktop a excluir de los resultados de búsqueda.
 - **`plugins_enabled`**: Activa los plugins de comandos slash (`/calc`, `/translate`, ...).
 - **`plugins_dir`**: Directorio con los plugins Python; por defecto `<config>/plugins`.
 
@@ -191,12 +190,11 @@ Superposiciones transitorias para volumen, brillo y otros ajustes.
 ```toml
 [modules.osd]
 enabled = false
-timeout = 3000
+timeout = 1500
 anchor = "bottom-center"
 orientation = "horizontal"
 percentage = true
-icon_size = 25
-play_sound = false
+icon_size = 28
 transition_type = "slide-up"       # "slide-up" | "slide-down" | "slide-left" | "slide-right" | "crossfade"
 transition_duration = 500
 osds = ["brightness", "volume"]
@@ -204,7 +202,6 @@ osds = ["brightness", "volume"]
 
 - **`osds`**: Qué tipos de OSD mostrar. Disponibles: `brightness`, `volume`, `microphone`, `lockkeys`.
 - **`percentage`**: Muestra un indicador de porcentaje junto al icono.
-- **`play_sound`**: Reproduce un sonido cuando aparece el OSD.
 
 ---
 

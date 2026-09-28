@@ -24,7 +24,6 @@ icon = ""
 tooltip = true
 round = true
 temperature_unit = "celsius"
-show_unit = true
 sensor = "acpitz"
 mode = "graph"          # "label" | "graph" | "circular"
 graph_length = 4
@@ -126,14 +125,13 @@ brew = false
 
 ### Battery
 
-Shows battery level with customizable icons and notifications.
+Shows battery level with notifications.
 
 ```toml
 [widgets.battery]
 full_battery_level = 100
 hide_percent_when_full = true
 hide_when_missing = true
-icons = ["", "", "", "", ""]
 tooltip = true
 label_format = "{icon} {percent}"
 
