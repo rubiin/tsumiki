@@ -19,10 +19,13 @@ class SettingSlider(Box, BaseWidget):
         pixel_size: int = 18,
         **kwargs,
     ):
+        name = kwargs.pop("name", "setting-slider")
         super().__init__(
-            name="setting-slider",
+            name=name,
             **kwargs,
         )
+        # Box.__init__ skips BoxWidget's, so the config-derived flags are set here.
+        self._init_widget_settings(name)
         self.pixel_size = pixel_size
         self.icon = nerd_font_icon(
             icon=icon_name,

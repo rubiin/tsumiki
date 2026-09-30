@@ -36,6 +36,7 @@ class MicrophoneSlider(SettingSlider):
             )
             self.children = (*self.children, self.chevron_btn)
 
+        self._destroyed = False
         if not audio_stream:
 
             def init_device_audio(*_):
@@ -55,7 +56,6 @@ class MicrophoneSlider(SettingSlider):
 
         self.scale.connect("change-value", self.on_scale_move)
         self.icon_button.connect("clicked", self.on_mute_click)
-        self._destroyed = False
         self.connect("destroy", self._on_destroy)
 
     def _on_destroy(self, *_):
