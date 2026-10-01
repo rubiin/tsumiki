@@ -1286,7 +1286,13 @@ opacity = 100
 spread = 0
 
 [styling.modules.desktop_clock]
+margin_x = "15rem"
+margin_y = "15rem"
 spacing = "0.125em"
+
+[styling.modules.desktop_clock.cookie]
+margin_x = "8rem"
+margin_y = "8rem"
 
 [styling.modules.desktop_clock.border]
 enabled = false
@@ -1294,6 +1300,8 @@ radius = "16px"
 width = "1px"
 
 [styling.modules.desktop_quotes]
+margin_x = "4rem"
+margin_y = "4rem"
 spacing = "0.125em"
 
 [styling.modules.desktop_quotes.border]
@@ -1343,7 +1351,7 @@ spread = 0
 
 [styling.modules.osd]
 margin_x = "0"
-margin_y = "1.25em"
+margin_y = "100px"
 opacity = 100
 padding_x = "0.8em"
 padding_y = "0.6em"
