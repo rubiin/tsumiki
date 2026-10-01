@@ -61,6 +61,29 @@ class ScaleTooltipGateTest(unittest.TestCase):
 
         self.slider.scale.set_tooltip_text.assert_not_called()
 
+    def test_construction_defines_the_flag_the_gate_reads(self):
+        """``SettingSlider`` must build the flags the gate reads.
+
+        It inherits ``BaseWidget`` but extends ``Box``, so it bypasses the
+        ``BoxWidget`` constructor that normally sets them — and every slider
+        called the gate from its own initializer.
+        """
+        import shared.setting_scale as setting_scale
+
+        # The property setter calls into GTK on children this test never builds.
+        with (
+            mock.patch.object(setting_scale.Box, "children", None),
+            mock.patch.object(setting_scale, "nerd_font_icon", mock.Mock()),
+            mock.patch.object(setting_scale, "create_scale", mock.Mock()),
+            mock.patch.object(setting_scale, "HoverButton", mock.Mock()),
+            mock.patch(
+                "utils.config.tsumiki_config", {"general": {"tooltips": False}}
+            ),
+        ):
+            slider = setting_scale.SettingSlider()
+
+        self.assertFalse(slider.tooltips_enabled)
+
 
 class BaseWidgetTooltipGateTest(unittest.TestCase):
     """``set_tooltip_if_enabled`` honours both the widget and the global flag."""

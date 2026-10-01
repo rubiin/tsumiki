@@ -1,5 +1,36 @@
 # Changelog
 
+## [4.8.4](https://github.com/rubiin/tsumiki/compare/v4.8.3...v4.8.4) (2026-09-28)
+
+### 🐛 Bug Fixes
+
+- adjust app icon size for consistent layout across notification cards ([fed8ba5](https://github.com/rubiin/tsumiki/commit/fed8ba599bfdf6d51c74cfdbf9dfc51153cf665a))
+- correct silent failures and replace subprocess with GIO ([#439](https://github.com/rubiin/tsumiki/issues/439)) ([07696be](https://github.com/rubiin/tsumiki/commit/07696be7ca4968c468a00550ac52abe6ea01ad5d))
+- ensure app icon resolution does not pass unhashable types ([37d5bd6](https://github.com/rubiin/tsumiki/commit/37d5bd6efc167451e905bffc80103d7b9777e0de))
+- tsumiki.schema.json structure and requirements ([1233997](https://github.com/rubiin/tsumiki/commit/1233997c21230c8126ea7fbfb4171725f0087416))
+
+### 🎨 Code Style
+
+- clean up overview module and related styles ([37d5bd6](https://github.com/rubiin/tsumiki/commit/37d5bd6efc167451e905bffc80103d7b9777e0de))
+
+### ⚙️ Chores
+
+- bump version to 4.8.3 in lock file ([37d5bd6](https://github.com/rubiin/tsumiki/commit/37d5bd6efc167451e905bffc80103d7b9777e0de))
+- **deps:** lock file maintenance ([bea8204](https://github.com/rubiin/tsumiki/commit/bea82048fe7a4c5e916e3c5fcd5adb5b5faed788))
+- **deps:** lock file maintenance ([3b4f9cf](https://github.com/rubiin/tsumiki/commit/3b4f9cfb6f5f62a3a5d90483bfe6835b6e58731b))
+
+### ♻️ Code Refactoring
+
+- clean up whitespace and improve code formatting across multiple files ([d0e3e2d](https://github.com/rubiin/tsumiki/commit/d0e3e2dbd25dbaab60795c1ce8ca25fa54029ca8))
+- improve pixbuf scaling logic to prevent upscaling and enhance performance ([ae85b2a](https://github.com/rubiin/tsumiki/commit/ae85b2ad1cd1531ec5ccbcbe231d0c763b2112e9))
+- **layout:** remove overview_button from middle_section for cleaner UI ([fd3b6c2](https://github.com/rubiin/tsumiki/commit/fd3b6c2cac030be9c116fc367997084b6073fc04))
+- **matugen:** simplify command building and improve error handling ([c2648d3](https://github.com/rubiin/tsumiki/commit/c2648d37b8e6473421e27005d491fcf162f8e3d4))
+- simplify window management commands in dock.py using hyprland_service ([37d5bd6](https://github.com/rubiin/tsumiki/commit/37d5bd6efc167451e905bffc80103d7b9777e0de))
+
+### ✅ Automated Testing
+
+- add unit tests for app lookup and hyprland dispatch commands ([37d5bd6](https://github.com/rubiin/tsumiki/commit/37d5bd6efc167451e905bffc80103d7b9777e0de))
+
 ## [4.8.3](https://github.com/rubiin/tsumiki/compare/v4.8.2...v4.8.3) (2026-09-25)
 
 ### 🚀 New Features

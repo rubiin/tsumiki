@@ -1322,8 +1322,8 @@ opacity = 100
 spread = 0
 
 [styling.modules.notification]
-margin_x = "0"
-margin_y = "1.25em"
+margin_x = "12px"   # keeps the card off the anchored screen edge
+margin_y = "12px"
 opacity = 100
 padding_x = "0.9em"
 padding_y = "0.9em"
