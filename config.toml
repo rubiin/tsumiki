@@ -1353,8 +1353,8 @@ spread = 0
 margin_x = "0"
 margin_y = "100px"
 opacity = 100
-padding_x = "0.8em"
-padding_y = "0.6em"
+padding_x = "1.25em"   # was hardcoded toEm(20)
+padding_y = "0.75em"
 scaling = 100
 widget_style = "default"
 
