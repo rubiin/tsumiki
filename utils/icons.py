@@ -1,4 +1,3 @@
-
 text_nerd_icons = {
     "ui": {
         "window_close": "",

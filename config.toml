@@ -1098,7 +1098,7 @@ radius = "16px"
 width = "1px"
 
 [styling.bar.widgets.quick_settings.sliders]
-height = "7px"
+height = "5px"
 knob = true
 knob_height = "8px"
 
@@ -1286,7 +1286,13 @@ opacity = 100
 spread = 0
 
 [styling.modules.desktop_clock]
+margin_x = "15rem"
+margin_y = "15rem"
 spacing = "0.125em"
+
+[styling.modules.desktop_clock.cookie]
+margin_x = "8rem"
+margin_y = "8rem"
 
 [styling.modules.desktop_clock.border]
 enabled = false
@@ -1294,6 +1300,8 @@ radius = "16px"
 width = "1px"
 
 [styling.modules.desktop_quotes]
+margin_x = "4rem"
+margin_y = "4rem"
 spacing = "0.125em"
 
 [styling.modules.desktop_quotes.border]
@@ -1322,8 +1330,8 @@ opacity = 100
 spread = 0
 
 [styling.modules.notification]
-margin_x = "0"
-margin_y = "1.25em"
+margin_x = "12px"   # keeps the card off the anchored screen edge
+margin_y = "12px"
 opacity = 100
 padding_x = "0.9em"
 padding_y = "0.9em"
@@ -1343,10 +1351,10 @@ spread = 0
 
 [styling.modules.osd]
 margin_x = "0"
-margin_y = "1.25em"
+margin_y = "100px"
 opacity = 100
-padding_x = "0.8em"
-padding_y = "0.6em"
+padding_x = "1.25em"   # was hardcoded toEm(20)
+padding_y = "0.75em"
 scaling = 100
 widget_style = "default"
 

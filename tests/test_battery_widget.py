@@ -33,6 +33,10 @@ def make_widget() -> BatteryWidget:
     widget.charging_icons = [f"charge{i}" for i in range(11)]
     widget.tooltips_enabled = True
     widget.battery_icon = mock.Mock()
+    widget._battery_color = None
+    widget._hover_color = "#080808"
+    widget._hovered = False
+    widget._last_state = None
     widget.initialized = False
     widget.last_percentage = None
     widget.last_charging_state = None
@@ -42,12 +46,11 @@ def make_widget() -> BatteryWidget:
     widget.discharging_notified = False
 
     client = mock.Mock()
-    client.get_property.side_effect = (
-        lambda name: DISPLAY_DEVICE_PROPERTIES.get(name)
-    )
+    client.get_property.side_effect = lambda name: DISPLAY_DEVICE_PROPERTIES.get(name)
     widget.client = client
     widget.set_tooltip_text = mock.Mock()
     widget.set_tooltip_if_enabled = mock.Mock()
+    widget.set_visible = mock.Mock()
     return widget
 
 
@@ -74,6 +77,66 @@ class BatteryPropertyReadTest(unittest.TestCase):
 
         self.assertIn("96", tooltip)
         self.assertNotIn("Wh", tooltip)
+
+
+class BatteryHoverColorTest(unittest.TestCase):
+    """Hover swaps the percentage color for the hover color, like weather."""
+
+    def setUp(self):
+        self.widget = make_widget()
+        with mock.patch("widgets.battery.send_notification"):
+            self.widget._update_ui()
+
+    def _markup(self) -> str:
+        return self.widget.battery_icon.set_markup.call_args[0][0]
+
+    def test_resting_markup_uses_the_percentage_color(self):
+        self.assertIn(self.widget._battery_color, self._markup())
+
+    def test_hover_swaps_to_the_hover_color(self):
+        self.widget._on_hover_enter()
+
+        markup = self._markup()
+        self.assertIn("#080808", markup)
+        self.assertNotIn(self.widget._battery_color, markup)
+
+    def test_leave_restores_the_percentage_color(self):
+        self.widget._on_hover_enter()
+        self.widget._on_hover_leave()
+
+        markup = self._markup()
+        self.assertIn(self.widget._battery_color, markup)
+        self.assertNotIn("#080808", markup)
+
+    def test_hover_keeps_the_label_text(self):
+        self.widget._on_hover_enter()
+        hovered = self._markup()
+
+        self.widget._on_hover_leave()
+        self.assertEqual(
+            hovered.replace("#080808", self.widget._battery_color),
+            self._markup(),
+        )
+
+    def test_update_while_hovered_keeps_the_hover_color(self):
+        self.widget._on_hover_enter()
+        with mock.patch("widgets.battery.send_notification"):
+            self.widget._update_ui()
+
+        self.assertIn("#080808", self._markup())
+
+    def test_hover_with_no_battery_is_a_no_op(self):
+        client = self.widget.client
+        client.get_property.side_effect = lambda name: (
+            0 if name == "IsPresent" else DISPLAY_DEVICE_PROPERTIES.get(name)
+        )
+
+        with mock.patch("widgets.battery.send_notification"):
+            self.widget._update_ui()
+        self.widget.battery_icon.set_markup.reset_mock()
+        self.widget._on_hover_enter()
+
+        self.widget.battery_icon.set_markup.assert_not_called()
 
 
 if __name__ == "__main__":

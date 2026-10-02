@@ -76,9 +76,7 @@ class ScaleTooltipGateTest(unittest.TestCase):
             mock.patch.object(setting_scale, "nerd_font_icon", mock.Mock()),
             mock.patch.object(setting_scale, "create_scale", mock.Mock()),
             mock.patch.object(setting_scale, "HoverButton", mock.Mock()),
-            mock.patch(
-                "utils.config.tsumiki_config", {"general": {"tooltips": False}}
-            ),
+            mock.patch("utils.config.tsumiki_config", {"general": {"tooltips": False}}),
         ):
             slider = setting_scale.SettingSlider()
 
