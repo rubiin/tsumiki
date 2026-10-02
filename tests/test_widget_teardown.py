@@ -159,9 +159,7 @@ class GLibRecorder:
             ("timeout_add", self._add),
             ("source_remove", self._remove),
         ):
-            patcher = mock.patch.object(
-                container.GLib, target, side_effect=side_effect
-            )
+            patcher = mock.patch.object(container.GLib, target, side_effect=side_effect)
             test.addCleanup(patcher.stop)
             patcher.start()
         patcher = mock.patch.object(
@@ -207,7 +205,6 @@ def pump_until(predicate, timeout: float = 5.0) -> bool:
     return True
 
 
-
 class CsideDestroyHarnessTest(unittest.TestCase):
     """The stand-in parent must reproduce the gap, or nothing below means much."""
 
@@ -230,9 +227,7 @@ class NoPythonDestroyOverrideTest(unittest.TestCase):
     """Cleanup parked in a destroy() override is cleanup that never happens."""
 
     def test_no_owned_widget_overrides_destroy(self):
-        offenders = [
-            cls.__name__ for cls in TEARDOWN_OWNERS if "destroy" in vars(cls)
-        ]
+        offenders = [cls.__name__ for cls in TEARDOWN_OWNERS if "destroy" in vars(cls)]
 
         self.assertEqual([], offenders)
 
@@ -411,9 +406,7 @@ class NotificationExpiryTimerTest(unittest.TestCase):
 
         self.assertEqual([], self.widget.ticks_armed)
         self.assertEqual(1, len(self.glib.armed))
-        self.assertTrue(
-            self.widget._has_timeout(notification_module._EXPIRY_TIMER)
-        )
+        self.assertTrue(self.widget._has_timeout(notification_module._EXPIRY_TIMER))
 
     def test_expiry_runs_at_about_30hz(self):
         self.widget.start_timeout()
@@ -439,9 +432,7 @@ class NotificationExpiryTimerTest(unittest.TestCase):
         ParentDestroyedFromC(self.widget).destroy()
 
         self.assertEqual([self.glib.next_id], self.glib.removed)
-        self.assertFalse(
-            self.widget._has_timeout(notification_module._EXPIRY_TIMER)
-        )
+        self.assertFalse(self.widget._has_timeout(notification_module._EXPIRY_TIMER))
 
     def test_resume_does_not_double_arm(self):
         self.widget.start_timeout()

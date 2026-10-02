@@ -149,14 +149,12 @@ def _validate_schema_enums(
         min_items = schema_node.get("minItems")
         if isinstance(min_items, int) and len(value) < min_items:
             raise ValueError(
-                f"{path}: expected at least {min_items} item(s), "
-                f"got {len(value)}"
+                f"{path}: expected at least {min_items} item(s), got {len(value)}"
             )
         max_items = schema_node.get("maxItems")
         if isinstance(max_items, int) and len(value) > max_items:
             raise ValueError(
-                f"{path}: expected at most {max_items} item(s), "
-                f"got {len(value)}"
+                f"{path}: expected at most {max_items} item(s), got {len(value)}"
             )
 
     if isinstance(value, dict):

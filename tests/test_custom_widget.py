@@ -23,9 +23,7 @@ def make_presenter(
         module_config["format_icons"] = format_icons
     if tooltip_format is not None:
         module_config["tooltip_format"] = tooltip_format
-    return CustomWidgetPresenter(
-        module_config, label, icon, host
-    ), host
+    return CustomWidgetPresenter(module_config, label, icon, host), host
 
 
 class FormatIconThresholdTest(unittest.TestCase):
@@ -34,9 +32,11 @@ class FormatIconThresholdTest(unittest.TestCase):
     def _icon_for(self, format_icons, percentage, alt=None):
         presenter, _ = make_presenter(format_icons=format_icons)
         presenter._update_icon(alt, percentage)
-        return presenter._icon.set_label.call_args[0][0] if (
-            presenter._icon.set_label.called
-        ) else None
+        return (
+            presenter._icon.set_label.call_args[0][0]
+            if (presenter._icon.set_label.called)
+            else None
+        )
 
     def test_the_highest_matching_threshold_wins(self):
         icons = {"75": "A", "50": "B"}

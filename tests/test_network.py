@@ -143,9 +143,7 @@ class WifiApUpdateCoalescingTest(unittest.TestCase):
         self.glib.run_pending()
 
         notified: list[str] = []
-        self.wifi.connect(
-            "notify", lambda _obj, pspec: notified.append(pspec.name)
-        )
+        self.wifi.connect("notify", lambda _obj, pspec: notified.append(pspec.name))
         self.wifi.ap_update()
 
         for prop in ("enabled", "internet", "strength", "ssid", "access-points"):
