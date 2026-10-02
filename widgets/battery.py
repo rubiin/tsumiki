@@ -1,5 +1,7 @@
 import colorsys
 
+from fabric.utils import bulk_connect
+
 from services.battery import BatteryService
 from shared.widget_container import ButtonWidget
 from utils.functions import format_seconds_to_hours_minutes, send_notification
@@ -63,6 +65,11 @@ class BatteryWidget(ButtonWidget):
 
         self.client = BatteryService()
 
+        self._battery_color: str | None = None
+        self._hover_color = "#080808"
+        self._hovered = False
+        self._last_state: dict | None = None
+
         # Simple notification tracking
         self.last_percentage = None
         self.last_charging_state = None
@@ -77,6 +84,14 @@ class BatteryWidget(ButtonWidget):
             {"changed": self._update_ui},
         )
 
+        bulk_connect(
+            self,
+            {
+                "enter-notify-event": self._on_hover_enter,
+                "leave-notify-event": self._on_hover_leave,
+            },
+        )
+
         self._update_ui()
 
     def _update_ui(self, *_args):
@@ -86,6 +101,7 @@ class BatteryWidget(ButtonWidget):
         if not is_present:
             if self.config.get("hide_when_missing", True):
                 self.set_visible(False)
+            self._last_state = None
             icon = get_text_icon("battery.low", "󰂎")
             self.set_tooltip_if_enabled(
                 f"{icon} {_('widget.battery.no_battery')}", default=True
@@ -113,31 +129,15 @@ class BatteryWidget(ButtonWidget):
             else self.client.get_property("TimeToEmpty")
         ) or 0
 
-        glyph = self._map_glyphs(battery_percent, is_charging)
-
         formatted_time = format_seconds_to_hours_minutes(time_remaining)
-        percent_color = self._get_color_for_percent(battery_percent, is_charging)
-        icon_markup = f'<span foreground="{percent_color}">{glyph}</span>'
-        percent_markup = (
-            f'<span foreground="{percent_color}" size="8800">{battery_percent}%</span>'
-        )
+        self._battery_color = self._get_color_for_percent(battery_percent, is_charging)
+        self._last_state = {
+            "percent": battery_percent,
+            "charging": is_charging,
+            "time_remaining": formatted_time,
+        }
 
-        label_format = self.label_format
-
-        if battery_percent == self.full_battery_level:
-            label_format = (
-                label_format.replace("{percent}", "")
-                if self.hide_percent_when_full
-                else label_format
-            )
-
-        label_text = label_format.format(
-            icon=icon_markup,
-            time_remaining=formatted_time,
-            percent=percent_markup,
-        )
-
-        self.battery_icon.set_markup(label_text)
+        self._render_label()
 
         # Update the tooltip with the battery status details if enabled
         if self.config.get("tooltip", False) and self.tooltips_enabled:
@@ -171,6 +171,45 @@ class BatteryWidget(ButtonWidget):
         self.initialized = True
 
         return True
+
+    def _render_label(self):
+        """Rebuild the label markup, using the hover color while hovered."""
+        state = self._last_state
+        if state is None:
+            return
+
+        battery_percent = state["percent"]
+        color = self._hover_color if self._hovered else self._battery_color
+        glyph = self._map_glyphs(battery_percent, state["charging"])
+
+        label_format = self.label_format
+
+        if battery_percent == self.full_battery_level:
+            label_format = (
+                label_format.replace("{percent}", "")
+                if self.hide_percent_when_full
+                else label_format
+            )
+
+        self.battery_icon.set_markup(
+            label_format.format(
+                icon=f'<span foreground="{color}">{glyph}</span>',
+                time_remaining=state["time_remaining"],
+                percent=(
+                    f'<span foreground="{color}" size="8800">{battery_percent}%</span>'
+                ),
+            )
+        )
+
+    def _on_hover_enter(self, *_args):
+        """Switch markup colors to hover-friendly color."""
+        self._hovered = True
+        self._render_label()
+
+    def _on_hover_leave(self, *_args):
+        """Restore battery-percentage markup colors."""
+        self._hovered = False
+        self._render_label()
 
     def _get_notification_message(self, event_type, percentage):
         """Battery notification body: config message if set, else i18n."""
