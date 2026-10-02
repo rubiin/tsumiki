@@ -1098,7 +1098,7 @@ radius = "16px"
 width = "1px"
 
 [styling.bar.widgets.quick_settings.sliders]
-height = "7px"
+height = "5px"
 knob = true
 knob_height = "8px"
 
