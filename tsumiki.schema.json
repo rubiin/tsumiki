@@ -2022,10 +2022,10 @@
                 "type": "string",
                 "description": "Tooltip text to show on hover"
               },
-              "show_icon": {
-                "type": "boolean",
-                "description": "Whether to show the icon",
-                "default": true
+              "label_format": {
+                "type": "string",
+                "default": "{icon}",
+                "description": "Format string; the icon is shown when it contains {icon}."
               },
               "label": {
                 "type": "boolean",

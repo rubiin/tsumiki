@@ -443,11 +443,19 @@ def warn_deprecated_show_icon(parsed_data: dict) -> None:
     widgets = parsed_data.get("widgets", {})
     for widget_name, widget_cfg in widgets.items():
         if isinstance(widget_cfg, dict) and "show_icon" in widget_cfg:
-            logger.warning(
-                f"[Config] widgets.{widget_name}.show_icon is no longer supported; "
-                'use label_format = "{icon}" to keep the icon, or drop the key '
-                "to hide it."
-            )
+            _warn_show_icon(f"widgets.{widget_name}")
+        # custom_buttons is a list of entries rather than a single config.
+        elif isinstance(widget_cfg, list):
+            for idx, entry in enumerate(widget_cfg):
+                if isinstance(entry, dict) and "show_icon" in entry:
+                    _warn_show_icon(f"widgets.{widget_name}[{idx}]")
+
+
+def _warn_show_icon(path: str) -> None:
+    logger.warning(
+        f"[Config] {path}.show_icon is no longer supported; "
+        'use label_format = "{icon}" to keep the icon, or drop the key to hide it.'
+    )
 
 
 def validate_format_strings(parsed_data: dict) -> None:

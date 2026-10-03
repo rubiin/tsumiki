@@ -582,7 +582,7 @@ Custom_Button = TypedDict(
         "icon": str,
         "label_text": str,
         "tooltip_text": str,
-        "show_icon": bool,
+        "label_format": str,
         "label": bool,
         "tooltip": bool,
     },

@@ -27,8 +27,8 @@ class CustomButtonWidget(ButtonWidget):
                 f"Custom button '{widget_name}' requires a 'command' in config"
             )
 
-        # Setup icon if specified
-        if self.config.get("show_icon", True):
+        # Setup icon if the format string asks for it
+        if self.format_shows_icon():
             icon = self.config.get("icon")
             if icon:
                 self.icon = nerd_font_icon(

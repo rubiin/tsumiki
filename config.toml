@@ -445,7 +445,7 @@ command = "spotify"
 icon = ""
 label_text = "Spotify"
 tooltip_text = "Open Spotify"
-show_icon = true
+label_format = "{icon}"
 label = false
 tooltip = true
 
@@ -480,7 +480,7 @@ tooltip = true
 [[widgets.custom_widget]]
 id = "volume"
 exec = "pamixer --get-volume"
-format = "󰕾 {}%"
+label_format = "󰕾 {}%"
 interval = 1
 on_scroll_up = "pamixer -i 5"
 on_scroll_down = "pamixer -d 5"

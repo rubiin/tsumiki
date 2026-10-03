@@ -99,7 +99,7 @@ command = "firefox"
 icon = "󰈹"
 label_text = "Firefox"
 tooltip_text = "打开 Firefox 浏览器"
-show_icon = true
+label_format = "{icon}"
 label = false
 tooltip = true
 

@@ -466,6 +466,20 @@ class WarnDeprecatedShowIconTest(unittest.TestCase):
 
         mock_logger.warning.assert_not_called()
 
+    @mock.patch("utils.validation.logger")
+    def test_a_custom_button_still_setting_show_icon_warns(self, mock_logger):
+        """The regression: custom_buttons is a list, not a widget dict."""
+        warn_deprecated_show_icon(
+            {
+                "widgets": {
+                    "custom_buttons": [{"id": "a"}, {"id": "b", "show_icon": False}]
+                }
+            }
+        )
+
+        msg = mock_logger.warning.call_args[0][0]
+        self.assertIn("widgets.custom_buttons[1].show_icon", msg)
+
 
 class ValidateWidgetsTest(unittest.TestCase):
     """Test validate_widgets integration with layout and group validation."""
