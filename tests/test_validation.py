@@ -22,6 +22,7 @@ from utils.validation import (
     validate_format_strings,
     validate_widget_reference,
     validate_widgets,
+    warn_deprecated_show_icon,
 )
 
 
@@ -427,6 +428,39 @@ class ValidateFormatStringsTest(unittest.TestCase):
         mock_logger.warning.assert_called()
         msg = mock_logger.warning.call_args[0][0]
         self.assertIn("invalid format", msg)
+
+    def test_icon_only_widgets_accept_the_icon_field(self):
+        validate_format_strings({"widgets": {"keyboard": {"label_format": "{icon}"}}})
+
+    @mock.patch("utils.validation.logger")
+    def test_icon_only_widgets_reject_other_fields(self, mock_logger):
+        validate_format_strings({"widgets": {"keyboard": {"label_format": "{count}"}}})
+        msg = mock_logger.warning.call_args[0][0]
+        self.assertIn("widgets.keyboard.label_format", msg)
+
+
+class WarnDeprecatedShowIconTest(unittest.TestCase):
+    """``show_icon`` is no longer read, so a config still setting it must say so."""
+
+    @mock.patch("utils.validation.logger")
+    def test_a_widget_still_setting_show_icon_warns(self, mock_logger):
+        warn_deprecated_show_icon({"widgets": {"keyboard": {"show_icon": False}}})
+
+        msg = mock_logger.warning.call_args[0][0]
+        self.assertIn("widgets.keyboard.show_icon", msg)
+        self.assertIn("label_format", msg)
+
+    @mock.patch("utils.validation.logger")
+    def test_a_config_without_show_icon_is_silent(self, mock_logger):
+        warn_deprecated_show_icon({"widgets": {"keyboard": {"label_format": "{icon}"}}})
+
+        mock_logger.warning.assert_not_called()
+
+    @mock.patch("utils.validation.logger")
+    def test_a_non_dict_widget_entry_is_skipped(self, mock_logger):
+        warn_deprecated_show_icon({"widgets": {"custom_widget": []}})
+
+        mock_logger.warning.assert_not_called()
 
 
 class ValidateWidgetsTest(unittest.TestCase):

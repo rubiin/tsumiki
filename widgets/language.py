@@ -30,7 +30,7 @@ class LanguageWidget(ButtonWidget):
                 style_classes="panel-text",
             )
 
-        if self.config.get("show_icon", True):
+        if self.format_shows_icon():
             self.icon = nerd_font_icon(
                 icon=self.config.get("icon"),
                 props={

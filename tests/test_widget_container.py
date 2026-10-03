@@ -130,6 +130,41 @@ class AddPanelContentTest(unittest.TestCase):
         self.Label_mock.assert_not_called()
         widget.container_box.add.assert_called_once_with(label)
 
+    def test_a_none_icon_leaves_the_label_as_the_only_content(self):
+        widget = make_widget()
+
+        widget.add_panel_content(None, "Text")
+
+        self.nerd_font_icon.assert_not_called()
+        widget.container_box.children = ()
+        widget.container_box.add.assert_called_once_with(self.Label_mock.return_value)
+
+
+class FormatShowsIconTest(unittest.TestCase):
+    """``show_icon`` is gone: the ``{icon}`` field of ``label_format`` decides."""
+
+    @staticmethod
+    def _widget(**config) -> ButtonWidget:
+        widget = ButtonWidget.__new__(ButtonWidget)
+        widget.config = config
+        return widget
+
+    def test_the_default_format_keeps_the_icon(self):
+        self.assertTrue(self._widget().format_shows_icon())
+
+    def test_a_format_naming_the_icon_keeps_the_icon(self):
+        self.assertTrue(self._widget(label_format="{icon}").format_shows_icon())
+
+    def test_a_format_without_the_icon_field_drops_it(self):
+        """The regression: ``show_icon = false`` no longer has any effect."""
+        self.assertFalse(self._widget(label_format="").format_shows_icon())
+
+    def test_an_unrelated_field_does_not_bring_the_icon_back(self):
+        self.assertFalse(self._widget(label_format="{count}").format_shows_icon())
+
+    def test_a_non_string_format_is_treated_as_no_icon(self):
+        self.assertFalse(self._widget(label_format=None).format_shows_icon())
+
 
 class HoverCursorTest(unittest.TestCase):
     """Every bar button flips its cursor on hover, and none of them are realized."""

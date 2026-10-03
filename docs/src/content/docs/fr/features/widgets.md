@@ -57,7 +57,7 @@ step_size = 5
 label = true
 
 [widgets.microphone]
-show_icon = true
+label_format = "{icon}"
 
 [widgets.power]
 icon = "󰐥"

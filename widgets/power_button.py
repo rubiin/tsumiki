@@ -288,7 +288,7 @@ class PowerWidget(ButtonWidget):
 
         self.popup = None
 
-        if self.config.get("show_icon", True):
+        if self.format_shows_icon():
             # Create a TextIcon with the specified icon and size
             self.icon = nerd_font_icon(
                 icon=self.config.get("icon"),

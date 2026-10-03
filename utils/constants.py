@@ -159,7 +159,7 @@ DEFAULT_CONFIG = {
             "count": 0,
         },
         "cpu": {
-            "show_icon": True,
+            "label_format": "{icon}",
             "icon": "",
             "tooltip": True,
             "round": True,
@@ -169,7 +169,7 @@ DEFAULT_CONFIG = {
             "graph_length": 4,
         },
         "gpu": {
-            "show_icon": True,
+            "label_format": "{icon}",
             "icon": "",
             "tooltip": True,
             "mode": "circular",
@@ -255,7 +255,7 @@ DEFAULT_CONFIG = {
             "tooltip": True,
             "label": False,
             "quiet": False,
-            "show_icon": True,
+            "label_format": "{icon}",
         },
         "hyprsunset": {
             "temperature": "2800k",
@@ -268,7 +268,7 @@ DEFAULT_CONFIG = {
             "icon": "󰌌",
             "label": True,
             "tooltip": True,
-            "show_icon": True,
+            "label_format": "{icon}",
         },
         "window_count": {
             "label_format": " [{count}]",
@@ -279,10 +279,10 @@ DEFAULT_CONFIG = {
             "icon": "",
             "tooltip": True,
             "truncation_size": 2,
-            "show_icon": True,
+            "label_format": "{icon}",
         },
         "memory": {
-            "show_icon": True,
+            "label_format": "{icon}",
             "icon": "",
             "tooltip": True,
             "mode": "circular",
@@ -301,7 +301,7 @@ DEFAULT_CONFIG = {
         "microphone": {
             "label": False,
             "tooltip": True,
-            "show_icon": True,
+            "label_format": "{icon}",
         },
         "mpris": {
             "truncation_size": 20,
@@ -314,7 +314,7 @@ DEFAULT_CONFIG = {
             "icon": "󰐳",
             "tooltip": True,
             "label": False,
-            "show_icon": True,
+            "label_format": "{icon}",
             "quiet": False,
         },
         "power": {
@@ -322,7 +322,7 @@ DEFAULT_CONFIG = {
             "tooltip": True,
             "items_per_row": 3,
             "icon_size": 100,
-            "show_icon": True,
+            "label_format": "{icon}",
             "label": False,
             "confirm": True,
             "item_shortcuts": {},
@@ -355,7 +355,7 @@ DEFAULT_CONFIG = {
         "stopwatch": {"stopped_icon": "󱫞", "running_icon": "󱫠"},
         "storage": {
             "path": "/",
-            "show_icon": True,
+            "label_format": "{icon}",
             "icon": "󰋊",
             "mode": "circular",
             "tooltip": True,
@@ -366,7 +366,7 @@ DEFAULT_CONFIG = {
             "icon": "󰌌",
             "label": True,
             "tooltip": True,
-            "show_icon": True,
+            "label_format": "{icon}",
             "hide_on_default": False,
         },
         "system_tray": {
@@ -387,7 +387,7 @@ DEFAULT_CONFIG = {
             "notify": False,  # Whether to show a notification when the theme is changed
         },
         "updates": {
-            "show_icon": True,
+            "label_format": "{icon}",
             "available_icon": "󰏗",
             "no_updates_icon": "󰏖",
             "os": "arch",
@@ -448,7 +448,7 @@ DEFAULT_CONFIG = {
         "world_clock": {
             "icon": "󱉊",
             "use_24hr": True,
-            "show_icon": True,
+            "label_format": "{icon}",
             "timezones": ["America/New_York", "Asia/Tokyo"],
         },
         "custom_button_group": {

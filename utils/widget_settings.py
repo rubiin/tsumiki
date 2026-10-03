@@ -47,7 +47,7 @@ PowerButton = TypedDict(
         "items_per_row": int,
         "icon_size": int,
         "label": bool,
-        "show_icon": bool,
+        "label_format": str,
         "confirm": bool,
         "buttons": dict[
             dict[
@@ -350,7 +350,7 @@ Cpu = TypedDict(
     {
         **BaseConfig.__annotations__,
         "mode": Widget_Mode,
-        "show_icon": bool,
+        "label_format": str,
         "sensor": str,
         "temperature_unit": Temperature_Unit,
         "round": bool,
@@ -376,7 +376,7 @@ Memory = TypedDict(
     {
         **BaseConfig.__annotations__,
         "mode": Widget_Mode,
-        "show_icon": bool,
+        "label_format": str,
         "icon": str,
         "graph_length": int,
         "unit": Data_Unit,
@@ -388,7 +388,7 @@ Gpu = TypedDict(
     "Gpu",
     {
         **BaseConfig.__annotations__,
-        "show_icon": bool,
+        "label_format": str,
         "icon": str,
         "mode": Widget_Mode,
         "graph_length": int,
@@ -401,7 +401,7 @@ Submap = TypedDict(
     {
         **BaseConfig.__annotations__,
         "icon": str,
-        "show_icon": bool,
+        "label_format": str,
         "hide_on_default": bool,
     },
 )
@@ -427,7 +427,7 @@ Storage = TypedDict(
     {
         "mode": Widget_Mode,
         "tooltip": bool,
-        "show_icon": bool,
+        "label_format": str,
         "icon": str,
         "path": str,
         "graph_length": int,
@@ -469,7 +469,7 @@ Updates = TypedDict(
     "Updates",
     {
         **BaseConfig.__annotations__,
-        "show_icon": bool,
+        "label_format": str,
         "available_icon": str,
         "no_updates_icon": str,
         "hover_reveal": bool,
@@ -514,11 +514,13 @@ Launcher_Button = TypedDict(
 
 # Keyboard configuration
 Keyboard = TypedDict(
-    "Keyboard", {**BaseConfig.__annotations__, "icon": str, "show_icon": bool}
+    "Keyboard", {**BaseConfig.__annotations__, "icon": str, "label_format": str}
 )
 
 # MicroPhone configuration
-MicroPhone = TypedDict("MicroPhone", {**BaseConfig.__annotations__, "show_icon": bool})
+MicroPhone = TypedDict(
+    "MicroPhone", {**BaseConfig.__annotations__, "label_format": str}
+)
 
 # Cava configuration
 Cava = TypedDict("Cava", {"bars": int, "color": str})
@@ -627,7 +629,7 @@ WorldClock = TypedDict(
     "WorldClock",
     {
         "icon": str,
-        "show_icon": bool,
+        "label_format": str,
         "timezones": list[str],
         "use_24hr": bool,
     },
@@ -648,12 +650,13 @@ USBManager = TypedDict(
 # Hyprpicker configuration
 HyprPicker = TypedDict(
     "HyprPicker",
-    {**BaseConfig.__annotations__, "icon": str, "show_icon": bool, "quiet": bool},
+    {**BaseConfig.__annotations__, "icon": str, "label_format": str, "quiet": bool},
 )
 
 # OCR configuration
 OCR = TypedDict(
-    "OCR", {**BaseConfig.__annotations__, "icon": str, "quiet": bool, "show_icon": bool}
+    "OCR",
+    {**BaseConfig.__annotations__, "icon": str, "quiet": bool, "label_format": str},
 )
 
 Collapsible_Group = TypedDict(

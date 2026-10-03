@@ -261,7 +261,7 @@ icon_size = 18
 
 # --- CPU ---
 [widgets.cpu]
-show_icon = true
+label_format = "{icon}"
 icon = ""
 tooltip = true
 mode = "circular"                 # "label" | "graph" | "circular"
@@ -270,7 +270,7 @@ temperature_unit = "celsius"
 
 # --- Memory ---
 [widgets.memory]
-show_icon = true
+label_format = "{icon}"
 icon = ""
 tooltip = true
 mode = "circular"
@@ -278,7 +278,7 @@ unit = "gb"
 
 # --- Updates ---
 [widgets.updates]
-show_icon = true
+label_format = "{icon}"
 available_icon = "󰏗"
 no_updates_icon = "󰏖"
 os = "arch"
@@ -325,7 +325,7 @@ step_size = 5
 [widgets.microphone]
 label = false
 tooltip = true
-show_icon = true
+label_format = "{icon}"
 
 # --- Clipboard ---
 [widgets.clipboard]
@@ -389,14 +389,14 @@ label = false
 icon = "󰌌"
 label = true
 tooltip = true
-show_icon = false
+label_format = ""
 hide_on_default = false
 
 # --- World Clock ---
 [widgets.world_clock]
 icon = "󰃰"
 use_24hr = true
-show_icon = true
+label_format = "{icon}"
 timezones = ["America/New_York", "Asia/Tokyo"]
 
 # --- Custom Button Group ---

@@ -244,6 +244,17 @@ class BaseWidget(Widget, TeardownMixin):
         self.general_config: dict = tsumiki_config.get("general", {})
         self.tooltips_enabled = self.general_config.get("tooltips", True)
 
+    def format_shows_icon(
+        self, key: str = "label_format", default: str = "{icon}"
+    ) -> bool:
+        """True when the widget's format string asks for the ``{icon}`` field.
+
+        Replaces the old ``show_icon`` toggle: an icon is rendered when the
+        format string mentions ``{icon}``, and dropped when it does not.
+        """
+        label_format = self.config.get(key, default)
+        return isinstance(label_format, str) and "{icon}" in label_format
+
     def _connect_hover_reveal(self) -> None:
         if not self.config.get("hover_reveal", True):
             return
@@ -353,7 +364,7 @@ class ButtonWidget(Button, BaseWidget):
 
     def add_panel_content(
         self,
-        icon: str | Widget,
+        icon: str | Widget | None,
         label: str | Widget | None = None,
         *,
         show_label: bool = True,
@@ -361,15 +372,19 @@ class ButtonWidget(Button, BaseWidget):
         """Fill the container box with the panel icon and an optional label.
 
         Either argument may be an already-built widget that updates its own text.
+        A *None* icon leaves the label as the only panel content.
         """
         # Deferred: this module must import without the user's config.
         from utils.widget_utils import nerd_font_icon
 
-        self.container_box.children = (
-            icon
-            if isinstance(icon, Widget)
-            else nerd_font_icon(icon=icon, props={"style_classes": ["panel-font-icon"]})
-        )
+        if icon is None:
+            self.container_box.children = ()
+        elif isinstance(icon, Widget):
+            self.container_box.children = (icon,)
+        else:
+            self.container_box.children = (
+                nerd_font_icon(icon=icon, props={"style_classes": ["panel-font-icon"]}),
+            )
 
         if show_label and label is not None:
             self.container_box.add(

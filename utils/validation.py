@@ -394,7 +394,64 @@ _VALID_LABEL_FORMATS = {
     "mpris": {
         "label_format": set(["title", "artist", "album", "name"]),
     },
+    # Widgets whose only format field is the icon: ``show_icon`` became
+    # ``label_format = "{icon}"``, and omitting the field hides the icon.
+    "cpu": {
+        "label_format": set(["icon"]),
+    },
+    "gpu": {
+        "label_format": set(["icon"]),
+    },
+    "hyprpicker": {
+        "label_format": set(["icon"]),
+    },
+    "keyboard": {
+        "label_format": set(["icon"]),
+    },
+    "language": {
+        "label_format": set(["icon"]),
+    },
+    "memory": {
+        "label_format": set(["icon"]),
+    },
+    "microphone": {
+        "label_format": set(["icon"]),
+    },
+    "ocr": {
+        "label_format": set(["icon"]),
+    },
+    "power": {
+        "label_format": set(["icon"]),
+    },
+    "storage": {
+        "label_format": set(["icon"]),
+    },
+    "submap": {
+        "label_format": set(["icon"]),
+    },
+    "updates": {
+        "label_format": set(["icon"]),
+    },
+    "world_clock": {
+        "label_format": set(["icon"]),
+    },
 }
+
+
+def warn_deprecated_show_icon(parsed_data: dict) -> None:
+    """Warn about ``show_icon``, replaced by ``label_format = "{icon}"``.
+
+    ``show_icon`` is no longer read, so a config that still sets it silently
+    gets the default icon back.
+    """
+    widgets = parsed_data.get("widgets", {})
+    for widget_name, widget_cfg in widgets.items():
+        if isinstance(widget_cfg, dict) and "show_icon" in widget_cfg:
+            logger.warning(
+                f"[Config] widgets.{widget_name}.show_icon is no longer supported; "
+                'use label_format = "{icon}" to keep the icon, or drop the key '
+                "to hide it."
+            )
 
 
 def validate_format_strings(parsed_data: dict) -> None:
@@ -476,4 +533,5 @@ def validate_widgets(parsed_data, default_config):
                             widget, parsed_data, default_config, f"{group_type}[{idx}]"
                         )
 
+    warn_deprecated_show_icon(parsed_data)
     validate_format_strings(parsed_data)

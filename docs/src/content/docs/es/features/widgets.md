@@ -19,7 +19,7 @@ Muestra el uso de la CPU con múltiples modos de visualización.
 
 ```toml
 [widgets.cpu]
-show_icon = true
+label_format = "{icon}"
 icon = ""
 tooltip = true
 round = true
@@ -39,7 +39,7 @@ Muestra el uso de memoria con múltiples modos de visualización.
 
 ```toml
 [widgets.memory]
-show_icon = true
+label_format = "{icon}"
 icon = ""
 tooltip = true
 mode = "label"          # "label" | "graph" | "circular"
@@ -53,7 +53,7 @@ Muestra el uso de la GPU (soporta AMD via `amdgpu` y NVIDIA via `nvidia-smi`).
 
 ```toml
 [widgets.gpu]
-show_icon = true
+label_format = "{icon}"
 icon = ""
 tooltip = true
 mode = "circular"       # "label" | "graph" | "circular"
@@ -67,7 +67,7 @@ Muestra el uso del disco para una ruta dada.
 ```toml
 [widgets.storage]
 path = "/"
-show_icon = true
+label_format = "{icon}"
 icon = "󰋊"
 mode = "label"          # "label" | "graph" | "circular"
 tooltip = true
@@ -98,7 +98,7 @@ Verifica actualizaciones de paquetes del sistema (Arch Linux, Flatpak, Snap, Hom
 
 ```toml
 [widgets.updates]
-show_icon = true
+label_format = "{icon}"
 available_icon = "󰏗"
 no_updates_icon = "󰏖"
 os = "arch"
@@ -190,7 +190,7 @@ Muestra el estado del micrófono y la opción de silenciar.
 [widgets.microphone]
 label = false
 tooltip = true
-show_icon = true
+label_format = "{icon}"
 ```
 
 Haz clic para silenciar/activar el micrófono.
@@ -205,7 +205,7 @@ icon = "󰐥"
 tooltip = true
 items_per_row = 3
 icon_size = 100
-show_icon = true
+label_format = "{icon}"
 label = false
 confirm = true
 
@@ -264,7 +264,7 @@ icon = ""
 tooltip = true
 label = false
 quiet = false
-show_icon = true
+label_format = "{icon}"
 ```
 
 El color seleccionado se copia al portapapeles. En modo silencioso, no se muestra ninguna notificación.
@@ -381,7 +381,7 @@ Muestra la hora en múltiples zonas horarias.
 [widgets.world_clock]
 icon = "󰃰"
 use_24hr = true
-show_icon = true
+label_format = "{icon}"
 timezones = ["America/New_York", "Asia/Tokyo"]
 ```
 
@@ -464,7 +464,7 @@ Extrae texto de una región de la pantalla usando Tesseract.
 icon = "󰐳"
 tooltip = true
 label = false
-show_icon = true
+label_format = "{icon}"
 quiet = false
 ```
 
@@ -510,7 +510,7 @@ Muestra el diseño de teclado actual.
 icon = "󰌌"
 label = true
 tooltip = true
-show_icon = false
+label_format = ""
 ```
 
 ### Idioma
@@ -522,7 +522,7 @@ Muestra el idioma de entrada actual.
 icon = ""
 tooltip = true
 truncation_size = 2
-show_icon = false
+label_format = ""
 ```
 
 ### Submapa
@@ -534,7 +534,7 @@ Muestra el submapa de atajos de Hyprland activo.
 icon = "󰌌"
 label = true
 tooltip = true
-show_icon = false
+label_format = ""
 hide_on_default = false
 ```
 

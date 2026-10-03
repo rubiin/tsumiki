@@ -3,6 +3,7 @@ from fabric.widgets.label import Label
 from shared.widget_container import ButtonWidget
 from utils.icons import get_text_icon
 from utils.widget_utils import nerd_font_icon
+from services import audio_service
 
 
 class MicrophoneIndicatorWidget(ButtonWidget):
@@ -14,12 +15,18 @@ class MicrophoneIndicatorWidget(ButtonWidget):
         self.mic_on_icon = get_text_icon("microphone.high", "")
         self.mic_off_icon = get_text_icon("microphone.muted", "")
 
-        self.icon = nerd_font_icon(
-            icon=self.mic_off_icon,
-            props={"style_classes": ["panel-font-icon"]},
-        )
+        self.icon = None
 
-        self.container_box.add(self.icon)
+        # Initialize the audio service
+        self.audio_service = audio_service
+
+
+        if self.format_shows_icon():
+            self.icon = nerd_font_icon(
+                icon=self.mic_off_icon,
+                props={"style_classes": ["panel-font-icon"]},
+            )
+            self.container_box.add(self.icon)
 
         if self.config.get("label", True):
             self.mic_label = Label(
@@ -37,20 +44,23 @@ class MicrophoneIndicatorWidget(ButtonWidget):
     def _update_status(self, *_):
         current_microphone = self.audio_service.microphone
 
-        if current_microphone:
-            is_muted = current_microphone.muted
+        if not current_microphone:
+            if self.icon is not None:
+                self.icon.set_visible(False)
+            return True
+
+        is_muted = current_microphone.muted
+
+        if self.icon is not None:
             self.icon.set_label(self.mic_off_icon if is_muted else self.mic_on_icon)
-
-            # Update the label  if enabled
-            if self.config.get("label", True):
-                self.mic_label.set_label("Off" if is_muted else "On")
-
-            self.set_tooltip_if_enabled(
-                "Microphone is muted" if is_muted else "Microphone is on"
-            )
-
             self.icon.set_visible(True)
-        else:
-            self.icon.set_visible(False)
+
+        # Update the label if enabled
+        if self.config.get("label", True):
+            self.mic_label.set_label("Off" if is_muted else "On")
+
+        self.set_tooltip_if_enabled(
+            "Microphone is muted" if is_muted else "Microphone is on"
+        )
 
         return True

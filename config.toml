@@ -184,7 +184,7 @@ label = false
 count = 0
 
 [widgets.cpu]
-show_icon = true
+label_format = "{icon}"
 icon = ""
 tooltip = true
 round = true
@@ -194,7 +194,7 @@ mode = "graph"
 graph_length = 4
 
 [widgets.gpu]
-show_icon = true
+label_format = "{icon}"
 icon = ""
 tooltip = true
 mode = "circular"
@@ -203,7 +203,7 @@ graph_length = 4
 
 [widgets.storage]
 path = "/"
-show_icon = true
+label_format = "{icon}"
 icon = "󰋊"
 mode = "label"
 tooltip = true
@@ -217,7 +217,7 @@ tooltip = true
 
 
 [widgets.memory]
-show_icon = true
+label_format = "{icon}"
 icon = ""
 tooltip = true
 mode = "label"
@@ -254,7 +254,7 @@ icon = ""
 tooltip = true
 label = false
 quiet = false
-show_icon = true
+label_format = "{icon}"
 
 [widgets.hyprsunset]
 temperature = "2800k"
@@ -267,7 +267,7 @@ tooltip = true
 icon = "󰌌"
 label = true
 tooltip = true
-show_icon = false
+label_format = ""
 
 [widgets.window_count]
 label_format = " [{count}]"
@@ -278,7 +278,7 @@ tooltip = true
 icon = ""
 tooltip = true
 truncation_size = 2
-show_icon = false
+label_format = ""
 
 
 [widgets.network_usage]
@@ -293,7 +293,7 @@ interval = 2000
 [widgets.microphone]
 label = false
 tooltip = true
-show_icon = true
+label_format = "{icon}"
 
 [widgets.mpris]
 truncation_size = 10
@@ -306,7 +306,7 @@ ignore = []
 icon = "󰐳"
 tooltip = true
 label = false
-show_icon = true
+label_format = "{icon}"
 quiet = false
 
 [widgets.power]
@@ -314,7 +314,7 @@ icon = "󰐥"
 tooltip = true
 items_per_row = 3
 icon_size = 100
-show_icon = true
+label_format = "{icon}"
 label = false
 confirm = true
 
@@ -360,7 +360,7 @@ running_icon = "󱫠"
 icon = "󰌌"
 label = true
 tooltip = true
-show_icon = false
+label_format = ""
 hide_on_default = false
 
 [widgets.system_tray]
@@ -380,7 +380,7 @@ icon = ""
 notify = false
 
 [widgets.updates]
-show_icon = true
+label_format = "{icon}"
 available_icon = "󰏗"
 no_updates_icon = "󰏖"
 os = "arch"
@@ -436,7 +436,7 @@ show_urgent = false
 [widgets.world_clock]
 icon = "󰃰"
 use_24hr = true
-show_icon = true
+label_format = "{icon}"
 timezones = ["America/New_York", "Asia/Tokyo"]
 
 [widgets.custom_button_group]
@@ -650,7 +650,21 @@ layer = "bottom"
 
 [layout]
 left_section = ["@group:workspaces-group"]
-middle_section = ["date_time", "weather", "mpris"]
+middle_section = [
+    "date_time",
+    "weather",
+    "mpris",
+    "cpu",
+    "gpu",
+    "memory",
+    "storage",
+    "keyboard",
+    "language",
+    "submap",
+    "microphone",
+    "world_clock",
+    "hyprpicker",
+]
 right_section = ["@group:sys-group", "@group:utils-group", "system_tray", "power"]
 
 [general]

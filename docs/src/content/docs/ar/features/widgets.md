@@ -19,7 +19,7 @@ sidebar:
 
 ```toml
 [widgets.cpu]
-show_icon = true
+label_format = "{icon}"
 icon = ""
 tooltip = true
 round = true
@@ -35,7 +35,7 @@ graph_length = 4
 
 ```toml
 [widgets.memory]
-show_icon = true
+label_format = "{icon}"
 icon = ""
 tooltip = true
 mode = "label"          # "label" | "graph" | "circular"
@@ -49,7 +49,7 @@ unit = "gb"
 
 ```toml
 [widgets.gpu]
-show_icon = true
+label_format = "{icon}"
 icon = ""
 tooltip = true
 mode = "circular"       # "label" | "graph" | "circular"
@@ -63,7 +63,7 @@ graph_length = 4
 ```toml
 [widgets.storage]
 path = "/"
-show_icon = true
+label_format = "{icon}"
 icon = "󰋊"
 mode = "label"          # "label" | "graph" | "circular"
 tooltip = true
@@ -92,7 +92,7 @@ interval = 2000
 
 ```toml
 [widgets.updates]
-show_icon = true
+label_format = "{icon}"
 available_icon = "󰏗"
 no_updates_icon = "󰏖"
 os = "arch"
@@ -155,7 +155,7 @@ tooltip = true
 [widgets.microphone]
 label = false
 tooltip = true
-show_icon = true
+label_format = "{icon}"
 ```
 
 ### زر الطاقة
@@ -276,7 +276,7 @@ nepali_date = false
 [widgets.world_clock]
 icon = "󰃰"
 use_24hr = true
-show_icon = true
+label_format = "{icon}"
 timezones = ["America/New_York", "Asia/Tokyo"]
 ```
 
@@ -344,7 +344,7 @@ audio = true
 icon = "󰐳"
 tooltip = true
 label = false
-show_icon = true
+label_format = "{icon}"
 ```
 
 ### مدير الحافظة

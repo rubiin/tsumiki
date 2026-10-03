@@ -21,17 +21,16 @@ class OCRWidget(ButtonWidget):
         self._lang_lines: list[str] = []
         self._lang_finalize_id = 0
 
-        if self.config.get("show_icon", True):
-            # Create a TextIcon with the specified icon and size
-            self.icon = nerd_font_icon(
+        self.add_panel_content(
+            nerd_font_icon(
                 icon=self.config.get("icon"),
                 props={"style_classes": ["panel-font-icon"]},
             )
-            self.add_panel_content(
-                self.icon,
-                _("widget.ocr.label"),
-                show_label=self.config.get("label", True),
-            )
+            if self.format_shows_icon()
+            else None,
+            _("widget.ocr.label"),
+            show_label=self.config.get("label", True),
+        )
 
         # Left click for OCR
         self.connect("button-press-event", self.on_button_press)

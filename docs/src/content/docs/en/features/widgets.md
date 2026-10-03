@@ -9,6 +9,19 @@ This page documents every widget available in Tsumiki, its configuration options
 
 Widgets are configured under `[widgets.<name>]` in `config.toml` and placed in the bar via `layout` sections.
 
+## Icon visibility
+
+Widgets that render a panel icon control it through `label_format`: the icon is drawn when the format string contains the `{icon}` field, and omitted when it does not.
+
+```toml
+label_format = "{icon}"   # icon shown (default)
+label_format = ""         # icon hidden
+```
+
+This replaced the old per-widget `show_icon` boolean, which is no longer read — a config that still sets `show_icon` logs a warning at startup and falls back to the default above. Custom buttons are the exception: they still use `show_icon`.
+
+`label_format` on the widgets listed above accepts `{icon}` as its only field today.
+
 ---
 
 ## System Information Widgets
@@ -19,7 +32,7 @@ Displays CPU usage with multiple display modes.
 
 ```toml
 [widgets.cpu]
-show_icon = true
+label_format = "{icon}"
 icon = ""
 tooltip = true
 round = true
@@ -39,7 +52,7 @@ Displays memory usage with multiple display modes.
 
 ```toml
 [widgets.memory]
-show_icon = true
+label_format = "{icon}"
 icon = ""
 tooltip = true
 mode = "label"          # "label" | "graph" | "circular"
@@ -53,7 +66,7 @@ Displays GPU usage (supports AMD via `amdgpu` and NVIDIA via `nvidia-smi`).
 
 ```toml
 [widgets.gpu]
-show_icon = true
+label_format = "{icon}"
 icon = ""
 tooltip = true
 mode = "circular"       # "label" | "graph" | "circular"
@@ -67,7 +80,7 @@ Displays disk usage for a given path.
 ```toml
 [widgets.storage]
 path = "/"
-show_icon = true
+label_format = "{icon}"
 icon = "󰋊"
 mode = "label"          # "label" | "graph" | "circular"
 tooltip = true
@@ -98,7 +111,7 @@ Checks for system package updates (Arch Linux, Flatpak, Snap, Homebrew).
 
 ```toml
 [widgets.updates]
-show_icon = true
+label_format = "{icon}"
 available_icon = "󰏗"
 no_updates_icon = "󰏖"
 os = "arch"
@@ -218,7 +231,7 @@ Shows microphone status and muting.
 [widgets.microphone]
 label = false
 tooltip = true
-show_icon = true
+label_format = "{icon}"
 ```
 
 Click to toggle microphone mute.
@@ -233,7 +246,7 @@ icon = "󰐥"
 tooltip = true
 items_per_row = 3
 icon_size = 100
-show_icon = true
+label_format = "{icon}"
 label = false
 confirm = true
 
@@ -292,7 +305,7 @@ icon = ""
 tooltip = true
 label = false
 quiet = false
-show_icon = true
+label_format = "{icon}"
 ```
 
 The selected color is copied to clipboard. In quiet mode, no notification is shown.
@@ -410,7 +423,7 @@ Shows time in multiple timezones.
 [widgets.world_clock]
 icon = "󰃰"
 use_24hr = true
-show_icon = true
+label_format = "{icon}"
 timezones = ["America/New_York", "Asia/Tokyo"]
 ```
 
@@ -493,7 +506,7 @@ Extract text from a screen region using Tesseract.
 icon = "󰐳"
 tooltip = true
 label = false
-show_icon = true
+label_format = "{icon}"
 quiet = false
 ```
 
@@ -539,7 +552,7 @@ Displays the current keyboard layout.
 icon = "󰌌"
 label = true
 tooltip = true
-show_icon = false
+label_format = ""
 ```
 
 ### Language
@@ -551,7 +564,7 @@ Shows the current input language.
 icon = ""
 tooltip = true
 truncation_size = 2
-show_icon = false
+label_format = ""
 ```
 
 ### Submap
@@ -563,7 +576,7 @@ Displays the active Hyprland keybind submap.
 icon = "󰌌"
 label = true
 tooltip = true
-show_icon = false
+label_format = ""
 hide_on_default = false
 ```
 
