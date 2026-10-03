@@ -6,6 +6,7 @@ from utils.icons import get_text_icon
 from utils.widget_utils import nerd_font_icon
 
 
+# TODO: review this widget
 class MicrophoneIndicatorWidget(ButtonWidget):
     """A widget to display the current microphone status."""
 

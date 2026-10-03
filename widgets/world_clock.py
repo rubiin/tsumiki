@@ -43,6 +43,9 @@ class WorldClockWidget(ButtonWidget):
             self.container_box.pack_start(label, True, True, 0)
             self.clocks.append((label, tz))
 
+        # Fill the labels now: the first tick is up to a minute away, and an
+        # empty label reads as a broken widget.
+        self._update_ui()
         self._arm_minute_timer()
 
     def _arm_minute_timer(self) -> None:

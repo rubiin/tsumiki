@@ -650,17 +650,7 @@ left_section = ["@group:workspaces-group"]
 middle_section = [
     "date_time",
     "weather",
-    "mpris",
-    "cpu",
-    "gpu",
-    "memory",
-    "storage",
-    "keyboard",
-    "language",
-    "submap",
-    "microphone",
-    "world_clock",
-    "hyprpicker",
+    "mpris"
 ]
 right_section = ["@group:sys-group", "@group:utils-group", "system_tray", "power"]
 
