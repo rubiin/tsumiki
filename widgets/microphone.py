@@ -1,9 +1,9 @@
 from fabric.widgets.label import Label
 
+from services import audio_service
 from shared.widget_container import ButtonWidget
 from utils.icons import get_text_icon
 from utils.widget_utils import nerd_font_icon
-from services import audio_service
 
 
 class MicrophoneIndicatorWidget(ButtonWidget):
