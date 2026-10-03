@@ -439,10 +439,7 @@ use_24hr = true
 label_format = "{icon}"
 timezones = ["America/New_York", "Asia/Tokyo"]
 
-[widgets.custom_button_group]
-spacing = 4
-
-[[widgets.custom_button_group.buttons]]
+[[widgets.custom_buttons]]
 id = "spotify"
 command = "spotify"
 icon = ""

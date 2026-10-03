@@ -88,37 +88,12 @@ right_section = ["@collapsible:utility-tools", "system_tray"]
 
 ```
 
-## Aangepaste Knop
-
-Een zelfstandige aangepaste knop die een shell-commando uitvoert wanneer erop wordt geklikt. Verwijs er direct naar met de naam in een lay-out sectie.
-
-```toml
-[widgets.custom_button]
-command = "firefox"
-icon = "󰈹"
-label_text = "Firefox"
-tooltip_text = "Firefox Browser openen"
-show_icon = true
-label = false
-tooltip = true
-```
-
-Plaats het in de lay-out zoals elke normale widget:
-
-```toml
-[layout]
-left_section = ["custom_button", "workspaces"]
-```
-
 ## Aangepaste Knop Groep
 
 Een groep aangepaste opdrachtknoppen. Elke knop in de groep kan worden gerefereerd via `@custom_button:N` of `@custom_button:id`:
 
 ```toml
-[widgets.custom_button_group]
-spacing = 4
-
-[[widgets.custom_button_group.buttons]]
+[[widgets.custom_buttons]]
 id = "firefox"
 command = "firefox"
 icon = "󰈹"

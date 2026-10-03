@@ -399,11 +399,9 @@ use_24hr = true
 label_format = "{icon}"
 timezones = ["America/New_York", "Asia/Tokyo"]
 
-# --- Custom Button Group ---
-[widgets.custom_button_group]
-spacing = 4
-
-[[widgets.custom_button_group.buttons]]
+# --- Custom Buttons ---
+[[widgets.custom_buttons]]
+id = "firefox"
 command = "firefox"
 icon = "󰈹"
 label_text = "Firefox"

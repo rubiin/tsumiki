@@ -1996,66 +1996,57 @@
           },
           "required": ["icon", "label_format", "use_24hr", "timezones"]
         },
-        "custom_button_group": {
-          "type": "object",
-          "properties": {
-            "buttons": {
-              "type": "array",
-              "description": "Array of custom buttons to display in the group",
-              "items": {
-                "type": "object",
-                "properties": {
-                  "id": {
-                    "type": "string",
-                    "description": "Unique identifier for referencing this custom button in layout (e.g. @custom_button:my-id)"
-                  },
-                  "command": {
-                    "type": "string",
-                    "description": "Bash command to execute when button is clicked"
-                  },
-                  "icon": {
-                    "type": "string",
-                    "description": "Icon to display on the button"
-                  },
-                  "label_text": {
-                    "type": "string",
-                    "description": "Text to display on the button"
-                  },
-                  "tooltip_text": {
-                    "type": "string",
-                    "description": "Tooltip text to show on hover"
-                  },
-                  "show_icon": {
-                    "type": "boolean",
-                    "description": "Whether to show the icon",
-                    "default": true
-                  },
-                  "label": {
-                    "type": "boolean",
-                    "description": "Whether to show the label",
-                    "default": true
-                  },
-                  "tooltip": {
-                    "type": "boolean",
-                    "description": "Whether to show the tooltip",
-                    "default": true
-                  },
-                  "style_classes": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    },
-                    "description": "CSS style classes to apply to the button"
-                  }
+        "custom_buttons": {
+          "type": "array",
+          "description": "Custom command buttons referenced from layout via @custom_button:id or @custom_button:index",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Unique identifier for referencing this custom button in layout (e.g. @custom_button:my-id)"
+              },
+              "command": {
+                "type": "string",
+                "description": "Bash command to execute when button is clicked"
+              },
+              "icon": {
+                "type": "string",
+                "description": "Icon to display on the button"
+              },
+              "label_text": {
+                "type": "string",
+                "description": "Text to display on the button"
+              },
+              "tooltip_text": {
+                "type": "string",
+                "description": "Tooltip text to show on hover"
+              },
+              "show_icon": {
+                "type": "boolean",
+                "description": "Whether to show the icon",
+                "default": true
+              },
+              "label": {
+                "type": "boolean",
+                "description": "Whether to show the label",
+                "default": true
+              },
+              "tooltip": {
+                "type": "boolean",
+                "description": "Whether to show the tooltip",
+                "default": true
+              },
+              "style_classes": {
+                "type": "array",
+                "items": {
+                  "type": "string"
                 },
-                "required": ["command"]
+                "description": "CSS style classes to apply to the button"
               }
             },
-            "spacing": {
-              "type": "number"
-            }
-          },
-          "required": ["buttons", "spacing"]
+            "required": ["command"]
+          }
         },
         "custom_widget": {
           "type": "array",

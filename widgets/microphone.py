@@ -20,7 +20,6 @@ class MicrophoneIndicatorWidget(ButtonWidget):
         # Initialize the audio service
         self.audio_service = audio_service
 
-
         if self.format_shows_icon():
             self.icon = nerd_font_icon(
                 icon=self.mic_off_icon,

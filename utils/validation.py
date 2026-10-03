@@ -214,11 +214,7 @@ def validate_config_enums(config_data: dict, schema_file_path: str) -> None:
 def _get_config_collection(parsed_data: dict, widget_type: str) -> list:
     """Return the collection for *widget_type* in *parsed_data*."""
     if widget_type == "custom_button":
-        return (
-            parsed_data.get("widgets", {})
-            .get("custom_button_group", {})
-            .get("buttons", [])
-        )
+        return parsed_data.get("widgets", {}).get("custom_buttons", [])
     if widget_type == "group":
         return parsed_data.get("widget_groups", [])
     if widget_type == "collapsible":

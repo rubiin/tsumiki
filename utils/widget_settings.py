@@ -574,15 +574,6 @@ DateTimeMenu = TypedDict(
 )
 
 
-Custom_Button_Group = TypedDict(
-    "Custom_Button_Group",
-    {
-        "buttons": list[dict[str, str]],
-        "spacing": int,
-    },
-)
-
-
 Custom_Button = TypedDict(
     "Custom_Button",
     {
@@ -843,8 +834,7 @@ class Widgets(TypedDict):
     cava: Cava
     click_counter: ClickCounter
     cpu: Cpu
-    custom_button_group: Custom_Button_Group
-    custom_button: Custom_Button
+    custom_buttons: list[Custom_Button]
     custom_widget: list[CustomWidgetConfig]
     emoji_picker: EmojiPicker
     kanban: Kanban

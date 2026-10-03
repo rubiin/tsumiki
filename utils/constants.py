@@ -451,10 +451,7 @@ DEFAULT_CONFIG = {
             "label_format": "{icon}",
             "timezones": ["America/New_York", "Asia/Tokyo"],
         },
-        "custom_button_group": {
-            "buttons": [],
-            "spacing": 4,
-        },
+        "custom_buttons": [],
     },
     "layout": {
         "left_section": ["workspaces", "window_title"],

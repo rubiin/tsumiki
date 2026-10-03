@@ -259,9 +259,13 @@ class GetConfigCollectionTest(unittest.TestCase):
     """Test _get_config_collection dispatcher for different widget types."""
 
     def test_custom_button(self):
-        data = {"widgets": {"custom_button_group": {"buttons": [{"id": "b1"}]}}}
+        data = {"widgets": {"custom_buttons": [{"id": "b1"}]}}
         result = _get_config_collection(data, "custom_button")
         self.assertEqual(result, [{"id": "b1"}])
+
+    def test_custom_button_without_a_collection_is_empty(self):
+        data = {"widgets": {}}
+        self.assertEqual(_get_config_collection(data, "custom_button"), [])
 
     def test_group(self):
         data = {"widget_groups": [{"id": "g1"}]}
