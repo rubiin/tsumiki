@@ -728,8 +728,7 @@ A Pomodoro productivity timer.
 ```toml
 [widgets.pomodoro]
 icon = "🍅"
-label = true
-label_text = "Pomo"
+label_format = "{icon}"
 tooltip = true
 ```
 
@@ -748,8 +747,7 @@ gh auth login
 ```toml
 [widgets.github_tray]
 icon = ""
-label = false
-label_text = "GitHub"
+label_format = "{icon}"
 tooltip = true
 # Optional login used as a fallback while the gh session user is resolved.
 username = ""
@@ -797,8 +795,7 @@ Manage Cloudflare WARP VPN connection — connect, disconnect, and view status.
 
 ```toml
 [widgets.cloudflare_warp]
-label = false
-label_text = "WARP"
+label_format = "{icon}"
 tooltip = true
 connected_icon = ""
 disconnected_icon = ""
@@ -816,8 +813,7 @@ Quickly switch between popular DNS providers directly from the bar.
 ```toml
 [widgets.dns_switcher]
 icon = "󰚘"
-label = false
-label_text = "DNS"
+label_format = "{icon}"
 tooltip = true
 ```
 
@@ -844,8 +840,7 @@ Displays the current IP address.
 ```toml
 [widgets.ip_monitor]
 icon = "󰖟"
-label = false
-label_text = "IP"
+label_format = "{icon}"
 tooltip = true
 ```
 

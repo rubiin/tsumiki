@@ -434,6 +434,21 @@ _VALID_LABEL_FORMATS = {
     "cheatsheet": {
         "label_format": set(["icon"]),
     },
+    "dns_switcher": {
+        "label_format": set(["icon"]),
+    },
+    "pomodoro": {
+        "label_format": set(["icon"]),
+    },
+    "cloudflare_warp": {
+        "label_format": set(["icon"]),
+    },
+    "github_tray": {
+        "label_format": set(["icon"]),
+    },
+    "ip_monitor": {
+        "label_format": set(["icon"]),
+    },
 }
 
 

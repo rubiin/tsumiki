@@ -457,8 +457,7 @@ tooltip = true
 ```toml
 [widgets.pomodoro]
 icon = "🍅"
-label = true
-label_text = "Pomo"
+label_format = "{icon}"
 tooltip = true
 ```
 
@@ -469,7 +468,7 @@ tooltip = true
 ```toml
 [widgets.github_tray]
 icon = ""
-label = false
+label_format = "{icon}"
 tooltip = true
 username = "rubiin"
 max_repos = 10
@@ -481,8 +480,7 @@ max_repos = 10
 
 ```toml
 [widgets.cloudflare_warp]
-label = false
-label_text = "WARP"
+label_format = "{icon}"
 tooltip = true
 ```
 
@@ -493,8 +491,7 @@ tooltip = true
 ```toml
 [widgets.dns_switcher]
 icon = "󰚘"
-label = false
-label_text = "DNS"
+label_format = "{icon}"
 tooltip = true
 ```
 
@@ -505,8 +502,7 @@ tooltip = true
 ```toml
 [widgets.ip_monitor]
 icon = "󰖟"
-label = false
-label_text = "IP"
+label_format = "{icon}"
 tooltip = true
 ```
 

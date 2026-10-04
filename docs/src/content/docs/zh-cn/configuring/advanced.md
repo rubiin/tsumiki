@@ -97,10 +97,8 @@ right_section = ["@collapsible:utility-tools", "system_tray"]
 id = "firefox"
 command = "firefox"
 icon = "󰈹"
-label_text = "Firefox"
 tooltip_text = "打开 Firefox 浏览器"
 label_format = "{icon}"
-label = false
 tooltip = true
 
 [layout]

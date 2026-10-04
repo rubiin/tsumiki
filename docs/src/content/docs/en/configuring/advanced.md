@@ -112,10 +112,8 @@ Custom command buttons. Each button is referenced via `@custom_button:id` or `@c
 id = "firefox"
 command = "firefox"
 icon = "󰈹"
-label_text = "Firefox"
 tooltip_text = "Open Firefox Browser"
 label_format = "{icon}"
-label = false
 tooltip = true
 
 [layout]

@@ -14,6 +14,7 @@ from fabric.widgets.label import Label
 import utils.widget_utils as widget_utils
 from shared import widget_container
 from shared.widget_container import ButtonWidget
+from utils.constants import DEFAULT_CONFIG
 
 
 def make_widget() -> ButtonWidget:
@@ -164,6 +165,29 @@ class FormatShowsIconTest(unittest.TestCase):
 
     def test_a_non_string_format_is_treated_as_no_icon(self):
         self.assertFalse(self._widget(label_format=None).format_shows_icon())
+
+
+class IconOnlyWidgetDefaultsTest(unittest.TestCase):
+    """The icon-plus-text widgets ship ``label_format = "{icon}"`` and gate on it."""
+
+    WIDGETS = ("dns_switcher", "pomodoro", "cloudflare_warp", "github_tray")
+
+    def test_every_widget_defaults_to_showing_its_icon(self):
+        for name in self.WIDGETS:
+            with self.subTest(widget=name):
+                widget = ButtonWidget.__new__(ButtonWidget)
+                widget.config = DEFAULT_CONFIG["widgets"][name]
+
+                self.assertEqual("{icon}", widget.config["label_format"])
+                self.assertTrue(widget.format_shows_icon())
+
+    def test_every_widget_drops_the_icon_without_the_field(self):
+        for name in self.WIDGETS:
+            with self.subTest(widget=name):
+                widget = ButtonWidget.__new__(ButtonWidget)
+                widget.config = {"label_format": ""}
+
+                self.assertFalse(widget.format_shows_icon())
 
 
 class HoverCursorTest(unittest.TestCase):

@@ -149,15 +149,8 @@ class CloudflareWarpWidget(ButtonWidget, PopoverMixin):
             )
             self.set_tooltip_text(_("widget.cloudflare_warp.not_found"))
 
-        self.container_box.add(self._icon)
-
-        if self.config.get("label", False):
-            self.container_box.add(
-                Label(
-                    label=self.config.get("label_text", "WARP"),
-                    style_classes="panel-text",
-                )
-            )
+        if self.format_shows_icon():
+            self.container_box.add(self._icon)
 
         if self._available:
             self.setup_popover(lambda: CloudflareWarpPopover(parent=self))

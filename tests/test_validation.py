@@ -450,6 +450,16 @@ class ValidateFormatStringsTest(unittest.TestCase):
         msg = mock_logger.warning.call_args[0][0]
         self.assertIn("widgets.cheatsheet.label_format", msg)
 
+    @mock.patch("utils.validation.logger")
+    def test_the_icon_gated_widgets_reject_other_fields(self, mock_logger):
+        for name in ("dns_switcher", "pomodoro", "cloudflare_warp", "github_tray"):
+            with self.subTest(widget=name):
+                validate_format_strings(
+                    {"widgets": {name: {"label_format": "{count}"}}}
+                )
+                msg = mock_logger.warning.call_args[0][0]
+                self.assertIn(f"widgets.{name}.label_format", msg)
+
 
 class WarnDeprecatedShowIconTest(unittest.TestCase):
     """``show_icon`` is no longer read, so a config still setting it must say so."""

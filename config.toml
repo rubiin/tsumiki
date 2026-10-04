@@ -7,8 +7,7 @@ tooltip = true
 
 [widgets.github_tray]
 icon = ""
-label = false
-label_text = "GitHub"
+label_format = "{icon}"
 tooltip = true
 # Optional login shown while the gh session user is resolved.
 username = ""
@@ -53,8 +52,7 @@ workflow_cancelled = true
 
 [widgets.ip_monitor]
 icon = "󰖟"
-label = false
-label_text = "IP"
+label_format = "{icon}"
 tooltip = true
 
 [widgets.clipboard]
@@ -442,10 +440,8 @@ timezones = ["America/New_York", "Asia/Tokyo"]
 id = "spotify"
 command = "spotify"
 icon = ""
-label_text = "Spotify"
 tooltip_text = "Open Spotify"
 label_format = "{icon}"
-label = false
 tooltip = true
 
 [widgets.cheatsheet]
@@ -455,20 +451,18 @@ tooltip = true
 
 [widgets.pomodoro]
 icon = "🍅"
-label = true
-label_text = "Pomo"
+label_format = "{icon}"
 tooltip = true
 
 [widgets.dns_switcher]
 icon = "󰚘"
-label_text = "DNS"
+label_format = "{icon}"
 tooltip = true
 
 [widgets.cloudflare_warp]
 connected_icon = ""
 disconnected_icon = ""
-label = false
-label_text = "WARP"
+label_format = "{icon}"
 tooltip = true
 
 [[widgets.custom_widget]]

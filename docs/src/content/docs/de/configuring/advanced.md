@@ -97,10 +97,8 @@ Eine Gruppe von benutzerdefinierten Befehls-Buttons. Jeder Button in der Gruppe 
 id = "firefox"
 command = "firefox"
 icon = "󰈹"
-label_text = "Firefox"
 tooltip_text = "Firefox Browser öffnen"
 label_format = "{icon}"
-label = false
 tooltip = true
 
 [layout]

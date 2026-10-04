@@ -97,10 +97,8 @@ Un grupo de botones de comando personalizados. Cada botón del grupo se puede re
 id = "firefox"
 command = "firefox"
 icon = "󰈹"
-label_text = "Firefox"
 tooltip_text = "Abrir navegador Firefox"
 label_format = "{icon}"
-label = false
 tooltip = true
 
 [layout]

@@ -37,15 +37,10 @@
               "default": true,
               "description": "Show tooltip with current DNS provider."
             },
-            "label": {
-              "type": "boolean",
-              "default": false,
-              "description": "Show text label beside the icon."
-            },
-            "label_text": {
+            "label_format": {
               "type": "string",
-              "default": "DNS",
-              "description": "Label text shown when label is enabled."
+              "default": "{icon}",
+              "description": "Format string; the icon is shown when it contains {icon}."
             },
             "icon": {
               "type": "string",
@@ -62,15 +57,10 @@
               "default": true,
               "description": "Show tooltip with WARP connection status."
             },
-            "label": {
-              "type": "boolean",
-              "default": false,
-              "description": "Show text label beside the icon."
-            },
-            "label_text": {
+            "label_format": {
               "type": "string",
-              "default": "WARP",
-              "description": "Label text shown when label is enabled."
+              "default": "{icon}",
+              "description": "Format string; the icon is shown when it contains {icon}."
             },
             "connected_icon": {
               "type": "string",
@@ -92,15 +82,10 @@
               "default": true,
               "description": "Determines whether the GitHub Tray widget has a tooltip."
             },
-            "label": {
-              "type": "boolean",
-              "default": false,
-              "description": "Determines whether to show a text label beside the icon."
-            },
-            "label_text": {
+            "label_format": {
               "type": "string",
-              "default": "GitHub",
-              "description": "Label displayed in the GitHub Tray widget."
+              "default": "{icon}",
+              "description": "Format string; the icon is shown when it contains {icon}."
             },
             "icon": {
               "type": "string",
@@ -226,15 +211,10 @@
               "default": true,
               "description": "Determines whether the IP Monitor widget has a tooltip."
             },
-            "label": {
-              "type": "boolean",
-              "default": false,
-              "description": "Determines whether to show text next to the icon."
-            },
-            "label_text": {
+            "label_format": {
               "type": "string",
-              "default": "IP",
-              "description": "Text label shown when label is enabled."
+              "default": "{icon}",
+              "description": "Format string; the icon is shown when it contains {icon}."
             },
             "icon": {
               "type": "string",
@@ -1753,20 +1733,17 @@
               "type": "string",
               "default": "🍅"
             },
-            "label": {
-              "type": "boolean",
-              "default": true
-            },
-            "label_text": {
+            "label_format": {
               "type": "string",
-              "default": "Pomo"
+              "default": "{icon}",
+              "description": "Format string; the icon is shown when it contains {icon}."
             },
             "tooltip": {
               "type": "boolean",
               "default": true
             }
           },
-          "required": ["icon", "label", "tooltip"]
+          "required": ["icon", "label_format", "tooltip"]
         },
         "kanban": {
           "type": "object",
@@ -1987,10 +1964,6 @@
                 "type": "string",
                 "description": "Icon to display on the button"
               },
-              "label_text": {
-                "type": "string",
-                "description": "Text to display on the button"
-              },
               "tooltip_text": {
                 "type": "string",
                 "description": "Tooltip text to show on hover"
@@ -1999,11 +1972,6 @@
                 "type": "string",
                 "default": "{icon}",
                 "description": "Format string; the icon is shown when it contains {icon}."
-              },
-              "label": {
-                "type": "boolean",
-                "description": "Whether to show the label",
-                "default": true
               },
               "tooltip": {
                 "type": "boolean",

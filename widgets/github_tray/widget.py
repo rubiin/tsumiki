@@ -114,17 +114,11 @@ class GitHubTrayWidget(ButtonWidget, PopoverMixin):
             spacing=0,
             style_classes="github-tray-bar-content",
         )
-        content.add(
-            nerd_font_icon(
-                icon=self.config.get("icon", BRAND_GLYPH),
-                props={"style_classes": ["panel-font-icon"]},
-            )
-        )
-        if self.config.get("label", False):
+        if self.format_shows_icon():
             content.add(
-                Label(
-                    label=self.config.get("label_text", "GitHub"),
-                    style_classes="panel-text",
+                nerd_font_icon(
+                    icon=self.config.get("icon", BRAND_GLYPH),
+                    props={"style_classes": ["panel-font-icon"]},
                 )
             )
 

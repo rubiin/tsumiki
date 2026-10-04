@@ -145,15 +145,13 @@ DEFAULT_CONFIG = {
         "click_counter": {"count": 0},
         "dns_switcher": {
             "tooltip": True,
-            "label": False,
-            "label_text": "DNS",
+            "label_format": "{icon}",
             "icon": "󰚘",
             "count": 0,
         },
         "cloudflare_warp": {
             "tooltip": True,
-            "label": False,
-            "label_text": "WARP",
+            "label_format": "{icon}",
             "connected_icon": "",
             "disconnected_icon": "",
             "count": 0,
@@ -197,8 +195,7 @@ DEFAULT_CONFIG = {
         },
         "github_tray": {
             "icon": "",
-            "label": False,
-            "label_text": "GitHub",
+            "label_format": "{icon}",
             "tooltip": True,
             "username": "",
             "hostname": "",
@@ -236,14 +233,12 @@ DEFAULT_CONFIG = {
         },
         "pomodoro": {
             "icon": "🍅",
-            "label": True,
-            "label_text": "Pomo",
+            "label_format": "{icon}",
             "tooltip": True,
         },
         "ip_monitor": {
             "tooltip": True,
-            "label": False,
-            "label_text": "IP",
+            "label_format": "{icon}",
             "icon": "󰖟",
         },
         "hypridle": {

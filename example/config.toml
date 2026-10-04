@@ -443,10 +443,8 @@ timezones = ["America/New_York", "Asia/Tokyo"]
 id = "firefox"
 command = "firefox"
 icon = "󰈹"
-label_text = "Firefox"
 tooltip_text = "Open Firefox Browser"
 label_format = "{icon}"
-label = true
 tooltip = true
 
 # ── Matugen Theme Generation ─────────────────────────

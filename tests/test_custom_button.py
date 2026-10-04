@@ -1,7 +1,8 @@
 """Tests for ``CustomButtonWidget``'s icon visibility.
 
 ``show_icon`` was replaced by ``label_format``: the icon renders when the
-button's format string names ``{icon}``.
+button's format string names ``{icon}``. The button is icon-only; the
+``label`` and ``label_text`` keys are gone.
 """
 
 import unittest
@@ -37,30 +38,37 @@ class CustomButtonIconFormatTest(unittest.TestCase):
         self.addCleanup(patcher.stop)
 
     def test_the_default_format_renders_the_icon(self):
-        button = build_button(icon="󰈹", label=False)
+        button = build_button(icon="󰈹")
 
         self.assertEqual(button.icon, "nerd-icon")
 
     def test_a_format_naming_the_icon_renders_it(self):
-        button = build_button(icon="󰈹", label_format="{icon}", label=False)
+        button = build_button(icon="󰈹", label_format="{icon}")
 
         self.assertEqual(button.icon, "nerd-icon")
 
     def test_a_format_without_the_icon_field_drops_it(self):
         """The regression: show_icon was the toggle before label_format."""
-        button = build_button(icon="󰈹", label_format="", label=False)
+        button = build_button(icon="󰈹", label_format="")
 
         self.assertFalse(hasattr(button, "icon"))
         button.container_box.add.assert_not_called()
 
     def test_a_missing_icon_stays_absent_even_with_the_format(self):
-        button = build_button(label_format="{icon}", label=False)
+        button = build_button(label_format="{icon}")
 
         self.assertFalse(hasattr(button, "icon"))
 
     def test_the_constructor_no_longer_reads_show_icon(self):
         with open("shared/custom_button.py", encoding="utf-8") as source:
             self.assertNotIn('config.get("show_icon"', source.read())
+
+    def test_the_label_keys_are_gone(self):
+        """The icon is the whole content, so ``label``/``label_text`` are stale."""
+        button = build_button(icon="󰈹", label=True, label_text="Firefox")
+
+        self.assertFalse(hasattr(button, "label"))
+        button.container_box.add.assert_called_once_with("nerd-icon")
 
 
 if __name__ == "__main__":

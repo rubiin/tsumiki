@@ -591,10 +591,8 @@ Custom_Button = TypedDict(
         "id": str,
         "command": str,
         "icon": str,
-        "label_text": str,
         "tooltip_text": str,
         "label_format": str,
-        "label": bool,
         "tooltip": bool,
     },
 )
@@ -776,13 +774,13 @@ Recording = TypedDict(
 
 IpMonitor = TypedDict(
     "IpMonitor",
-    {**BaseConfig.__annotations__, "label_text": str, "icon": str},
+    {**BaseConfig.__annotations__, "label_format": str, "icon": str},
 )
 
 
 Pomodoro = TypedDict(
     "Pomodoro",
-    {**BaseConfig.__annotations__, "label_text": str, "icon": str},
+    {**BaseConfig.__annotations__, "label_format": str, "icon": str},
 )
 
 
@@ -790,7 +788,7 @@ GitHubTray = TypedDict(
     "GitHubTray",
     {
         **BaseConfig.__annotations__,
-        "label_text": str,
+        "label_format": str,
         "icon": str,
         "username": str,
         "hostname": str,

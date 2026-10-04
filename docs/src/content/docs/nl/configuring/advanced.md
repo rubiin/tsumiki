@@ -97,10 +97,8 @@ Een groep aangepaste opdrachtknoppen. Elke knop in de groep kan worden gereferee
 id = "firefox"
 command = "firefox"
 icon = "󰈹"
-label_text = "Firefox"
 tooltip_text = "Firefox Browser openen"
 label_format = "{icon}"
-label = false
 tooltip = true
 
 [layout]

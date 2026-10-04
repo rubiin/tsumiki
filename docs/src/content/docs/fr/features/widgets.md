@@ -167,7 +167,7 @@ username = "rubiin"
 max_repos = 10
 
 [widgets.cloudflare_warp]
-label_text = "WARP"
+label_format = "{icon}"
 
 [widgets.dns_switcher]
 icon = "󰚘"
@@ -178,6 +178,7 @@ provider = "open-meteo"
 
 [widgets.ip_monitor]
 icon = "󰖟"
+label_format = "{icon}"
 ```
 
 ## Widgets de Disposition et de Groupement

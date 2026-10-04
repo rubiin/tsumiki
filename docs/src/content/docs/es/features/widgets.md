@@ -640,8 +640,7 @@ Muestra una hoja de referencia de atajos de Hyprland con búsqueda.
 
 ```toml
 [widgets.cheatsheet]
-label = true
-label_text = "Teclas"
+label_format = "{icon}"
 tooltip = true
 title = "Hyprland Cheatsheet"
 columns = 3
@@ -680,8 +679,7 @@ Un temporizador de productividad Pomodoro.
 ```toml
 [widgets.pomodoro]
 icon = "🍅"
-label = true
-label_text = "Pomo"
+label_format = "{icon}"
 tooltip = true
 ```
 
@@ -692,8 +690,7 @@ Muestra información del repositorio de GitHub (issues, PRs).
 ```toml
 [widgets.github_tray]
 icon = ""
-label = false
-label_text = "Git"
+label_format = "{icon}"
 tooltip = true
 username = "rubiin"
 max_repos = 10
@@ -708,8 +705,7 @@ Gestiona la conexión VPN de Cloudflare WARP — conectar, desconectar y ver est
 
 ```toml
 [widgets.cloudflare_warp]
-label = false
-label_text = "WARP"
+label_format = "{icon}"
 tooltip = true
 connected_icon = ""
 disconnected_icon = ""
@@ -727,8 +723,7 @@ Cambia rápidamente entre proveedores DNS populares directamente desde la barra.
 ```toml
 [widgets.dns_switcher]
 icon = "󰚘"
-label = false
-label_text = "DNS"
+label_format = "{icon}"
 tooltip = true
 ```
 
@@ -755,8 +750,7 @@ Muestra la dirección IP actual.
 ```toml
 [widgets.ip_monitor]
 icon = "󰖟"
-label = false
-label_text = "IP"
+label_format = "{icon}"
 tooltip = true
 ```
 
