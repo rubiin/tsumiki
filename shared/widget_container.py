@@ -280,6 +280,17 @@ class BaseWidget(Widget, TeardownMixin):
     def set_active_style(self, action: bool, *_) -> None:
         self.set_style_classes("") if not action else self.set_style_classes("active")
 
+    def _sync_hover_cursor(self, *_):
+        """Point at a hand while prelit, and back to the default after.
+
+        Goes through the guarded helper: the bare widget setter rebuilds a
+        Gdk.Cursor per call and raises before the widget has a window.
+        """
+        from utils.widget_utils import set_cursor
+
+        hovered = bool(self.get_state_flags() & Gtk.StateFlags.PRELIGHT)
+        set_cursor(self, "pointer" if hovered else "default")
+
     def set_tooltip_if_enabled(self, text: str, default: bool = False) -> None:
         """Set tooltip text only when tooltips are enabled.
 
@@ -350,17 +361,6 @@ class ButtonWidget(Button, BaseWidget):
         self._connect_hover_reveal()
 
         self.connect("state-flags-changed", self._sync_hover_cursor)
-
-    def _sync_hover_cursor(self, *_):
-        """Point at a hand while prelit, and back to the default after.
-
-        Goes through the guarded helper: the bare widget setter rebuilds a
-        Gdk.Cursor per call and raises before the widget has a window.
-        """
-        from utils.widget_utils import set_cursor
-
-        hovered = bool(self.get_state_flags() & Gtk.StateFlags.PRELIGHT)
-        set_cursor(self, "pointer" if hovered else "default")
 
     def add_panel_content(
         self,
