@@ -60,6 +60,9 @@ def main():
         "dock": ("modules.dock", "Dock"),
         "desktop_clock": ("modules.desktop_clock", "DesktopClock"),
         "osd": ("modules.osd", "OSDContainer"),
+        # Shares a singleton with the bar button, so it is created once even
+        # when the widget reaches for it first.
+        "cheatsheet": ("modules.cheatsheet", "CheatSheetWindow"),
     }
 
     for name, (module_path, class_name) in module_registry.items():

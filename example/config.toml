@@ -124,6 +124,46 @@ interval = 600
 enabled = false
 size = 20
 
+# --- Keymap cheatsheet ---
+# A centered overlay listing the sections below. Sections flow into the
+# shortest column, so the order of `sections` decides where each one lands.
+[modules.cheatsheet]
+enabled = false
+layer = "overlay"
+anchor = "top center"
+title = "Hyprland Keymap"
+columns = 4
+groups_per_page = 4   # Sections per page; extra sections spill onto the next page
+column_width = 300   # Fixed column width in px
+key_width = 190       # Key badge column width in px, so descriptions line up
+accent_keys = ["super"]
+
+[[modules.cheatsheet.sections]]
+title = "Window Management"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "F"]
+description = "Fullscreen (with bar)"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "Shift", "F"]
+description = "Fullscreen (pure)"
+
+[[modules.cheatsheet.sections.rows]]
+keys = "Super Q"       # A spaced string works too
+description = "Floating Mode"
+
+[[modules.cheatsheet.sections]]
+title = "Moving Windows"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "Shift", "LEFT"]
+description = "Move Left"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "Shift", "DOWN"]
+description = "Move Down"
+
 # ── Widgets ──────────────────────────────────────────
 
 # --- Workspaces ---

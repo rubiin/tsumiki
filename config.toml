@@ -454,10 +454,6 @@ icon = "󰌌"
 label = true
 label_text = "Keys"
 tooltip = true
-title = "Hyprland Cheatsheet"
-columns = 3
-groups_per_page = 6
-max_entries_per_group = 8
 
 [widgets.pomodoro]
 icon = "🍅"
@@ -530,6 +526,308 @@ layer = "top"
 anchor = "center"
 transition_type = "crossfade"
 transition_duration = 350
+
+# ── Keymap cheatsheet ─────────────────────────────────
+# A centered overlay listing `sections`. Sections flow into the currently
+# shortest column, so their order decides where each one lands.
+[modules.cheatsheet]
+enabled = true
+layer = "overlay"
+anchor = "center"
+title = "Hyprland Keymap"
+columns = 4
+groups_per_page = 8   # Sections per page; extra sections spill onto the next page
+column_width = 300   # Fixed column width in px
+key_width = 190       # Key badge column width in px, so descriptions line up
+accent_keys = ["super"]
+
+[[modules.cheatsheet.sections]]
+title = "WINDOW MANAGEMENT"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "F"]
+description = "Fullscreen (with bar)"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "Shift", "F"]
+description = "Fullscreen (pure)"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "Q"]
+description = "Floating Mode"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "W"]
+description = "Tiled Mode"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "1"]
+description = "Rotate Split"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "BRACKETLEFT"]
+description = "Preselect Left"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "BRACKETRIGHT"]
+description = "Preselect Right"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "TAB"]
+description = "Next Tab"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "Shift", "TAB"]
+description = "Previous Tab"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "Shift", "Q"]
+description = "Remove from Group"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "Shift", "0"]
+description = "Insert to Group (Left)"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "Shift", "9"]
+description = "Insert to Group (Right)"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "CTRL", "Left"]
+description = "Insert to Group (Up)"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "CTRL", "Down"]
+description = "Insert to Group (Down)"
+
+[[modules.cheatsheet.sections]]
+title = "MULTIMEDIA AND BRIGHTNESS"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Vol Up"]
+description = "Volume Up"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Vol Down"]
+description = "Volume Down"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Mute"]
+description = "Mute"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Play"]
+description = "Play / Pause"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Next"]
+description = "Next Track"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Prev"]
+description = "Previous Track"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Bright Up"]
+description = "Brightness +"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Bright Down"]
+description = "Brightness -"
+
+[[modules.cheatsheet.sections]]
+title = "NAVIGATION (FOCUS)"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "LEFT"]
+description = "Focus Left"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "RIGHT"]
+description = "Focus Right"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "UP"]
+description = "Focus Up"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "DOWN"]
+description = "Focus Down"
+
+[[modules.cheatsheet.sections]]
+title = "MOVING WINDOWS"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "Shift", "LEFT"]
+description = "Move Left"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "Shift", "RIGHT"]
+description = "Move Right"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "Shift", "UP"]
+description = "Move Up"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "Shift", "DOWN"]
+description = "Move Down"
+
+[[modules.cheatsheet.sections]]
+title = "WORKSPACES"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "1"]
+description = "Workspace 1"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "2"]
+description = "Workspace 2"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "3"]
+description = "Workspace 3"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "4"]
+description = "Workspace 4"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "5"]
+description = "Workspace 5"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "SHIFT", "1"]
+description = "Send to Workspace 1"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "SHIFT", "2"]
+description = "Send to Workspace 2"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "SHIFT", "3"]
+description = "Send to Workspace 3"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "SHIFT", "4"]
+description = "Send to Workspace 4"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "SHIFT", "5"]
+description = "Send to Workspace 5"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "S"]
+description = "Next Workspace"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "SHIFT", "S"]
+description = "Previous Workspace"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "V"]
+description = "Move Window with Mouse"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "CTRL"]
+description = "Resize Window with Mouse"
+
+[[modules.cheatsheet.sections]]
+title = "APPLICATIONS"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "Q"]
+description = "Browser"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "RETURN"]
+description = "Terminal"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "C"]
+description = "Close Window"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "V"]
+description = "Yield"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "E"]
+description = "Exit Hyprland"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "H"]
+description = "Hibernate"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "N"]
+description = "Keybinds List"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "SPACE"]
+description = "Gw-wlr Layer Launcher"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["CTRL", "F5"]
+description = "Screenshot Area - path starting with ~/ to Clipboard"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "PRINT"]
+description = "Screenshot Area to Clipboard"
+
+[[modules.cheatsheet.sections]]
+title = "NOVTALIA (QUICKSHELL) INTEGRATION"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "G"]
+description = "Calculator"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "J"]
+description = "Calendar"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "K"]
+description = "Power Menu"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "N"]
+description = "Change Wallpaper"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", ","]
+description = "Notifications"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "ESCAPE"]
+description = "Lock Screen"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "PRINT"]
+description = "Record Screen"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "M"]
+description = "Hibernate"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "SHIFT", ","]
+description = "Steam Overlay"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "."]
+description = "Discord Overlay"
+
+[[modules.cheatsheet.sections]]
+title = "Clipper"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "V"]
+description = "Clipper"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "SHIFT", "G"]
+description = "Todo do Todo"
 
 [modules.osd]
 enabled = true
@@ -650,7 +948,7 @@ left_section = ["@group:workspaces-group"]
 middle_section = [
     "date_time",
     "weather",
-    "mpris"
+    "mpris","cheatsheet"
 ]
 right_section = ["@group:sys-group", "@group:utils-group", "system_tray", "power"]
 

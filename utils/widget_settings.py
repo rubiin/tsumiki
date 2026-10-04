@@ -240,9 +240,20 @@ Cheatsheet = TypedDict(
         "enabled": bool,
         "anchor": Anchor,
         "layer": Layer,
+        "title": str,
+        "icon": str,
+        "refresh_icon": str,
+        "close_icon": str,
+        "columns": int,
+        "groups_per_page": int,
+        "column_width": int,
+        "key_width": int,
+        "accent_keys": list,
         "transition_type": Reveal_Animations,
         "transition_duration": int,
+        "sections": list,
     },
+    total=False,
 )
 
 # ScreenCorners configuration

@@ -1750,25 +1750,6 @@
             "tooltip": {
               "type": "boolean",
               "default": true
-            },
-            "title": {
-              "type": "string",
-              "default": "Hyprland Cheatsheet"
-            },
-            "columns": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 3
-            },
-            "groups_per_page": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 9
-            },
-            "max_entries_per_group": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 8
             }
           },
           "required": ["icon", "label", "tooltip"]
@@ -2787,13 +2768,14 @@
           "properties": {
             "enabled": {
               "type": "boolean",
-              "description": "Determines whether the cheatsheet is enabled.",
+              "description": "Determines whether the cheatsheet overlay is enabled.",
               "default": false
             },
             "layer": {
               "type": "string",
-              "description": "Determines the layer of the cheatsheet.",
-              "default": "top"
+              "enum": ["top", "overlay", "bottom", "background"],
+              "description": "Layer on which the cheatsheet overlay is displayed.",
+              "default": "overlay"
             },
             "anchor": {
               "type": "string",
@@ -2809,20 +2791,110 @@
                 "bottom-center",
                 "bottom-right"
               ],
-              "description": "Specifies the anchor position of the desktop clock.",
-              "default": "bottom-right"
+              "description": "Specifies the anchor position of the cheatsheet overlay.",
+              "default": "center"
+            },
+            "title": {
+              "type": "string",
+              "description": "Title shown in the overlay header.",
+              "default": "Hyprland Keymap"
+            },
+            "icon": {
+              "type": "string",
+              "description": "Nerd Font glyph shown before the title.",
+              "default": ""
+            },
+            "refresh_icon": {
+              "type": "string",
+              "description": "Nerd Font glyph for the header button that rebuilds the grid.",
+              "default": ""
+            },
+            "close_icon": {
+              "type": "string",
+              "description": "Nerd Font glyph for the header button that hides the overlay.",
+              "default": ""
+            },
+            "columns": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Number of columns the sections of a page are balanced across.",
+              "default": 4
+            },
+            "groups_per_page": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Maximum number of sections rendered on one page.",
+              "default": 8
+            },
+            "column_width": {
+              "type": "integer",
+              "minimum": 80,
+              "description": "Fixed width of a column in pixels.",
+              "default": 300
+            },
+            "key_width": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Fixed width of the key badge area in pixels, so descriptions line up.",
+              "default": 190
+            },
+            "accent_keys": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Key names rendered with the accent style, matched case-insensitively.",
+              "default": ["super"]
+            },
+            "sections": {
+              "type": "array",
+              "description": "Keybind sections to render, in column-flow order.",
+              "default": [],
+              "items": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "description": "Heading of the section.",
+                    "default": ""
+                  },
+                  "rows": {
+                    "type": "array",
+                    "description": "Keybind rows of the section.",
+                    "default": [],
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "keys": {
+                          "type": ["array", "string"],
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Key badges of the row, as a list or a spaced string."
+                        },
+                        "description": {
+                          "type": "string",
+                          "description": "Text shown next to the key badges."
+                        }
+                      },
+                      "required": ["description"]
+                    }
+                  }
+                },
+                "required": ["rows"]
+              }
             },
             "transition_type": {
               "type": "string",
               "enum": ["crossfade", "slide-left", "slide-right", "slide-up", "slide-down", "none"],
-              "description": "Specifies the type of transition effect for notifications.",
+              "description": "Specifies the type of transition effect for the cheatsheet overlay.",
               "default": "crossfade"
             },
             "transition_duration": {
               "type": "integer",
               "minimum": 0,
               "description": "Specifies the duration of the transition effect in milliseconds.",
-              "default": 350
+              "default": 200
             }
           }
         },

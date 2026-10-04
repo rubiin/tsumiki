@@ -3,6 +3,9 @@
 @use "common";
 @use "variable";
 
+// The panel button keeps its generated shell from common/_widgets.scss; only
+// the overlay lives here. CheatSheetWindow is its own layer-shell window named
+// "cheatsheet-window", so it is not a descendant of #cheatsheet.
 #cheatsheet {
   @include common.widget_border(
     variable.$bar-widgets-cheatsheet-border-radius,
@@ -16,118 +19,88 @@
   );
 }
 
-#cheatsheet-menu {
-  padding: 12px 14px;
-  min-width: 1200px;
-  border-radius: variable.$radius;
-  background-color: theme.$background-alt;
-  border: variable.$border;
-
-  .cheatsheet-title {
-    font-size: 1.2rem;
-    font-weight: 700;
-    color: theme.$text-main;
-    margin-bottom: 2px;
+// The overlay paints no scrim: the window, its padding and the revealer all
+// share this name, so any background here would dim the whole desktop.
+#cheatsheet-window {
+  #cheatsheet-card {
+    background-color: color.change(theme.$background-dark, $alpha: 0.96);
+    border: 1px solid color.mix(theme.$surface-disabled, transparent, 40%);
+    border-radius: variable.$radius-xl;
+    padding: 12px 18px 16px;
   }
 
-  .cheatsheet-row {
-    min-height: 0;
-    min-width: 0;
-  }
+  #cheatsheet-header {
+    border-bottom: 1px solid color.mix(theme.$surface-disabled, transparent, 55%);
+    margin-bottom: 10px;
+    padding-bottom: 10px;
 
-  .cheatsheet-group {
-    background-color: color.mix(theme.$surface-disabled, transparent, 45%);
-    border: 1px solid color.mix(theme.$surface-disabled, white, 88%);
-    border-radius: variable.$radius;
-    padding: 7px 10px;
-    min-width: 0;
-
-    .cheatsheet-group-title {
-      font-size: 0.92rem;
+    #cheatsheet-title {
+      color: theme.$accent-yellow;
+      font-size: variable.$font-size-lg;
       font-weight: 700;
-      color: theme.$text-main;
-      margin-bottom: 4px;
-      padding-bottom: 3px;
-      border-bottom: 1px solid color.mix(theme.$surface-disabled, white, 85%);
     }
 
-    .cheatsheet-entry {
-      padding: 2px 5px;
-      border-radius: variable.$radius-sm;
-      min-width: 0;
+    #cheatsheet-title-icon {
+      color: theme.$accent-yellow;
+      font-size: variable.$font-size-lg;
+    }
+
+    .cheatsheet-action {
+      background-color: transparent;
+      border-radius: variable.$radius-xs;
+      padding: 3px 6px;
 
       &:hover {
-        background-color: color.mix(theme.$surface-highlight, transparent, 66%);
-      }
-
-      .cheatsheet-key {
-        font-family: "JetBrainsMono Nerd Font Mono", monospace;
-        font-size: 0.82rem;
-        font-weight: 700;
-        color: theme.$text-main;
-        background-color: color.mix(theme.$background-main, white, 95%);
-        padding: 2px 6px;
-        border-radius: variable.$radius-xs;
-        border: 1px solid color.mix(theme.$surface-disabled, white, 85%);
-        min-width: 106px;
-      }
-
-      .cheatsheet-description {
-        font-size: 0.86rem;
-        color: theme.$text-main;
-        opacity: variable.$opacity-faint;
-        min-width: 0;
-      }
-    }
-
-    .cheatsheet-more {
-      font-size: 0.86rem;
-      color: theme.$text-secondary;
-      margin-top: 4px;
-      opacity: variable.$opacity-faint;
-    }
-  }
-
-  .cheatsheet-group-placeholder {
-    background-color: transparent;
-  }
-
-  .cheatsheet-pagination {
-    margin-top: 4px;
-
-    padding: 0;
-
-    .cheatsheet-nav-btn {
-      background-color: color.mix(theme.$surface-disabled, transparent, 54%);
-      border-radius: variable.$radius;
-      padding: 5px;
-      min-width: 26px;
-      min-height: 26px;
-      border: 1px solid color.mix(theme.$surface-disabled, white, 88%);
-
-      &:hover:not(.disabled) {
         background-color: theme.$surface-highlight;
       }
 
-      &:active:not(.disabled) {
-        background-color: theme.$surface-disabled;
+      &:active {
+        background-color: theme.$surface-neutral;
       }
 
-      &.disabled {
-        opacity: variable.$opacity-disabled;
+      label {
+        color: theme.$text-muted;
+        font-size: variable.$font-size-md;
+        transition: color variable.$duration-fast variable.$ease-standard;
       }
 
-      .cheatsheet-nav-icon {
-        font-size: 0.86rem;
-        color: theme.$text-main;
+      &:hover label {
+        color: theme.$accent-yellow;
       }
     }
+  }
 
-    .cheatsheet-page-label {
-      font-size: 0.86rem;
-      color: theme.$text-main;
-      font-weight: 600;
-      min-width: 40px;
+  #cheatsheet-section {
+    #cheatsheet-section-title {
+      color: theme.$accent-yellow;
+      font-size: variable.$font-size-sm;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    #cheatsheet-entry {
+      .cheatsheet-key {
+        background-color: theme.$surface-neutral;
+        border: 1px solid color.mix(theme.$surface-neutral, white, 22%);
+        border-radius: variable.$radius-2xs;
+        color: theme.$text-main;
+        font-family: "JetBrainsMono Nerd Font Mono", monospace;
+        font-size: variable.$font-size-xs;
+        padding: 1px 5px;
+
+        &.accent {
+          background-color: theme.$accent-yellow;
+          border-color: color.mix(theme.$accent-yellow, black, 20%);
+          color: theme.$background-dark;
+          font-weight: 700;
+        }
+      }
+
+      #cheatsheet-description {
+        color: theme.$text-secondary;
+        font-family: "JetBrainsMono Nerd Font Mono", monospace;
+        font-size: variable.$font-size-xs;
+      }
     }
   }
 
@@ -135,7 +108,45 @@
     margin: 0;
   }
 
-  .cheatsheet-page {
-    padding: 0;
+  #cheatsheet-pagination {
+    margin-top: 12px;
+
+    .cheatsheet-page-btn {
+      background-color: color.mix(theme.$surface-disabled, transparent, 60%);
+      border: 1px solid color.mix(theme.$surface-disabled, transparent, 45%);
+      border-radius: variable.$radius-xs;
+      min-height: 20px;
+      min-width: 24px;
+      padding: 1px 6px;
+
+      &:hover:not(.disabled) {
+        background-color: theme.$surface-highlight;
+      }
+
+      &:active:not(.disabled) {
+        background-color: theme.$surface-neutral;
+      }
+
+      &.disabled {
+        opacity: variable.$opacity-disabled;
+      }
+
+      label {
+        color: theme.$text-main;
+        font-size: variable.$font-size-sm;
+      }
+    }
+
+    #cheatsheet-page-label {
+      color: theme.$text-muted;
+      font-size: variable.$font-size-sm;
+      min-width: 36px;
+    }
+  }
+
+  #cheatsheet-empty {
+    color: theme.$text-muted;
+    font-size: variable.$font-size-sm;
+    padding: 12px 4px;
   }
 }
