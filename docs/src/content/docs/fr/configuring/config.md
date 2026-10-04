@@ -214,10 +214,6 @@ contrast = 0.0
 
 Voir [Thématisation avec Matugen](/fr/theming/matugen) pour plus de détails.
 
-## Note de Migration
-
-Si vous effectuez une mise à niveau depuis des versions plus anciennes, consultez [Migration v2 vers v3](/fr/resources/migration-v2-v3) avant de copier d'anciens blocs de configuration.
-
 ## Flux de Travail Recommandé
 
 1. Commencez à partir de `example/config.toml`.

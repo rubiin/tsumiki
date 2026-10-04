@@ -214,10 +214,6 @@ contrast = 0.0
 
 Consulta [Tematización con Matugen](/es/theming/matugen) para más detalles.
 
-## Nota de Migración
-
-Si estás actualizando desde versiones anteriores, revisa [Migración v2 a v3](/es/resources/migration-v2-v3) antes de copiar bloques de configuración antiguos.
-
 ## Flujo de Trabajo Recomendado
 
 1. Comienza desde `example/config.toml`.
