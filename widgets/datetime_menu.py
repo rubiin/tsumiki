@@ -1,7 +1,7 @@
 import contextlib
 
 from fabric.notifications import Notification
-from fabric.utils import Gtk, bulk_connect, logger, math
+from fabric.utils import Gdk, Gtk, bulk_connect, logger, math
 from fabric.widgets.box import Box
 from fabric.widgets.button import Button
 from fabric.widgets.datetime import DateTime
@@ -763,24 +763,32 @@ class DateTimeWidget(ButtonWidget, PopoverMixin):
             self.container_box.add(self.notification_indicator)
             self.container_box.add(self.count_label)
 
-        is_nepali_time = self.config.get("nepali_date", False)
-
-        date_label = ExtendedDateTime(
+        self.date_label = ExtendedDateTime(
             formatters=date_format,
-            nepali_time=is_nepali_time,
+            nepali_time=self.config.get("nepali_date", False),
         )
 
         if self.config.get("hover_reveal", True):
             self.revealer = Revealer(
-                child=date_label,
+                child=self.date_label,
                 transition_duration=self.config.get("reveal_duration", 500),
                 transition_type="slide_right",
             )
             self.container_box.add(self.revealer)
         else:
-            self.container_box.add(date_label)
+            self.container_box.add(self.date_label)
 
+        self.connect("button-press-event", self.on_button_press)
         self.setup_popover(lambda: DateNotificationMenu(config=self.config))
+
+    def on_button_press(self, _, event) -> bool:
+        """Right click swaps the calendar, every other button is left alone."""
+        if event.button != Gdk.BUTTON_SECONDARY:
+            return False
+
+        self.date_label.toggle_calendar()
+        # Consumed so it cannot reach the button and open the popover.
+        return True
 
     def on_notification_count(self, _, value, *args):
         if value > 0:
