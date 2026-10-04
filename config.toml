@@ -1,4 +1,4 @@
-"$schema" = "https://raw.githubusercontent.com/rubiin/tsumiki/refs/heads/dev/tsumiki.schema.json"
+"$schema" = "https://raw.githubusercontent.com/rubiin/tsumiki/refs/heads/master/tsumiki.schema.json"
 
 [widgets.launcher_button]
 icon = "view-app-grid-symbolic"
@@ -9,10 +9,7 @@ tooltip = true
 icon = ""
 label_format = "{icon}"
 tooltip = true
-# Optional login shown while the gh session user is resolved.
 username = ""
-# GitHub Enterprise Server host, leave empty for github.com.
-# The host must be added to gh first (`gh auth login --hostname ...`).
 hostname = ""
 avatar_size = 44
 default_tab = "inbox"
