@@ -690,8 +690,7 @@ Displays a searchable keybind cheatsheet for Hyprland.
 
 ```toml
 [widgets.cheatsheet]
-label = true
-label_text = "Keys"
+label_format = "{icon}"           # drop {icon} to hide the icon
 tooltip = true
 title = "Hyprland Cheatsheet"
 columns = 3

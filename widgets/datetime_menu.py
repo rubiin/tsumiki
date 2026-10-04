@@ -779,16 +779,23 @@ class DateTimeWidget(ButtonWidget, PopoverMixin):
             self.container_box.add(self.date_label)
 
         self.connect("button-press-event", self.on_button_press)
-        self.setup_popover(lambda: DateNotificationMenu(config=self.config))
+        # GtkButton activates through a gesture that ignores which button was
+        # pressed, so "clicked" fires for right click too: open the popover
+        # from the press instead, where the button is still known.
+        self.setup_popover(
+            lambda: DateNotificationMenu(config=self.config),
+            connect_clicked=False,
+        )
 
     def on_button_press(self, _, event) -> bool:
-        """Right click swaps the calendar, every other button is left alone."""
-        if event.button != Gdk.BUTTON_SECONDARY:
-            return False
+        """Left click opens the menu, right click swaps the calendar."""
+        if event.button == Gdk.BUTTON_SECONDARY:
+            self.date_label.toggle_calendar()
+            return True
 
-        self.date_label.toggle_calendar()
-        # Consumed so it cannot reach the button and open the popover.
-        return True
+        if event.button == Gdk.BUTTON_PRIMARY:
+            self.show_popover()
+        return False
 
     def on_notification_count(self, _, value, *args):
         if value > 0:

@@ -1,7 +1,8 @@
 """Tests for the calendar toggle on the date/time widget.
 
 Right click on the bar widget flips the date between the Gregorian and the
-Nepali (Bikram Sambat) calendar without opening the notification menu.
+Nepali (Bikram Sambat) calendar without opening the notification menu, so the
+popover is opened from the press instead of from GtkButton's "clicked".
 """
 
 import unittest
@@ -27,9 +28,10 @@ def make_datetime(*, nepali_time: bool = False) -> "ExtendedDateTime":
 
 
 def make_widget() -> "DateTimeWidget":
-    """Build a DateTimeWidget whose date label is a mock."""
+    """Build a DateTimeWidget whose date label and popover are mocks."""
     widget = DateTimeWidget.__new__(DateTimeWidget)
     widget.date_label = mock.Mock()
+    widget.show_popover = mock.Mock()
     return widget
 
 
@@ -40,7 +42,7 @@ def press(widget, button: int) -> bool:
 
 @unittest.skipUnless(HAS_WIDGETS, "GTK / fabric widgets unavailable")
 class CalendarToggleTest(unittest.TestCase):
-    """Right click swaps the calendar without opening the menu."""
+    """Right click swaps the calendar, left click opens the menu."""
 
     def test_toggle_calendar_flips_calendar_system(self):
         label = make_datetime()
@@ -59,17 +61,26 @@ class CalendarToggleTest(unittest.TestCase):
 
         self.assertNotEqual(gregorian.do_format(), nepali.do_format())
 
-    def test_right_click_toggles_calendar_and_swallows_the_press(self):
+    def test_right_click_toggles_calendar_without_opening_the_menu(self):
         widget = make_widget()
 
         self.assertTrue(press(widget, 3))
 
         widget.date_label.toggle_calendar.assert_called_once_with()
+        widget.show_popover.assert_not_called()
 
-    def test_other_buttons_are_left_to_the_button(self):
+    def test_left_click_opens_the_menu_without_toggling_the_calendar(self):
         widget = make_widget()
 
         self.assertFalse(press(widget, 1))
+
+        widget.show_popover.assert_called_once_with()
+        widget.date_label.toggle_calendar.assert_not_called()
+
+    def test_middle_click_does_nothing(self):
+        widget = make_widget()
+
         self.assertFalse(press(widget, 2))
 
+        widget.show_popover.assert_not_called()
         widget.date_label.toggle_calendar.assert_not_called()

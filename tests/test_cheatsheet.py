@@ -14,6 +14,7 @@ from modules.cheatsheet import (
     plan_columns,
     section_weight,
 )
+from utils.constants import DEFAULT_CONFIG
 
 SECTION = {
     "title": "Window Management",
@@ -184,6 +185,22 @@ class PaginateTest(unittest.TestCase):
 
     def test_no_sections_yields_no_pages(self):
         self.assertEqual([], paginate([], 4))
+
+
+class PanelWidgetConfigTest(unittest.TestCase):
+    """The panel button is icon-only and driven by ``label_format``."""
+
+    def setUp(self):
+        self.widget_config = DEFAULT_CONFIG["widgets"]["cheatsheet"]
+
+    def test_the_default_format_keeps_the_icon(self):
+        self.assertEqual("{icon}", self.widget_config["label_format"])
+
+    def test_the_boolean_label_toggle_is_gone(self):
+        self.assertNotIn("label", self.widget_config)
+
+    def test_the_separate_label_text_is_gone(self):
+        self.assertNotIn("label_text", self.widget_config)
 
 
 if __name__ == "__main__":

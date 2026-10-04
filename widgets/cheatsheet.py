@@ -3,6 +3,7 @@
 from modules.cheatsheet import toggle_cheatsheet
 from shared.widget_container import ButtonWidget
 from utils.i18n import _
+from utils.widget_utils import nerd_font_icon
 
 
 class CheatSheetWidget(ButtonWidget):
@@ -12,9 +13,12 @@ class CheatSheetWidget(ButtonWidget):
         super().__init__(name="cheatsheet", **kwargs)
 
         self.add_panel_content(
-            self.config.get("icon", "󰌌"),
-            self.config.get("label_text", "Keys"),
-            show_label=self.config.get("label", True),
+            nerd_font_icon(
+                icon=self.config.get("icon", "󰌌"),
+                props={"style_classes": ["panel-font-icon"]},
+            )
+            if self.format_shows_icon()
+            else None,
         )
 
         self.set_tooltip_if_enabled(_("widget.cheatsheet.tooltip"), default=True)

@@ -431,6 +431,9 @@ _VALID_LABEL_FORMATS = {
     "world_clock": {
         "label_format": set(["icon"]),
     },
+    "cheatsheet": {
+        "label_format": set(["icon"]),
+    },
 }
 
 

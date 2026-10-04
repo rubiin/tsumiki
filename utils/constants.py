@@ -194,8 +194,7 @@ DEFAULT_CONFIG = {
         "divider": {},
         "cheatsheet": {
             "icon": "󰌌",
-            "label": True,
-            "label_text": "Keys",
+            "label_format": "{icon}",
             "tooltip": True,
         },
         "github_tray": {

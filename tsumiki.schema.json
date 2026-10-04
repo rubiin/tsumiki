@@ -1739,20 +1739,17 @@
               "type": "string",
               "default": "󰌌"
             },
-            "label": {
-              "type": "boolean",
-              "default": true
-            },
-            "label_text": {
+            "label_format": {
               "type": "string",
-              "default": "Keys"
+              "default": "{icon}",
+              "description": "Format string; the icon is shown when it contains {icon}."
             },
             "tooltip": {
               "type": "boolean",
               "default": true
             }
           },
-          "required": ["icon", "label", "tooltip"]
+          "required": ["icon", "label_format", "tooltip"]
         },
         "pomodoro": {
           "type": "object",

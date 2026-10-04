@@ -451,8 +451,7 @@ tooltip = true
 
 [widgets.cheatsheet]
 icon = "󰌌"
-label = true
-label_text = "Keys"
+label_format = "{icon}"
 tooltip = true
 
 [widgets.pomodoro]

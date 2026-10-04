@@ -442,6 +442,14 @@ class ValidateFormatStringsTest(unittest.TestCase):
         msg = mock_logger.warning.call_args[0][0]
         self.assertIn("widgets.keyboard.label_format", msg)
 
+    @mock.patch("utils.validation.logger")
+    def test_the_cheatsheet_only_takes_the_icon_field(self, mock_logger):
+        validate_format_strings(
+            {"widgets": {"cheatsheet": {"label_format": "{label}"}}}
+        )
+        msg = mock_logger.warning.call_args[0][0]
+        self.assertIn("widgets.cheatsheet.label_format", msg)
+
 
 class WarnDeprecatedShowIconTest(unittest.TestCase):
     """``show_icon`` is no longer read, so a config still setting it must say so."""
