@@ -265,7 +265,6 @@ show_current_workspace_only = false
 date_format = " %a %b %d,"
 calendar = true
 clock_format = "12h"   # "12h" | "24h"
-nepali_date = false
 ```
 
 ### ساعة عالمية

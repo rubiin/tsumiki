@@ -182,8 +182,6 @@ DEFAULT_CONFIG = {
             "clock_format": "12h",
             "hover_reveal": False,
             "reveal_duration": 500,
-            "nepali_date": False,
-            "extended_date": False,
             "notification": {
                 "enabled": True,
                 "count": True,
@@ -581,7 +579,6 @@ DEFAULT_CONFIG = {
             "cookie_show_hour_marks": False,
             "cookie_background_opacity": 1.0,
             "cookie_widget_scale": 1.0,
-            "nepali_date": False,
         },
         "desktop_quotes": {
             "enabled": False,

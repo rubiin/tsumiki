@@ -90,7 +90,6 @@ osds = ["brightness", "volume"]
 enabled = false
 type = "cookie"
 layer = "bottom"
-nepali_date = false
 ```
 
 ## Citações da Área de Trabalho

@@ -217,7 +217,6 @@ layer = "bottom"
 anchor = "bottom-right"
 date_format = "%A, %d %B %Y"
 time_format = "%H:%M"
-nepali_date = false
 cookie_size = 230
 cookie_sides = 9
 cookie_dial_style = "dots"

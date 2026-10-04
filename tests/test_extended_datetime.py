@@ -16,6 +16,8 @@ try:
 except (ImportError, ValueError):  # GTK / fabric widgets unavailable
     HAS_WIDGETS = False
 
+from utils.constants import DEFAULT_CONFIG
+
 
 def make_datetime(*, nepali_time: bool = False) -> "ExtendedDateTime":
     """Build an ExtendedDateTime without touching GTK widget init."""
@@ -25,6 +27,19 @@ def make_datetime(*, nepali_time: bool = False) -> "ExtendedDateTime":
     label._current_index = 0
     label.set_label = mock.Mock()
     return label
+
+
+class CalendarDefaultTest(unittest.TestCase):
+    """The label starts on the Gregorian calendar, with no config to set."""
+
+    def test_a_fresh_label_is_gregorian(self):
+        self.assertFalse(ExtendedDateTime._nepali_time)
+
+    def test_the_widget_config_has_no_calendar_toggle(self):
+        self.assertNotIn("nepali_date", DEFAULT_CONFIG["widgets"]["date_time"])
+
+    def test_the_desktop_clock_config_has_no_calendar_toggle(self):
+        self.assertNotIn("nepali_date", DEFAULT_CONFIG["modules"]["desktop_clock"])
 
 
 def make_widget() -> "DateTimeWidget":

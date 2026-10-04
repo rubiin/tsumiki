@@ -98,7 +98,6 @@ show_current_workspace_only = false
 [widgets.date_time]
 clock_format = "12h"
 calendar = true
-nepali_date = false
 
 [widgets.world_clock]
 timezones = ["America/New_York", "Asia/Tokyo"]

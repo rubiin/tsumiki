@@ -1536,11 +1536,6 @@
                 }
               },
               "required": ["enabled", "count", "hide_count_on_zero", "notification_grouping"]
-            },
-            "nepali_date": {
-              "type": "boolean",
-              "default": false,
-              "description": "Display date in Nepali (Bikram Sambat) calendar."
             }
           },
           "required": ["date_format", "calendar", "clock_format", "notification"]
@@ -3073,11 +3068,6 @@
               "type": "number",
               "description": "Scale multiplier for cookie clock geometry.",
               "default": 1.0
-            },
-            "nepali_date": {
-              "type": "boolean",
-              "default": false,
-              "description": "Display date in Nepali (Bikram Sambat) calendar."
             }
           }
         },

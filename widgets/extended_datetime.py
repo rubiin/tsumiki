@@ -1,35 +1,23 @@
 import time
 from datetime import datetime
 
-from fabric.core.service import Property
 from fabric.widgets.datetime import DateTime
 from nepali.datetime import nepalidatetime
 
 
 class ExtendedDateTime(DateTime):
-    """DateTime that renders in the Nepali (Bikram Sambat) calendar."""
+    """DateTime that can render the Nepali (Bikram Sambat) calendar.
 
-    @Property(bool, "read-write", default_value=False)
-    def nepali_time(self):
-        return self._nepali_time
+    Starts on the Gregorian calendar; ``toggle_calendar`` flips it.
+    """
 
-    @nepali_time.setter
-    def nepali_time(self, value: bool):
-        self._set_nepali_time(value)
-
-    def __init__(self, nepali_time: bool = False, **kwargs):
-        # Set before super(), which renders the label while initialising.
-        self._nepali_time = nepali_time
-        super().__init__(**kwargs)
+    _nepali_time = False
 
     def toggle_calendar(self) -> bool:
         """Flip between the Gregorian and the Nepali calendar."""
-        self._set_nepali_time(not self._nepali_time)
-        return self._nepali_time
-
-    def _set_nepali_time(self, value: bool) -> None:
-        self._nepali_time = value
+        self._nepali_time = not self._nepali_time
         self.do_update_label()
+        return self._nepali_time
 
     def do_format(self) -> str:
         if self._nepali_time:

@@ -365,7 +365,6 @@ calendar = true
 clock_format = "12h"   # "12h" | "24h"
 hover_reveal = false
 reveal_duration = 500
-nepali_date = false
 
 [widgets.date_time.notification]
 enabled = true

@@ -763,10 +763,7 @@ class DateTimeWidget(ButtonWidget, PopoverMixin):
             self.container_box.add(self.notification_indicator)
             self.container_box.add(self.count_label)
 
-        self.date_label = ExtendedDateTime(
-            formatters=date_format,
-            nepali_time=self.config.get("nepali_date", False),
-        )
+        self.date_label = ExtendedDateTime(formatters=date_format)
 
         if self.config.get("hover_reveal", True):
             self.revealer = Revealer(

@@ -72,7 +72,6 @@ show_current_workspace_only = false
 ```toml
 [widgets.date_time]
 clock_format = "12h"
-nepali_date = false
 
 [widgets.world_clock]
 timezones = ["America/New_York", "Asia/Tokyo"]
