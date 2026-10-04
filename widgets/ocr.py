@@ -29,7 +29,6 @@ class OCRWidget(ButtonWidget):
             if self.format_shows_icon()
             else None,
             _("widget.ocr.label"),
-            show_label=self.config.get("label", True),
         )
 
         # Left click for OCR

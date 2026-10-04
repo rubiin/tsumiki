@@ -325,7 +325,6 @@ interval = 3600
 tooltip = true
 terminal = "kitty"
 flatpak = true
-label = true
 
 # --- Weather ---
 [widgets.weather]
@@ -352,7 +351,7 @@ hide_when_no_player = true
 
 # --- Bluetooth ---
 [widgets.bluetooth]
-label = true
+label_format = "{icon}"
 tooltip = true
 
 # --- Brightness ---
@@ -362,14 +361,13 @@ step_size = 5
 
 # --- Microphone ---
 [widgets.microphone]
-label = false
 tooltip = true
 label_format = "{icon}"
 
 # --- Clipboard ---
 [widgets.clipboard]
 icon = ""
-label = false
+label_format = "{icon}"
 tooltip = true
 show_images = true
 enable_pinning = true
@@ -377,14 +375,13 @@ enable_pinning = true
 # --- Wallpaper ---
 [widgets.wallpaper]
 icon = "󰸉"
-label = false
+label_format = "{icon}"
 tooltip = true
 
 # --- Settings ---
 [widgets.settings]
 icon = "󰒓"
 tooltip = true
-label = false
 
 # --- Theme Switcher ---
 [widgets.theme_switcher]
@@ -394,7 +391,7 @@ notify = false
 # --- Emoji Picker ---
 [widgets.emoji_picker]
 icon = ""
-label = false
+label_format = "{icon}"
 tooltip = true
 per_row = 9
 per_column = 4
@@ -403,6 +400,7 @@ per_column = 4
 [widgets.screenshot]
 path = "Pictures/Screenshots"
 icon = "󰄀"
+label_format = "{icon}"
 tooltip = true
 annotation = true
 
@@ -420,13 +418,12 @@ tooltip = true
 # --- Workspace Overview Button ---
 [widgets.overview_button]
 icon = "󰡃"
+label_format = "{icon}"
 tooltip = true
-label = false
 
 # --- Submap Indicator ---
 [widgets.submap]
 icon = "󰌌"
-label = true
 tooltip = true
 label_format = ""
 hide_on_default = false

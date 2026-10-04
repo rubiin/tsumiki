@@ -452,7 +452,22 @@ class ValidateFormatStringsTest(unittest.TestCase):
 
     @mock.patch("utils.validation.logger")
     def test_the_icon_gated_widgets_reject_other_fields(self, mock_logger):
-        for name in ("dns_switcher", "pomodoro", "cloudflare_warp", "github_tray"):
+        for name in (
+            "dns_switcher",
+            "pomodoro",
+            "cloudflare_warp",
+            "github_tray",
+            "bluetooth",
+            "clipboard",
+            "emoji_picker",
+            "hypridle",
+            "hyprsunset",
+            "kanban",
+            "overview_button",
+            "screenshot",
+            "usb_manager",
+            "wallpaper",
+        ):
             with self.subTest(widget=name):
                 validate_format_strings(
                     {"widgets": {name: {"label_format": "{count}"}}}

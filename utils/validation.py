@@ -449,6 +449,36 @@ _VALID_LABEL_FORMATS = {
     "ip_monitor": {
         "label_format": set(["icon"]),
     },
+    "bluetooth": {
+        "label_format": set(["icon"]),
+    },
+    "clipboard": {
+        "label_format": set(["icon"]),
+    },
+    "emoji_picker": {
+        "label_format": set(["icon"]),
+    },
+    "hypridle": {
+        "label_format": set(["icon"]),
+    },
+    "hyprsunset": {
+        "label_format": set(["icon"]),
+    },
+    "kanban": {
+        "label_format": set(["icon"]),
+    },
+    "overview_button": {
+        "label_format": set(["icon"]),
+    },
+    "screenshot": {
+        "label_format": set(["icon"]),
+    },
+    "usb_manager": {
+        "label_format": set(["icon"]),
+    },
+    "wallpaper": {
+        "label_format": set(["icon"]),
+    },
 }
 
 

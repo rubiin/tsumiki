@@ -1,6 +1,7 @@
 from modules.wallpaper import WallPaperPickerOverlay
 from shared.widget_container import ButtonWidget
 from utils.i18n import _
+from utils.widget_utils import nerd_font_icon
 
 
 class WallpaperWidget(ButtonWidget):
@@ -14,11 +15,14 @@ class WallpaperWidget(ButtonWidget):
         # Optional tooltip
         self.set_tooltip_if_enabled(_("widget.wallpaper.tooltip"))
 
-        # Add icon
         self.add_panel_content(
-            cfg.get("icon"),
+            nerd_font_icon(
+                icon=cfg.get("icon"),
+                props={"style_classes": ["panel-font-icon"]},
+            )
+            if self.format_shows_icon()
+            else None,
             _("widget.wallpaper.label"),
-            show_label=cfg.get("label", True),
         )
 
         # Lazy-init wallpaper popup

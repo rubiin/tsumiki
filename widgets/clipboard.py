@@ -915,15 +915,15 @@ class ClipBoardWidget(ButtonWidget, PopoverMixin):
     def __init__(self, **kwargs):
         super().__init__(name="clipboard", **kwargs)
 
-        self.container_box.add(
-            nerd_font_icon(
-                icon=self.config.get("icon"),
-                props={"style_classes": ["panel-font-icon"]},
+        if self.format_shows_icon():
+            self.container_box.add(
+                nerd_font_icon(
+                    icon=self.config.get("icon"),
+                    props={"style_classes": ["panel-font-icon"]},
+                )
             )
-        )
 
-        if self.config.get("label", True):
-            self.container_box.add(Label(label="Clip", style_classes="panel-text"))
+        self.container_box.add(Label(label="Clip", style_classes="panel-text"))
 
         self.set_tooltip_if_enabled(_("widget.clipboard.tooltip"))
 

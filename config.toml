@@ -57,7 +57,7 @@ tooltip = true
 
 [widgets.clipboard]
 icon = ""
-label = false
+label_format = "{icon}"
 tooltip = true
 item_tooltip = false
 show_images = true
@@ -65,14 +65,14 @@ enable_pinning = true
 
 [widgets.emoji_picker]
 icon = ""
-label = false
+label_format = "{icon}"
 tooltip = true
 per_row = 9
 per_column = 4
 
 [widgets.kanban]
 icon = "󱞁"
-label = false
+label_format = "{icon}"
 tooltip = true
 
 [widgets.battery]
@@ -157,7 +157,7 @@ tooltip = "Launch Code"
 icon_size = 18
 
 [widgets.bluetooth]
-label = true
+label_format = "{icon}"
 tooltip = true
 
 [widgets.brightness]
@@ -166,7 +166,7 @@ step_size = 5
 
 [widgets.wallpaper]
 icon = "󰸉"
-label = false
+label_format = "{icon}"
 tooltip = true
 
 [widgets.cava]
@@ -175,8 +175,8 @@ color = "#89b4fa"
 
 [widgets.overview_button]
 icon = "󰡃"
+label_format = "{icon}"
 tooltip = true
-label = false
 
 [widgets.click_counter]
 count = 0
@@ -210,7 +210,7 @@ unit = "gb"
 
 [widgets.usb_manager]
 icon = "󰕓"
-label = false
+label_format = "{icon}"
 tooltip = true
 
 
@@ -225,7 +225,6 @@ unit = "gb"
 [widgets.settings]
 icon = "󰒓"
 tooltip = true
-label = false
 
 [widgets.date_time]
 date_format = " %a %b %d,"
@@ -242,27 +241,25 @@ notification_grouping = true   # Group notification history by app in the date m
 
 [widgets.hypridle]
 enabled_icon = ""
+label_format = "{icon}"
 disabled_icon = ""
-label = true
 tooltip = true
 
 [widgets.hyprpicker]
 icon = ""
 tooltip = true
-label = false
 quiet = false
 label_format = "{icon}"
 
 [widgets.hyprsunset]
 temperature = "2800k"
 enabled_icon = "󱩌"
+label_format = "{icon}"
 disabled_icon = "󰛨"
-label = true
 tooltip = true
 
 [widgets.keyboard]
 icon = "󰌌"
-label = true
 tooltip = true
 label_format = ""
 
@@ -288,7 +285,6 @@ mb_digits = 2
 interval = 2000
 
 [widgets.microphone]
-label = false
 tooltip = true
 label_format = "{icon}"
 
@@ -302,7 +298,6 @@ ignore = []
 [widgets.ocr]
 icon = "󰐳"
 tooltip = true
-label = false
 label_format = "{icon}"
 quiet = false
 
@@ -312,7 +307,6 @@ tooltip = true
 items_per_row = 3
 icon_size = 100
 label_format = "{icon}"
-label = false
 confirm = true
 
 [widgets.power.item_shortcuts]
@@ -341,11 +335,11 @@ delayed_timeout = 5000
 [widgets.screenshot]
 path = "Pictures/Screenshots"
 icon = "󰄀"
+label_format = "{icon}"
 tooltip = true
 annotation = false
 delayed = false
 delayed_timeout = 5000
-label = false
 capture_sound = false
 
 [widgets.stopwatch]
@@ -355,7 +349,6 @@ running_icon = "󱫠"
 
 [widgets.submap]
 icon = "󰌌"
-label = true
 tooltip = true
 label_format = ""
 hide_on_default = false
@@ -387,7 +380,6 @@ interval = 3600
 tooltip = true
 terminal = "kitty"
 pad_zero = false
-label = true
 auto_hide = false
 flatpak = true
 snap = false

@@ -106,8 +106,7 @@ class BatteryWidget(ButtonWidget):
             self.set_tooltip_if_enabled(
                 f"{icon} {_('widget.battery.no_battery')}", default=True
             )
-            if self.config.get("label", True):
-                self.battery_icon.set_text("N/A")
+            self.battery_icon.set_text("N/A")
             return True
 
         battery_percent = (

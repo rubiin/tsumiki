@@ -412,17 +412,17 @@ class EmojiPickerWidget(ButtonWidget, PopoverMixin):
     def __init__(self, **kwargs):
         super().__init__(name="emoji_picker", **kwargs)
 
-        self.container_box.add(
-            nerd_font_icon(
-                icon=self.config.get("icon"),
-                props={"style_classes": ["panel-font-icon"]},
-            )
-        )
-
-        if self.config.get("label", True):
+        if self.format_shows_icon():
             self.container_box.add(
-                Label(label=_("widget.emoji_picker.label"), style_classes="panel-text")
+                nerd_font_icon(
+                    icon=self.config.get("icon"),
+                    props={"style_classes": ["panel-font-icon"]},
+                )
             )
+
+        self.container_box.add(
+            Label(label=_("widget.emoji_picker.label"), style_classes="panel-text")
+        )
 
         self.set_tooltip_if_enabled(_("widget.emoji_picker.tooltip"))
 

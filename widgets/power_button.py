@@ -296,8 +296,7 @@ class PowerWidget(ButtonWidget):
             )
             self.container_box.add(self.icon)
 
-        if self.config.get("label", True):
-            self.container_box.add(Label(label="power", style_classes="panel-text"))
+        self.container_box.add(Label(label="power", style_classes="panel-text"))
 
         self.set_tooltip_if_enabled(_("widget.power.tooltip"))
 

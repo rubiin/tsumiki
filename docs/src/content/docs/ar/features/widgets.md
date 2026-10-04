@@ -143,7 +143,7 @@ step_size = 5
 
 ```toml
 [widgets.bluetooth]
-label = true
+label_format = "{icon}"
 tooltip = true
 ```
 
@@ -153,7 +153,6 @@ tooltip = true
 
 ```toml
 [widgets.microphone]
-label = false
 tooltip = true
 label_format = "{icon}"
 ```
@@ -178,8 +177,8 @@ confirm = true
 ```toml
 [widgets.hypridle]
 enabled_icon = ""
+label_format = "{icon}"
 disabled_icon = ""
-label = true
 tooltip = true
 ```
 
@@ -191,8 +190,8 @@ tooltip = true
 [widgets.hyprsunset]
 temperature = "2800k"
 enabled_icon = "󱩌"
+label_format = "{icon}"
 disabled_icon = "󰛨"
-label = true
 tooltip = true
 ```
 
@@ -318,6 +317,7 @@ color = "#89b4fa"
 [widgets.screenshot]
 path = "Pictures/Screenshots"
 icon = "󰄀"
+label_format = "{icon}"
 tooltip = true
 annotation = true
 delayed = false
@@ -342,7 +342,6 @@ audio = true
 [widgets.ocr]
 icon = "󰐳"
 tooltip = true
-label = false
 label_format = "{icon}"
 ```
 
@@ -353,7 +352,7 @@ label_format = "{icon}"
 ```toml
 [widgets.clipboard]
 icon = ""
-label = false
+label_format = "{icon}"
 tooltip = true
 show_images = true
 enable_pinning = true
@@ -366,7 +365,7 @@ enable_pinning = true
 ```toml
 [widgets.usb_manager]
 icon = "󰕓"
-label = false
+label_format = "{icon}"
 tooltip = true
 ```
 
@@ -401,7 +400,7 @@ hidden = []
 ```toml
 [widgets.wallpaper]
 icon = "󰸉"
-label = false
+label_format = "{icon}"
 tooltip = true
 ```
 
@@ -413,7 +412,6 @@ tooltip = true
 [widgets.settings]
 icon = "󰒓"
 tooltip = true
-label = false
 ```
 
 ### مبدل الثيمات
@@ -433,7 +431,7 @@ notify = false
 ```toml
 [widgets.emoji_picker]
 icon = ""
-label = false
+label_format = "{icon}"
 tooltip = true
 per_row = 9
 per_column = 4
@@ -446,7 +444,7 @@ per_column = 4
 ```toml
 [widgets.kanban]
 icon = "󱞁"
-label = false
+label_format = "{icon}"
 tooltip = true
 ```
 

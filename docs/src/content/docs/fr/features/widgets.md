@@ -54,7 +54,7 @@ step_size = 5
 step_size = 5
 
 [widgets.bluetooth]
-label = true
+label_format = "{icon}"
 
 [widgets.microphone]
 label_format = "{icon}"
@@ -65,9 +65,11 @@ confirm = true
 
 [widgets.hypridle]
 enabled_icon = ""
+label_format = "{icon}"
 disabled_icon = ""
 
 [widgets.hyprsunset]
+label_format = "{icon}"
 temperature = "2800k"
 ```
 
@@ -119,6 +121,7 @@ color = "#89b4fa"
 
 ```toml
 [widgets.screenshot]
+label_format = "{icon}"
 annotation = true
 
 [widgets.recorder]
@@ -128,10 +131,12 @@ audio = true
 quiet = false
 
 [widgets.clipboard]
+label_format = "{icon}"
 show_images = true
 enable_pinning = true
 
 [widgets.usb_manager]
+label_format = "{icon}"
 auto_refresh = true
 ```
 
@@ -146,6 +151,7 @@ icon_size = 16
 
 [widgets.wallpaper]
 icon = "󰸉"
+label_format = "{icon}"
 
 [widgets.settings]
 icon = "󰒓"
@@ -154,10 +160,12 @@ icon = "󰒓"
 icon = ""
 
 [widgets.emoji_picker]
+label_format = "{icon}"
 per_row = 9
 
 [widgets.kanban]
 icon = "󱞁"
+label_format = "{icon}"
 
 [widgets.pomodoro]
 icon = "🍅"

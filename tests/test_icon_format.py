@@ -120,6 +120,15 @@ class MicrophoneIconFormatTest(unittest.TestCase):
 
         widget.set_tooltip_if_enabled.assert_called_once_with("Microphone is on")
 
+    def test_the_mic_label_updates_whatever_the_config_says(self):
+        """The label is mandatory now: no ``label`` key can suppress it."""
+        widget = make_microphone(label=False)
+        widget.audio_service.microphone = mock.Mock(muted=True)
+
+        widget._update_status()
+
+        widget.mic_label.set_label.assert_called_once_with("Off")
+
 
 if __name__ == "__main__":
     unittest.main()

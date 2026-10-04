@@ -345,13 +345,13 @@
               "default": true,
               "description": "Determines whether to show the tooltip."
             },
-            "label": {
-              "type": "boolean",
-              "default": false,
-              "description": "Determines whether to show the label."
+            "label_format": {
+              "type": "string",
+              "default": "{icon}",
+              "description": "Format string; the icon is shown when it contains {icon}."
             }
           },
-          "required": ["icon", "tooltip", "label"]
+          "required": ["icon", "tooltip", "label_format"]
         },
         "usb_manager": {
           "type": "object",
@@ -361,10 +361,10 @@
               "default": "",
               "description": "Icon shown for USB manager widget."
             },
-            "label": {
-              "type": "boolean",
-              "default": false,
-              "description": "Show USB label in panel widget."
+            "label_format": {
+              "type": "string",
+              "default": "{icon}",
+              "description": "Format string; the icon is shown when it contains {icon}."
             },
             "tooltip": {
               "type": "boolean",
@@ -372,7 +372,7 @@
               "description": "Show tooltip with detected USB drive count."
             }
           },
-          "required": ["icon", "label", "tooltip"]
+          "required": ["icon", "label_format", "tooltip"]
         },
         "breathe": {
           "type": "object",
@@ -382,17 +382,12 @@
               "default": true,
               "description": "Determines whether to show the tooltip."
             },
-            "label": {
-              "type": "boolean",
-              "default": false,
-              "description": "Determines whether to show the label."
-            },
             "icon": {
               "type": "string",
               "description": "The icon"
             }
           },
-          "required": ["tooltip", "label", "icon"]
+          "required": ["tooltip", "icon"]
         },
         "power": {
           "type": "object",
@@ -421,11 +416,6 @@
               "type": "string",
               "default": "{icon}",
               "description": "Format string; the icon is shown when it contains {icon}."
-            },
-            "label": {
-              "type": "boolean",
-              "default": false,
-              "description": "Determines whether to show the label."
             },
             "confirm": {
               "type": "boolean",
@@ -496,15 +486,7 @@
               "required": ["shutdown", "reboot", "hibernate", "suspend", "lock", "logout"]
             }
           },
-          "required": [
-            "icon",
-            "tooltip",
-            "items_per_row",
-            "icon_size",
-            "label_format",
-            "label",
-            "buttons"
-          ]
+          "required": ["icon", "tooltip", "items_per_row", "icon_size", "label_format", "buttons"]
         },
         "recorder": {
           "type": "object",
@@ -550,10 +532,10 @@
               "default": true,
               "description": "Determines whether to show the tooltip."
             },
-            "label": {
-              "type": "boolean",
-              "default": false,
-              "description": "Determines whether to show the label."
+            "label_format": {
+              "type": "string",
+              "default": "{icon}",
+              "description": "Format string; the icon is shown when it contains {icon}."
             },
             "annotation": {
               "type": "boolean",
@@ -584,7 +566,7 @@
           "required": [
             "path",
             "tooltip",
-            "label",
+            "label_format",
             "annotation",
             "capture_sound",
             "icon",
@@ -1040,11 +1022,6 @@
               "default": true,
               "description": "Determines whether to show the tooltip for updates."
             },
-            "label": {
-              "type": "boolean",
-              "default": true,
-              "description": "Determines whether to show the label for updates."
-            },
             "flatpak": {
               "type": "boolean",
               "default": false,
@@ -1073,7 +1050,6 @@
             "interval",
             "pad_zero",
             "tooltip",
-            "label",
             "flatpak",
             "snap",
             "brew"
@@ -1108,11 +1084,6 @@
               "default": true,
               "description": "Determines whether to show the tooltip for the Hyprpicker widget."
             },
-            "label": {
-              "type": "boolean",
-              "default": false,
-              "description": "Determines whether to show the label for the Hyprpicker widget."
-            },
             "label_format": {
               "type": "string",
               "default": "{icon}",
@@ -1124,7 +1095,7 @@
               "description": "Determines whether to run the Hyprpicker in quiet mode, suppressing notifications."
             }
           },
-          "required": ["icon", "tooltip", "label", "label_format", "quiet"]
+          "required": ["icon", "tooltip", "label_format", "quiet"]
         },
         "weather": {
           "type": "object",
@@ -1319,10 +1290,10 @@
         "bluetooth": {
           "type": "object",
           "properties": {
-            "label": {
-              "type": "boolean",
-              "default": true,
-              "description": "Show the Bluetooth device name."
+            "label_format": {
+              "type": "string",
+              "default": "{icon}",
+              "description": "Format string; the icon is shown when it contains {icon}."
             },
             "tooltip": {
               "type": "boolean",
@@ -1330,7 +1301,7 @@
               "description": "Show a tooltip with Bluetooth connection details."
             }
           },
-          "required": ["label", "tooltip"]
+          "required": ["label_format", "tooltip"]
         },
         "brightness": {
           "type": "object",
@@ -1533,10 +1504,10 @@
               "default": "",
               "description": "Icon shown when idle mode is inactive."
             },
-            "label": {
-              "type": "boolean",
-              "default": true,
-              "description": "Show label for idle mode."
+            "label_format": {
+              "type": "string",
+              "default": "{icon}",
+              "description": "Format string; the icon is shown when it contains {icon}."
             },
             "tooltip": {
               "type": "boolean",
@@ -1544,7 +1515,7 @@
               "description": "Show tooltip with idle mode details."
             }
           },
-          "required": ["enabled_icon", "disabled_icon", "label", "tooltip"]
+          "required": ["enabled_icon", "disabled_icon", "label_format", "tooltip"]
         },
         "hyprsunset": {
           "type": "object",
@@ -1564,10 +1535,10 @@
               "default": "󰛨",
               "description": "Icon shown when sunset mode is inactive."
             },
-            "label": {
-              "type": "boolean",
-              "default": true,
-              "description": "Show label for sunset mode."
+            "label_format": {
+              "type": "string",
+              "default": "{icon}",
+              "description": "Format string; the icon is shown when it contains {icon}."
             },
             "tooltip": {
               "type": "boolean",
@@ -1575,7 +1546,7 @@
               "description": "Show tooltip with sunset mode details."
             }
           },
-          "required": ["temperature", "enabled_icon", "disabled_icon", "label", "tooltip"]
+          "required": ["temperature", "enabled_icon", "disabled_icon", "label_format", "tooltip"]
         },
         "keyboard": {
           "type": "object",
@@ -1584,11 +1555,6 @@
               "type": "string",
               "default": "󰌌",
               "description": "Icon for the keyboard layout indicator."
-            },
-            "label": {
-              "type": "boolean",
-              "default": true,
-              "description": "Show the current keyboard layout label."
             },
             "tooltip": {
               "type": "boolean",
@@ -1601,7 +1567,7 @@
               "description": "Format string; the icon is shown when it contains {icon}."
             }
           },
-          "required": ["icon", "label", "tooltip", "label_format"]
+          "required": ["icon", "tooltip", "label_format"]
         },
         "window_count": {
           "type": "object",
@@ -1684,9 +1650,10 @@
               "type": "string",
               "default": ""
             },
-            "label": {
-              "type": "boolean",
-              "default": false
+            "label_format": {
+              "type": "string",
+              "default": "{icon}",
+              "description": "Format string; the icon is shown when it contains {icon}."
             },
             "tooltip": {
               "type": "boolean",
@@ -1705,7 +1672,7 @@
               "default": true
             }
           },
-          "required": ["icon", "label", "tooltip"]
+          "required": ["icon", "label_format", "tooltip"]
         },
         "cheatsheet": {
           "type": "object",
@@ -1752,16 +1719,17 @@
               "type": "string",
               "default": "󱞁"
             },
-            "label": {
-              "type": "boolean",
-              "default": true
+            "label_format": {
+              "type": "string",
+              "default": "{icon}",
+              "description": "Format string; the icon is shown when it contains {icon}."
             },
             "tooltip": {
               "type": "boolean",
               "default": true
             }
           },
-          "required": ["icon", "label", "tooltip"]
+          "required": ["icon", "label_format", "tooltip"]
         },
         "emoji_picker": {
           "type": "object",
@@ -1771,10 +1739,10 @@
               "default": "",
               "description": "The icon displayed for the emoji picker."
             },
-            "label": {
-              "type": "boolean",
-              "default": false,
-              "description": "Whether to display the label for the emoji picker."
+            "label_format": {
+              "type": "string",
+              "default": "{icon}",
+              "description": "Format string; the icon is shown when it contains {icon}."
             },
             "tooltip": {
               "type": "boolean",
@@ -1792,7 +1760,7 @@
               "description": "The number of emoji to display per column."
             }
           },
-          "required": ["icon", "label", "tooltip", "per_row", "per_column"]
+          "required": ["icon", "label_format", "tooltip", "per_row", "per_column"]
         },
         "submap": {
           "type": "object",
@@ -1801,11 +1769,6 @@
               "type": "string",
               "default": "󰌌",
               "description": "The icon displayed for the submap."
-            },
-            "label": {
-              "type": "boolean",
-              "default": true,
-              "description": "Whether to display the label for the submap."
             },
             "hide_on_default": {
               "type": "boolean",
@@ -1823,16 +1786,11 @@
               "description": "Format string; the icon is shown when it contains {icon}."
             }
           },
-          "required": ["icon", "label", "tooltip", "label_format"]
+          "required": ["icon", "tooltip", "label_format"]
         },
         "microphone": {
           "type": "object",
           "properties": {
-            "label": {
-              "type": "boolean",
-              "default": false,
-              "description": "Whether to display the label for the microphone."
-            },
             "tooltip": {
               "type": "boolean",
               "default": true,
@@ -1844,7 +1802,7 @@
               "description": "Format string; the icon is shown when it contains {icon}."
             }
           },
-          "required": ["label", "tooltip", "label_format"]
+          "required": ["tooltip", "label_format"]
         },
         "ocr": {
           "type": "object",
@@ -1859,11 +1817,6 @@
               "default": true,
               "description": "Whether to display the tooltip for the OCR."
             },
-            "label": {
-              "type": "boolean",
-              "default": false,
-              "description": "Whether to display the label for the OCR."
-            },
             "label_format": {
               "type": "string",
               "default": "{icon}",
@@ -1875,7 +1828,7 @@
               "description": "Whether to enable quiet mode for the OCR."
             }
           },
-          "required": ["icon", "tooltip", "label", "label_format", "quiet"]
+          "required": ["icon", "tooltip", "label_format", "quiet"]
         },
         "mpris": {
           "type": "object",

@@ -39,18 +39,17 @@ class UpdatesWidget(ButtonWidget):
             )
             self.container_box.add(self.icon)
 
-        if self.config.get("label", True):
-            self.update_label = Label(label="0", style_classes="panel-text")
+        self.update_label = Label(label="0", style_classes="panel-text")
 
-            if self.config.get("hover_reveal", True):
-                self.revealer = Revealer(
-                    child=self.update_label,
-                    transition_duration=self.config.get("reveal_duration", 500),
-                    transition_type="slide_right",
-                )
-                self.container_box.add(self.revealer)
-            else:
-                self.container_box.add(self.update_label)
+        if self.config.get("hover_reveal", True):
+            self.revealer = Revealer(
+                child=self.update_label,
+                transition_duration=self.config.get("reveal_duration", 500),
+                transition_type="slide_right",
+            )
+            self.container_box.add(self.revealer)
+        else:
+            self.container_box.add(self.update_label)
 
         self.connect("button-press-event", self.on_click)
 
@@ -92,18 +91,17 @@ class UpdatesWidget(ButtonWidget):
             total = int(data.get("total", "0"))
 
             # Update label
-            if self.config.get("label", True):
-                label_text = (
-                    str(total).rjust(2, "0")
-                    if self.config.get("pad_zero", True)
-                    else str(total)
-                )
+            label_text = (
+                str(total).rjust(2, "0")
+                if self.config.get("pad_zero", True)
+                else str(total)
+            )
 
-                # dont show '0' if total is 0 and pad_zero is True
-                if total == 0:
-                    label_text = str(total)
+            # dont show '0' if total is 0 and pad_zero is True
+            if total == 0:
+                label_text = str(total)
 
-                self.update_label.set_label(label_text)
+            self.update_label.set_label(label_text)
 
             # Update icon
             if self.format_shows_icon():

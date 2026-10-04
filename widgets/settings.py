@@ -3,6 +3,7 @@
 from modules.settings_gui import open_settings
 from shared.widget_container import ButtonWidget
 from utils.i18n import _
+from utils.widget_utils import nerd_font_icon
 
 
 class SettingsWidget(ButtonWidget):
@@ -12,9 +13,13 @@ class SettingsWidget(ButtonWidget):
         super().__init__(name="settings", **kwargs)
 
         self.add_panel_content(
-            self.config.get("icon", "󰒓"),
+            nerd_font_icon(
+                icon=self.config.get("icon", "󰒓"),
+                props={"style_classes": ["panel-font-icon"]},
+            )
+            if self.format_shows_icon()
+            else None,
             _("widget.settings.label"),
-            show_label=self.config.get("label", False),
         )
 
         self.set_tooltip_if_enabled(_("widget.settings.tooltip"), default=True)

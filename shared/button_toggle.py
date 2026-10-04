@@ -56,9 +56,10 @@ class CommandSwitcher(ButtonWidget):
             props={"style_classes": ["panel-font-icon"]},
         )
 
-        self.container_box.add(
-            self.icon,
-        )
+        if self.format_shows_icon():
+            self.container_box.add(
+                self.icon,
+            )
 
         if self.label:
             self.label_text = Label(

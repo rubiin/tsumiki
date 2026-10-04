@@ -121,7 +121,6 @@ interval = 3600         # Refresh interval in seconds
 tooltip = true
 terminal = "kitty"
 pad_zero = false
-label = true
 auto_hide = false
 flatpak = true
 snap = false
@@ -217,7 +216,7 @@ Manages Bluetooth connections and visibility.
 
 ```toml
 [widgets.bluetooth]
-label = true
+label_format = "{icon}"
 tooltip = true
 ```
 
@@ -229,7 +228,6 @@ Shows microphone status and muting.
 
 ```toml
 [widgets.microphone]
-label = false
 tooltip = true
 label_format = "{icon}"
 ```
@@ -247,7 +245,6 @@ tooltip = true
 items_per_row = 3
 icon_size = 100
 label_format = "{icon}"
-label = false
 confirm = true
 
 [widgets.power.item_shortcuts]
@@ -277,8 +274,8 @@ Toggle Hyprland's idle management daemon.
 ```toml
 [widgets.hypridle]
 enabled_icon = ""
+label_format = "{icon}"
 disabled_icon = ""
-label = true
 tooltip = true
 ```
 
@@ -290,8 +287,8 @@ Toggle blue-light filter (night mode) via Hyprsunset.
 [widgets.hyprsunset]
 temperature = "2800k"
 enabled_icon = "󱩌"
+label_format = "{icon}"
 disabled_icon = "󰛨"
-label = true
 tooltip = true
 ```
 
@@ -303,7 +300,6 @@ Color picker that captures a color from the screen.
 [widgets.hyprpicker]
 icon = ""
 tooltip = true
-label = false
 quiet = false
 label_format = "{icon}"
 ```
@@ -376,8 +372,8 @@ Button that opens the window overview/exposé.
 ```toml
 [widgets.overview_button]
 icon = "󰡃"
+label_format = "{icon}"
 tooltip = true
-label = false
 ```
 
 ### Taskbar
@@ -471,11 +467,11 @@ Capture screenshots with annotation support.
 [widgets.screenshot]
 path = "Pictures/Screenshots"
 icon = "󰄀"
+label_format = "{icon}"
 tooltip = true
 annotation = true
 delayed = false
 delayed_timeout = 5000
-label = false
 capture_sound = false
 ```
 
@@ -504,7 +500,6 @@ Extract text from a screen region using Tesseract.
 [widgets.ocr]
 icon = "󰐳"
 tooltip = true
-label = false
 label_format = "{icon}"
 quiet = false
 ```
@@ -518,7 +513,7 @@ Clipboard history manager with image support.
 ```toml
 [widgets.clipboard]
 icon = ""
-label = false
+label_format = "{icon}"
 tooltip = true
 item_tooltip = false
 show_images = true
@@ -534,7 +529,7 @@ Manage USB drive mounting and ejection.
 ```toml
 [widgets.usb_manager]
 icon = "󰕓"
-label = false
+label_format = "{icon}"
 tooltip = true
 ```
 
@@ -549,7 +544,6 @@ Displays the current keyboard layout.
 ```toml
 [widgets.keyboard]
 icon = "󰌌"
-label = true
 tooltip = true
 label_format = ""
 ```
@@ -573,7 +567,6 @@ Displays the active Hyprland keybind submap.
 ```toml
 [widgets.submap]
 icon = "󰌌"
-label = true
 tooltip = true
 label_format = ""
 hide_on_default = false
@@ -658,7 +651,7 @@ Opens the wallpaper selection popup.
 ```toml
 [widgets.wallpaper]
 icon = "󰸉"
-label = false
+label_format = "{icon}"
 tooltip = true
 ```
 
@@ -670,7 +663,6 @@ Opens the in-app settings GUI.
 [widgets.settings]
 icon = "󰒓"
 tooltip = true
-label = false
 ```
 
 ### Theme Switcher
@@ -704,7 +696,7 @@ Search and insert emoji characters.
 ```toml
 [widgets.emoji_picker]
 icon = ""
-label = false
+label_format = "{icon}"
 tooltip = true
 per_row = 9
 per_column = 4
@@ -717,7 +709,7 @@ A simple Kanban task management board.
 ```toml
 [widgets.kanban]
 icon = "󱞁"
-label = false
+label_format = "{icon}"
 tooltip = true
 ```
 
@@ -870,7 +862,6 @@ A breathing exercise guide widget.
 ```toml
 [widgets.breathe]
 icon = ""
-label = false
 tooltip = true
 ```
 

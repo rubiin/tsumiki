@@ -108,7 +108,6 @@ interval = 3600         # Intervalo de actualización en segundos
 tooltip = true
 terminal = "kitty"
 pad_zero = false
-label = true
 auto_hide = false
 flatpak = true
 snap = false
@@ -176,7 +175,7 @@ Gestiona conexiones y visibilidad Bluetooth.
 
 ```toml
 [widgets.bluetooth]
-label = true
+label_format = "{icon}"
 tooltip = true
 ```
 
@@ -188,7 +187,6 @@ Muestra el estado del micrófono y la opción de silenciar.
 
 ```toml
 [widgets.microphone]
-label = false
 tooltip = true
 label_format = "{icon}"
 ```
@@ -206,7 +204,6 @@ tooltip = true
 items_per_row = 3
 icon_size = 100
 label_format = "{icon}"
-label = false
 confirm = true
 
 [widgets.power.item_shortcuts]
@@ -236,8 +233,8 @@ Activa/desactiva el daemon de gestión de inactividad de Hyprland.
 ```toml
 [widgets.hypridle]
 enabled_icon = ""
+label_format = "{icon}"
 disabled_icon = ""
-label = true
 tooltip = true
 ```
 
@@ -249,8 +246,8 @@ Activa/desactiva el filtro de luz azul (modo nocturno) mediante Hyprsunset.
 [widgets.hyprsunset]
 temperature = "2800k"
 enabled_icon = "󱩌"
+label_format = "{icon}"
 disabled_icon = "󰛨"
-label = true
 tooltip = true
 ```
 
@@ -262,7 +259,6 @@ Selector de color que captura un color de la pantalla.
 [widgets.hyprpicker]
 icon = ""
 tooltip = true
-label = false
 quiet = false
 label_format = "{icon}"
 ```
@@ -334,8 +330,8 @@ Botón que abre la vista general/exposé de ventanas.
 ```toml
 [widgets.overview_button]
 icon = "󰡃"
+label_format = "{icon}"
 tooltip = true
-label = false
 ```
 
 ### Barra de Tareas
@@ -429,11 +425,11 @@ Captura pantallas con soporte de anotaciones.
 [widgets.screenshot]
 path = "Pictures/Screenshots"
 icon = "󰄀"
+label_format = "{icon}"
 tooltip = true
 annotation = true
 delayed = false
 delayed_timeout = 5000
-label = false
 capture_sound = false
 ```
 
@@ -462,7 +458,6 @@ Extrae texto de una región de la pantalla usando Tesseract.
 [widgets.ocr]
 icon = "󰐳"
 tooltip = true
-label = false
 label_format = "{icon}"
 quiet = false
 ```
@@ -476,7 +471,7 @@ Historial del portapapeles con soporte de imágenes.
 ```toml
 [widgets.clipboard]
 icon = ""
-label = false
+label_format = "{icon}"
 tooltip = true
 item_tooltip = false
 show_images = true
@@ -492,7 +487,7 @@ Gestiona el montaje y expulsión de unidades USB.
 ```toml
 [widgets.usb_manager]
 icon = "󰕓"
-label = false
+label_format = "{icon}"
 tooltip = true
 ```
 
@@ -507,7 +502,6 @@ Muestra el diseño de teclado actual.
 ```toml
 [widgets.keyboard]
 icon = "󰌌"
-label = true
 tooltip = true
 label_format = ""
 ```
@@ -531,7 +525,6 @@ Muestra el submapa de atajos de Hyprland activo.
 ```toml
 [widgets.submap]
 icon = "󰌌"
-label = true
 tooltip = true
 label_format = ""
 hide_on_default = false
@@ -609,7 +602,7 @@ Abre el popup de selección de fondo de pantalla.
 ```toml
 [widgets.wallpaper]
 icon = "󰸉"
-label = false
+label_format = "{icon}"
 tooltip = true
 ```
 
@@ -621,7 +614,6 @@ Abre la GUI de configuración de la aplicación.
 [widgets.settings]
 icon = "󰒓"
 tooltip = true
-label = false
 ```
 
 ### Selector de Temas
@@ -655,7 +647,7 @@ Busca e inserta caracteres emoji.
 ```toml
 [widgets.emoji_picker]
 icon = ""
-label = false
+label_format = "{icon}"
 tooltip = true
 per_row = 9
 per_column = 4
@@ -668,7 +660,7 @@ Un tablero simple de gestión de tareas Kanban.
 ```toml
 [widgets.kanban]
 icon = "󱞁"
-label = false
+label_format = "{icon}"
 tooltip = true
 ```
 
@@ -780,7 +772,6 @@ Un widget guía de ejercicios de respiración.
 ```toml
 [widgets.breathe]
 icon = ""
-label = false
 tooltip = true
 ```
 

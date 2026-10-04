@@ -14,7 +14,6 @@ class HyprPickerWidget(ButtonWidget):
         self.add_panel_content(
             self.config.get("icon") if self.format_shows_icon() else None,
             _("widget.hyprpicker.label"),
-            show_label=self.config.get("label", True),
         )
         self.connect("button-press-event", self.on_button_press)
 

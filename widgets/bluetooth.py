@@ -20,13 +20,13 @@ class BlueToothWidget(ButtonWidget):
             props={"style_classes": ["panel-font-icon"]},
         )
 
-        self.container_box.add(
-            self.bluetooth_icon,
-        )
+        if self.format_shows_icon():
+            self.container_box.add(
+                self.bluetooth_icon,
+            )
 
-        if self.config.get("label", True):
-            self.bt_label = Label(label=_("common.on"), style_classes="panel-text")
-            self.container_box.add(self.bt_label)
+        self.bt_label = Label(label=_("common.on"), style_classes="panel-text")
+        self.container_box.add(self.bt_label)
 
         self.bluetooth_client = BluetoothClient()
         self._register_handlers(
@@ -43,7 +43,6 @@ class BlueToothWidget(ButtonWidget):
 
         self.bluetooth_icon.set_label(icon)
 
-        if self.config.get("label", True):
-            self.bt_label.set_text(bt_status.capitalize())
+        self.bt_label.set_text(bt_status.capitalize())
 
         self.set_tooltip_if_enabled(_("widget.bluetooth.tooltip"))
