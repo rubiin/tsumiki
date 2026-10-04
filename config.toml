@@ -285,7 +285,7 @@ tooltip = true
 label_format = "{icon}"
 
 [widgets.mpris]
-truncation_size = 10
+truncation_size = 15
 tooltip = false
 hide_when_no_player = true
 label_format = "{title} - {artist}"
