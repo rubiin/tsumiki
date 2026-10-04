@@ -317,7 +317,7 @@ unit = "gb"
 
 # --- Updates ---
 [widgets.updates]
-label_format = "{icon} Updates"
+label_format = "{icon}"
 available_icon = "󰏗"
 no_updates_icon = "󰏖"
 os = "arch"
@@ -351,7 +351,7 @@ hide_when_no_player = true
 
 # --- Bluetooth ---
 [widgets.bluetooth]
-label_format = "{icon} Bluetooth"
+label_format = "{icon}"
 tooltip = true
 
 # --- Brightness ---
@@ -362,12 +362,12 @@ step_size = 5
 # --- Microphone ---
 [widgets.microphone]
 tooltip = true
-label_format = "{icon} Mic"
+label_format = "{icon}"
 
 # --- Clipboard ---
 [widgets.clipboard]
 icon = ""
-label_format = "{icon} Clip"
+label_format = "{icon}"
 tooltip = true
 show_images = true
 enable_pinning = true
@@ -375,7 +375,7 @@ enable_pinning = true
 # --- Wallpaper ---
 [widgets.wallpaper]
 icon = "󰸉"
-label_format = "{icon} wallpaper"
+label_format = "{icon}"
 tooltip = true
 
 # --- Settings ---
@@ -391,7 +391,7 @@ notify = false
 # --- Emoji Picker ---
 [widgets.emoji_picker]
 icon = ""
-label_format = "{icon} Emoji"
+label_format = "{icon}"
 tooltip = true
 per_row = 9
 per_column = 4
@@ -400,7 +400,7 @@ per_column = 4
 [widgets.screenshot]
 path = "Pictures/Screenshots"
 icon = "󰄀"
-label_format = "{icon} screenshot"
+label_format = "{icon}"
 tooltip = true
 annotation = true
 
@@ -418,7 +418,7 @@ tooltip = true
 # --- Workspace Overview Button ---
 [widgets.overview_button]
 icon = "󰡃"
-label_format = "{icon} overview"
+label_format = "{icon}"
 tooltip = true
 
 # --- Submap Indicator ---

@@ -98,7 +98,7 @@ Verifica actualizaciones de paquetes del sistema (Arch Linux, Flatpak, Snap, Hom
 
 ```toml
 [widgets.updates]
-label_format = "{icon} Updates"
+label_format = "{icon}"
 available_icon = "󰏗"
 no_updates_icon = "󰏖"
 os = "arch"
@@ -172,7 +172,7 @@ Gestiona conexiones y visibilidad Bluetooth.
 
 ```toml
 [widgets.bluetooth]
-label_format = "{icon} Bluetooth"
+label_format = "{icon}"
 tooltip = true
 ```
 
@@ -185,7 +185,7 @@ Muestra el estado del micrófono y la opción de silenciar.
 ```toml
 [widgets.microphone]
 tooltip = true
-label_format = "{icon} Mic"
+label_format = "{icon}"
 ```
 
 Haz clic para silenciar/activar el micrófono.
@@ -200,7 +200,7 @@ icon = "󰐥"
 tooltip = true
 items_per_row = 3
 icon_size = 100
-label_format = "{icon} power"
+label_format = "{icon}"
 confirm = true
 
 [widgets.power.item_shortcuts]
@@ -257,7 +257,7 @@ Selector de color que captura un color de la pantalla.
 icon = ""
 tooltip = true
 quiet = false
-label_format = "{icon} picker"
+label_format = "{icon}"
 ```
 
 El color seleccionado se copia al portapapeles. En modo silencioso, no se muestra ninguna notificación.
@@ -327,7 +327,7 @@ Botón que abre la vista general/exposé de ventanas.
 ```toml
 [widgets.overview_button]
 icon = "󰡃"
-label_format = "{icon} overview"
+label_format = "{icon}"
 tooltip = true
 ```
 
@@ -455,7 +455,7 @@ Extrae texto de una región de la pantalla usando Tesseract.
 [widgets.ocr]
 icon = "󰐳"
 tooltip = true
-label_format = "{icon} Ocr"
+label_format = "{icon}"
 quiet = false
 ```
 
@@ -599,7 +599,7 @@ Abre el popup de selección de fondo de pantalla.
 ```toml
 [widgets.wallpaper]
 icon = "󰸉"
-label_format = "{icon} wallpaper"
+label_format = "{icon}"
 tooltip = true
 ```
 
@@ -644,7 +644,7 @@ Busca e inserta caracteres emoji.
 ```toml
 [widgets.emoji_picker]
 icon = ""
-label_format = "{icon} Emoji"
+label_format = "{icon}"
 tooltip = true
 per_row = 9
 per_column = 4
@@ -657,7 +657,7 @@ Un tablero simple de gestión de tareas Kanban.
 ```toml
 [widgets.kanban]
 icon = "󱞁"
-label_format = "{icon} Kanban"
+label_format = "{icon}"
 tooltip = true
 ```
 

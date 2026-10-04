@@ -20,7 +20,7 @@ class OCRWidget(ButtonWidget):
         self._lang_lines: list[str] = []
         self._lang_finalize_id = 0
 
-        self.label_format = self.config.get("label_format", "{icon} Ocr")
+        self.label_format = self.config.get("label_format", "{icon}")
         self.add_formatted_label(self.label_format, self.config.get("icon", ""))
 
         # Left click for OCR

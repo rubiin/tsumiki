@@ -110,16 +110,16 @@ Add the ones you actually use, for example:
 [widgets.settings]
 icon = "󰒓"
 tooltip = true
-label_format = "{icon} Settings"
+label_format = "{icon}"
 
 [widgets.wallpaper]
 icon = "󰸉"
-label_format = "{icon} wallpaper"
+label_format = "{icon}"
 tooltip = true
 
 [widgets.overview_button]
 icon = "󰡃"
-label_format = "{icon} overview"
+label_format = "{icon}"
 tooltip = true
 ```
 

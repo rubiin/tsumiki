@@ -347,7 +347,7 @@
             },
             "label_format": {
               "type": "string",
-              "default": "{icon} overview",
+              "default": "{icon}",
               "description": "Format string; the icon is shown when it contains {icon}."
             }
           },
@@ -363,7 +363,7 @@
             },
             "label_format": {
               "type": "string",
-              "default": "{icon} USB",
+              "default": "{icon}",
               "description": "Format string; the icon is shown when it contains {icon}."
             },
             "tooltip": {
@@ -414,7 +414,7 @@
             },
             "label_format": {
               "type": "string",
-              "default": "{icon} power",
+              "default": "{icon}",
               "description": "Format string; the icon is shown when it contains {icon}."
             },
             "confirm": {
@@ -534,7 +534,7 @@
             },
             "label_format": {
               "type": "string",
-              "default": "{icon} screenshot",
+              "default": "{icon}",
               "description": "Format string; the icon is shown when it contains {icon}."
             },
             "annotation": {
@@ -946,7 +946,7 @@
           "properties": {
             "label_format": {
               "type": "string",
-              "default": "{icon} Updates",
+              "default": "{icon}",
               "description": "Format string; the icon is shown when it contains {icon}."
             },
             "available_icon": {
@@ -1041,7 +1041,7 @@
             },
             "label_format": {
               "type": "string",
-              "default": "{icon} picker",
+              "default": "{icon}",
               "description": "Format string; the icon is shown when it contains {icon}."
             },
             "quiet": {
@@ -1243,7 +1243,7 @@
           "properties": {
             "label_format": {
               "type": "string",
-              "default": "{icon} Bluetooth",
+              "default": "{icon}",
               "description": "Format string; the icon is shown when it contains {icon}."
             },
             "tooltip": {
@@ -1603,7 +1603,7 @@
             },
             "label_format": {
               "type": "string",
-              "default": "{icon} Clip",
+              "default": "{icon}",
               "description": "Format string; the icon is shown when it contains {icon}."
             },
             "tooltip": {
@@ -1672,7 +1672,7 @@
             },
             "label_format": {
               "type": "string",
-              "default": "{icon} Kanban",
+              "default": "{icon}",
               "description": "Format string; the icon is shown when it contains {icon}."
             },
             "tooltip": {
@@ -1692,7 +1692,7 @@
             },
             "label_format": {
               "type": "string",
-              "default": "{icon} Emoji",
+              "default": "{icon}",
               "description": "Format string; the icon is shown when it contains {icon}."
             },
             "tooltip": {
@@ -1749,7 +1749,7 @@
             },
             "label_format": {
               "type": "string",
-              "default": "{icon} Mic",
+              "default": "{icon}",
               "description": "Format string; the icon is shown when it contains {icon}."
             }
           },
@@ -1770,7 +1770,7 @@
             },
             "label_format": {
               "type": "string",
-              "default": "{icon} Ocr",
+              "default": "{icon}",
               "description": "Format string; the icon is shown when it contains {icon}."
             },
             "quiet": {

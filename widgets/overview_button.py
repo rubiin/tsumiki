@@ -10,7 +10,7 @@ class OverviewButtonWidget(ButtonWidget):
 
         self.set_tooltip_if_enabled(_("widget.overview_button.tooltip"))
 
-        self.label_format = self.config.get("label_format", "{icon} overview")
+        self.label_format = self.config.get("label_format", "{icon}")
         self.add_formatted_label(self.label_format, self.config.get("icon", ""))
 
         # Lazy-init overview popup

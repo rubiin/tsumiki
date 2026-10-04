@@ -287,7 +287,7 @@ class PowerWidget(ButtonWidget):
 
         self.popup = None
 
-        self.label_format = self.config.get("label_format", "{icon} power")
+        self.label_format = self.config.get("label_format", "{icon}")
         self.add_formatted_label(self.label_format, self.config.get("icon", ""))
 
         self.set_tooltip_if_enabled(_("widget.power.tooltip"))

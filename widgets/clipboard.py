@@ -915,7 +915,7 @@ class ClipBoardWidget(ButtonWidget, PopoverMixin):
     def __init__(self, **kwargs):
         super().__init__(name="clipboard", **kwargs)
 
-        self.label_format = self.config.get("label_format", "{icon} Clip")
+        self.label_format = self.config.get("label_format", "{icon}")
         self.add_formatted_label(self.label_format, self.config.get("icon", ""))
 
         self.set_tooltip_if_enabled(_("widget.clipboard.tooltip"))

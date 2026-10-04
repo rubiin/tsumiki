@@ -14,8 +14,8 @@ Widgets are configured under `[widgets.<name>]` in `config.toml` and placed in t
 `label_format` is the whole panel label. The widget renders one label, and `{icon}` is replaced with the glyph from the widget's `icon` (or its state-specific variant, e.g. `connected_icon`). Any literal text in the string is kept, so the text next to an icon is part of the format rather than a separate toggle.
 
 ```toml
-label_format = "{icon}"            # icon only
-label_format = "{icon}"            # icon plus literal text
+label_format = "{icon}"            # icon only (the default everywhere)
+label_format = "{icon} Mic"        # icon plus literal text
 label_format = "Settings"          # text only, no glyph
 label_format = ""                  # nothing at all
 ```
@@ -113,7 +113,7 @@ Checks for system package updates (Arch Linux, Flatpak, Snap, Homebrew).
 
 ```toml
 [widgets.updates]
-label_format = "{icon} Updates"
+label_format = "{icon}"
 available_icon = "󰏗"
 no_updates_icon = "󰏖"
 os = "arch"
@@ -215,7 +215,7 @@ Manages Bluetooth connections and visibility.
 
 ```toml
 [widgets.bluetooth]
-label_format = "{icon} Bluetooth"
+label_format = "{icon}"
 tooltip = true
 ```
 
@@ -228,7 +228,7 @@ Shows microphone status and muting.
 ```toml
 [widgets.microphone]
 tooltip = true
-label_format = "{icon} Mic"
+label_format = "{icon}"
 ```
 
 Click to toggle microphone mute.
@@ -243,7 +243,7 @@ icon = "󰐥"
 tooltip = true
 items_per_row = 3
 icon_size = 100
-label_format = "{icon} power"
+label_format = "{icon}"
 confirm = true
 
 [widgets.power.item_shortcuts]
@@ -300,7 +300,7 @@ Color picker that captures a color from the screen.
 icon = ""
 tooltip = true
 quiet = false
-label_format = "{icon} picker"
+label_format = "{icon}"
 ```
 
 The selected color is copied to clipboard. In quiet mode, no notification is shown.
@@ -371,7 +371,7 @@ Button that opens the window overview/exposé.
 ```toml
 [widgets.overview_button]
 icon = "󰡃"
-label_format = "{icon} overview"
+label_format = "{icon}"
 tooltip = true
 ```
 
@@ -499,7 +499,7 @@ Extract text from a screen region using Tesseract.
 [widgets.ocr]
 icon = "󰐳"
 tooltip = true
-label_format = "{icon} Ocr"
+label_format = "{icon}"
 quiet = false
 ```
 
@@ -650,7 +650,7 @@ Opens the wallpaper selection popup.
 ```toml
 [widgets.wallpaper]
 icon = "󰸉"
-label_format = "{icon} wallpaper"
+label_format = "{icon}"
 tooltip = true
 ```
 
@@ -695,7 +695,7 @@ Search and insert emoji characters.
 ```toml
 [widgets.emoji_picker]
 icon = ""
-label_format = "{icon} Emoji"
+label_format = "{icon}"
 tooltip = true
 per_row = 9
 per_column = 4
@@ -708,7 +708,7 @@ A simple Kanban task management board.
 ```toml
 [widgets.kanban]
 icon = "󱞁"
-label_format = "{icon} Kanban"
+label_format = "{icon}"
 tooltip = true
 ```
 

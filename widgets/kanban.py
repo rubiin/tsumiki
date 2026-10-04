@@ -419,7 +419,7 @@ class KanbanWidget(ButtonWidget, PopoverMixin):
     def __init__(self, **kwargs):
         super().__init__(name="kanban", **kwargs)
 
-        self.label_format = self.config.get("label_format", "{icon} Kanban")
+        self.label_format = self.config.get("label_format", "{icon}")
         self.add_formatted_label(
             self.label_format, self.config.get("icon", "\U000f1781")
         )
