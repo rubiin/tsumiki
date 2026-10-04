@@ -347,7 +347,7 @@
             },
             "label_format": {
               "type": "string",
-              "default": "{icon}",
+              "default": "{icon} overview",
               "description": "Format string; the icon is shown when it contains {icon}."
             }
           },
@@ -363,7 +363,7 @@
             },
             "label_format": {
               "type": "string",
-              "default": "{icon}",
+              "default": "{icon} USB",
               "description": "Format string; the icon is shown when it contains {icon}."
             },
             "tooltip": {
@@ -414,7 +414,7 @@
             },
             "label_format": {
               "type": "string",
-              "default": "{icon}",
+              "default": "{icon} power",
               "description": "Format string; the icon is shown when it contains {icon}."
             },
             "confirm": {
@@ -534,7 +534,7 @@
             },
             "label_format": {
               "type": "string",
-              "default": "{icon}",
+              "default": "{icon} screenshot",
               "description": "Format string; the icon is shown when it contains {icon}."
             },
             "annotation": {
@@ -617,30 +617,7 @@
               "default": 2,
               "description": "The number of digits to display for megabytes."
             },
-            "interval": {
-              "type": "number",
-              "default": 2000,
-              "description": "The interval for updating network usage in milliseconds."
-            }
-          },
-          "required": [
-            "tooltip",
-            "label_format",
-            "upload_threshold",
-            "download_threshold",
-            "kb_digits",
-            "mb_digits",
-            "interval"
-          ]
-        },
-        "quick_settings": {
-          "type": "object",
-          "properties": {
-            "hover_reveal": {
-              "type": "boolean",
-              "default": false,
-              "description": "Determines whether to reveal the quick settings on hover."
-            },
+            "interval": {},
             "toggles": {
               "type": "array",
               "items": {
@@ -969,7 +946,7 @@
           "properties": {
             "label_format": {
               "type": "string",
-              "default": "{icon}",
+              "default": "{icon} Updates",
               "description": "Format string; the icon is shown when it contains {icon}."
             },
             "available_icon": {
@@ -981,16 +958,6 @@
               "type": "string",
               "default": "󰏖",
               "description": "The icon displayed when there are no updates."
-            },
-            "hover_reveal": {
-              "type": "boolean",
-              "default": false,
-              "description": "Determines whether to reveal the updates section on hover."
-            },
-            "reveal_duration": {
-              "type": "number",
-              "default": 500,
-              "description": "The duration of the reveal animation for the updates section."
             },
             "os": {
               "type": "string",
@@ -1007,16 +974,7 @@
               "default": false,
               "description": "Determines whether to automatically hide the updates section."
             },
-            "interval": {
-              "type": "number",
-              "default": 3600,
-              "description": "The interval for checking updates."
-            },
-            "pad_zero": {
-              "type": "boolean",
-              "default": true,
-              "description": "Determines whether to pad the update version numbers with leading zeros."
-            },
+            "interval": {},
             "tooltip": {
               "type": "boolean",
               "default": true,
@@ -1042,13 +1000,10 @@
             "label_format",
             "available_icon",
             "no_updates_icon",
-            "hover_reveal",
-            "reveal_duration",
             "os",
             "terminal",
             "auto_hide",
             "interval",
-            "pad_zero",
             "tooltip",
             "flatpak",
             "snap",
@@ -1086,7 +1041,7 @@
             },
             "label_format": {
               "type": "string",
-              "default": "{icon}",
+              "default": "{icon} picker",
               "description": "Format string; the icon is shown when it contains {icon}."
             },
             "quiet": {
@@ -1140,11 +1095,7 @@
               "default": true,
               "description": "Determines whether to show the expanded view for the weather information."
             },
-            "interval": {
-              "type": "number",
-              "default": 3600,
-              "description": "The interval at which to refresh the weather information."
-            },
+            "interval": {},
             "provider": {
               "type": "string",
               "enum": ["open-meteo", "wttr"],
@@ -1292,7 +1243,7 @@
           "properties": {
             "label_format": {
               "type": "string",
-              "default": "{icon}",
+              "default": "{icon} Bluetooth",
               "description": "Format string; the icon is shown when it contains {icon}."
             },
             "tooltip": {
@@ -1652,7 +1603,7 @@
             },
             "label_format": {
               "type": "string",
-              "default": "{icon}",
+              "default": "{icon} Clip",
               "description": "Format string; the icon is shown when it contains {icon}."
             },
             "tooltip": {
@@ -1721,7 +1672,7 @@
             },
             "label_format": {
               "type": "string",
-              "default": "{icon}",
+              "default": "{icon} Kanban",
               "description": "Format string; the icon is shown when it contains {icon}."
             },
             "tooltip": {
@@ -1741,7 +1692,7 @@
             },
             "label_format": {
               "type": "string",
-              "default": "{icon}",
+              "default": "{icon} Emoji",
               "description": "Format string; the icon is shown when it contains {icon}."
             },
             "tooltip": {
@@ -1798,7 +1749,7 @@
             },
             "label_format": {
               "type": "string",
-              "default": "{icon}",
+              "default": "{icon} Mic",
               "description": "Format string; the icon is shown when it contains {icon}."
             }
           },
@@ -1819,7 +1770,7 @@
             },
             "label_format": {
               "type": "string",
-              "default": "{icon}",
+              "default": "{icon} Ocr",
               "description": "Format string; the icon is shown when it contains {icon}."
             },
             "quiet": {

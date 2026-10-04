@@ -1,15 +1,15 @@
-"""Tests for ``CustomButtonWidget``'s icon visibility.
+"""Tests for ``CustomButtonWidget``'s label rendering.
 
-``show_icon`` was replaced by ``label_format``: the icon renders when the
-button's format string names ``{icon}``. The button is icon-only; the
-``label`` and ``label_text`` keys are gone.
+``show_icon`` was replaced by ``label_format``, and the icon now shares one
+label with whatever literal text the format carries. The ``label`` and
+``label_text`` keys are gone.
 """
 
 import unittest
 from unittest import mock
 
 from shared.custom_button import CustomButtonWidget
-from shared.widget_container import ButtonWidget
+from shared.widget_container import ButtonWidget, format_panel_label
 
 
 def build_button(**config) -> CustomButtonWidget:
@@ -31,44 +31,43 @@ class CustomButtonIconFormatTest(unittest.TestCase):
     """The icon follows label_format, the way every other panel widget does."""
 
     def setUp(self):
-        patcher = mock.patch(
-            "shared.custom_button.nerd_font_icon", return_value="nerd-icon"
-        )
-        self.nerd_font_icon = patcher.start()
+        patcher = mock.patch.object(ButtonWidget, "add_formatted_label")
+        self.add_formatted_label = patcher.start()
         self.addCleanup(patcher.stop)
 
+    def _rendered(self, **config):
+        build_button(**config)
+        return self.add_formatted_label.call_args.args
+
     def test_the_default_format_renders_the_icon(self):
-        button = build_button(icon="󰈹")
+        template, glyph = self._rendered(icon="󰈹")
 
-        self.assertEqual(button.icon, "nerd-icon")
-
-    def test_a_format_naming_the_icon_renders_it(self):
-        button = build_button(icon="󰈹", label_format="{icon}")
-
-        self.assertEqual(button.icon, "nerd-icon")
+        self.assertEqual("{icon}", template)
+        self.assertEqual("󰈹", glyph)
 
     def test_a_format_without_the_icon_field_drops_it(self):
         """The regression: show_icon was the toggle before label_format."""
-        button = build_button(icon="󰈹", label_format="")
+        template, glyph = self._rendered(icon="󰈹", label_format="")
 
-        self.assertFalse(hasattr(button, "icon"))
-        button.container_box.add.assert_not_called()
+        self.assertEqual("", format_panel_label(template, glyph))
 
-    def test_a_missing_icon_stays_absent_even_with_the_format(self):
-        button = build_button(label_format="{icon}")
+    def test_literal_text_in_the_format_is_kept(self):
+        template, glyph = self._rendered(icon="󰈹", label_format="{icon} Firefox")
 
-        self.assertFalse(hasattr(button, "icon"))
+        self.assertEqual("󰈹 Firefox", format_panel_label(template, glyph))
+
+    def test_a_missing_icon_renders_only_the_literal_text(self):
+        template, glyph = self._rendered(label_format="{icon} Firefox")
+
+        self.assertEqual("Firefox", format_panel_label(template, glyph or ""))
 
     def test_the_constructor_no_longer_reads_show_icon(self):
         with open("shared/custom_button.py", encoding="utf-8") as source:
             self.assertNotIn('config.get("show_icon"', source.read())
 
     def test_the_label_keys_are_gone(self):
-        """The icon is the whole content, so ``label``/``label_text`` are stale."""
-        button = build_button(icon="󰈹", label=True, label_text="Firefox")
-
-        self.assertFalse(hasattr(button, "label"))
-        button.container_box.add.assert_called_once_with("nerd-icon")
+        with open("shared/custom_button.py", encoding="utf-8") as source:
+            self.assertNotIn('config.get("label"', source)
 
 
 if __name__ == "__main__":

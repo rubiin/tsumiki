@@ -1,6 +1,5 @@
 from shared.widget_container import ButtonWidget
 from utils.i18n import _
-from utils.widget_utils import nerd_font_icon
 
 
 class OverviewButtonWidget(ButtonWidget):
@@ -11,15 +10,8 @@ class OverviewButtonWidget(ButtonWidget):
 
         self.set_tooltip_if_enabled(_("widget.overview_button.tooltip"))
 
-        self.add_panel_content(
-            nerd_font_icon(
-                icon=self.config.get("icon"),
-                props={"style_classes": ["panel-font-icon"]},
-            )
-            if self.format_shows_icon()
-            else None,
-            _("widget.overview_button.label"),
-        )
+        self.label_format = self.config.get("label_format", "{icon} overview")
+        self.add_formatted_label(self.label_format, self.config.get("icon", ""))
 
         # Lazy-init overview popup
         self._overview_popup = None

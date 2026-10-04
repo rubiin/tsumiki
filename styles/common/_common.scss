@@ -117,6 +117,13 @@
   font-size: 0.95em;
 }
 
+/* The label that carries a widget's icon as well as its text: the glyph gets
+   the icon's old side margins so the bar spacing is unchanged. */
+.panel-format {
+  margin-left: 2px;
+  margin-right: 2px;
+}
+
 .overlay-progress-bar {
   color: transparent;
   background-color: transparent;

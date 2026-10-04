@@ -92,7 +92,7 @@ interval = 2000
 
 ```toml
 [widgets.updates]
-label_format = "{icon}"
+label_format = "{icon} Updates"
 available_icon = "󰏗"
 no_updates_icon = "󰏖"
 os = "arch"
@@ -143,7 +143,7 @@ step_size = 5
 
 ```toml
 [widgets.bluetooth]
-label_format = "{icon}"
+label_format = "{icon} Bluetooth"
 tooltip = true
 ```
 
@@ -154,7 +154,7 @@ tooltip = true
 ```toml
 [widgets.microphone]
 tooltip = true
-label_format = "{icon}"
+label_format = "{icon} Mic"
 ```
 
 ### زر الطاقة
@@ -342,7 +342,7 @@ audio = true
 [widgets.ocr]
 icon = "󰐳"
 tooltip = true
-label_format = "{icon}"
+label_format = "{icon} Ocr"
 ```
 
 ### مدير الحافظة
@@ -400,7 +400,7 @@ hidden = []
 ```toml
 [widgets.wallpaper]
 icon = "󰸉"
-label_format = "{icon}"
+label_format = "{icon} wallpaper"
 tooltip = true
 ```
 
@@ -431,7 +431,7 @@ notify = false
 ```toml
 [widgets.emoji_picker]
 icon = ""
-label_format = "{icon}"
+label_format = "{icon} Emoji"
 tooltip = true
 per_row = 9
 per_column = 4
@@ -444,7 +444,7 @@ per_column = 4
 ```toml
 [widgets.kanban]
 icon = "󱞁"
-label_format = "{icon}"
+label_format = "{icon} Kanban"
 tooltip = true
 ```
 

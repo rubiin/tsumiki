@@ -27,7 +27,7 @@ from shared.list import ListBox, near_list_end, next_batch_size
 from shared.mixins import PopoverMixin
 from shared.widget_container import ButtonWidget, TeardownMixin
 from utils.i18n import _
-from utils.widget_utils import get_text_icon, nerd_font_icon
+from utils.widget_utils import get_text_icon
 
 
 class ClipHistoryMenu(Box, TeardownMixin):
@@ -915,15 +915,8 @@ class ClipBoardWidget(ButtonWidget, PopoverMixin):
     def __init__(self, **kwargs):
         super().__init__(name="clipboard", **kwargs)
 
-        if self.format_shows_icon():
-            self.container_box.add(
-                nerd_font_icon(
-                    icon=self.config.get("icon"),
-                    props={"style_classes": ["panel-font-icon"]},
-                )
-            )
-
-        self.container_box.add(Label(label="Clip", style_classes="panel-text"))
+        self.label_format = self.config.get("label_format", "{icon} Clip")
+        self.add_formatted_label(self.label_format, self.config.get("icon", ""))
 
         self.set_tooltip_if_enabled(_("widget.clipboard.tooltip"))
 

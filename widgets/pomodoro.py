@@ -9,7 +9,6 @@ from fabric.widgets.overlay import Overlay
 from shared.mixins import PopoverMixin
 from shared.widget_container import ButtonWidget, TeardownMixin
 from utils.i18n import _
-from utils.widget_utils import nerd_font_icon
 
 
 class CircularProgressWidget(Gtk.DrawingArea):
@@ -330,14 +329,8 @@ class PomodoroWidget(ButtonWidget, PopoverMixin):
     def __init__(self, **kwargs):
         super().__init__(name="pomodoro", **kwargs)
 
-        self.add_panel_content(
-            nerd_font_icon(
-                icon=self.config.get("icon", "🍅"),
-                props={"style_classes": ["panel-font-icon"]},
-            )
-            if self.format_shows_icon()
-            else None,
-        )
+        self.label_format = self.config.get("label_format", "{icon}")
+        self.add_formatted_label(self.label_format, self.config.get("icon", "🍅"))
 
         self.set_tooltip_if_enabled(_("widget.pomodoro.tooltip"), default=True)
 

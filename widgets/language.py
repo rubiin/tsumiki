@@ -3,7 +3,6 @@ from fabric.utils import FormattedString, truncate
 from fabric.widgets.label import Label
 
 from shared.widget_container import ButtonWidget
-from utils.widget_utils import nerd_font_icon
 
 
 class LanguageWidget(ButtonWidget):
@@ -30,15 +29,10 @@ class LanguageWidget(ButtonWidget):
                 style_classes="panel-text",
             )
 
-        if self.format_shows_icon():
-            self.icon = nerd_font_icon(
-                icon=self.config.get("icon"),
-                props={
-                    "style_classes": ["panel-font-icon"],
-                },
-            )
-            self.container_box.add(self.icon)
+        self.label_format = self.config.get("label_format", "{icon}")
+        self.add_formatted_label(self.label_format, self.config.get("icon", ""))
 
+        # The language name is a live widget, so it stays its own label.
         self.container_box.add(self.lang)
 
         self.set_tooltip_if_enabled(f"Language: {self.lang.get_label()}")

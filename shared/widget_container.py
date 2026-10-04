@@ -22,6 +22,21 @@ def _source_is_alive(source_id: int) -> bool:
     return GLib.MainContext.default().find_source_by_id(source_id) is not None
 
 
+def format_panel_label(template: str, glyph: str = "", **fields: str) -> str:
+    """Render a ``label_format`` template into one panel label's markup.
+
+    ``{icon}`` expands to *glyph*, so a widget's icon and text share a single
+    label the way ``battery`` and ``window_count`` do. Whitespace left behind
+    by a field that rendered empty does not become a gap.
+    """
+    try:
+        markup = template.format(icon=glyph, **fields)
+    except (IndexError, KeyError):
+        # An unknown field must not take the bar down with it.
+        markup = template
+    return " ".join(markup.split())
+
+
 class TeardownMixin:
     """Track GLib timers and signal handlers so ``destroy`` can remove them.
 
@@ -392,6 +407,25 @@ class ButtonWidget(Button, BaseWidget):
                 if isinstance(label, Widget)
                 else Label(label=label, style_classes="panel-text")
             )
+
+    def add_formatted_label(
+        self, template: str, glyph: str = "", **fields: str
+    ) -> Label:
+        """Add the single panel label that ``label_format`` drives.
+
+        *glyph* fills ``{icon}`` and *fields* the widget's own placeholders, so
+        icon and text share one label instead of two sibling widgets. The
+        ``panel-format`` class is what per-widget icon sizing keys off now.
+        """
+        self.panel_label = Label(style_classes=["panel-text", "panel-format"])
+        self.container_box.add(self.panel_label)
+        self.refresh_formatted_label(glyph, **fields)
+        return self.panel_label
+
+    def refresh_formatted_label(self, glyph: str = "", **fields: str) -> None:
+        """Re-render the panel label after the widget's state changed."""
+        template = getattr(self, "label_format", "{icon}")
+        self.panel_label.set_markup(format_panel_label(template, glyph, **fields))
 
 
 class WidgetGroup(BoxWidget):

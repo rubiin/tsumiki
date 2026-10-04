@@ -53,7 +53,7 @@ DEFAULT_CONFIG = {
         },
         "clipboard": {
             "icon": "",
-            "label_format": "{icon}",
+            "label_format": "{icon} Clip",
             "tooltip": True,
             "item_tooltip": False,
             "show_images": True,
@@ -65,14 +65,14 @@ DEFAULT_CONFIG = {
         },
         "emoji_picker": {
             "icon": "",
-            "label_format": "{icon}",
+            "label_format": "{icon} Emoji",
             "tooltip": True,
             "per_row": 9,
             "per_column": 4,
         },
         "kanban": {
             "icon": "󱞁",
-            "label_format": "{icon}",
+            "label_format": "{icon} Kanban",
             "tooltip": True,
         },
         "battery": {
@@ -132,15 +132,15 @@ DEFAULT_CONFIG = {
         },
         "bluetooth": {
             "tooltip": True,
-            "label_format": "{icon}",
+            "label_format": "{icon} Bluetooth",
         },
         "brightness": {
             "tooltip": True,
             "step_size": 5,
         },
-        "wallpaper": {"icon": "󰸉", "label_format": "{icon}", "tooltip": True},
+        "wallpaper": {"icon": "󰸉", "label_format": "{icon} wallpaper", "tooltip": True},
         "cava": {"bars": 10, "color": "#89b4fa"},
-        "overview_button": {"icon": "󰡃", "tooltip": True, "label_format": "{icon}"},
+        "overview_button": {"icon": "󰡃", "tooltip": True, "label_format": "{icon} overview"},
         "click_counter": {"count": 0},
         "dns_switcher": {
             "tooltip": True,
@@ -172,7 +172,7 @@ DEFAULT_CONFIG = {
             "mode": "circular",
             "graph_length": 4,
         },
-        "settings": {"icon": "󰒓", "tooltip": True, "label_format": "{icon}"},
+        "settings": {"icon": "󰒓", "tooltip": True, "label_format": "{icon} Settings"},
         "date_time": {
             "date_format": "%b %d",
             "calendar": True,
@@ -250,7 +250,7 @@ DEFAULT_CONFIG = {
             "icon": "",
             "tooltip": True,
             "quiet": False,
-            "label_format": "{icon}",
+            "label_format": "{icon} picker",
         },
         "hyprsunset": {
             "temperature": "2800k",
@@ -294,7 +294,7 @@ DEFAULT_CONFIG = {
         },
         "microphone": {
             "tooltip": True,
-            "label_format": "{icon}",
+            "label_format": "{icon} Mic",
         },
         "mpris": {
             "truncation_size": 20,
@@ -306,7 +306,7 @@ DEFAULT_CONFIG = {
         "ocr": {
             "icon": "󰐳",
             "tooltip": True,
-            "label_format": "{icon}",
+            "label_format": "{icon} Ocr",
             "quiet": False,
         },
         "power": {
@@ -314,7 +314,7 @@ DEFAULT_CONFIG = {
             "tooltip": True,
             "items_per_row": 3,
             "icon_size": 100,
-            "label_format": "{icon}",
+            "label_format": "{icon} power",
             "confirm": True,
             "item_shortcuts": {},
             "buttons": {
@@ -336,7 +336,7 @@ DEFAULT_CONFIG = {
         "screenshot": {
             "path": "Pictures/Screenshots",
             "icon": "󰄀",
-            "label_format": "{icon}",
+            "label_format": "{icon} screenshot",
             "tooltip": True,
             "annotation": True,
             "delayed": False,
@@ -377,16 +377,13 @@ DEFAULT_CONFIG = {
             "notify": False,  # Whether to show a notification when the theme is changed
         },
         "updates": {
-            "label_format": "{icon}",
+            "label_format": "{icon} Updates",
             "available_icon": "󰏗",
             "no_updates_icon": "󰏖",
             "os": "arch",
-            "hover_reveal": False,  # Whether to reveal the updates on hover
-            "reveal_duration": 500,
             "interval": HIGH_POLL_INTERVAL,
             "tooltip": True,
             "terminal": "kitty",
-            "pad_zero": True,  # Whether to pad the number of updates with zero
             "auto_hide": False,  # Whether to auto-hide there are no updates
             "flatpak": False,
             "snap": False,
@@ -394,7 +391,7 @@ DEFAULT_CONFIG = {
         },
         "usb_manager": {
             "icon": "",
-            "label_format": "{icon}",
+            "label_format": "{icon} USB",
             "tooltip": True,
         },
         "volume": {

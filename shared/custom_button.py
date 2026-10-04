@@ -2,8 +2,6 @@
 
 from fabric.utils import exec_shell_command_async
 
-from utils.widget_utils import nerd_font_icon
-
 from .widget_container import ButtonWidget
 
 
@@ -26,15 +24,9 @@ class CustomButtonWidget(ButtonWidget):
                 f"Custom button '{widget_name}' requires a 'command' in config"
             )
 
-        # Setup icon if the format string asks for it
-        if self.format_shows_icon():
-            icon = self.config.get("icon")
-            if icon:
-                self.icon = nerd_font_icon(
-                    icon=icon,
-                    props={"style_classes": ["panel-font-icon"]},
-                )
-                self.container_box.add(self.icon)
+        # One label carries the icon, and whatever literal text the format adds.
+        self.label_format = self.config.get("label_format", "{icon}")
+        self.add_formatted_label(self.label_format, self.config.get("icon", ""))
 
         # Connect click handler
         self.connect("clicked", self.on_click)

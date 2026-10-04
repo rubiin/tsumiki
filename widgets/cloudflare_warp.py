@@ -149,8 +149,8 @@ class CloudflareWarpWidget(ButtonWidget, PopoverMixin):
             )
             self.set_tooltip_text(_("widget.cloudflare_warp.not_found"))
 
-        if self.format_shows_icon():
-            self.container_box.add(self._icon)
+        self.label_format = self.config.get("label_format", "{icon}")
+        self.add_formatted_label(self.label_format, self._icon.get_label())
 
         if self._available:
             self.setup_popover(lambda: CloudflareWarpPopover(parent=self))
@@ -159,8 +159,8 @@ class CloudflareWarpWidget(ButtonWidget, PopoverMixin):
         if not self._available:
             return
         if self._service.connected:
-            self._icon.set_label(self._connected_icon)
+            self.refresh_formatted_label(self._connected_icon)
             self.set_tooltip_text(_("widget.cloudflare_warp.status_connected"))
         else:
-            self._icon.set_label(self._disconnected_icon)
+            self.refresh_formatted_label(self._disconnected_icon)
             self.set_tooltip_text(_("widget.cloudflare_warp.status_disconnected"))

@@ -261,7 +261,7 @@ tooltip = true
 [widgets.keyboard]
 icon = "󰌌"
 tooltip = true
-label_format = ""
+label_format = "{icon}"
 
 [widgets.window_count]
 label_format = " [{count}]"
@@ -272,7 +272,7 @@ tooltip = true
 icon = ""
 tooltip = true
 truncation_size = 2
-label_format = ""
+label_format = "{icon}"
 
 
 [widgets.network_usage]
@@ -350,7 +350,7 @@ running_icon = "󱫠"
 [widgets.submap]
 icon = "󰌌"
 tooltip = true
-label_format = ""
+label_format = "{icon}"
 hide_on_default = false
 
 [widgets.system_tray]
@@ -374,12 +374,9 @@ label_format = "{icon}"
 available_icon = "󰏗"
 no_updates_icon = "󰏖"
 os = "arch"
-hover_reveal = true
-reveal_duration = 500
 interval = 3600
 tooltip = true
 terminal = "kitty"
-pad_zero = false
 auto_hide = false
 flatpak = true
 snap = false

@@ -5,7 +5,6 @@ from fabric.utils import logger
 from fabric.widgets.label import Label
 
 from shared.widget_container import ButtonWidget
-from utils.widget_utils import nerd_font_icon
 
 
 class WorldClockWidget(ButtonWidget):
@@ -16,13 +15,10 @@ class WorldClockWidget(ButtonWidget):
 
         self.clocks = []
 
-        if self.format_shows_icon():
-            # Create a TextIcon with the specified icon and size
-            self.icon = nerd_font_icon(
-                icon=self.config.get("icon", "󰃰"),  # fallback icon,
-                props={"style_classes": ["panel-font-icon"]},
-            )
-            self.container_box.add(self.icon)
+        self.label_format = self.config.get("label_format", "{icon}")
+        self.add_formatted_label(
+            self.label_format, self.config.get("icon", "󰌌")
+        )
 
         self.container_box.set_spacing(10)
 

@@ -9,18 +9,20 @@ This page documents every widget available in Tsumiki, its configuration options
 
 Widgets are configured under `[widgets.<name>]` in `config.toml` and placed in the bar via `layout` sections.
 
-## Icon visibility
+## Panel labels
 
-Widgets that render a panel icon control it through `label_format`: the icon is drawn when the format string contains the `{icon}` field, and omitted when it does not.
+`label_format` is the whole panel label. The widget renders one label, and `{icon}` is replaced with the glyph from the widget's `icon` (or its state-specific variant, e.g. `connected_icon`). Any literal text in the string is kept, so the text next to an icon is part of the format rather than a separate toggle.
 
 ```toml
-label_format = "{icon}"   # icon shown (default)
-label_format = ""         # icon hidden
+label_format = "{icon}"            # icon only
+label_format = "{icon}"            # icon plus literal text
+label_format = "Settings"          # text only, no glyph
+label_format = ""                  # nothing at all
 ```
 
-This replaced the old per-widget `show_icon` boolean, which is no longer read — a config that still sets `show_icon` logs a warning at startup and falls back to the default above. Custom buttons are the exception: they still use `show_icon`.
+This replaced the old per-widget `show_icon` boolean and the `label` / `label_text` keys, none of which are read any more — a config that still sets `show_icon` logs a warning at startup and falls back to the default above.
 
-`label_format` on the widgets listed above accepts `{icon}` as its only field today.
+`{icon}` is the only field on these widgets. A few widgets print live values and declare their own fields instead: `battery` (`{percent}`, `{time_remaining}`), `mpris` (`{title}`, `{artist}`, `{album}`, `{name}`), `weather` (`{condition}`, `{temperature}`), `network_usage` (`{upload}`, `{download}`), `window_count` (`{count}`) and `workspaces` (`{id}`).
 
 ---
 
@@ -111,16 +113,13 @@ Checks for system package updates (Arch Linux, Flatpak, Snap, Homebrew).
 
 ```toml
 [widgets.updates]
-label_format = "{icon}"
+label_format = "{icon} Updates"
 available_icon = "󰏗"
 no_updates_icon = "󰏖"
 os = "arch"
-hover_reveal = true
-reveal_duration = 500
 interval = 3600         # Refresh interval in seconds
 tooltip = true
 terminal = "kitty"
-pad_zero = false
 auto_hide = false
 flatpak = true
 snap = false
@@ -216,7 +215,7 @@ Manages Bluetooth connections and visibility.
 
 ```toml
 [widgets.bluetooth]
-label_format = "{icon}"
+label_format = "{icon} Bluetooth"
 tooltip = true
 ```
 
@@ -229,7 +228,7 @@ Shows microphone status and muting.
 ```toml
 [widgets.microphone]
 tooltip = true
-label_format = "{icon}"
+label_format = "{icon} Mic"
 ```
 
 Click to toggle microphone mute.
@@ -244,7 +243,7 @@ icon = "󰐥"
 tooltip = true
 items_per_row = 3
 icon_size = 100
-label_format = "{icon}"
+label_format = "{icon} power"
 confirm = true
 
 [widgets.power.item_shortcuts]
@@ -301,7 +300,7 @@ Color picker that captures a color from the screen.
 icon = ""
 tooltip = true
 quiet = false
-label_format = "{icon}"
+label_format = "{icon} picker"
 ```
 
 The selected color is copied to clipboard. In quiet mode, no notification is shown.
@@ -372,7 +371,7 @@ Button that opens the window overview/exposé.
 ```toml
 [widgets.overview_button]
 icon = "󰡃"
-label_format = "{icon}"
+label_format = "{icon} overview"
 tooltip = true
 ```
 
@@ -500,7 +499,7 @@ Extract text from a screen region using Tesseract.
 [widgets.ocr]
 icon = "󰐳"
 tooltip = true
-label_format = "{icon}"
+label_format = "{icon} Ocr"
 quiet = false
 ```
 
@@ -651,7 +650,7 @@ Opens the wallpaper selection popup.
 ```toml
 [widgets.wallpaper]
 icon = "󰸉"
-label_format = "{icon}"
+label_format = "{icon} wallpaper"
 tooltip = true
 ```
 
@@ -696,7 +695,7 @@ Search and insert emoji characters.
 ```toml
 [widgets.emoji_picker]
 icon = ""
-label_format = "{icon}"
+label_format = "{icon} Emoji"
 tooltip = true
 per_row = 9
 per_column = 4
@@ -709,7 +708,7 @@ A simple Kanban task management board.
 ```toml
 [widgets.kanban]
 icon = "󱞁"
-label_format = "{icon}"
+label_format = "{icon} Kanban"
 tooltip = true
 ```
 

@@ -11,7 +11,6 @@ from utils.constants import ASSETS_DIR
 from utils.decorators import run_in_thread
 from utils.functions import ensure_file, read_json_file
 from utils.i18n import _
-from utils.widget_utils import nerd_font_icon
 
 # Module-level cache for emoji data — parsed once, reused across picker opens
 _emoji_data_cache: dict | None = None
@@ -412,17 +411,8 @@ class EmojiPickerWidget(ButtonWidget, PopoverMixin):
     def __init__(self, **kwargs):
         super().__init__(name="emoji_picker", **kwargs)
 
-        if self.format_shows_icon():
-            self.container_box.add(
-                nerd_font_icon(
-                    icon=self.config.get("icon"),
-                    props={"style_classes": ["panel-font-icon"]},
-                )
-            )
-
-        self.container_box.add(
-            Label(label=_("widget.emoji_picker.label"), style_classes="panel-text")
-        )
+        self.label_format = self.config.get("label_format", "{icon} Emoji")
+        self.add_formatted_label(self.label_format, self.config.get("icon", ""))
 
         self.set_tooltip_if_enabled(_("widget.emoji_picker.tooltip"))
 

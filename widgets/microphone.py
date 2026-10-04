@@ -1,9 +1,7 @@
-from fabric.widgets.label import Label
 
 from services import audio_service
 from shared.widget_container import ButtonWidget
 from utils.icons import get_text_icon
-from utils.widget_utils import nerd_font_icon
 
 
 # TODO: review this widget
@@ -16,23 +14,11 @@ class MicrophoneIndicatorWidget(ButtonWidget):
         self.mic_on_icon = get_text_icon("microphone.high", "")
         self.mic_off_icon = get_text_icon("microphone.muted", "")
 
-        self.icon = None
-
         # Initialize the audio service
         self.audio_service = audio_service
 
-        if self.format_shows_icon():
-            self.icon = nerd_font_icon(
-                icon=self.mic_off_icon,
-                props={"style_classes": ["panel-font-icon"]},
-            )
-            self.container_box.add(self.icon)
-
-        self.mic_label = Label(
-            label="mic",
-            style_classes="panel-text",
-        )
-        self.container_box.add(self.mic_label)
+        self.label_format = self.config.get("label_format", "{icon} Mic")
+        self.add_formatted_label(self.label_format, self.mic_off_icon)
 
         self._register_handlers(
             self.audio_service,
@@ -44,18 +30,15 @@ class MicrophoneIndicatorWidget(ButtonWidget):
         current_microphone = self.audio_service.microphone
 
         if not current_microphone:
-            if self.icon is not None:
-                self.icon.set_visible(False)
+            self.panel_label.set_visible(False)
             return True
 
+        self.panel_label.set_visible(True)
         is_muted = current_microphone.muted
 
-        if self.icon is not None:
-            self.icon.set_label(self.mic_off_icon if is_muted else self.mic_on_icon)
-            self.icon.set_visible(True)
-
-        # Update the label
-        self.mic_label.set_label("Off" if is_muted else "On")
+        self.refresh_formatted_label(
+            self.mic_off_icon if is_muted else self.mic_on_icon
+        )
 
         self.set_tooltip_if_enabled(
             "Microphone is muted" if is_muted else "Microphone is on"

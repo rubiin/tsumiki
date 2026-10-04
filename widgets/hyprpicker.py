@@ -11,10 +11,8 @@ class HyprPickerWidget(ButtonWidget):
     def __init__(self, **kwargs):
         super().__init__(name="hyprpicker", **kwargs)
 
-        self.add_panel_content(
-            self.config.get("icon") if self.format_shows_icon() else None,
-            _("widget.hyprpicker.label"),
-        )
+        self.label_format = self.config.get("label_format", "{icon} picker")
+        self.add_formatted_label(self.label_format, self.config.get("icon", ""))
         self.connect("button-press-event", self.on_button_press)
 
         self.initialized = False

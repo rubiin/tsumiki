@@ -16,7 +16,7 @@ from utils.constants import KANBAN_FILE
 from utils.functions import read_json_file, write_json_file
 from utils.i18n import _
 from utils.icons import get_text_icon
-from utils.widget_utils import create_surface_from_widget, nerd_font_icon
+from utils.widget_utils import create_surface_from_widget
 
 
 class InlineEditor(Box):
@@ -419,14 +419,9 @@ class KanbanWidget(ButtonWidget, PopoverMixin):
     def __init__(self, **kwargs):
         super().__init__(name="kanban", **kwargs)
 
-        self.add_panel_content(
-            nerd_font_icon(
-                icon=self.config.get("icon", "󰒲"),
-                props={"style_classes": ["panel-font-icon"]},
-            )
-            if self.format_shows_icon()
-            else None,
-            _("widget.kanban.label"),
+        self.label_format = self.config.get("label_format", "{icon} Kanban")
+        self.add_formatted_label(
+            self.label_format, self.config.get("icon", "\U000f1781")
         )
 
         self.set_tooltip_if_enabled(_("widget.kanban.tooltip"))

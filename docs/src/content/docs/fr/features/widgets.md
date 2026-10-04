@@ -54,10 +54,10 @@ step_size = 5
 step_size = 5
 
 [widgets.bluetooth]
-label_format = "{icon}"
+label_format = "{icon} Bluetooth"
 
 [widgets.microphone]
-label_format = "{icon}"
+label_format = "{icon} Mic"
 
 [widgets.power]
 icon = "󰐥"
@@ -151,7 +151,7 @@ icon_size = 16
 
 [widgets.wallpaper]
 icon = "󰸉"
-label_format = "{icon}"
+label_format = "{icon} wallpaper"
 
 [widgets.settings]
 icon = "󰒓"
@@ -160,12 +160,12 @@ icon = "󰒓"
 icon = ""
 
 [widgets.emoji_picker]
-label_format = "{icon}"
+label_format = "{icon} Emoji"
 per_row = 9
 
 [widgets.kanban]
 icon = "󱞁"
-label_format = "{icon}"
+label_format = "{icon} Kanban"
 
 [widgets.pomodoro]
 icon = "🍅"

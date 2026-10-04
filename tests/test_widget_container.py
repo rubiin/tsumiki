@@ -64,6 +64,46 @@ class ButtonCursorProbe:
         self._sync_hover_cursor()
 
 
+class AddFormattedLabelTest(unittest.TestCase):
+    """``label_format`` renders one label; ``{icon}`` takes the widget glyph."""
+
+    def setUp(self):
+        patcher = mock.patch.object(widget_container, "Label")
+        self.Label_mock = patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def _widget(self, template: str) -> ButtonWidget:
+        widget = ButtonWidget.__new__(ButtonWidget)
+        widget.container_box = mock.Mock()
+        widget.label_format = template
+        return widget
+
+    def test_the_label_carries_the_format_class(self):
+        """Per-widget icon sizing keys off ``panel-format`` now."""
+        self._widget("{icon}").add_formatted_label("{icon}", "󰅚")
+
+        self.Label_mock.assert_called_once_with(
+            style_classes=["panel-text", "panel-format"]
+        )
+
+    def test_the_glyph_fills_the_icon_field(self):
+        widget = self._widget("{icon} Bluetooth")
+
+        widget.add_formatted_label(widget.label_format, "󰅚")
+
+        self.Label_mock.return_value.set_markup.assert_called_once_with(
+            "󰅚 Bluetooth"
+        )
+
+    def test_refreshing_renders_the_current_glyph(self):
+        widget = self._widget("{icon} Mic")
+        widget.add_formatted_label(widget.label_format, "mic-off")
+
+        widget.refresh_formatted_label("mic-on")
+
+        self.Label_mock.return_value.set_markup.assert_called_with("mic-on Mic")
+
+
 class AddPanelContentTest(unittest.TestCase):
     """The icon/label pair is built the same way for every panel widget."""
 
@@ -170,7 +210,7 @@ class FormatShowsIconTest(unittest.TestCase):
 
 
 class IconOnlyWidgetDefaultsTest(unittest.TestCase):
-    """The icon-plus-text widgets ship ``label_format = "{icon}"`` and gate on it."""
+    """Every panel widget ships a ``{icon}`` field and gates the glyph on it."""
 
     WIDGETS = (
         "dns_switcher",
@@ -195,7 +235,7 @@ class IconOnlyWidgetDefaultsTest(unittest.TestCase):
                 widget = ButtonWidget.__new__(ButtonWidget)
                 widget.config = DEFAULT_CONFIG["widgets"][name]
 
-                self.assertEqual("{icon}", widget.config["label_format"])
+                self.assertIn("{icon}", widget.config["label_format"])
                 self.assertTrue(widget.format_shows_icon())
 
     def test_every_widget_drops_the_icon_without_the_field(self):

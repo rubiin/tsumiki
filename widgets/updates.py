@@ -7,15 +7,10 @@ from fabric.utils import (
     invoke_repeater,
     logger,
 )
-from fabric.widgets.label import Label
-from fabric.widgets.revealer import Revealer
 
 from shared.widget_container import ButtonWidget
 from utils.colors import Colors
 from utils.constants import ASSETS_DIR
-from utils.widget_utils import (
-    nerd_font_icon,
-)
 
 
 class UpdatesWidget(ButtonWidget):
@@ -32,24 +27,10 @@ class UpdatesWidget(ButtonWidget):
 
         self.base_command = self._build_base_command()
 
-        if self.format_shows_icon():
-            self.icon = nerd_font_icon(
-                icon=self.config.get("no_updates_icon", "󰒲"),
-                props={"style_classes": ["panel-font-icon"]},
-            )
-            self.container_box.add(self.icon)
-
-        self.update_label = Label(label="0", style_classes="panel-text")
-
-        if self.config.get("hover_reveal", True):
-            self.revealer = Revealer(
-                child=self.update_label,
-                transition_duration=self.config.get("reveal_duration", 500),
-                transition_type="slide_right",
-            )
-            self.container_box.add(self.revealer)
-        else:
-            self.container_box.add(self.update_label)
+        self.label_format = self.config.get("label_format", "{icon} Updates")
+        self.add_formatted_label(
+            self.label_format, self.config.get("no_updates_icon", "󰒒")
+        )
 
         self.connect("button-press-event", self.on_click)
 
@@ -90,27 +71,13 @@ class UpdatesWidget(ButtonWidget):
             data = json.loads(value)
             total = int(data.get("total", "0"))
 
-            # Update label
-            label_text = (
-                str(total).rjust(2, "0")
-                if self.config.get("pad_zero", True)
-                else str(total)
+            # The count rides in the tooltip; the glyph carries the state.
+            icon = (
+                self.config.get("available_icon")
+                if total > 0
+                else self.config.get("no_updates_icon", "󰒒")
             )
-
-            # dont show '0' if total is 0 and pad_zero is True
-            if total == 0:
-                label_text = str(total)
-
-            self.update_label.set_label(label_text)
-
-            # Update icon
-            if self.format_shows_icon():
-                icon = (
-                    self.config.get("available_icon")
-                    if total > 0
-                    else self.config.get("no_updates_icon", "󰒲")
-                )
-                self.icon.set_label(icon)
+            self.refresh_formatted_label(icon)
 
             # Tooltip
             self.set_tooltip_if_enabled(data.get("tooltip", ""), default=True)

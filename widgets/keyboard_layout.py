@@ -5,7 +5,6 @@ from shared.widget_container import ButtonWidget
 from utils.constants import get_kblayout_map
 from utils.hyprland import hyprland_service
 from utils.i18n import _
-from utils.widget_utils import nerd_font_icon
 
 
 class KeyboardLayoutWidget(ButtonWidget):
@@ -18,14 +17,10 @@ class KeyboardLayoutWidget(ButtonWidget):
             label=_("widget.keyboard.label"), style_classes="panel-text"
         )
 
-        if self.format_shows_icon():
-            # Create a TextIcon with the specified icon and size
-            self.icon = nerd_font_icon(
-                icon=self.config.get("icon"),
-                props={"style_classes": ["panel-font-icon"]},
-            )
-            self.container_box.add(self.icon)
+        self.label_format = self.config.get("label_format", "{icon}")
+        self.add_formatted_label(self.label_format, self.config.get("icon", ""))
 
+        # The layout name changes at runtime, so it stays its own label.
         self.container_box.add(self.kb_label)
 
         # all aboard...
