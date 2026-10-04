@@ -149,14 +149,12 @@ def _validate_schema_enums(
         min_items = schema_node.get("minItems")
         if isinstance(min_items, int) and len(value) < min_items:
             raise ValueError(
-                f"{path}: expected at least {min_items} item(s), "
-                f"got {len(value)}"
+                f"{path}: expected at least {min_items} item(s), got {len(value)}"
             )
         max_items = schema_node.get("maxItems")
         if isinstance(max_items, int) and len(value) > max_items:
             raise ValueError(
-                f"{path}: expected at most {max_items} item(s), "
-                f"got {len(value)}"
+                f"{path}: expected at most {max_items} item(s), got {len(value)}"
             )
 
     if isinstance(value, dict):
@@ -216,11 +214,7 @@ def validate_config_enums(config_data: dict, schema_file_path: str) -> None:
 def _get_config_collection(parsed_data: dict, widget_type: str) -> list:
     """Return the collection for *widget_type* in *parsed_data*."""
     if widget_type == "custom_button":
-        return (
-            parsed_data.get("widgets", {})
-            .get("custom_button_group", {})
-            .get("buttons", [])
-        )
+        return parsed_data.get("widgets", {}).get("custom_buttons", [])
     if widget_type == "group":
         return parsed_data.get("widget_groups", [])
     if widget_type == "collapsible":
@@ -396,7 +390,120 @@ _VALID_LABEL_FORMATS = {
     "mpris": {
         "label_format": set(["title", "artist", "album", "name"]),
     },
+    # Widgets whose only format field is the icon: ``show_icon`` became
+    # ``label_format = "{icon}"``, and omitting the field hides the icon.
+    "cpu": {
+        "label_format": set(["icon"]),
+    },
+    "gpu": {
+        "label_format": set(["icon"]),
+    },
+    "hyprpicker": {
+        "label_format": set(["icon"]),
+    },
+    "keyboard": {
+        "label_format": set(["icon"]),
+    },
+    "language": {
+        "label_format": set(["icon"]),
+    },
+    "memory": {
+        "label_format": set(["icon"]),
+    },
+    "microphone": {
+        "label_format": set(["icon"]),
+    },
+    "ocr": {
+        "label_format": set(["icon"]),
+    },
+    "power": {
+        "label_format": set(["icon"]),
+    },
+    "storage": {
+        "label_format": set(["icon"]),
+    },
+    "submap": {
+        "label_format": set(["icon"]),
+    },
+    "updates": {
+        "label_format": set(["icon"]),
+    },
+    "world_clock": {
+        "label_format": set(["icon"]),
+    },
+    "cheatsheet": {
+        "label_format": set(["icon"]),
+    },
+    "dns_switcher": {
+        "label_format": set(["icon"]),
+    },
+    "pomodoro": {
+        "label_format": set(["icon"]),
+    },
+    "cloudflare_warp": {
+        "label_format": set(["icon"]),
+    },
+    "github_tray": {
+        "label_format": set(["icon"]),
+    },
+    "ip_monitor": {
+        "label_format": set(["icon"]),
+    },
+    "bluetooth": {
+        "label_format": set(["icon"]),
+    },
+    "clipboard": {
+        "label_format": set(["icon"]),
+    },
+    "emoji_picker": {
+        "label_format": set(["icon"]),
+    },
+    "hypridle": {
+        "label_format": set(["icon"]),
+    },
+    "hyprsunset": {
+        "label_format": set(["icon"]),
+    },
+    "kanban": {
+        "label_format": set(["icon"]),
+    },
+    "overview_button": {
+        "label_format": set(["icon"]),
+    },
+    "screenshot": {
+        "label_format": set(["icon"]),
+    },
+    "usb_manager": {
+        "label_format": set(["icon"]),
+    },
+    "wallpaper": {
+        "label_format": set(["icon"]),
+    },
 }
+
+
+def warn_deprecated_show_icon(parsed_data: dict) -> None:
+    """Warn about ``show_icon``, replaced by ``label_format = "{icon}"``.
+
+    ``show_icon`` is no longer read, so a config that still sets it silently
+    gets the default icon back.
+    """
+    widgets = parsed_data.get("widgets", {})
+    for widget_name, widget_cfg in widgets.items():
+        if isinstance(widget_cfg, dict) and "show_icon" in widget_cfg:
+            _warn_show_icon(f"widgets.{widget_name}")
+        # custom_buttons is a list of entries rather than a single config.
+        elif isinstance(widget_cfg, list):
+            for idx, entry in enumerate(widget_cfg):
+                if isinstance(entry, dict) and "show_icon" in entry:
+                    _warn_show_icon(f"widgets.{widget_name}[{idx}]")
+
+
+def _warn_show_icon(path: str) -> None:
+    logger.warning(
+        f"[Config] {path}.show_icon is no longer supported; "
+        'use label_format = "{icon}" to keep the icon, or drop the key to hide it.'
+    )
 
 
 def validate_format_strings(parsed_data: dict) -> None:
@@ -478,4 +585,5 @@ def validate_widgets(parsed_data, default_config):
                             widget, parsed_data, default_config, f"{group_type}[{idx}]"
                         )
 
+    warn_deprecated_show_icon(parsed_data)
     validate_format_strings(parsed_data)

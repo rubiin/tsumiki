@@ -2,21 +2,52 @@
 # Mergify configuration
 # https://docs.mergify.com/
 #
-# Auto-merges bot PRs (pre-commit.ci, dependabot, imgbot, ...) once all
-# required checks pass. Human PRs are left for manual review.
+# Auto-merges bot PRs (renovate, pre-commit.ci) once all required checks pass.
+# Human PRs are left for manual review.
 queue_rules:
-  - name: default
+  # Anything touching docs/ also has to build the docs site. docs-build.yml is
+  # path-filtered, so this check only exists on those PRs and cannot be a
+  # condition on the general rule.
+  - name: docs
+    merge_method: merge
+    update_method: rebase
     merge_conditions:
-      - status-success=pre-commit.ci - pr
-      - check-success=GitGuardian Security Checks
+      - status-success = pre-commit.ci - pr
+      - check-success = @gitguardian/GitGuardian Security Checks
+      - check-success = @github-actions/Analyze (python)
+      - check-success = @github-actions/build
+
+  - name: default
+    merge_method: merge
+    # Rebase instead of dequeuing, otherwise a renovate stack landing ahead of a
+    # PR leaves it conflicting forever.
+    update_method: rebase
+    merge_conditions:
+      - status-success = pre-commit.ci - pr
+      - check-success = @gitguardian/GitGuardian Security Checks
+      - check-success = @github-actions/Analyze (python)
 
 pull_request_rules:
-  - name: Queue bot PRs when all checks pass
+  - name: Queue bot docs PRs when all checks pass
     conditions:
-      - author~=^.*\[bot\]$
+      - author~=^(renovate|pre-commit-ci|dependabot)\[bot\]$
       - base=master
       - -draft
-      - -conflict
+      - files~=^docs/
+      # Lock file regeneration is a maintainer command (AGENTS.md).
+      - -title~=lock file maintenance
+    actions:
+      queue:
+        name: docs
+
+  - name: Queue bot PRs when all checks pass
+    conditions:
+      # Explicit allowlist: excludes mergify[bot], which would queue itself.
+      - author~=^(renovate|pre-commit-ci|dependabot)\[bot\]$
+      - base=master
+      - -draft
+      # Lock file regeneration is a maintainer command (AGENTS.md).
+      - -title~=lock file maintenance
     actions:
       queue:
         name: default

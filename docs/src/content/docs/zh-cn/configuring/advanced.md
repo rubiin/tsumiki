@@ -88,44 +88,17 @@ right_section = ["@collapsible:utility-tools", "system_tray"]
 
 ```
 
-## 自定义按钮
-
-点击时执行 shell 命令的独立自定义按钮。在布局部分直接使用其名称引用。
-
-```toml
-[widgets.custom_button]
-command = "firefox"
-icon = "󰈹"
-label_text = "Firefox"
-tooltip_text = "打开 Firefox 浏览器"
-show_icon = true
-label = false
-tooltip = true
-```
-
-像任何普通组件一样将其放置在布局中：
-
-```toml
-[layout]
-left_section = ["custom_button", "workspaces"]
-```
-
 ## 自定义按钮组
 
 一组自定义命令按钮。组中的每个按钮可以通过 `@custom_button:N` 或 `@custom_button:id` 引用：
 
 ```toml
-[widgets.custom_button_group]
-spacing = 4
-
-[[widgets.custom_button_group.buttons]]
+[[widgets.custom_buttons]]
 id = "firefox"
 command = "firefox"
 icon = "󰈹"
-label_text = "Firefox"
 tooltip_text = "打开 Firefox 浏览器"
-show_icon = true
-label = false
+label_format = "{icon}"
 tooltip = true
 
 [layout]

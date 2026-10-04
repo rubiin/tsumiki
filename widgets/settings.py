@@ -11,11 +11,8 @@ class SettingsWidget(ButtonWidget):
     def __init__(self, **kwargs):
         super().__init__(name="settings", **kwargs)
 
-        self.add_panel_content(
-            self.config.get("icon", "󰒓"),
-            _("widget.settings.label"),
-            show_label=self.config.get("label", False),
-        )
+        self.label_format = self.config.get("label_format", "{icon} Settings")
+        self.add_formatted_label(self.label_format, self.config.get("icon", "󰒓"))
 
         self.set_tooltip_if_enabled(_("widget.settings.tooltip"), default=True)
 

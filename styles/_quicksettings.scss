@@ -129,12 +129,7 @@ $qs-press-bg: color.adjust(theme.$surface-neutral, $alpha: -0.85);
         }
 
         &:hover {
-          background-color: color.mix(theme.$accent-blue, theme.$background-main, 20%);
-          color: theme.$accent-blue;
-
-          .shortcut-icon {
-            color: theme.$accent-blue;
-          }
+          @include common.widget-hover(true);
         }
       }
     }

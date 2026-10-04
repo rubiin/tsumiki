@@ -139,10 +139,10 @@ $hover-transition: background 0.15s ease-in-out;
 }
 
 #notification-eventbox {
-  margin: 12px;
-
   #notification {
     @extend %notification_widget;
+    // Inner margin already widens the window, so no layer-shell margin is needed.
+    margin: variable.$modules-notification-margin_y variable.$modules-notification-margin_x;
   }
 }
 

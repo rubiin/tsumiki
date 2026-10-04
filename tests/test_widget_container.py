@@ -6,6 +6,8 @@ be checked without a display.
 """
 
 import unittest
+from pathlib import Path
+from typing import ClassVar
 from unittest import mock
 
 from fabric.utils import Gtk
@@ -14,6 +16,7 @@ from fabric.widgets.label import Label
 import utils.widget_utils as widget_utils
 from shared import widget_container
 from shared.widget_container import ButtonWidget
+from utils.constants import DEFAULT_CONFIG
 
 
 def make_widget() -> ButtonWidget:
@@ -59,6 +62,46 @@ class ButtonCursorProbe:
     def set_state(self, state: Gtk.StateFlags):
         self.state = state
         self._sync_hover_cursor()
+
+
+class AddFormattedLabelTest(unittest.TestCase):
+    """``label_format`` renders one label; ``{icon}`` takes the widget glyph."""
+
+    def setUp(self):
+        patcher = mock.patch.object(widget_container, "Label")
+        self.Label_mock = patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def _widget(self, template: str) -> ButtonWidget:
+        widget = ButtonWidget.__new__(ButtonWidget)
+        widget.container_box = mock.Mock()
+        widget.label_format = template
+        return widget
+
+    def test_the_label_carries_the_format_class(self):
+        """Per-widget icon sizing keys off ``panel-format`` now."""
+        self._widget("{icon}").add_formatted_label("{icon}", "󰅚")
+
+        self.Label_mock.assert_called_once_with(
+            style_classes=["panel-text", "panel-format"]
+        )
+
+    def test_the_glyph_fills_the_icon_field(self):
+        widget = self._widget("{icon} Bluetooth")
+
+        widget.add_formatted_label(widget.label_format, "󰅚")
+
+        self.Label_mock.return_value.set_markup.assert_called_once_with(
+            "󰅚 Bluetooth"
+        )
+
+    def test_refreshing_renders_the_current_glyph(self):
+        widget = self._widget("{icon} Mic")
+        widget.add_formatted_label(widget.label_format, "mic-off")
+
+        widget.refresh_formatted_label("mic-on")
+
+        self.Label_mock.return_value.set_markup.assert_called_with("mic-on Mic")
 
 
 class AddPanelContentTest(unittest.TestCase):
@@ -129,6 +172,127 @@ class AddPanelContentTest(unittest.TestCase):
 
         self.Label_mock.assert_not_called()
         widget.container_box.add.assert_called_once_with(label)
+
+    def test_a_none_icon_leaves_the_label_as_the_only_content(self):
+        widget = make_widget()
+
+        widget.add_panel_content(None, "Text")
+
+        self.nerd_font_icon.assert_not_called()
+        widget.container_box.children = ()
+        widget.container_box.add.assert_called_once_with(self.Label_mock.return_value)
+
+
+class FormatShowsIconTest(unittest.TestCase):
+    """``show_icon`` is gone: the ``{icon}`` field of ``label_format`` decides."""
+
+    @staticmethod
+    def _widget(**config) -> ButtonWidget:
+        widget = ButtonWidget.__new__(ButtonWidget)
+        widget.config = config
+        return widget
+
+    def test_the_default_format_keeps_the_icon(self):
+        self.assertTrue(self._widget().format_shows_icon())
+
+    def test_a_format_naming_the_icon_keeps_the_icon(self):
+        self.assertTrue(self._widget(label_format="{icon}").format_shows_icon())
+
+    def test_a_format_without_the_icon_field_drops_it(self):
+        """The regression: ``show_icon = false`` no longer has any effect."""
+        self.assertFalse(self._widget(label_format="").format_shows_icon())
+
+    def test_an_unrelated_field_does_not_bring_the_icon_back(self):
+        self.assertFalse(self._widget(label_format="{count}").format_shows_icon())
+
+    def test_a_non_string_format_is_treated_as_no_icon(self):
+        self.assertFalse(self._widget(label_format=None).format_shows_icon())
+
+
+class IconOnlyWidgetDefaultsTest(unittest.TestCase):
+    """Every panel widget ships a ``{icon}`` field and gates the glyph on it."""
+
+    WIDGETS = (
+        "dns_switcher",
+        "pomodoro",
+        "cloudflare_warp",
+        "github_tray",
+        "bluetooth",
+        "clipboard",
+        "emoji_picker",
+        "hypridle",
+        "hyprsunset",
+        "kanban",
+        "overview_button",
+        "screenshot",
+        "usb_manager",
+        "wallpaper",
+    )
+
+    def test_every_widget_defaults_to_showing_its_icon(self):
+        for name in self.WIDGETS:
+            with self.subTest(widget=name):
+                widget = ButtonWidget.__new__(ButtonWidget)
+                widget.config = DEFAULT_CONFIG["widgets"][name]
+
+                self.assertIn("{icon}", widget.config["label_format"])
+                self.assertTrue(widget.format_shows_icon())
+
+    def test_every_widget_drops_the_icon_without_the_field(self):
+        for name in self.WIDGETS:
+            with self.subTest(widget=name):
+                widget = ButtonWidget.__new__(ButtonWidget)
+                widget.config = {"label_format": ""}
+
+                self.assertFalse(widget.format_shows_icon())
+
+
+class LabelToggleIsGoneTest(unittest.TestCase):
+    """``label_format`` replaced the ``label`` boolean; the label is mandatory."""
+
+    WIDGETS: ClassVar = {
+        "hyprpicker": "widgets/hyprpicker.py",
+        "keyboard": "widgets/keyboard_layout.py",
+        "microphone": "widgets/microphone.py",
+        "ocr": "widgets/ocr.py",
+        "power": "widgets/power_button.py",
+        "submap": "widgets/submap.py",
+        "updates": "widgets/updates.py",
+        "bluetooth": "widgets/bluetooth.py",
+        "clipboard": "widgets/clipboard.py",
+        "emoji_picker": "widgets/emoji_picker.py",
+        "kanban": "widgets/kanban.py",
+        "overview_button": "widgets/overview_button.py",
+        "screenshot": "widgets/screenshot.py",
+        "settings": "widgets/settings.py",
+        "usb_manager": "widgets/usb_manager.py",
+        "wallpaper": "widgets/wallpaper.py",
+    }
+
+    def test_no_widget_declares_a_label_toggle(self):
+        for name in self.WIDGETS:
+            with self.subTest(widget=name):
+                config = DEFAULT_CONFIG["widgets"][name]
+
+                self.assertNotIn("label", config)
+                self.assertIn("label_format", config)
+
+    def test_no_widget_reads_the_label_toggle(self):
+        for name, path in self.WIDGETS.items():
+            with self.subTest(widget=name):
+                source = Path(path).read_text(encoding="utf-8")
+
+                self.assertNotIn('config.get("label"', source)
+
+    def test_no_widget_declares_a_label_toggle_at_all(self):
+        """Sweep every widget default: ``label`` was a bool everywhere."""
+        offenders = [
+            name
+            for name, config in DEFAULT_CONFIG["widgets"].items()
+            if isinstance(config, dict) and "label" in config
+        ]
+
+        self.assertEqual([], offenders)
 
 
 class HoverCursorTest(unittest.TestCase):

@@ -80,12 +80,14 @@ color = "#89b4fa"
 
 ```toml
 [widgets.screenshot]
+label_format = "{icon}"
 annotation = true
 
 [widgets.recorder]
 audio = true
 
 [widgets.clipboard]
+label_format = "{icon}"
 show_images = true
 
 [widgets.system_tray]

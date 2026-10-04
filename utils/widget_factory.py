@@ -85,7 +85,7 @@ class WidgetResolver:
                 identifier,
                 context,
                 "custom_button",
-                ["widgets", "custom_button_group", "buttons"],
+                ["widgets", "custom_buttons"],
                 self._instantiate_custom_button,
             ),
             "group": lambda: self._create_indexed_widget(

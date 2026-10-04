@@ -55,6 +55,20 @@ def _probe_at(moment: datetime) -> _ClockProbe:
     return probe
 
 
+class InitialRenderTest(unittest.TestCase):
+    """The widget must not sit blank waiting for the first minute tick."""
+
+    def test_the_labels_are_filled_before_the_first_timer_fires(self):
+        widget = WorldClockWidget()
+        self.addCleanup(widget.destroy)
+
+        texts = [label.get_text() for label, _tz in widget.clocks]
+
+        self.assertTrue(texts)
+        for text in texts:
+            self.assertRegex(text, r"\d{2}:\d{2}:\d{2}")
+
+
 class MinuteAlignmentTest(unittest.TestCase):
     """The tick lands on a minute boundary, not 60 s from construction."""
 

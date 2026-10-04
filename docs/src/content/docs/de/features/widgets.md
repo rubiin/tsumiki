@@ -72,7 +72,6 @@ show_current_workspace_only = false
 ```toml
 [widgets.date_time]
 clock_format = "12h"
-nepali_date = false
 
 [widgets.world_clock]
 timezones = ["America/New_York", "Asia/Tokyo"]
@@ -93,15 +92,18 @@ color = "#89b4fa"
 
 ```toml
 [widgets.screenshot]
+label_format = "{icon}"
 annotation = true
 
 [widgets.recorder]
 audio = true
 
 [widgets.clipboard]
+label_format = "{icon}"
 show_images = true
 
 [widgets.usb_manager]
+label_format = "{icon}"
 auto_refresh = true
 ```
 

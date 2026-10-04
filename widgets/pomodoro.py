@@ -329,11 +329,8 @@ class PomodoroWidget(ButtonWidget, PopoverMixin):
     def __init__(self, **kwargs):
         super().__init__(name="pomodoro", **kwargs)
 
-        self.add_panel_content(
-            self.config.get("icon", "🍅"),
-            self.config.get("label_text", "Pomo"),
-            show_label=self.config.get("label", True),
-        )
+        self.label_format = self.config.get("label_format", "{icon}")
+        self.add_formatted_label(self.label_format, self.config.get("icon", "🍅"))
 
         self.set_tooltip_if_enabled(_("widget.pomodoro.tooltip"), default=True)
 

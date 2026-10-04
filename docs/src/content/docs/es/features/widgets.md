@@ -19,7 +19,7 @@ Muestra el uso de la CPU con múltiples modos de visualización.
 
 ```toml
 [widgets.cpu]
-show_icon = true
+label_format = "{icon}"
 icon = ""
 tooltip = true
 round = true
@@ -39,7 +39,7 @@ Muestra el uso de memoria con múltiples modos de visualización.
 
 ```toml
 [widgets.memory]
-show_icon = true
+label_format = "{icon}"
 icon = ""
 tooltip = true
 mode = "label"          # "label" | "graph" | "circular"
@@ -53,7 +53,7 @@ Muestra el uso de la GPU (soporta AMD via `amdgpu` y NVIDIA via `nvidia-smi`).
 
 ```toml
 [widgets.gpu]
-show_icon = true
+label_format = "{icon}"
 icon = ""
 tooltip = true
 mode = "circular"       # "label" | "graph" | "circular"
@@ -67,7 +67,7 @@ Muestra el uso del disco para una ruta dada.
 ```toml
 [widgets.storage]
 path = "/"
-show_icon = true
+label_format = "{icon}"
 icon = "󰋊"
 mode = "label"          # "label" | "graph" | "circular"
 tooltip = true
@@ -98,17 +98,13 @@ Verifica actualizaciones de paquetes del sistema (Arch Linux, Flatpak, Snap, Hom
 
 ```toml
 [widgets.updates]
-show_icon = true
+label_format = "{icon} Updates"
 available_icon = "󰏗"
 no_updates_icon = "󰏖"
 os = "arch"
-hover_reveal = true
-reveal_duration = 500
 interval = 3600         # Intervalo de actualización en segundos
 tooltip = true
 terminal = "kitty"
-pad_zero = false
-label = true
 auto_hide = false
 flatpak = true
 snap = false
@@ -176,7 +172,7 @@ Gestiona conexiones y visibilidad Bluetooth.
 
 ```toml
 [widgets.bluetooth]
-label = true
+label_format = "{icon} Bluetooth"
 tooltip = true
 ```
 
@@ -188,9 +184,8 @@ Muestra el estado del micrófono y la opción de silenciar.
 
 ```toml
 [widgets.microphone]
-label = false
 tooltip = true
-show_icon = true
+label_format = "{icon} Mic"
 ```
 
 Haz clic para silenciar/activar el micrófono.
@@ -205,8 +200,7 @@ icon = "󰐥"
 tooltip = true
 items_per_row = 3
 icon_size = 100
-show_icon = true
-label = false
+label_format = "{icon} power"
 confirm = true
 
 [widgets.power.item_shortcuts]
@@ -236,8 +230,8 @@ Activa/desactiva el daemon de gestión de inactividad de Hyprland.
 ```toml
 [widgets.hypridle]
 enabled_icon = ""
+label_format = "{icon}"
 disabled_icon = ""
-label = true
 tooltip = true
 ```
 
@@ -249,8 +243,8 @@ Activa/desactiva el filtro de luz azul (modo nocturno) mediante Hyprsunset.
 [widgets.hyprsunset]
 temperature = "2800k"
 enabled_icon = "󱩌"
+label_format = "{icon}"
 disabled_icon = "󰛨"
-label = true
 tooltip = true
 ```
 
@@ -262,9 +256,8 @@ Selector de color que captura un color de la pantalla.
 [widgets.hyprpicker]
 icon = ""
 tooltip = true
-label = false
 quiet = false
-show_icon = true
+label_format = "{icon} picker"
 ```
 
 El color seleccionado se copia al portapapeles. En modo silencioso, no se muestra ninguna notificación.
@@ -334,8 +327,8 @@ Botón que abre la vista general/exposé de ventanas.
 ```toml
 [widgets.overview_button]
 icon = "󰡃"
+label_format = "{icon} overview"
 tooltip = true
-label = false
 ```
 
 ### Barra de Tareas
@@ -365,7 +358,6 @@ calendar = true
 clock_format = "12h"   # "12h" | "24h"
 hover_reveal = false
 reveal_duration = 500
-nepali_date = false
 
 [widgets.date_time.notification]
 enabled = true
@@ -381,7 +373,7 @@ Muestra la hora en múltiples zonas horarias.
 [widgets.world_clock]
 icon = "󰃰"
 use_24hr = true
-show_icon = true
+label_format = "{icon}"
 timezones = ["America/New_York", "Asia/Tokyo"]
 ```
 
@@ -430,11 +422,11 @@ Captura pantallas con soporte de anotaciones.
 [widgets.screenshot]
 path = "Pictures/Screenshots"
 icon = "󰄀"
+label_format = "{icon}"
 tooltip = true
 annotation = true
 delayed = false
 delayed_timeout = 5000
-label = false
 capture_sound = false
 ```
 
@@ -463,8 +455,7 @@ Extrae texto de una región de la pantalla usando Tesseract.
 [widgets.ocr]
 icon = "󰐳"
 tooltip = true
-label = false
-show_icon = true
+label_format = "{icon} Ocr"
 quiet = false
 ```
 
@@ -477,7 +468,7 @@ Historial del portapapeles con soporte de imágenes.
 ```toml
 [widgets.clipboard]
 icon = ""
-label = false
+label_format = "{icon}"
 tooltip = true
 item_tooltip = false
 show_images = true
@@ -493,7 +484,7 @@ Gestiona el montaje y expulsión de unidades USB.
 ```toml
 [widgets.usb_manager]
 icon = "󰕓"
-label = false
+label_format = "{icon}"
 tooltip = true
 ```
 
@@ -508,9 +499,8 @@ Muestra el diseño de teclado actual.
 ```toml
 [widgets.keyboard]
 icon = "󰌌"
-label = true
 tooltip = true
-show_icon = false
+label_format = ""
 ```
 
 ### Idioma
@@ -522,7 +512,7 @@ Muestra el idioma de entrada actual.
 icon = ""
 tooltip = true
 truncation_size = 2
-show_icon = false
+label_format = ""
 ```
 
 ### Submapa
@@ -532,9 +522,8 @@ Muestra el submapa de atajos de Hyprland activo.
 ```toml
 [widgets.submap]
 icon = "󰌌"
-label = true
 tooltip = true
-show_icon = false
+label_format = ""
 hide_on_default = false
 ```
 
@@ -610,7 +599,7 @@ Abre el popup de selección de fondo de pantalla.
 ```toml
 [widgets.wallpaper]
 icon = "󰸉"
-label = false
+label_format = "{icon} wallpaper"
 tooltip = true
 ```
 
@@ -622,7 +611,6 @@ Abre la GUI de configuración de la aplicación.
 [widgets.settings]
 icon = "󰒓"
 tooltip = true
-label = false
 ```
 
 ### Selector de Temas
@@ -641,8 +629,7 @@ Muestra una hoja de referencia de atajos de Hyprland con búsqueda.
 
 ```toml
 [widgets.cheatsheet]
-label = true
-label_text = "Teclas"
+label_format = "{icon}"
 tooltip = true
 title = "Hyprland Cheatsheet"
 columns = 3
@@ -657,7 +644,7 @@ Busca e inserta caracteres emoji.
 ```toml
 [widgets.emoji_picker]
 icon = ""
-label = false
+label_format = "{icon} Emoji"
 tooltip = true
 per_row = 9
 per_column = 4
@@ -670,7 +657,7 @@ Un tablero simple de gestión de tareas Kanban.
 ```toml
 [widgets.kanban]
 icon = "󱞁"
-label = false
+label_format = "{icon} Kanban"
 tooltip = true
 ```
 
@@ -681,8 +668,7 @@ Un temporizador de productividad Pomodoro.
 ```toml
 [widgets.pomodoro]
 icon = "🍅"
-label = true
-label_text = "Pomo"
+label_format = "{icon}"
 tooltip = true
 ```
 
@@ -693,8 +679,7 @@ Muestra información del repositorio de GitHub (issues, PRs).
 ```toml
 [widgets.github_tray]
 icon = ""
-label = false
-label_text = "Git"
+label_format = "{icon}"
 tooltip = true
 username = "rubiin"
 max_repos = 10
@@ -709,8 +694,7 @@ Gestiona la conexión VPN de Cloudflare WARP — conectar, desconectar y ver est
 
 ```toml
 [widgets.cloudflare_warp]
-label = false
-label_text = "WARP"
+label_format = "{icon}"
 tooltip = true
 connected_icon = ""
 disconnected_icon = ""
@@ -728,8 +712,7 @@ Cambia rápidamente entre proveedores DNS populares directamente desde la barra.
 ```toml
 [widgets.dns_switcher]
 icon = "󰚘"
-label = false
-label_text = "DNS"
+label_format = "{icon}"
 tooltip = true
 ```
 
@@ -756,8 +739,7 @@ Muestra la dirección IP actual.
 ```toml
 [widgets.ip_monitor]
 icon = "󰖟"
-label = false
-label_text = "IP"
+label_format = "{icon}"
 tooltip = true
 ```
 
@@ -787,7 +769,6 @@ Un widget guía de ejercicios de respiración.
 ```toml
 [widgets.breathe]
 icon = ""
-label = false
 tooltip = true
 ```
 

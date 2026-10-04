@@ -1,7 +1,7 @@
 import contextlib
 
 from fabric.notifications import Notification
-from fabric.utils import Gtk, bulk_connect, logger, math
+from fabric.utils import Gdk, Gtk, bulk_connect, logger, math
 from fabric.widgets.box import Box
 from fabric.widgets.button import Button
 from fabric.widgets.datetime import DateTime
@@ -763,24 +763,36 @@ class DateTimeWidget(ButtonWidget, PopoverMixin):
             self.container_box.add(self.notification_indicator)
             self.container_box.add(self.count_label)
 
-        is_nepali_time = self.config.get("nepali_date", False)
-
-        date_label = ExtendedDateTime(
-            formatters=date_format,
-            nepali_time=is_nepali_time,
-        )
+        self.date_label = ExtendedDateTime(formatters=date_format)
 
         if self.config.get("hover_reveal", True):
             self.revealer = Revealer(
-                child=date_label,
+                child=self.date_label,
                 transition_duration=self.config.get("reveal_duration", 500),
                 transition_type="slide_right",
             )
             self.container_box.add(self.revealer)
         else:
-            self.container_box.add(date_label)
+            self.container_box.add(self.date_label)
 
-        self.setup_popover(lambda: DateNotificationMenu(config=self.config))
+        self.connect("button-press-event", self.on_button_press)
+        # GtkButton activates through a gesture that ignores which button was
+        # pressed, so "clicked" fires for right click too: open the popover
+        # from the press instead, where the button is still known.
+        self.setup_popover(
+            lambda: DateNotificationMenu(config=self.config),
+            connect_clicked=False,
+        )
+
+    def on_button_press(self, _, event) -> bool:
+        """Left click opens the menu, right click swaps the calendar."""
+        if event.button == Gdk.BUTTON_SECONDARY:
+            self.date_label.toggle_calendar()
+            return True
+
+        if event.button == Gdk.BUTTON_PRIMARY:
+            self.show_popover()
+        return False
 
     def on_notification_count(self, _, value, *args):
         if value > 0:

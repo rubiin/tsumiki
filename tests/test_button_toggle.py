@@ -23,7 +23,8 @@ def _make_switcher(
     widget.tooltips_enabled = True
     widget.enabled_icon = "on"
     widget.disabled_icon = "off"
-    widget.icon = mock.Mock()
+    widget.label_format = "{icon}"
+    widget.refresh_formatted_label = mock.Mock()
     widget.label_text = mock.Mock()
     widget.get_mapped = mock.Mock(return_value=True)
     widget.toggle_css_class = mock.Mock()
@@ -49,7 +50,7 @@ class SwitcherPollTest(unittest.TestCase):
         self._tick(widget, running=True, times=10)
 
         widget.toggle_css_class.assert_called_once_with("active", True)
-        widget.icon.set_label.assert_called_once_with("on")
+        widget.refresh_formatted_label.assert_called_once_with("on")
         widget.label_text.set_label.assert_called_once()
         widget.set_tooltip_text.assert_called_once()
 
@@ -60,7 +61,7 @@ class SwitcherPollTest(unittest.TestCase):
         self._tick(widget, running=False)
 
         widget.toggle_css_class.assert_called_with("active", False)
-        widget.icon.set_label.assert_called_with("off")
+        widget.refresh_formatted_label.assert_called_with("off")
         self.assertEqual(2, widget.set_tooltip_text.call_count)
 
     def test_an_unmapped_widget_is_not_polled_at_all(self):
@@ -80,7 +81,7 @@ class SwitcherPollTest(unittest.TestCase):
 
         is_up.assert_not_called()
         widget.toggle_css_class.assert_called_once_with("active", False)
-        widget.icon.set_label.assert_called_once_with("off")
+        widget.refresh_formatted_label.assert_called_once_with("off")
         tooltip = widget.set_tooltip_text.call_args.args[0]
         self.assertTrue(tooltip.startswith("example-daemon:"), tooltip)
         self.assertNotIn("enabled", tooltip)
@@ -91,7 +92,7 @@ class SwitcherPollTest(unittest.TestCase):
         self._tick(widget, running=True, times=3)
 
         widget.label_text.set_label.assert_not_called()
-        widget.icon.set_label.assert_called_once_with("on")
+        widget.refresh_formatted_label.assert_called_once_with("on")
 
 
 if __name__ == "__main__":

@@ -4,10 +4,10 @@ from datetime import datetime
 import cairo
 from fabric.utils import GLib, Gtk
 from fabric.widgets.box import Box
+from fabric.widgets.datetime import DateTime
 
 from shared.widget_container import BaseWindow, TeardownMixin
 from utils.widget_settings import BarConfig
-from widgets.extended_datetime import ExtendedDateTime
 
 
 class CookieClockFace(Gtk.DrawingArea, TeardownMixin):
@@ -459,21 +459,15 @@ class DesktopClock(BaseWindow):
         else:
             date_format = self.config.get("date_format", "%Y-%m-%d")
 
-            is_nepali_time = self.config.get("nepali_date", False)
-
             child = Box(
                 name="desktop-clock-box",
                 orientation="v",
                 children=[
-                    ExtendedDateTime(
+                    DateTime(
                         formatters=[self.config.get("time_format", "%H:%M:%S")],
-                        nepali_time=is_nepali_time,
                         name="clock",
                     ),
-                    ExtendedDateTime(
-                        formatters=date_format,
-                        nepali_time=is_nepali_time,
-                    ),
+                    DateTime(formatters=date_format),
                 ],
             )
 

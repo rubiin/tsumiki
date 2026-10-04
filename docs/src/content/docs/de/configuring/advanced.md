@@ -88,44 +88,17 @@ right_section = ["@collapsible:utility-tools", "system_tray"]
 
 ```
 
-## Benutzerdefinierter Button
-
-Ein eigenständiger benutzerdefinierter Button, der beim Klicken einen Shell-Befehl ausführt. Referenzieren Sie ihn direkt mit seinem Namen in einem Layout-Abschnitt.
-
-```toml
-[widgets.custom_button]
-command = "firefox"
-icon = "󰈹"
-label_text = "Firefox"
-tooltip_text = "Firefox Browser öffnen"
-show_icon = true
-label = false
-tooltip = true
-```
-
-Platzieren Sie ihn wie jedes normale Widget im Layout:
-
-```toml
-[layout]
-left_section = ["custom_button", "workspaces"]
-```
-
 ## Benutzerdefinierte Button-Gruppe
 
 Eine Gruppe von benutzerdefinierten Befehls-Buttons. Jeder Button in der Gruppe kann über `@custom_button:N` oder `@custom_button:id` referenziert werden:
 
 ```toml
-[widgets.custom_button_group]
-spacing = 4
-
-[[widgets.custom_button_group.buttons]]
+[[widgets.custom_buttons]]
 id = "firefox"
 command = "firefox"
 icon = "󰈹"
-label_text = "Firefox"
 tooltip_text = "Firefox Browser öffnen"
-show_icon = true
-label = false
+label_format = "{icon}"
 tooltip = true
 
 [layout]

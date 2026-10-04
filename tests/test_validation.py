@@ -22,6 +22,7 @@ from utils.validation import (
     validate_format_strings,
     validate_widget_reference,
     validate_widgets,
+    warn_deprecated_show_icon,
 )
 
 
@@ -258,9 +259,13 @@ class GetConfigCollectionTest(unittest.TestCase):
     """Test _get_config_collection dispatcher for different widget types."""
 
     def test_custom_button(self):
-        data = {"widgets": {"custom_button_group": {"buttons": [{"id": "b1"}]}}}
+        data = {"widgets": {"custom_buttons": [{"id": "b1"}]}}
         result = _get_config_collection(data, "custom_button")
         self.assertEqual(result, [{"id": "b1"}])
+
+    def test_custom_button_without_a_collection_is_empty(self):
+        data = {"widgets": {}}
+        self.assertEqual(_get_config_collection(data, "custom_button"), [])
 
     def test_group(self):
         data = {"widget_groups": [{"id": "g1"}]}
@@ -427,6 +432,86 @@ class ValidateFormatStringsTest(unittest.TestCase):
         mock_logger.warning.assert_called()
         msg = mock_logger.warning.call_args[0][0]
         self.assertIn("invalid format", msg)
+
+    def test_icon_only_widgets_accept_the_icon_field(self):
+        validate_format_strings({"widgets": {"keyboard": {"label_format": "{icon}"}}})
+
+    @mock.patch("utils.validation.logger")
+    def test_icon_only_widgets_reject_other_fields(self, mock_logger):
+        validate_format_strings({"widgets": {"keyboard": {"label_format": "{count}"}}})
+        msg = mock_logger.warning.call_args[0][0]
+        self.assertIn("widgets.keyboard.label_format", msg)
+
+    @mock.patch("utils.validation.logger")
+    def test_the_cheatsheet_only_takes_the_icon_field(self, mock_logger):
+        validate_format_strings(
+            {"widgets": {"cheatsheet": {"label_format": "{label}"}}}
+        )
+        msg = mock_logger.warning.call_args[0][0]
+        self.assertIn("widgets.cheatsheet.label_format", msg)
+
+    @mock.patch("utils.validation.logger")
+    def test_the_icon_gated_widgets_reject_other_fields(self, mock_logger):
+        for name in (
+            "dns_switcher",
+            "pomodoro",
+            "cloudflare_warp",
+            "github_tray",
+            "bluetooth",
+            "clipboard",
+            "emoji_picker",
+            "hypridle",
+            "hyprsunset",
+            "kanban",
+            "overview_button",
+            "screenshot",
+            "usb_manager",
+            "wallpaper",
+        ):
+            with self.subTest(widget=name):
+                validate_format_strings(
+                    {"widgets": {name: {"label_format": "{count}"}}}
+                )
+                msg = mock_logger.warning.call_args[0][0]
+                self.assertIn(f"widgets.{name}.label_format", msg)
+
+
+class WarnDeprecatedShowIconTest(unittest.TestCase):
+    """``show_icon`` is no longer read, so a config still setting it must say so."""
+
+    @mock.patch("utils.validation.logger")
+    def test_a_widget_still_setting_show_icon_warns(self, mock_logger):
+        warn_deprecated_show_icon({"widgets": {"keyboard": {"show_icon": False}}})
+
+        msg = mock_logger.warning.call_args[0][0]
+        self.assertIn("widgets.keyboard.show_icon", msg)
+        self.assertIn("label_format", msg)
+
+    @mock.patch("utils.validation.logger")
+    def test_a_config_without_show_icon_is_silent(self, mock_logger):
+        warn_deprecated_show_icon({"widgets": {"keyboard": {"label_format": "{icon}"}}})
+
+        mock_logger.warning.assert_not_called()
+
+    @mock.patch("utils.validation.logger")
+    def test_a_non_dict_widget_entry_is_skipped(self, mock_logger):
+        warn_deprecated_show_icon({"widgets": {"custom_widget": []}})
+
+        mock_logger.warning.assert_not_called()
+
+    @mock.patch("utils.validation.logger")
+    def test_a_custom_button_still_setting_show_icon_warns(self, mock_logger):
+        """The regression: custom_buttons is a list, not a widget dict."""
+        warn_deprecated_show_icon(
+            {
+                "widgets": {
+                    "custom_buttons": [{"id": "a"}, {"id": "b", "show_icon": False}]
+                }
+            }
+        )
+
+        msg = mock_logger.warning.call_args[0][0]
+        self.assertIn("widgets.custom_buttons[1].show_icon", msg)
 
 
 class ValidateWidgetsTest(unittest.TestCase):

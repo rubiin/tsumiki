@@ -124,6 +124,46 @@ interval = 600
 enabled = false
 size = 20
 
+# --- Keymap cheatsheet ---
+# A centered overlay listing the sections below. Sections flow into the
+# shortest column, so the order of `sections` decides where each one lands.
+[modules.cheatsheet]
+enabled = false
+layer = "overlay"
+anchor = "top center"
+title = "Hyprland Keymap"
+columns = 4
+groups_per_page = 4   # Sections per page; extra sections spill onto the next page
+column_width = 300   # Fixed column width in px
+key_width = 190       # Key badge column width in px, so descriptions line up
+accent_keys = ["super"]
+
+[[modules.cheatsheet.sections]]
+title = "Window Management"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "F"]
+description = "Fullscreen (with bar)"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "Shift", "F"]
+description = "Fullscreen (pure)"
+
+[[modules.cheatsheet.sections.rows]]
+keys = "Super Q"       # A spaced string works too
+description = "Floating Mode"
+
+[[modules.cheatsheet.sections]]
+title = "Moving Windows"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "Shift", "LEFT"]
+description = "Move Left"
+
+[[modules.cheatsheet.sections.rows]]
+keys = ["Super", "Shift", "DOWN"]
+description = "Move Down"
+
 # ── Widgets ──────────────────────────────────────────
 
 # --- Workspaces ---
@@ -153,7 +193,6 @@ calendar = true
 clock_format = "12h"              # "12h" | "24h"
 hover_reveal = false
 reveal_duration = 500
-nepali_date = true
 
 [widgets.date_time.notification]
 enabled = true
@@ -261,7 +300,7 @@ icon_size = 18
 
 # --- CPU ---
 [widgets.cpu]
-show_icon = true
+label_format = "{icon}"
 icon = ""
 tooltip = true
 mode = "circular"                 # "label" | "graph" | "circular"
@@ -270,7 +309,7 @@ temperature_unit = "celsius"
 
 # --- Memory ---
 [widgets.memory]
-show_icon = true
+label_format = "{icon}"
 icon = ""
 tooltip = true
 mode = "circular"
@@ -278,7 +317,7 @@ unit = "gb"
 
 # --- Updates ---
 [widgets.updates]
-show_icon = true
+label_format = "{icon} Updates"
 available_icon = "󰏗"
 no_updates_icon = "󰏖"
 os = "arch"
@@ -286,7 +325,6 @@ interval = 3600
 tooltip = true
 terminal = "kitty"
 flatpak = true
-label = true
 
 # --- Weather ---
 [widgets.weather]
@@ -313,7 +351,7 @@ hide_when_no_player = true
 
 # --- Bluetooth ---
 [widgets.bluetooth]
-label = true
+label_format = "{icon} Bluetooth"
 tooltip = true
 
 # --- Brightness ---
@@ -323,14 +361,13 @@ step_size = 5
 
 # --- Microphone ---
 [widgets.microphone]
-label = false
 tooltip = true
-show_icon = true
+label_format = "{icon} Mic"
 
 # --- Clipboard ---
 [widgets.clipboard]
 icon = ""
-label = false
+label_format = "{icon} Clip"
 tooltip = true
 show_images = true
 enable_pinning = true
@@ -338,14 +375,13 @@ enable_pinning = true
 # --- Wallpaper ---
 [widgets.wallpaper]
 icon = "󰸉"
-label = false
+label_format = "{icon} wallpaper"
 tooltip = true
 
 # --- Settings ---
 [widgets.settings]
 icon = "󰒓"
 tooltip = true
-label = false
 
 # --- Theme Switcher ---
 [widgets.theme_switcher]
@@ -355,7 +391,7 @@ notify = false
 # --- Emoji Picker ---
 [widgets.emoji_picker]
 icon = ""
-label = false
+label_format = "{icon} Emoji"
 tooltip = true
 per_row = 9
 per_column = 4
@@ -364,6 +400,7 @@ per_column = 4
 [widgets.screenshot]
 path = "Pictures/Screenshots"
 icon = "󰄀"
+label_format = "{icon} screenshot"
 tooltip = true
 annotation = true
 
@@ -381,35 +418,30 @@ tooltip = true
 # --- Workspace Overview Button ---
 [widgets.overview_button]
 icon = "󰡃"
+label_format = "{icon} overview"
 tooltip = true
-label = false
 
 # --- Submap Indicator ---
 [widgets.submap]
 icon = "󰌌"
-label = true
 tooltip = true
-show_icon = false
+label_format = ""
 hide_on_default = false
 
 # --- World Clock ---
 [widgets.world_clock]
 icon = "󰃰"
 use_24hr = true
-show_icon = true
+label_format = "{icon}"
 timezones = ["America/New_York", "Asia/Tokyo"]
 
-# --- Custom Button Group ---
-[widgets.custom_button_group]
-spacing = 4
-
-[[widgets.custom_button_group.buttons]]
+# --- Custom Buttons ---
+[[widgets.custom_buttons]]
+id = "firefox"
 command = "firefox"
 icon = "󰈹"
-label_text = "Firefox"
 tooltip_text = "Open Firefox Browser"
-show_icon = true
-label = true
+label_format = "{icon}"
 tooltip = true
 
 # ── Matugen Theme Generation ─────────────────────────

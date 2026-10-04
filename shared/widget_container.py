@@ -22,6 +22,21 @@ def _source_is_alive(source_id: int) -> bool:
     return GLib.MainContext.default().find_source_by_id(source_id) is not None
 
 
+def format_panel_label(template: str, glyph: str = "", **fields: str) -> str:
+    """Render a ``label_format`` template into one panel label's markup.
+
+    ``{icon}`` expands to *glyph*, so a widget's icon and text share a single
+    label the way ``battery`` and ``window_count`` do. Whitespace left behind
+    by a field that rendered empty does not become a gap.
+    """
+    try:
+        markup = template.format(icon=glyph, **fields)
+    except (IndexError, KeyError):
+        # An unknown field must not take the bar down with it.
+        markup = template
+    return " ".join(markup.split())
+
+
 class TeardownMixin:
     """Track GLib timers and signal handlers so ``destroy`` can remove them.
 
@@ -244,6 +259,17 @@ class BaseWidget(Widget, TeardownMixin):
         self.general_config: dict = tsumiki_config.get("general", {})
         self.tooltips_enabled = self.general_config.get("tooltips", True)
 
+    def format_shows_icon(
+        self, key: str = "label_format", default: str = "{icon}"
+    ) -> bool:
+        """True when the widget's format string asks for the ``{icon}`` field.
+
+        Replaces the old ``show_icon`` toggle: an icon is rendered when the
+        format string mentions ``{icon}``, and dropped when it does not.
+        """
+        label_format = self.config.get(key, default)
+        return isinstance(label_format, str) and "{icon}" in label_format
+
     def _connect_hover_reveal(self) -> None:
         if not self.config.get("hover_reveal", True):
             return
@@ -268,6 +294,17 @@ class BaseWidget(Widget, TeardownMixin):
 
     def set_active_style(self, action: bool, *_) -> None:
         self.set_style_classes("") if not action else self.set_style_classes("active")
+
+    def _sync_hover_cursor(self, *_):
+        """Point at a hand while prelit, and back to the default after.
+
+        Goes through the guarded helper: the bare widget setter rebuilds a
+        Gdk.Cursor per call and raises before the widget has a window.
+        """
+        from utils.widget_utils import set_cursor
+
+        hovered = bool(self.get_state_flags() & Gtk.StateFlags.PRELIGHT)
+        set_cursor(self, "pointer" if hovered else "default")
 
     def set_tooltip_if_enabled(self, text: str, default: bool = False) -> None:
         """Set tooltip text only when tooltips are enabled.
@@ -340,20 +377,9 @@ class ButtonWidget(Button, BaseWidget):
 
         self.connect("state-flags-changed", self._sync_hover_cursor)
 
-    def _sync_hover_cursor(self, *_):
-        """Point at a hand while prelit, and back to the default after.
-
-        Goes through the guarded helper: the bare widget setter rebuilds a
-        Gdk.Cursor per call and raises before the widget has a window.
-        """
-        from utils.widget_utils import set_cursor
-
-        hovered = bool(self.get_state_flags() & Gtk.StateFlags.PRELIGHT)
-        set_cursor(self, "pointer" if hovered else "default")
-
     def add_panel_content(
         self,
-        icon: str | Widget,
+        icon: str | Widget | None,
         label: str | Widget | None = None,
         *,
         show_label: bool = True,
@@ -361,15 +387,19 @@ class ButtonWidget(Button, BaseWidget):
         """Fill the container box with the panel icon and an optional label.
 
         Either argument may be an already-built widget that updates its own text.
+        A *None* icon leaves the label as the only panel content.
         """
         # Deferred: this module must import without the user's config.
         from utils.widget_utils import nerd_font_icon
 
-        self.container_box.children = (
-            icon
-            if isinstance(icon, Widget)
-            else nerd_font_icon(icon=icon, props={"style_classes": ["panel-font-icon"]})
-        )
+        if icon is None:
+            self.container_box.children = ()
+        elif isinstance(icon, Widget):
+            self.container_box.children = (icon,)
+        else:
+            self.container_box.children = (
+                nerd_font_icon(icon=icon, props={"style_classes": ["panel-font-icon"]}),
+            )
 
         if show_label and label is not None:
             self.container_box.add(
@@ -377,6 +407,25 @@ class ButtonWidget(Button, BaseWidget):
                 if isinstance(label, Widget)
                 else Label(label=label, style_classes="panel-text")
             )
+
+    def add_formatted_label(
+        self, template: str, glyph: str = "", **fields: str
+    ) -> Label:
+        """Add the single panel label that ``label_format`` drives.
+
+        *glyph* fills ``{icon}`` and *fields* the widget's own placeholders, so
+        icon and text share one label instead of two sibling widgets. The
+        ``panel-format`` class is what per-widget icon sizing keys off now.
+        """
+        self.panel_label = Label(style_classes=["panel-text", "panel-format"])
+        self.container_box.add(self.panel_label)
+        self.refresh_formatted_label(glyph, **fields)
+        return self.panel_label
+
+    def refresh_formatted_label(self, glyph: str = "", **fields: str) -> None:
+        """Re-render the panel label after the widget's state changed."""
+        template = getattr(self, "label_format", "{icon}")
+        self.panel_label.set_markup(format_panel_label(template, glyph, **fields))
 
 
 class WidgetGroup(BoxWidget):

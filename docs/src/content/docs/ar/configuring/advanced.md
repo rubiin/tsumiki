@@ -88,44 +88,17 @@ right_section = ["@collapsible:utility-tools", "system_tray"]
 
 ```
 
-## زر مخصص
-
-زر مخصص مستقل يقوم بتشغيل أمر shell عند النقر عليه. أشر إليه مباشرة باسمه في قسم التخطيط.
-
-```toml
-[widgets.custom_button]
-command = "firefox"
-icon = "󰈹"
-label_text = "Firefox"
-tooltip_text = "فتح متصفح فايرفوكس"
-show_icon = true
-label = false
-tooltip = true
-```
-
-ضعه في التخطيط مثل أي ويدجت عادية:
-
-```toml
-[layout]
-left_section = ["custom_button", "workspaces"]
-```
-
 ## مجموعة أزرار مخصصة
 
 مجموعة من أزرار الأوامر المخصصة. يمكن الإشارة إلى كل زر في المجموعة عبر `@custom_button:N` أو `@custom_button:id` :
 
 ```toml
-[widgets.custom_button_group]
-spacing = 4
-
-[[widgets.custom_button_group.buttons]]
+[[widgets.custom_buttons]]
 id = "firefox"
 command = "firefox"
 icon = "󰈹"
-label_text = "Firefox"
 tooltip_text = "فتح متصفح فايرفوكس"
-show_icon = true
-label = false
+label_format = "{icon}"
 tooltip = true
 
 [layout]

@@ -360,9 +360,7 @@ query {
             node = data.get(alias) or {}
             runs = (node.get("workflowRuns") or {}).get("nodes") or []
             if runs:
-                workflows[full_name] = [
-                    self._shape_run(run, full_name) for run in runs
-                ]
+                workflows[full_name] = [self._shape_run(run, full_name) for run in runs]
         return {
             "user": {
                 "login": viewer.get("login") or username_fallback,
@@ -563,6 +561,4 @@ query {
 
     def rerun_failed_jobs(self, full_name: str, run_id: str) -> None:
         # GitHub accepts an empty POST body for this endpoint.
-        self._rest(
-            "POST", f"repos/{full_name}/actions/runs/{run_id}/rerun-failed-jobs"
-        )
+        self._rest("POST", f"repos/{full_name}/actions/runs/{run_id}/rerun-failed-jobs")

@@ -103,44 +103,17 @@ right_section = ["@collapsible:utility-tools", "system_tray"]
 
 ```
 
-## Custom Button
+## Custom Buttons
 
-A single standalone custom button that executes a shell command when clicked. Reference it directly by name in a layout section.
-
-```toml
-[widgets.custom_button]
-command = "firefox"
-icon = "󰈹"
-label_text = "Firefox"
-tooltip_text = "Open Firefox Browser"
-show_icon = true
-label = false
-tooltip = true
-```
-
-Place it in the layout like any regular widget:
+Custom command buttons. Each button is referenced via `@custom_button:id` or `@custom_button:N`. Place several in a [widget group](#widget-groups) when you want shared spacing and styling.
 
 ```toml
-[layout]
-left_section = ["custom_button", "workspaces"]
-```
-
-## Custom Button Group
-
-A group of custom command buttons. Each button in the group can be referenced via `@custom_button:N` or `@custom_button:id`:
-
-```toml
-[widgets.custom_button_group]
-spacing = 4
-
-[[widgets.custom_button_group.buttons]]
+[[widgets.custom_buttons]]
 id = "firefox"
 command = "firefox"
 icon = "󰈹"
-label_text = "Firefox"
 tooltip_text = "Open Firefox Browser"
-show_icon = true
-label = false
+label_format = "{icon}"
 tooltip = true
 
 [layout]

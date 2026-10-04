@@ -347,8 +347,11 @@
 }
 
 /// Mixin for nerd icon sizing used in multiple files
+/// Panel widgets render icon and text in one label, so `label.panel-format`
+/// carries the glyph for those and `#nerd-icon.panel-font-icon` for the rest.
 @mixin nerd-icon($size: null, $spacing: null) {
-  #nerd-icon.panel-font-icon {
+  #nerd-icon.panel-font-icon,
+  label.panel-format {
     @if $size {
       font-size: $size;
     }

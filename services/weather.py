@@ -321,9 +321,7 @@ class WeatherService(SingletonService):
                         with suppress(OSError, PermissionError):
                             os.remove(WEATHER_CACHE_FILE)
             except (OSError, PermissionError, ValueError) as e:
-                logger.warning(
-                    f"Failed to read cache file, will fetch fresh data: {e}"
-                )
+                logger.warning(f"Failed to read cache file, will fetch fresh data: {e}")
                 # Remove corrupted cache file
                 with suppress(OSError, PermissionError):
                     os.remove(WEATHER_CACHE_FILE)

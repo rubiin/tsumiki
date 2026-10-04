@@ -88,44 +88,17 @@ right_section = ["@collapsible:utility-tools", "system_tray"]
 
 ```
 
-## Özel Buton
-
-Tıklandığında bir shell komutu çalıştıran bağımsız bir özel buton. Bir düzen bölümünde doğrudan adıyla referans verin.
-
-```toml
-[widgets.custom_button]
-command = "firefox"
-icon = "󰈹"
-label_text = "Firefox"
-tooltip_text = "Firefox Tarayıcısını Aç"
-show_icon = true
-label = false
-tooltip = true
-```
-
-Herhangi bir normal widget gibi düzene yerleştirin:
-
-```toml
-[layout]
-left_section = ["custom_button", "workspaces"]
-```
-
 ## Özel Buton Grubu
 
 Özel komut butonlarından oluşan bir grup. Gruptaki her butona `@custom_button:N` veya `@custom_button:id` ile referans verilebilir:
 
 ```toml
-[widgets.custom_button_group]
-spacing = 4
-
-[[widgets.custom_button_group.buttons]]
+[[widgets.custom_buttons]]
 id = "firefox"
 command = "firefox"
 icon = "󰈹"
-label_text = "Firefox"
 tooltip_text = "Firefox Tarayıcısını Aç"
-show_icon = true
-label = false
+label_format = "{icon}"
 tooltip = true
 
 [layout]

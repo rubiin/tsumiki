@@ -13,11 +13,8 @@ class ScreenShotWidget(ButtonWidget):
 
         self.recorder_service = None
 
-        self.add_panel_content(
-            self.config.get("icon"),
-            _("widget.screenshot.label"),
-            show_label=self.config.get("label", True),
-        )
+        self.label_format = self.config.get("label_format", "{icon} screenshot")
+        self.add_formatted_label(self.label_format, self.config.get("icon", ""))
 
         self.set_tooltip_if_enabled(_("widget.screenshot.tooltip"))
 

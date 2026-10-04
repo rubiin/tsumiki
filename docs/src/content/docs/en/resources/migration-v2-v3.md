@@ -110,17 +110,17 @@ Add the ones you actually use, for example:
 [widgets.settings]
 icon = "󰒓"
 tooltip = true
-label = false
+label_format = "{icon} Settings"
 
 [widgets.wallpaper]
 icon = "󰸉"
-label = false
+label_format = "{icon} wallpaper"
 tooltip = true
 
 [widgets.overview_button]
 icon = "󰡃"
+label_format = "{icon} overview"
 tooltip = true
-label = false
 ```
 
 ### 7. Update Matugen theming (if used)

@@ -6,11 +6,18 @@ from nepali.datetime import nepalidatetime
 
 
 class ExtendedDateTime(DateTime):
-    """DateTime that renders in the Nepali (Bikram Sambat) calendar."""
+    """DateTime that can render the Nepali (Bikram Sambat) calendar.
 
-    def __init__(self, nepali_time: bool = False, **kwargs):
-        self._nepali_time = nepali_time
-        super().__init__(**kwargs)
+    Starts on the Gregorian calendar; ``toggle_calendar`` flips it.
+    """
+
+    _nepali_time = False
+
+    def toggle_calendar(self) -> bool:
+        """Flip between the Gregorian and the Nepali calendar."""
+        self._nepali_time = not self._nepali_time
+        self.do_update_label()
+        return self._nepali_time
 
     def do_format(self) -> str:
         if self._nepali_time:

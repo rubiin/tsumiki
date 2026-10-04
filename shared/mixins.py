@@ -162,10 +162,7 @@ class StatDisplayMixin:
 
     def _setup_progress_mode(self, container) -> None:
         """Setup circular progress bar display mode."""
-        self.icon = nerd_font_icon(
-            icon=self.config.get("icon", self._stat_icon),
-            props={"style_classes": ["panel-font-icon"]},
-        )
+        self.icon = self._build_stat_icon()
 
         self.progress_bar = create_progress(name="stat-circle", child=self.icon)
 
@@ -173,16 +170,23 @@ class StatDisplayMixin:
 
     def _setup_label_mode(self, container) -> None:
         """Setup text label display mode with icon."""
-        self.icon = nerd_font_icon(
-            icon=self.config.get("icon", self._stat_icon),
-            props={"style_classes": ["panel-font-icon"]},
-        )
+        self.icon = self._build_stat_icon()
 
         self.level_label = Label(
             label="0%",
             style_classes="panel-text",
         )
-        container.children = (self.icon, self.level_label)
+        container.children = ((self.icon,) if self.icon else ()) + (self.level_label,)
+
+    def _build_stat_icon(self):
+        """The stat icon, or *None* when the format string omits ``{icon}``."""
+        if not self.format_shows_icon():
+            return None
+
+        return nerd_font_icon(
+            icon=self.config.get("icon", self._stat_icon),
+            props={"style_classes": ["panel-font-icon"]},
+        )
 
     def update_stat_display(self, value: float, label_text: str) -> None:
         """Update the stat display based on current mode.

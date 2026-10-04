@@ -88,44 +88,17 @@ right_section = ["@collapsible:utility-tools", "system_tray"]
 
 ```
 
-## Bouton Personnalisé
-
-Un bouton personnalisé autonome qui exécute une commande shell lorsqu'il est cliqué. Référencez-le directement par son nom dans une section de disposition.
-
-```toml
-[widgets.custom_button]
-command = "firefox"
-icon = "󰈹"
-label_text = "Firefox"
-tooltip_text = "Ouvrir le navigateur Firefox"
-show_icon = true
-label = false
-tooltip = true
-```
-
-Placez-le dans la disposition comme n'importe quel widget classique :
-
-```toml
-[layout]
-left_section = ["custom_button", "workspaces"]
-```
-
 ## Groupe de Boutons Personnalisés
 
 Un groupe de boutons de commande personnalisés. Chaque bouton du groupe peut être référencé via `@custom_button:N` ou `@custom_button:id` :
 
 ```toml
-[widgets.custom_button_group]
-spacing = 4
-
-[[widgets.custom_button_group.buttons]]
+[[widgets.custom_buttons]]
 id = "firefox"
 command = "firefox"
 icon = "󰈹"
-label_text = "Firefox"
 tooltip_text = "Ouvrir le navigateur Firefox"
-show_icon = true
-label = false
+label_format = "{icon}"
 tooltip = true
 
 [layout]

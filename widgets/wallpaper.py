@@ -14,12 +14,8 @@ class WallpaperWidget(ButtonWidget):
         # Optional tooltip
         self.set_tooltip_if_enabled(_("widget.wallpaper.tooltip"))
 
-        # Add icon
-        self.add_panel_content(
-            cfg.get("icon"),
-            _("widget.wallpaper.label"),
-            show_label=cfg.get("label", True),
-        )
+        self.label_format = cfg.get("label_format", "{icon} wallpaper")
+        self.add_formatted_label(self.label_format, cfg.get("icon", ""))
 
         # Lazy-init wallpaper popup
         self._wallpaper_popup = None

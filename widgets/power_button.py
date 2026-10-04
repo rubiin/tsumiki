@@ -12,7 +12,6 @@ from shared.popup import PopupWindow
 from shared.widget_container import ButtonWidget
 from utils.constants import ASSETS_DIR
 from utils.i18n import _
-from utils.widget_utils import nerd_font_icon
 
 
 class PowerMenuPopup(PopupWindow):
@@ -288,16 +287,8 @@ class PowerWidget(ButtonWidget):
 
         self.popup = None
 
-        if self.config.get("show_icon", True):
-            # Create a TextIcon with the specified icon and size
-            self.icon = nerd_font_icon(
-                icon=self.config.get("icon"),
-                props={"style_classes": ["panel-font-icon"]},
-            )
-            self.container_box.add(self.icon)
-
-        if self.config.get("label", True):
-            self.container_box.add(Label(label="power", style_classes="panel-text"))
+        self.label_format = self.config.get("label_format", "{icon} power")
+        self.add_formatted_label(self.label_format, self.config.get("icon", ""))
 
         self.set_tooltip_if_enabled(_("widget.power.tooltip"))
 

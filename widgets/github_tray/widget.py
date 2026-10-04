@@ -23,7 +23,6 @@ from shared.widget_container import ButtonWidget
 from utils.constants import APP_DATA_DIRECTORY
 from utils.functions import get_http_client, send_notification
 from utils.i18n import _
-from utils.widget_utils import nerd_font_icon
 
 from . import state as tray_state
 from .client import GitHubClient, GitHubClientError
@@ -114,19 +113,11 @@ class GitHubTrayWidget(ButtonWidget, PopoverMixin):
             spacing=0,
             style_classes="github-tray-bar-content",
         )
-        content.add(
-            nerd_font_icon(
-                icon=self.config.get("icon", BRAND_GLYPH),
-                props={"style_classes": ["panel-font-icon"]},
-            )
+        self.label_format = self.config.get("label_format", "{icon}")
+        self.add_formatted_label(
+            self.label_format, self.config.get("icon", BRAND_GLYPH)
         )
-        if self.config.get("label", False):
-            content.add(
-                Label(
-                    label=self.config.get("label_text", "GitHub"),
-                    style_classes="panel-text",
-                )
-            )
+        content.add(self.panel_label)
 
         # Sibling of the icon, not an Overlay: negative margins pull it over the glyph.
         self.badge_label = Label(

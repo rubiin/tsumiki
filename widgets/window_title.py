@@ -1,7 +1,7 @@
 from fabric.hyprland.widgets import HyprlandActiveWindow
 from fabric.utils import FormattedString, logger, re, truncate
 
-from shared.widget_container import ButtonWidget
+from shared.widget_container import BaseWidget
 from utils.constants import WINDOW_TITLE_MAP
 
 # Pre-compile WINDOW_TITLE_MAP at module load, capped to bound custom patterns.
@@ -9,29 +9,53 @@ _COMPILED_PATTERNS: dict[str, re.Pattern | None] = {}
 _MAX_COMPILED_PATTERNS = 50
 
 
-class WindowTitleWidget(ButtonWidget):
+class WindowTitleWidget(HyprlandActiveWindow, BaseWidget):
     """a widget that displays the title of the active window."""
 
     def __init__(self, **kwargs):
-        super().__init__(name="window_title", **kwargs)
-
-        active_window = HyprlandActiveWindow
-
-        # Create an ActiveWindow widget to track the active window
-        self.active_window = active_window(
-            name="window",
+        # Read config first: the parent's initial window sync formats its label
+        # through ``_get_title``, which needs the widget config already in place.
+        self._init_widget_settings("window_title")
+        super().__init__(
+            name="window_title",
+            style_classes="panel-button",
             formatter=FormattedString(
                 "{ get_title(win_title, win_class) }",
                 get_title=self._get_title,
             ),
+            **kwargs,
         )
+        self._connect_hover_reveal()
+        self.connect("state-flags-changed", self._sync_hover_cursor)
 
-        # Add the ActiveWindow widget as a child
-        self.container_box.children = self.active_window
+        self.connect("notify::label", lambda *_: self._sync_occupancy())
+        self._sync_occupancy()
+
+    def _sync_occupancy(self) -> None:
+        """Collapse the button while the active workspace holds no window.
+
+        An empty label still carries the ``.panel-button`` padding and
+        background, so a workspace with nothing focused left a blank pill on
+        the bar.
+        """
+        self.set_visible(bool(self.get_label()))
+
+    def _set_tooltip(self, text: str | None) -> None:
+        """Write or clear the tooltip so it never outlives its window.
+
+        ``set_tooltip_if_enabled`` skips the write when tooltips are switched
+        off, which is right for setting text but would leave a stale title in
+        place once the workspace runs out of windows.
+        """
+        if text is None:
+            self.set_tooltip_text(None)
+        else:
+            self.set_tooltip_if_enabled(text, default=True)
 
     def _get_title(self, win_title: str, win_class: str):
         # Fabric reports "unknown" when j/activewindow has no class key.
         if not win_class or win_class == "unknown":
+            self._set_tooltip(None)
             return ""
 
         mappings_enabled = self.config.get("mappings", True)
@@ -39,13 +63,13 @@ class WindowTitleWidget(ButtonWidget):
         trunc_size = self.config.get("truncation_size", 50)
 
         if not mappings_enabled:
+            self._set_tooltip(win_title)
             return truncate(win_title, trunc_size) if trunc else win_title
 
         custom_map = self.config.get("title_map", [])
         icon_enabled = self.config.get("icon", True)
 
-        if self.config.get("tooltip", True) and self.tooltips_enabled:
-            self.set_tooltip_text(win_title)
+        self._set_tooltip(win_title)
 
         win_title = truncate(win_title, trunc_size) if trunc else win_title
         merged_titles = WINDOW_TITLE_MAP + (

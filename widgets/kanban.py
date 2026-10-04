@@ -419,10 +419,9 @@ class KanbanWidget(ButtonWidget, PopoverMixin):
     def __init__(self, **kwargs):
         super().__init__(name="kanban", **kwargs)
 
-        self.add_panel_content(
-            self.config.get("icon", "󰒲"),
-            _("widget.kanban.label"),
-            show_label=self.config.get("label", True),
+        self.label_format = self.config.get("label_format", "{icon} Kanban")
+        self.add_formatted_label(
+            self.label_format, self.config.get("icon", "\U000f1781")
         )
 
         self.set_tooltip_if_enabled(_("widget.kanban.tooltip"))

@@ -1,9 +1,6 @@
 """Custom button widgets for executing shell commands."""
 
 from fabric.utils import exec_shell_command_async
-from fabric.widgets.label import Label
-
-from utils.widget_utils import nerd_font_icon
 
 from .widget_container import ButtonWidget
 
@@ -27,21 +24,9 @@ class CustomButtonWidget(ButtonWidget):
                 f"Custom button '{widget_name}' requires a 'command' in config"
             )
 
-        # Setup icon if specified
-        if self.config.get("show_icon", True):
-            icon = self.config.get("icon")
-            if icon:
-                self.icon = nerd_font_icon(
-                    icon=icon,
-                    props={"style_classes": ["panel-font-icon"]},
-                )
-                self.container_box.add(self.icon)
-
-        # Setup label if specified
-        if self.config.get("label", True):
-            label_text = self.config.get("label_text", "Button")
-            self.label = Label(label=label_text, style_classes="panel-text")
-            self.container_box.add(self.label)
+        # One label carries the icon, and whatever literal text the format adds.
+        self.label_format = self.config.get("label_format", "{icon}")
+        self.add_formatted_label(self.label_format, self.config.get("icon", ""))
 
         # Connect click handler
         self.connect("clicked", self.on_click)

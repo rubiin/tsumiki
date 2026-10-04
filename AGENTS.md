@@ -463,12 +463,12 @@ task done while checks are failing.
 
 Four special widget types support `@type:id` references in the layout:
 
-| Layout reference  | Config key                                | Collection path                                     |
-| ----------------- | ----------------------------------------- | --------------------------------------------------- |
-| `@collapsible:`   | `[[collapsible_groups]]`                  | `parsed_data.collapsible_groups[]`                  |
-| `@group:`         | `[[widget_groups]]`                       | `parsed_data.widget_groups[]`                       |
-| `@custom_button:` | `[[widgets.custom_button_group.buttons]]` | `parsed_data.widgets.custom_button_group.buttons[]` |
-| `@custom_widget:` | `[[widgets.custom_widget]]`               | `parsed_data.widgets.custom_widget[]`               |
+| Layout reference  | Config key                   | Collection path                        |
+| ----------------- | ---------------------------- | -------------------------------------- |
+| `@collapsible:`   | `[[collapsible_groups]]`     | `parsed_data.collapsible_groups[]`     |
+| `@group:`         | `[[widget_groups]]`          | `parsed_data.widget_groups[]`          |
+| `@custom_button:` | `[[widgets.custom_buttons]]` | `parsed_data.widgets.custom_buttons[]` |
+| `@custom_widget:` | `[[widgets.custom_widget]]`  | `parsed_data.widgets.custom_widget[]`  |
 
 **Referencing syntax:**
 
@@ -490,7 +490,7 @@ widgets = ["workspaces", "window_title"]
 id = "volume"
 exec = "pamixer --get-volume"
 
-[[widgets.custom_button_group.buttons]]
+[[widgets.custom_buttons]]
 id = "firefox"
 command = "firefox"
 ```

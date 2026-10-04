@@ -54,10 +54,10 @@ step_size = 5
 step_size = 5
 
 [widgets.bluetooth]
-label = true
+label_format = "{icon} Bluetooth"
 
 [widgets.microphone]
-show_icon = true
+label_format = "{icon} Mic"
 
 [widgets.power]
 icon = "󰐥"
@@ -65,9 +65,11 @@ confirm = true
 
 [widgets.hypridle]
 enabled_icon = ""
+label_format = "{icon}"
 disabled_icon = ""
 
 [widgets.hyprsunset]
+label_format = "{icon}"
 temperature = "2800k"
 ```
 
@@ -98,7 +100,6 @@ show_current_workspace_only = false
 [widgets.date_time]
 clock_format = "12h"
 calendar = true
-nepali_date = false
 
 [widgets.world_clock]
 timezones = ["America/New_York", "Asia/Tokyo"]
@@ -120,6 +121,7 @@ color = "#89b4fa"
 
 ```toml
 [widgets.screenshot]
+label_format = "{icon}"
 annotation = true
 
 [widgets.recorder]
@@ -129,10 +131,12 @@ audio = true
 quiet = false
 
 [widgets.clipboard]
+label_format = "{icon}"
 show_images = true
 enable_pinning = true
 
 [widgets.usb_manager]
+label_format = "{icon}"
 auto_refresh = true
 ```
 
@@ -147,6 +151,7 @@ icon_size = 16
 
 [widgets.wallpaper]
 icon = "󰸉"
+label_format = "{icon} wallpaper"
 
 [widgets.settings]
 icon = "󰒓"
@@ -155,10 +160,12 @@ icon = "󰒓"
 icon = ""
 
 [widgets.emoji_picker]
+label_format = "{icon} Emoji"
 per_row = 9
 
 [widgets.kanban]
 icon = "󱞁"
+label_format = "{icon} Kanban"
 
 [widgets.pomodoro]
 icon = "🍅"
@@ -168,7 +175,7 @@ username = "rubiin"
 max_repos = 10
 
 [widgets.cloudflare_warp]
-label_text = "WARP"
+label_format = "{icon}"
 
 [widgets.dns_switcher]
 icon = "󰚘"
@@ -179,6 +186,7 @@ provider = "open-meteo"
 
 [widgets.ip_monitor]
 icon = "󰖟"
+label_format = "{icon}"
 ```
 
 ## Widgets de Disposition et de Groupement

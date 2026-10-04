@@ -5,7 +5,6 @@ from fabric.utils import logger
 from fabric.widgets.label import Label
 
 from shared.widget_container import ButtonWidget
-from utils.widget_utils import nerd_font_icon
 
 
 class WorldClockWidget(ButtonWidget):
@@ -16,13 +15,10 @@ class WorldClockWidget(ButtonWidget):
 
         self.clocks = []
 
-        if self.config.get("show_icon", True):
-            # Create a TextIcon with the specified icon and size
-            self.icon = nerd_font_icon(
-                icon=self.config.get("icon", "󰃰"),  # fallback icon,
-                props={"style_classes": ["panel-font-icon"]},
-            )
-            self.container_box.add(self.icon)
+        self.label_format = self.config.get("label_format", "{icon}")
+        self.add_formatted_label(
+            self.label_format, self.config.get("icon", "󰌌")
+        )
 
         self.container_box.set_spacing(10)
 
@@ -43,6 +39,9 @@ class WorldClockWidget(ButtonWidget):
             self.container_box.pack_start(label, True, True, 0)
             self.clocks.append((label, tz))
 
+        # Fill the labels now: the first tick is up to a minute away, and an
+        # empty label reads as a broken widget.
+        self._update_ui()
         self._arm_minute_timer()
 
     def _arm_minute_timer(self) -> None:

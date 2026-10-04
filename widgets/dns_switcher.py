@@ -270,7 +270,7 @@ class DnsSwitcherPopover(Box):
 
 
 class DnsSwitcherWidget(ButtonWidget, PopoverMixin):
-    """Bar widget showing current DNS provider (icon + dynamic label)."""
+    """Bar widget showing the current DNS provider as its icon."""
 
     def __init__(self, **kwargs):
         super().__init__(name="dns_switcher", **kwargs)
@@ -278,18 +278,8 @@ class DnsSwitcherWidget(ButtonWidget, PopoverMixin):
         self._service = dns_switcher_service
 
         # ── Icon ──
-        self._icon = nerd_font_icon(
-            icon=self.config.get("icon", "󰚘"),
-            props={"style_classes": ["panel-font-icon"]},
-        )
-        self.container_box.add(self._icon)
-
-        # ── Dynamic label (like original: shows current provider name) ──
-        self._label = Label(
-            label=self.config.get("label_text", "DNS"),
-            style_classes="panel-text",
-        )
-        self.container_box.add(self._label)
+        self.label_format = self.config.get("label_format", "{icon}")
+        self.add_formatted_label(self.label_format, self.config.get("icon", "󰚘"))
 
         self.set_tooltip_if_enabled(_("widget.dns_switcher.tooltip"), default=True)
 
@@ -303,8 +293,6 @@ class DnsSwitcherWidget(ButtonWidget, PopoverMixin):
     def _on_current_changed(self, *_args):
         current = self._service.current
         if current and current != "Default":
-            self._label.set_label(current)
             self.set_tooltip_text(_("widget.dns_switcher.current", provider=current))
         else:
-            self._label.set_label(self.config.get("label_text", "DNS"))
             self.set_tooltip_text(_("widget.dns_switcher.default"))

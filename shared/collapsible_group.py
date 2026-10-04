@@ -37,7 +37,7 @@ class CollapsibleGroupWidget(ButtonWidget, PopoverMixin):
         """Read configuration values from the config."""
         self.widgets_config = self.config.get("widgets", [])
         self.icon_name = self.config.get("icon", "󰍽")
-        self.show_icon = self.config.get("show_icon", True)
+        self.show_icon = self.format_shows_icon()
         self.show_label = self.config.get("show_label", False)
         self.label_text = self.config.get("label", "Tools")
         self.tooltip_text = self.config.get("tooltip", "Toggle tool menu")
