@@ -232,7 +232,7 @@ gaps where nothing supplies a value.
 | `modules.cheatsheet` (5 keys)                     | The whole module is absent from `DEFAULT_CONFIG`.                                                                                                                                                                                                                                                                                                           |
 | `modules.desktop_clock.type` + 10 `cookie_*` keys | Absent, so the cookie clock silently falls back to the non-cookie path.                                                                                                                                                                                                                                                                                     |
 
-The other ~50 are `custom_widget[]`, `custom_button_group.buttons[]`,
+The other ~50 are `custom_widget[]`,
 `power.item_shortcuts`, `launcher.anchor/width/height/grid_columns/...`,
 `widget_groups[].hover_reveal/revealer_icon`, `weather.provider`,
 `workspaces.icon_map/show_urgent`, `github_tray.local_projects`,

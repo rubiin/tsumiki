@@ -100,12 +100,11 @@ right_section = ["@group:1", "system_tray", "power"]
 
 Types de référence disponibles :
 
-| Référence          | Exemple              | Description                   |
-| ------------------ | -------------------- | ----------------------------- |
-| Nom du widget      | `"workspaces"`       | Référence directe au widget   |
-| `@group:N`         | `"@group:0"`         | Groupe de widgets par index   |
-| `@collapsible:N`   | `"@collapsible:0"`   | Groupe pliable par index      |
-| `@custom_button:N` | `"@custom_button:0"` | Bouton personnalisé par index |
+| Référence        | Exemple            | Description                 |
+| ---------------- | ------------------ | --------------------------- |
+| Nom du widget    | `"workspaces"`     | Référence directe au widget |
+| `@group:N`       | `"@group:0"`       | Groupe de widgets par index |
+| `@collapsible:N` | `"@collapsible:0"` | Groupe pliable par index    |
 
 ### `modules`
 

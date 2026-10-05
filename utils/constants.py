@@ -437,7 +437,6 @@ DEFAULT_CONFIG = {
             "label_format": "{icon}",
             "timezones": ["America/New_York", "Asia/Tokyo"],
         },
-        "custom_buttons": [],
     },
     "layout": {
         "left_section": ["workspaces", "window_title"],
@@ -696,11 +695,6 @@ DEFAULT_CONFIG = {
                     "spacing": "0.125em",
                 },
                 "cpu": {
-                    "border": {"enabled": False, "radius": "16px", "width": "1px"},
-                    "icon_size": "12px",
-                    "spacing": "0.125em",
-                },
-                "custom_button": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "12px",
                     "spacing": "0.125em",
@@ -1902,7 +1896,7 @@ TEMP_PATHS = set()
 
 # Pre-computed constants
 SPECIAL_WIDGET_TYPES = frozenset(
-    ("custom_button", "group", "collapsible", "custom_widget")
+    ("group", "collapsible", "custom_widget")
 )
 GROUP_TYPES = frozenset(("widget_groups", "collapsible_groups"))
 URGENCY_LEVELS = frozenset(("low", "normal", "critical"))

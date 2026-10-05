@@ -700,16 +700,6 @@ tooltip = true
 connected_icon = ""
 disconnected_icon = ""
 
-# --- Custom Buttons ---
-[[widgets.custom_buttons]]
-id = "firefox"
-command = "firefox"
-icon = "󰈹"
-tooltip_text = "Open Firefox Browser"
-label_format = "{icon}"
-tooltip = true
-style_classes = []
-
 # ── Matugen Theme Generation ─────────────────────────
 # Uncomment and configure to auto-generate colors from your wallpaper.
 
@@ -728,7 +718,7 @@ style_classes = []
 # id = "temperature"
 # exec = "sensors -j | jq '.[] | to_entries[] | select(.key | contains(\"temp\")).value[\"temp1_input\"]'"
 # exec_on_event = false
-# interval = 30
+# interval = 30000                    # Milliseconds between updates (0 = run once)
 # return_type = "plain"                # "plain" | "json" (Waybar JSON protocol)
 # label_format = "{:.1f}°C"
 # max_length = 0                       # 0 = no limit

@@ -13,8 +13,8 @@ Yapılandırılabilir çıktı ayrıştırma ve tıklama işleme ile harici shel
 [[widgets.custom_widget]]
 id = "volume"
 exec = "pamixer --get-volume"
-format = "󰕾 {}%"
-interval = 1
+label_format = "󰕾 {}%"
+interval = 1000
 on_scroll_up = "pamixer -i 5"
 on_scroll_down = "pamixer -d 5"
 exec_on_event = true
@@ -29,7 +29,7 @@ Tam yapılandırma seçenekleri:
 | ------------------ | ------ | ---------- | ----------------------------------------------------------------------- |
 | `id`               | string | —          | Düzende referans için benzersiz tanımlayıcı (`@custom_widget:kimliğim`) |
 | `exec`             | string | gerekli    | Çalıştırılacak shell komutu                                             |
-| `interval`         | int    | `0`        | Saniye cinsinden yenileme aralığı (0 = bir kez çalıştır)                |
+| `interval`         | int    | `0`        | Milisaniye cinsinden yenileme aralığı (0 = bir kez çalıştır)            |
 | `return_type`      | string | `"plain"`  | Çıktı formatı: `"plain"` veya `"json"`                                  |
 | `label_format`     | string | `"{}"`     | `{}` yerine çıktının geçtiği format dizisi                              |
 | `exec_on_event`    | bool   | `false`    | Tıklama/kaydırmadan sonra komutu yeniden çalıştır                       |
@@ -87,21 +87,4 @@ Düzende `@collapsible:utility-tools` ile referans verin.
 
 right_section = ["@collapsible:utility-tools", "system_tray"]
 
-```
-
-## Özel Buton Grubu
-
-Özel komut butonlarından oluşan bir grup. Gruptaki her butona `@custom_button:N` veya `@custom_button:id` ile referans verilebilir:
-
-```toml
-[[widgets.custom_buttons]]
-id = "firefox"
-command = "firefox"
-icon = "󰈹"
-tooltip_text = "Firefox Tarayıcısını Aç"
-label_format = "{icon}"
-tooltip = true
-
-[layout]
-left_section = ["@custom_button:firefox"]
 ```

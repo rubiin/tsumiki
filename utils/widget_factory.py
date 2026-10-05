@@ -4,8 +4,6 @@ from typing import Any, Optional
 
 from fabric.utils import logger
 
-from shared.custom_button import CustomButtonWidget
-
 
 class IndexedWidgetHelper:
     """Indexed widget resolution shared by every collection type."""
@@ -81,13 +79,6 @@ class WidgetResolver:
         """Dispatch to the builder registered for *widget_type*."""
         resolvers = {
             "widget": lambda: self._create_simple_widget(identifier, context),
-            "custom_button": lambda: self._create_indexed_widget(
-                identifier,
-                context,
-                "custom_button",
-                ["widgets", "custom_buttons"],
-                self._instantiate_custom_button,
-            ),
             "group": lambda: self._create_indexed_widget(
                 identifier,
                 context,
@@ -196,14 +187,6 @@ class WidgetResolver:
             return None
 
         return instantiator_func(collection[index], config, index)
-
-    def _instantiate_custom_button(
-        self, button_config: dict, config: dict, index: int
-    ) -> CustomButtonWidget:
-        """Create CustomButtonWidget instance."""
-        return CustomButtonWidget(
-            widget_name=f"custom_button_{index}", config=button_config
-        )
 
     def _instantiate_widget_group(
         self, group_config: dict, config: dict, index: int

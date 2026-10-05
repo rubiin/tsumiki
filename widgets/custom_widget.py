@@ -48,8 +48,9 @@ class CustomWidgetPresenter:
         self._text_label = text_label
         self._icon = icon
         self._host_widget = host_widget
+        # ``format`` is Waybar's key; accept it so Waybar configs work verbatim.
         self._format_str = _get_config_value(
-            module_config, "label_format", default="{}"
+            module_config, "label_format", "format", default="{}"
         )
         self._max_len = _get_config_value(
             module_config,
@@ -205,7 +206,7 @@ class CustomWidgetExecutor:
         if self._interval > 0:
             self.execute_once()
             self._repeater_handler_id = invoke_repeater(
-                self._interval * 1000,
+                self._interval,
                 self._periodic_execute,
             )
             return

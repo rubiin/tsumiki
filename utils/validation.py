@@ -213,8 +213,6 @@ def validate_config_enums(config_data: dict, schema_file_path: str) -> None:
 
 def _get_config_collection(parsed_data: dict, widget_type: str) -> list:
     """Return the collection for *widget_type* in *parsed_data*."""
-    if widget_type == "custom_button":
-        return parsed_data.get("widgets", {}).get("custom_buttons", [])
     if widget_type == "group":
         return parsed_data.get("widget_groups", [])
     if widget_type == "collapsible":
@@ -238,7 +236,6 @@ def _validate_indexed_reference(
     supports_id_lookup = collection_name in (
         "collapsible group",
         "custom widget",
-        "custom button",
         "widget group",
     )
     if supports_id_lookup:
@@ -270,7 +267,6 @@ def _validate_indexed_reference(
 
 
 _COLLECTION_NAMES = {
-    "custom_button": "custom button",
     "group": "widget group",
     "collapsible": "collapsible group",
     "custom_widget": "custom widget",
@@ -498,11 +494,6 @@ _RENAMED_WIDGET_KEYS = {
     "show_icon": 'label_format = "{icon}"',
 }
 
-_RENAMED_WIDGET_SECTIONS = {
-    "custom_button": "[[widgets.custom_buttons]]",
-    "custom_button_group": "[[widgets.custom_buttons]]",
-}
-
 # Top-level collections whose entries label a panel button, so they answer to the
 # same renamed keys as ``widgets.<name>``.
 _COLLECTIONS_WITH_RENAMED_KEYS = ("collapsible_groups",)
@@ -534,18 +525,11 @@ def warn_deprecated_keys(parsed_data: dict) -> None:
     """
     widgets = parsed_data.get("widgets", {})
     if isinstance(widgets, dict):
-        for old_section, replacement in _RENAMED_WIDGET_SECTIONS.items():
-            if old_section in widgets:
-                logger.warning(
-                    f"[Config] [widgets.{old_section}] was replaced by "
-                    f"{replacement}; the old section is ignored."
-                )
-
         for name, config in widgets.items():
             if isinstance(config, dict):
                 _warn_renamed_widget_keys(f"widgets.{name}", config)
             elif isinstance(config, list):
-                # custom_buttons and custom_widget hold a list of entries.
+                # custom_widget holds a list of entries.
                 for index, entry in enumerate(config):
                     if isinstance(entry, dict):
                         _warn_renamed_widget_keys(f"widgets.{name}[{index}]", entry)

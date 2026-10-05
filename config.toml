@@ -429,15 +429,6 @@ use_24hr = true
 label_format = "{icon}"
 timezones = ["America/New_York", "Asia/Tokyo"]
 
-[[widgets.custom_buttons]]
-id = "spotify"
-command = "spotify"
-icon = ""
-tooltip_text = "Open Spotify"
-label_format = "{icon}"
-tooltip = true
-style_classes = []
-
 [widgets.cheatsheet]
 icon = "󰌌"
 label_format = "{icon}"
@@ -463,7 +454,7 @@ tooltip = true
 id = "volume"
 exec = "pamixer --get-volume"
 exec_on_event = true
-interval = 1
+interval = 1000                      # Milliseconds between updates (0 = run once)
 return_type = "plain"                # "plain" | "json" (Waybar JSON protocol)
 label_format = "󰕾 {}%"
 max_length = 0                       # 0 = no limit
@@ -1167,15 +1158,6 @@ icon_size = "12px"
 spacing = "0.125em"
 
 [styling.bar.widgets.custom_widget.border]
-enabled = false
-radius = "16px"
-width = "1px"
-
-[styling.bar.widgets.custom_button]
-icon_size = "12px"
-spacing = "0.125em"
-
-[styling.bar.widgets.custom_button.border]
 enabled = false
 radius = "16px"
 width = "1px"

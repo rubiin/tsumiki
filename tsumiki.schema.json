@@ -1886,49 +1886,6 @@
           },
           "required": ["icon", "label_format", "use_24hr", "timezones"]
         },
-        "custom_buttons": {
-          "type": "array",
-          "description": "Custom command buttons referenced from layout via @custom_button:id or @custom_button:index",
-          "items": {
-            "type": "object",
-            "properties": {
-              "id": {
-                "type": "string",
-                "description": "Unique identifier for referencing this custom button in layout (e.g. @custom_button:my-id)"
-              },
-              "command": {
-                "type": "string",
-                "description": "Bash command to execute when button is clicked"
-              },
-              "icon": {
-                "type": "string",
-                "description": "Icon to display on the button"
-              },
-              "tooltip_text": {
-                "type": "string",
-                "description": "Tooltip text to show on hover"
-              },
-              "label_format": {
-                "type": "string",
-                "default": "{icon}",
-                "description": "Format string; the icon is shown when it contains {icon}."
-              },
-              "tooltip": {
-                "type": "boolean",
-                "description": "Whether to show the tooltip",
-                "default": true
-              },
-              "style_classes": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                },
-                "description": "CSS style classes to apply to the button"
-              }
-            },
-            "required": ["command"]
-          }
-        },
         "custom_widget": {
           "type": "array",
           "description": "Waybar-compatible custom widgets that run external commands",
@@ -1948,7 +1905,7 @@
                 "type": "integer",
                 "minimum": 0,
                 "default": 0,
-                "description": "Seconds between updates (0 = run once)"
+                "description": "Milliseconds between updates (0 = run once)"
               },
               "return_type": {
                 "type": "string",
@@ -2135,11 +2092,6 @@
               },
               {
                 "type": "string",
-                "pattern": "^@custom_button:[\\w-]+$",
-                "description": "Specifies an individual custom button by index (e.g., @custom_button:0, @custom_button:1)."
-              },
-              {
-                "type": "string",
                 "pattern": "^@custom_widget:[\\w-]+$",
                 "description": "Specifies a custom widget by index (e.g., @custom_widget:0). Runs external commands like Waybar."
               },
@@ -2228,11 +2180,6 @@
               },
               {
                 "type": "string",
-                "pattern": "^@custom_button:[\\w-]+$",
-                "description": "Specifies an individual custom button by index (e.g., @custom_button:0, @custom_button:1)."
-              },
-              {
-                "type": "string",
                 "pattern": "^@custom_widget:[\\w-]+$",
                 "description": "Specifies a custom widget by index (e.g., @custom_widget:0). Runs external commands like Waybar."
               },
@@ -2318,11 +2265,6 @@
                 "type": "string",
                 "pattern": "^@collapsible:[\\w-]+$",
                 "description": "Specifies a collapsible group of widgets to display."
-              },
-              {
-                "type": "string",
-                "pattern": "^@custom_button:[\\w-]+$",
-                "description": "Specifies an individual custom button by index (e.g., @custom_button:0, @custom_button:1)."
               },
               {
                 "type": "string",
@@ -2419,11 +2361,6 @@
                   "type": "string",
                   "pattern": "^@collapsible:[\\w-]+$",
                   "description": "Specifies a collapsible group of widgets to display."
-                },
-                {
-                  "type": "string",
-                  "pattern": "^@custom_button:[\\w-]+$",
-                  "description": "Specifies an individual custom button by index (e.g., @custom_button:0, @custom_button:1)."
                 },
                 {
                   "type": "string",
@@ -2548,11 +2485,6 @@
                   "type": "string",
                   "pattern": "^@collapsible:[\\w-]+$",
                   "description": "Specifies a collapsible group of widgets to display."
-                },
-                {
-                  "type": "string",
-                  "pattern": "^@custom_button:[\\w-]+$",
-                  "description": "Specifies an individual custom button by index (e.g., @custom_button:0, @custom_button:1)."
                 },
                 {
                   "type": "string",

@@ -104,7 +104,6 @@ Available reference types:
 | Widget name                              | `"workspaces"`                                      | Direct widget reference                 |
 | `@group:N` / `@group:id`                 | `"@group:0"` / `"@group:workspaces-group"`          | Widget group by index or string id      |
 | `@collapsible:N` / `@collapsible:id`     | `"@collapsible:0"` / `"@collapsible:utility-tools"` | Collapsible group by index or string id |
-| `@custom_button:N` / `@custom_button:id` | `"@custom_button:0"` / `"@custom_button:firefox"`   | Custom button by index or string id     |
 | `@custom_widget:N` / `@custom_widget:id` | `"@custom_widget:0"` / `"@custom_widget:volume"`    | Custom widget by index or string id     |
 
 ### `modules`

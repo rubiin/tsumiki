@@ -13,8 +13,8 @@ Waybar-compatibele aangepaste widgets die externe shell-commando's uitvoeren met
 [[widgets.custom_widget]]
 id = "volume"
 exec = "pamixer --get-volume"
-format = "󰕾 {}%"
-interval = 1
+label_format = "󰕾 {}%"
+interval = 1000
 on_scroll_up = "pamixer -i 5"
 on_scroll_down = "pamixer -d 5"
 exec_on_event = true
@@ -29,7 +29,7 @@ Volledige configuratie-opties:
 | ------------------ | ------ | --------- | -------------------------------------------------------------------------- |
 | `id`               | string | —         | Unieke identificatie voor verwijzing in lay-out (`@custom_widget:mijn-id`) |
 | `exec`             | string | vereist   | Uit te voeren shell-commando                                               |
-| `interval`         | int    | `0`       | Vernieuwingsinterval in seconden (0 = eenmalig uitvoeren)                  |
+| `interval`         | int    | `0`       | Vernieuwingsinterval in milliseconden (0 = eenmalig uitvoeren)             |
 | `return_type`      | string | `"plain"` | Uitvoerformaat: `"plain"` of `"json"`                                      |
 | `label_format`     | string | `"{}"`    | Formaatstring waarbij `{}` wordt vervangen door uitvoer                    |
 | `exec_on_event`    | bool   | `false`   | Commando opnieuw uitvoeren na klik/scroll                                  |
@@ -87,21 +87,4 @@ Verwijs in de lay-out met `@collapsible:utility-tools`.
 
 right_section = ["@collapsible:utility-tools", "system_tray"]
 
-```
-
-## Aangepaste Knop Groep
-
-Een groep aangepaste opdrachtknoppen. Elke knop in de groep kan worden gerefereerd via `@custom_button:N` of `@custom_button:id`:
-
-```toml
-[[widgets.custom_buttons]]
-id = "firefox"
-command = "firefox"
-icon = "󰈹"
-tooltip_text = "Firefox Browser openen"
-label_format = "{icon}"
-tooltip = true
-
-[layout]
-left_section = ["@custom_button:firefox"]
 ```

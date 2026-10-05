@@ -461,19 +461,18 @@ task done while checks are failing.
 
 ### 15.1. Indexed Widget References with `id` Support
 
-Four special widget types support `@type:id` references in the layout:
+Three special widget types support `@type:id` references in the layout:
 
-| Layout reference  | Config key                   | Collection path                        |
-| ----------------- | ---------------------------- | -------------------------------------- |
-| `@collapsible:`   | `[[collapsible_groups]]`     | `parsed_data.collapsible_groups[]`     |
-| `@group:`         | `[[widget_groups]]`          | `parsed_data.widget_groups[]`          |
-| `@custom_button:` | `[[widgets.custom_buttons]]` | `parsed_data.widgets.custom_buttons[]` |
-| `@custom_widget:` | `[[widgets.custom_widget]]`  | `parsed_data.widgets.custom_widget[]`  |
+| Layout reference  | Config key                  | Collection path                       |
+| ----------------- | --------------------------- | ------------------------------------- |
+| `@collapsible:`   | `[[collapsible_groups]]`    | `parsed_data.collapsible_groups[]`    |
+| `@group:`         | `[[widget_groups]]`         | `parsed_data.widget_groups[]`         |
+| `@custom_widget:` | `[[widgets.custom_widget]]` | `parsed_data.widgets.custom_widget[]` |
 
 **Referencing syntax:**
 
-- Numeric index (backward compatible): `@collapsible:0`, `@group:1`, `@custom_button:0`, `@custom_widget:0`
-- String id: `@collapsible:utility-tools`, `@group:workspaces-group`, `@custom_button:firefox`, `@custom_widget:volume`
+- Numeric index (backward compatible): `@collapsible:0`, `@group:1`, `@custom_widget:0`
+- String id: `@collapsible:utility-tools`, `@group:workspaces-group`, `@custom_widget:volume`
 
 **Config example:**
 
@@ -490,9 +489,6 @@ widgets = ["workspaces", "window_title"]
 id = "volume"
 exec = "pamixer --get-volume"
 
-[[widgets.custom_buttons]]
-id = "firefox"
-command = "firefox"
 ```
 
 **Implementation layers (all must be kept in sync):**

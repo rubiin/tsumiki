@@ -13,8 +13,8 @@ Widgets personnalisés compatibles Waybar qui exécutent des commandes shell ext
 [[widgets.custom_widget]]
 id = "volume"
 exec = "pamixer --get-volume"
-format = "󰕾 {}%"
-interval = 1
+label_format = "󰕾 {}%"
+interval = 1000
 on_scroll_up = "pamixer -i 5"
 on_scroll_down = "pamixer -d 5"
 exec_on_event = true
@@ -29,7 +29,7 @@ Options de configuration complètes :
 | ------------------ | ------ | --------- | -------------------------------------------------------------------------------- |
 | `id`               | string | —         | Identifiant unique pour référencer dans la disposition (`@custom_widget:mon-id`) |
 | `exec`             | string | requis    | Commande shell à exécuter                                                        |
-| `interval`         | int    | `0`       | Intervalle d'actualisation en secondes (0 = exécuter une fois)                   |
+| `interval`         | int    | `0`       | Intervalle d'actualisation en millisecondes (0 = exécuter une fois)              |
 | `return_type`      | string | `"plain"` | Format de sortie : `"plain"` ou `"json"`                                         |
 | `label_format`     | string | `"{}"`    | Chaîne de format où `{}` est remplacé par la sortie                              |
 | `exec_on_event`    | bool   | `false`   | Ré-exécuter la commande après clic/défilement                                    |
@@ -87,21 +87,4 @@ Référencez dans la disposition avec `@collapsible:utility-tools`.
 
 right_section = ["@collapsible:utility-tools", "system_tray"]
 
-```
-
-## Groupe de Boutons Personnalisés
-
-Un groupe de boutons de commande personnalisés. Chaque bouton du groupe peut être référencé via `@custom_button:N` ou `@custom_button:id` :
-
-```toml
-[[widgets.custom_buttons]]
-id = "firefox"
-command = "firefox"
-icon = "󰈹"
-tooltip_text = "Ouvrir le navigateur Firefox"
-label_format = "{icon}"
-tooltip = true
-
-[layout]
-left_section = ["@custom_button:firefox"]
 ```

@@ -13,8 +13,8 @@ description: Tsumiki 高级配置模式
 [[widgets.custom_widget]]
 id = "volume"
 exec = "pamixer --get-volume"
-format = "󰕾 {}%"
-interval = 1
+label_format = "󰕾 {}%"
+interval = 1000
 on_scroll_up = "pamixer -i 5"
 on_scroll_down = "pamixer -d 5"
 exec_on_event = true
@@ -29,7 +29,7 @@ left_section = ["@custom_widget:volume", "workspaces"]
 | ------------------ | ------ | --------- | ------------------------------------------------- |
 | `id`               | string | —         | 在布局中引用的唯一标识符 (`@custom_widget:my-id`) |
 | `exec`             | string | 必需      | 要执行的 shell 命令                               |
-| `interval`         | int    | `0`       | 刷新间隔（秒），0 = 仅执行一次                    |
+| `interval`         | int    | `0`       | 刷新间隔（毫秒），0 = 仅执行一次                  |
 | `return_type`      | string | `"plain"` | 输出格式：`"plain"` 或 `"json"`                   |
 | `label_format`     | string | `"{}"`    | 格式字符串，`{}` 将被输出替换                     |
 | `exec_on_event`    | bool   | `false`   | 点击/滚动后重新执行命令                           |
@@ -87,21 +87,4 @@ style_classes = ["utility-tools"]
 
 right_section = ["@collapsible:utility-tools", "system_tray"]
 
-```
-
-## 自定义按钮组
-
-一组自定义命令按钮。组中的每个按钮可以通过 `@custom_button:N` 或 `@custom_button:id` 引用：
-
-```toml
-[[widgets.custom_buttons]]
-id = "firefox"
-command = "firefox"
-icon = "󰈹"
-tooltip_text = "打开 Firefox 浏览器"
-label_format = "{icon}"
-tooltip = true
-
-[layout]
-left_section = ["@custom_button:firefox"]
 ```

@@ -77,7 +77,6 @@ LAZY_WIDGETS_LIST = {
     "breathe": "widgets.breathing.BreatheWidget",
     "clipboard": "widgets.clipboard.ClipBoardWidget",
     "collapsible_group": "shared.collapsible_group.CollapsibleGroupWidget",
-    "custom_button": "shared.custom_button.CustomButtonWidget",
     "cpu": "widgets.stats.CpuWidget",
     "custom_widget": "widgets.custom_widget.CustomWidget",
     "date_time": "widgets.datetime_menu.DateTimeWidget",

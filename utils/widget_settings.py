@@ -620,18 +620,6 @@ DateTimeMenu = TypedDict(
 )
 
 
-Custom_Button = TypedDict(
-    "Custom_Button",
-    {
-        "id": str,
-        "command": str,
-        "icon": str,
-        "tooltip_text": str,
-        "label_format": str,
-        "tooltip": bool,
-    },
-)
-
 # Custom Widget configuration (Waybar-compatible)
 CustomWidgetConfig = TypedDict(
     "CustomWidgetConfig",
@@ -912,7 +900,6 @@ class Widgets(TypedDict):
     cheatsheet: Cheatsheet
     click_counter: ClickCounter
     cpu: Cpu
-    custom_buttons: list[Custom_Button]
     custom_widget: list[CustomWidgetConfig]
     emoji_picker: EmojiPicker
     kanban: Kanban

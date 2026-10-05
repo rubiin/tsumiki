@@ -8,7 +8,7 @@ import json
 import unittest
 from unittest import mock
 
-from widgets.custom_widget import CustomWidgetPresenter
+from widgets.custom_widget import CustomWidgetExecutor, CustomWidgetPresenter
 
 
 def make_presenter(
@@ -115,6 +115,40 @@ class TooltipOutputTest(unittest.TestCase):
         presenter._handle_text_output("1 < 2 & 3")
 
         host.set_tooltip_text.assert_called_once_with("1 < 2 & 3")
+
+
+class FormatKeyAliasTest(unittest.TestCase):
+    """``format`` is Waybar's key and must be honoured like ``label_format``."""
+
+    def _label_for(self, config: dict) -> str:
+        label, icon, host = mock.Mock(), mock.Mock(), mock.Mock()
+        presenter = CustomWidgetPresenter(config, label, icon, host)
+        presenter._handle_text_output("50")
+        return label.set_label.call_args[0][0]
+
+    def test_the_waybar_format_key_is_used(self):
+        self.assertEqual("50%", self._label_for({"format": "{}%"}))
+
+    def test_label_format_wins_when_both_are_set(self):
+        config = {"label_format": "L{}", "format": "F{}"}
+
+        self.assertEqual("L50", self._label_for(config))
+
+
+class IntervalUnitsTest(unittest.TestCase):
+    """``interval`` is milliseconds, so the repeater gets the value unchanged."""
+
+    def test_the_interval_reaches_the_repeater_as_milliseconds(self):
+        executor = CustomWidgetExecutor(
+            {"exec": "echo hi", "interval": 2500}, mock.Mock()
+        )
+        with (
+            mock.patch("widgets.custom_widget.exec_shell_command_async"),
+            mock.patch("widgets.custom_widget.invoke_repeater") as repeater,
+        ):
+            executor.start()
+
+        repeater.assert_called_once_with(2500, executor._periodic_execute)
 
 
 if __name__ == "__main__":

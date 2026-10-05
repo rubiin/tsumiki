@@ -14,9 +14,9 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SCHEMA = os.path.join(ROOT, "tsumiki.schema.json")
 CONFIG_FILES = ("config.toml", "example/config.toml")
 
-# ``custom_widget`` and ``custom_buttons`` are arrays of entries, so their keys
-# are checked per entry rather than per section.
-ARRAY_KEYS = ("custom_widget", "custom_buttons")
+# ``custom_widget`` is an array of entries, so its keys are checked per entry
+# rather than per section.
+ARRAY_KEYS = ("custom_widget",)
 
 
 def load_schema() -> dict:

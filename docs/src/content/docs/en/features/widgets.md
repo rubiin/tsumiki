@@ -24,7 +24,7 @@ This replaced the old per-widget `show_icon` boolean and the `label` / `label_te
 
 `{icon}` is the only field on these widgets. A few widgets print live values and declare their own fields instead: `battery` (`{percent}`, `{time_remaining}`), `mpris` (`{title}`, `{artist}`, `{album}`, `{name}`), `weather` (`{condition}`, `{temperature}`), `network_usage` (`{upload}`, `{download}`), `window_count` (`{count}`) and `workspaces` (`{id}`).
 
-Indexed entries follow the same rule: a `[[collapsible_groups]]` toggle button and a `[[widgets.custom_buttons]]` button each label themselves with `label_format`, where `{icon}` is the only field.
+Indexed entries follow the same rule: a `[[collapsible_groups]]` toggle button labels itself with `label_format`, where `{icon}` is the only field.
 
 ---
 

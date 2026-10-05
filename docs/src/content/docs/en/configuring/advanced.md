@@ -13,8 +13,8 @@ Waybar-compatible custom widgets that run external shell commands with configura
 [[widgets.custom_widget]]
 id = "volume"
 exec = "pamixer --get-volume"
-format = "󰕾 {}%"
-interval = 1
+label_format = "󰕾 {}%"
+interval = 1000
 on_scroll_up = "pamixer -i 5"
 on_scroll_down = "pamixer -d 5"
 exec_on_event = true
@@ -29,7 +29,7 @@ Full configuration options:
 | ------------------ | ------ | --------- | -------------------------------------------------------------------- |
 | `id`               | string | —         | Unique identifier for referencing in layout (`@custom_widget:my-id`) |
 | `exec`             | string | required  | Shell command to execute                                             |
-| `interval`         | int    | `0`       | Refresh interval in seconds (0 = run once)                           |
+| `interval`         | int    | `0`       | Refresh interval in milliseconds (0 = run once)                      |
 | `return_type`      | string | `"plain"` | Output format: `"plain"` or `"json"`                                 |
 | `label_format`     | string | `"{}"`    | Format string where `{}` is replaced with output                     |
 | `exec_on_event`    | bool   | `false`   | Re-run command after click/scroll                                    |
@@ -104,21 +104,4 @@ Reference in layout with `@collapsible:utility-tools`.
 
 right_section = ["@collapsible:utility-tools", "system_tray"]
 
-```
-
-## Custom Buttons
-
-Custom command buttons. Each button is referenced via `@custom_button:id` or `@custom_button:N`. Place several in a [widget group](#widget-groups) when you want shared spacing and styling.
-
-```toml
-[[widgets.custom_buttons]]
-id = "firefox"
-command = "firefox"
-icon = "󰈹"
-tooltip_text = "Open Firefox Browser"
-label_format = "{icon}"
-tooltip = true
-
-[layout]
-left_section = ["@custom_button:firefox"]
 ```

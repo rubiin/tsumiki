@@ -258,15 +258,6 @@ class ValidateSchemaEnumsTest(unittest.TestCase):
 class GetConfigCollectionTest(unittest.TestCase):
     """Test _get_config_collection dispatcher for different widget types."""
 
-    def test_custom_button(self):
-        data = {"widgets": {"custom_buttons": [{"id": "b1"}]}}
-        result = _get_config_collection(data, "custom_button")
-        self.assertEqual(result, [{"id": "b1"}])
-
-    def test_custom_button_without_a_collection_is_empty(self):
-        data = {"widgets": {}}
-        self.assertEqual(_get_config_collection(data, "custom_button"), [])
-
     def test_group(self):
         data = {"widget_groups": [{"id": "g1"}]}
         self.assertEqual(_get_config_collection(data, "group"), [{"id": "g1"}])
@@ -439,8 +430,8 @@ class ValidateFormatStringsTest(unittest.TestCase):
 
     @mock.patch("utils.validation.logger")
     def test_a_list_entry_is_not_read_as_a_widget_section(self, mock_logger):
-        """``widgets.custom_buttons`` is an array; only dict sections are walked."""
-        validate_format_strings({"widgets": {"custom_buttons": [{"label_format": 42}]}})
+        """``widgets.custom_widget`` is an array; only dict sections are walked."""
+        validate_format_strings({"widgets": {"custom_widget": [{"label_format": 42}]}})
         mock_logger.warning.assert_not_called()
 
     @mock.patch("utils.validation.logger")
@@ -543,18 +534,9 @@ class DeprecationWarningTest(unittest.TestCase):
 
     @mock.patch("utils.validation.logger")
     def test_label_warns_inside_list_entries(self, mock_logger):
-        warn_deprecated_keys({"widgets": {"custom_buttons": [{"label": "Go"}]}})
+        warn_deprecated_keys({"widgets": {"custom_widget": [{"label": "Go"}]}})
         msg = mock_logger.warning.call_args[0][0]
-        self.assertIn("widgets.custom_buttons[0].label", msg)
-
-    @mock.patch("utils.validation.logger")
-    def test_renamed_sections_warn(self, mock_logger):
-        for section in ("custom_button", "custom_button_group"):
-            with self.subTest(section=section):
-                warn_deprecated_keys({"widgets": {section: {"0": {}}}})
-                msg = mock_logger.warning.call_args[0][0]
-                self.assertIn(f"widgets.{section}", msg)
-                self.assertIn("widgets.custom_buttons", msg)
+        self.assertIn("widgets.custom_widget[0].label", msg)
 
     @mock.patch("utils.validation.logger")
     def test_moved_cheatsheet_keys_point_at_the_module(self, mock_logger):

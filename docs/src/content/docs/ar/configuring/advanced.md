@@ -13,8 +13,8 @@ description: أنماط إعدادات متقدمة لتسوميكي
 [[widgets.custom_widget]]
 id = "volume"
 exec = "pamixer --get-volume"
-format = "󰕾 {}%"
-interval = 1
+label_format = "󰕾 {}%"
+interval = 1000
 on_scroll_up = "pamixer -i 5"
 on_scroll_down = "pamixer -d 5"
 exec_on_event = true
@@ -29,7 +29,7 @@ left_section = ["@custom_widget:volume", "workspaces"]
 | ------------------ | ------ | --------- | ----------------------------------------------------- |
 | `id`               | string | —         | معرف فريد للإشارة في التخطيط (`@custom_widget:معرفي`) |
 | `exec`             | string | مطلوب     | أمر shell للتنفيذ                                     |
-| `interval`         | int    | `0`       | فترة التحديث بالثواني (0 = تنفيذ مرة واحدة)           |
+| `interval`         | int    | `0`       | فترة التحديث بالمللي ثانية (0 = تنفيذ مرة واحدة)      |
 | `return_type`      | string | `"plain"` | تنسيق المخرجات: `"plain"` أو `"json"`                 |
 | `label_format`     | string | `"{}"`    | سلسلة تنسيق حيث يتم استبدال `{}` بالمخرجات            |
 | `exec_on_event`    | bool   | `false`   | إعادة تشغيل الأمر بعد النقر/التمرير                   |
@@ -87,21 +87,4 @@ style_classes = ["utility-tools"]
 
 right_section = ["@collapsible:utility-tools", "system_tray"]
 
-```
-
-## مجموعة أزرار مخصصة
-
-مجموعة من أزرار الأوامر المخصصة. يمكن الإشارة إلى كل زر في المجموعة عبر `@custom_button:N` أو `@custom_button:id` :
-
-```toml
-[[widgets.custom_buttons]]
-id = "firefox"
-command = "firefox"
-icon = "󰈹"
-tooltip_text = "فتح متصفح فايرفوكس"
-label_format = "{icon}"
-tooltip = true
-
-[layout]
-left_section = ["@custom_button:firefox"]
 ```
