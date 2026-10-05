@@ -98,7 +98,8 @@ Verifica actualizaciones de paquetes del sistema (Arch Linux, Flatpak, Snap, Hom
 
 ```toml
 [widgets.updates]
-label_format = "{icon}"
+label_format = "{icon} {total}"
+pad_zero = true
 available_icon = "󰏗"
 no_updates_icon = "󰏖"
 os = "arch"
@@ -111,6 +112,8 @@ snap = false
 brew = false
 ```
 
+- **`label_format`**: Variables disponibles: `{icon}`, `{total}` (el número de actualizaciones).
+- **`pad_zero`**: Rellena `{total}` con ceros a dos dígitos (`05`); el cero se muestra como `0`.
 - **`interval`**: Intervalo de sondeo en segundos (predeterminado: 3600 = 1 hora).
 - **`os`**: Distribución para verificación de paquetes nativos (soporta `arch`, `fedora`, `ubuntu`).
 - **`flatpak`/`snap`/`brew`**: Activar verificación para estos formatos de paquetes.

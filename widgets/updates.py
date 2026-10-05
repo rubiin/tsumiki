@@ -27,9 +27,11 @@ class UpdatesWidget(ButtonWidget):
 
         self.base_command = self._build_base_command()
 
-        self.label_format = self.config.get("label_format", "{icon}")
+        self.label_format = self.config.get("label_format", "{icon} {total}")
         self.add_formatted_label(
-            self.label_format, self.config.get("no_updates_icon", "󰒒")
+            self.label_format,
+            self.config.get("no_updates_icon", "󰒒"),
+            total=self._format_total(0),
         )
 
         self.connect("button-press-event", self.on_click)
@@ -65,26 +67,34 @@ class UpdatesWidget(ButtonWidget):
             self.update_time = datetime.now()
         return True
 
+    def _format_total(self, total: int) -> str:
+        """Render *total* for the ``{total}`` field, honouring ``pad_zero``.
+
+        Zero stays a bare ``0`` so an idle bar does not show a padded count.
+        """
+        if total == 0 or not self.config.get("pad_zero", True):
+            return str(total)
+        return str(total).rjust(2, "0")
+
     def _update_values(self, value: str):
         """Update the UI based on the returned update data."""
         try:
             data = json.loads(value)
             total = int(data.get("total", "0"))
 
-            # The count rides in the tooltip; the glyph carries the state.
             icon = (
-                self.config.get("available_icon")
+                self.config.get("available_icon", "󰏗")
                 if total > 0
                 else self.config.get("no_updates_icon", "󰒒")
             )
-            self.refresh_formatted_label(icon)
+            self.refresh_formatted_label(icon, total=self._format_total(total))
 
             # Tooltip
             self.set_tooltip_if_enabled(data.get("tooltip", ""), default=True)
 
             # Auto-hide logic
-            if self.config.get("auto_hide", False):
-                self.set_visible(total > 0)
+            if self.config.get("auto_hide", False) and self.is_visible():
+                self.set_visible(False)
 
         except (json.JSONDecodeError, ValueError) as e:
             logger.exception(

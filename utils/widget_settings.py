@@ -507,6 +507,7 @@ Updates = TypedDict(
     {
         **BaseConfig.__annotations__,
         "label_format": str,
+        "pad_zero": bool,
         "available_icon": str,
         "no_updates_icon": str,
         "os": str,

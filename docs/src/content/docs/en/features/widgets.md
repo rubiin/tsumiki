@@ -113,7 +113,8 @@ Checks for system package updates (Arch Linux, Flatpak, Snap, Homebrew).
 
 ```toml
 [widgets.updates]
-label_format = "{icon}"
+label_format = "{icon} {total}"
+pad_zero = true
 available_icon = "󰏗"
 no_updates_icon = "󰏖"
 os = "arch"
@@ -126,6 +127,8 @@ snap = false
 brew = false
 ```
 
+- **`label_format`**: Variables available: `{icon}`, `{total}` (the update count).
+- **`pad_zero`**: Zero-pads `{total}` to two digits (`05`); zero itself stays `0`.
 - **`interval`**: Polling interval in seconds (default: 3600 = 1 hour).
 - **`os`**: Distribution for native package checking (supports `arch`, `fedora`, `ubuntu`).
 - **`flatpak`/`snap`/`brew`**: Enable checking for these package formats.

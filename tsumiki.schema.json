@@ -969,8 +969,13 @@
           "properties": {
             "label_format": {
               "type": "string",
-              "default": "{icon}",
-              "description": "Format string; the icon is shown when it contains {icon}."
+              "default": "{icon} {total}",
+              "description": "Format string; fields: {icon}, {total} (the update count)."
+            },
+            "pad_zero": {
+              "type": "boolean",
+              "default": true,
+              "description": "Zero-pads {total} to two digits; zero itself stays \"0\"."
             },
             "available_icon": {
               "type": "string",

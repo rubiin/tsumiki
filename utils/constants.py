@@ -377,7 +377,8 @@ DEFAULT_CONFIG = {
             "notify": False,  # Whether to show a notification when the theme is changed
         },
         "updates": {
-            "label_format": "{icon}",
+            "label_format": "{icon} {total}",
+            "pad_zero": True,  # Whether to zero-pad the update count to two digits
             "available_icon": "󰏗",
             "no_updates_icon": "󰏖",
             "os": "arch",

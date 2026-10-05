@@ -92,7 +92,8 @@ interval = 2000
 
 ```toml
 [widgets.updates]
-label_format = "{icon}"
+label_format = "{icon} {total}"
+pad_zero = true
 available_icon = "󰏗"
 no_updates_icon = "󰏖"
 os = "arch"

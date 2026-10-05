@@ -426,7 +426,7 @@ _VALID_LABEL_FORMATS = {
         "label_format": set(["icon"]),
     },
     "updates": {
-        "label_format": set(["icon"]),
+        "label_format": set(["icon", "total"]),
     },
     "world_clock": {
         "label_format": set(["icon"]),
