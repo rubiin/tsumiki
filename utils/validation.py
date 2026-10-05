@@ -481,32 +481,155 @@ _VALID_LABEL_FORMATS = {
     },
 }
 
+# Indexed collections hold their config per entry rather than under ``widgets``,
+# so they get their own map: a ``[[collapsible_groups]]`` entry labels its toggle
+# button, not a panel widget.
+_VALID_COLLECTION_LABEL_FORMATS = {
+    "collapsible_groups": {
+        "label_format": set(["icon"]),
+    },
+}
+
+
+# Keys renamed after v4.8.3, mapped to what a config should use instead.
+_RENAMED_WIDGET_KEYS = {
+    "label": 'label_format (e.g. label_format = "{icon}")',
+    "label_text": 'label_format (e.g. label_format = "{icon}")',
+    "show_icon": 'label_format = "{icon}"',
+}
+
+_RENAMED_WIDGET_SECTIONS = {
+    "custom_button": "[[widgets.custom_buttons]]",
+    "custom_button_group": "[[widgets.custom_buttons]]",
+}
+
+# Top-level collections whose entries label a panel button, so they answer to the
+# same renamed keys as ``widgets.<name>``.
+_COLLECTIONS_WITH_RENAMED_KEYS = ("collapsible_groups",)
+
+# ``widgets.cheatsheet`` kept only the panel button; the overlay's own settings
+# moved to the module block. ``None`` marks a key dropped with no replacement.
+_MOVED_CHEATSHEET_KEYS = {
+    "title": "modules.cheatsheet.title",
+    "columns": "modules.cheatsheet.columns",
+    "groups_per_page": "modules.cheatsheet.groups_per_page",
+    "max_entries_per_group": None,
+}
+
+_RENAMED_MODULE_KEYS = {
+    ("osd", "duration"): "modules.osd.timeout",
+    ("osd", "style"): (
+        "nothing -- the OSD look now comes from orientation, anchor, "
+        "transition_type and transition_duration"
+    ),
+}
+
+
+def warn_deprecated_keys(parsed_data: dict) -> None:
+    """Warn about keys renamed or removed after v4.8.3.
+
+    Nothing rejects an undeclared key: ``validate_config_enums`` only walks the
+    properties the schema does declare, so a stale key is dropped in silence.
+    These warnings are the only signal a migrating user gets.
+    """
+    widgets = parsed_data.get("widgets", {})
+    if isinstance(widgets, dict):
+        for old_section, replacement in _RENAMED_WIDGET_SECTIONS.items():
+            if old_section in widgets:
+                logger.warning(
+                    f"[Config] [widgets.{old_section}] was replaced by "
+                    f"{replacement}; the old section is ignored."
+                )
+
+        for name, config in widgets.items():
+            if isinstance(config, dict):
+                _warn_renamed_widget_keys(f"widgets.{name}", config)
+            elif isinstance(config, list):
+                # custom_buttons and custom_widget hold a list of entries.
+                for index, entry in enumerate(config):
+                    if isinstance(entry, dict):
+                        _warn_renamed_widget_keys(f"widgets.{name}[{index}]", entry)
+
+        _warn_moved_cheatsheet_keys(widgets.get("cheatsheet"))
+
+    for collection_name in _COLLECTIONS_WITH_RENAMED_KEYS:
+        entries = parsed_data.get(collection_name)
+        if not isinstance(entries, list):
+            continue
+        for index, entry in enumerate(entries):
+            if isinstance(entry, dict):
+                _warn_renamed_widget_keys(f"{collection_name}[{index}]", entry)
+
+    modules = parsed_data.get("modules", {})
+    for (module, key), replacement in _RENAMED_MODULE_KEYS.items():
+        config = modules.get(module) if isinstance(modules, dict) else None
+        if isinstance(config, dict) and key in config:
+            logger.warning(
+                f"[Config] modules.{module}.{key} was renamed to {replacement}."
+            )
+
+
+def _warn_renamed_widget_keys(path: str, config: dict) -> None:
+    for old_key, replacement in _RENAMED_WIDGET_KEYS.items():
+        if old_key in config:
+            logger.warning(
+                f"[Config] {path}.{old_key} is no longer supported; use {replacement}."
+            )
+
+
+def _warn_moved_cheatsheet_keys(config) -> None:
+    if not isinstance(config, dict):
+        return
+
+    for old_key, replacement in _MOVED_CHEATSHEET_KEYS.items():
+        if old_key not in config:
+            continue
+        if replacement is None:
+            logger.warning(
+                f"[Config] widgets.cheatsheet.{old_key} was removed with no "
+                "replacement."
+            )
+        else:
+            logger.warning(
+                f"[Config] widgets.cheatsheet.{old_key} moved to {replacement}; "
+                "the key under widgets.cheatsheet is ignored."
+            )
+
+
+def _warn_unknown_format_keys(
+    section: str, config: dict, formats: dict[str, set[str]]
+) -> None:
+    for config_key, valid_keys in formats.items():
+        fmt = config.get(config_key)
+        if not isinstance(fmt, str):
+            continue
+        try:
+            used = _get_named_format_keys(fmt)
+        except (ValueError, KeyError):
+            logger.warning(f"[Config] {section}.{config_key}: invalid format")
+            continue
+        unknown = used - valid_keys
+        if unknown:
+            logger.warning(
+                f"[Config] {section}.{config_key}: "
+                f"unknown key(s) {sorted(unknown)!r}. "
+                f"Valid keys: {sorted(valid_keys)!r}"
+            )
+
 
 def validate_format_strings(parsed_data: dict) -> None:
     """Warn when format strings in widget settings reference unknown keys."""
     widgets = parsed_data.get("widgets", {})
-    for widget_name in _VALID_LABEL_FORMATS:
+    for widget_name, formats in _VALID_LABEL_FORMATS.items():
         widget_cfg = widgets.get(widget_name, {})
         if not isinstance(widget_cfg, dict):
             continue
-        for config_key, valid_keys in _VALID_LABEL_FORMATS[widget_name].items():
-            fmt = widget_cfg.get(config_key)
-            if not isinstance(fmt, str):
-                continue
-            try:
-                used = _get_named_format_keys(fmt)
-            except (ValueError, KeyError):
-                logger.warning(
-                    f"[Config] widgets.{widget_name}.{config_key}: invalid format"
-                )
-                continue
-            unknown = used - valid_keys
-            if unknown:
-                logger.warning(
-                    f"[Config] widgets.{widget_name}.{config_key}: "
-                    f"unknown key(s) {sorted(unknown)!r}. "
-                    f"Valid keys: {sorted(valid_keys)!r}"
-                )
+        _warn_unknown_format_keys(f"widgets.{widget_name}", widget_cfg, formats)
+
+    for collection_name, formats in _VALID_COLLECTION_LABEL_FORMATS.items():
+        for index, entry in enumerate(parsed_data.get(collection_name, []) or []):
+            if isinstance(entry, dict):
+                _warn_unknown_format_keys(f"{collection_name}[{index}]", entry, formats)
 
 
 def _validate_unique_ids(parsed_data: dict) -> None:
@@ -561,4 +684,5 @@ def validate_widgets(parsed_data, default_config):
                             widget, parsed_data, default_config, f"{group_type}[{idx}]"
                         )
 
+    warn_deprecated_keys(parsed_data)
     validate_format_strings(parsed_data)

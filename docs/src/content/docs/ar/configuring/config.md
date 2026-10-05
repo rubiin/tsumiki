@@ -39,6 +39,7 @@ style_classes = ["bordered"]
 widgets = ["ocr", "screenshot", "recorder"]
 spacing = 4
 icon = "󰒓"
+label_format = "{icon}"
 tooltip = "أدوات مساعدة"
 style_classes = ["utility-tools"]
 
@@ -193,6 +194,7 @@ style_classes = ["bordered"]
 widgets = ["ocr", "screenshot", "recorder"]
 spacing = 4
 icon = "󰒓"
+label_format = "{icon}"
 tooltip = "أدوات مساعدة"
 style_classes = ["utility-tools"]
 ```

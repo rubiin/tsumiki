@@ -39,6 +39,7 @@ style_classes = ["bordered"]
 widgets = ["ocr", "screenshot", "recorder"]
 spacing = 4
 icon = "󰒓"
+label_format = "{icon}"
 tooltip = "Utilidades"
 style_classes = ["utility-tools"]
 
@@ -193,6 +194,7 @@ Los grupos plegables ocultan widgets detrás de un alternador:
 widgets = ["ocr", "screenshot", "recorder"]
 spacing = 4
 icon = "󰒓"
+label_format = "{icon}"
 tooltip = "Utilidades"
 style_classes = ["utility-tools"]
 ```

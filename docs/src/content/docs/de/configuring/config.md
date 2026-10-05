@@ -39,6 +39,7 @@ style_classes = ["bordered"]
 widgets = ["ocr", "screenshot", "recorder"]
 spacing = 4
 icon = "󰒓"
+label_format = "{icon}"
 tooltip = "Werkzeuge"
 style_classes = ["utility-tools"]
 
@@ -193,6 +194,7 @@ Einklappbare Gruppen verbergen Widgets hinter einem Umschalter:
 widgets = ["ocr", "screenshot", "recorder"]
 spacing = 4
 icon = "󰒓"
+label_format = "{icon}"
 tooltip = "Werkzeuge"
 style_classes = ["utility-tools"]
 ```

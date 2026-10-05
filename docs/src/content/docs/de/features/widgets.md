@@ -134,5 +134,6 @@ style_classes = ["compact"]
 widgets = ["ocr", "screenshot", "recorder"]
 spacing = 4
 icon = "󰒓"
+label_format = "{icon}"
 tooltip = "Werkzeuge"
 ```

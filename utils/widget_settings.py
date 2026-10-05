@@ -246,9 +246,9 @@ Overview = TypedDict(
     },
 )
 
-# Overview configuration
-Cheatsheet = TypedDict(
-    "Cheatsheet",
+# Cheatsheet overlay module configuration
+CheatsheetModule = TypedDict(
+    "CheatsheetModule",
     {
         "enabled": bool,
         "anchor": Anchor,
@@ -357,7 +357,7 @@ Modules = TypedDict(
         "launcher": Launcher,
         "activate_linux": ActivateLinux,
         "overview": Overview,
-        "cheatsheet": Cheatsheet,
+        "cheatsheet": CheatsheetModule,
     },
 )
 
@@ -702,6 +702,7 @@ Collapsible_Group = TypedDict(
         "id": str,
         "spacing": int,
         "icon": str,
+        "label_format": str,
         "tooltip": str,
         "style_classes": list[str],
     },
@@ -777,6 +778,7 @@ QuickSettings = TypedDict(
         "toggles": list[str],
     },
 )
+
 
 # Cheatsheet configuration
 Cheatsheet = TypedDict(

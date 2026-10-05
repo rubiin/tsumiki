@@ -76,6 +76,7 @@ id = "utility-tools"
 widgets = ["ocr", "screenshot", "recorder"]
 spacing = 4
 icon = "󰒓"
+label_format = "{icon}"
 tooltip = "Utilidades"
 style_classes = ["utility-tools"]
 ```

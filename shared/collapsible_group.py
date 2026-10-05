@@ -1,7 +1,4 @@
 from fabric.widgets.box import Box
-from fabric.widgets.label import Label
-
-from utils.widget_utils import nerd_font_icon
 
 from .mixins import PopoverMixin
 from .widget_container import ButtonWidget
@@ -18,9 +15,7 @@ class CollapsibleGroupWidget(ButtonWidget, PopoverMixin):
 
         self.widgets_config = []
         self.icon_name = "󰍽"  # default icon
-        self.show_icon = True
-        self.show_label = False
-        self.label_text = "Tools"
+        self.label_format = "{icon}"
         self.tooltip_text = "Toggle tool menu"
 
         self.is_expanded = False
@@ -37,23 +32,12 @@ class CollapsibleGroupWidget(ButtonWidget, PopoverMixin):
         """Read configuration values from the config."""
         self.widgets_config = self.config.get("widgets", [])
         self.icon_name = self.config.get("icon", "󰍽")
-        self.show_icon = self.format_shows_icon()
-        self.show_label = self.config.get("show_label", False)
-        self.label_text = self.config.get("label", "Tools")
+        self.label_format = self.config.get("label_format", "{icon}")
         self.tooltip_text = self.config.get("tooltip", "Toggle tool menu")
 
     def _setup_button_content(self):
         """Set up the content of the main toggle button."""
-        if self.show_icon:
-            icon = nerd_font_icon(
-                icon=self.icon_name,
-                props={"style_classes": ["panel-font-icon"]},
-            )
-            self.container_box.add(icon)
-
-        if self.show_label:
-            label = Label(label=self.label_text, style_classes="panel-text")
-            self.container_box.add(label)
+        self.add_formatted_label(self.label_format, self.icon_name)
 
     def _build_popover_content(self) -> Box:
         """Build the popover content: the grouped widgets, in a row."""

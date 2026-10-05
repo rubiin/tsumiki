@@ -44,6 +44,7 @@ reveal_duration = 500
 widgets = ["ocr", "screenshot", "recorder"]
 spacing = 4
 icon = "󰒓"
+label_format = "{icon}"      # the toggle button's whole label; "{icon}" is the only field
 tooltip = "Utility Tools"
 style_classes = ["utility-tools"]
 

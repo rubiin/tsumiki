@@ -214,9 +214,12 @@ Collapsible groups hide widgets behind a toggle:
 widgets = ["ocr", "screenshot", "recorder"]
 spacing = 4
 icon = "󰒓"
+label_format = "{icon}"
 tooltip = "Utility Tools"
 style_classes = ["utility-tools"]
 ```
+
+The toggle button is one label, driven by `label_format` like every other panel widget. `{icon}` is the only field here: literal text in the string is kept, so `"{icon} Tools"` puts a caption next to the glyph. The old `show_icon` / `label` keys are no longer read.
 
 Reference groups in layout with `@group:N` (numeric index) or `@group:id` (string id).
 
@@ -234,6 +237,7 @@ id = "utility-tools"
 widgets = ["ocr", "screenshot", "recorder"]
 spacing = 4
 icon = "󰒓"
+label_format = "{icon}"
 tooltip = "Utility Tools"
 style_classes = ["utility-tools"]
 

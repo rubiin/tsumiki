@@ -186,7 +186,6 @@ DEFAULT_CONFIG = {
                 "notification_grouping": True,  # Group history by app in the date menu
             },
         },
-        "divider": {},
         "cheatsheet": {
             "icon": "󰌌",
             "label_format": "{icon}",

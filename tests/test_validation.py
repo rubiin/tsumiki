@@ -22,6 +22,7 @@ from utils.validation import (
     validate_format_strings,
     validate_widget_reference,
     validate_widgets,
+    warn_deprecated_keys,
 )
 
 
@@ -425,6 +426,23 @@ class ValidateFormatStringsTest(unittest.TestCase):
     def test_non_string_format_ignored(self):
         validate_format_strings({"widgets": {"mpris": {"label_format": 42}}})
 
+    def test_collapsible_group_accepts_the_icon_field(self):
+        validate_format_strings({"collapsible_groups": [{"label_format": "{icon}"}]})
+
+    @mock.patch("utils.validation.logger")
+    def test_collapsible_group_unknown_field_warns(self, mock_logger):
+        validate_format_strings(
+            {"collapsible_groups": [{"id": "tools", "label_format": "{label}"}]}
+        )
+        msg = mock_logger.warning.call_args[0][0]
+        self.assertIn("collapsible_groups[0].label_format", msg)
+
+    @mock.patch("utils.validation.logger")
+    def test_a_list_entry_is_not_read_as_a_widget_section(self, mock_logger):
+        """``widgets.custom_buttons`` is an array; only dict sections are walked."""
+        validate_format_strings({"widgets": {"custom_buttons": [{"label_format": 42}]}})
+        mock_logger.warning.assert_not_called()
+
     @mock.patch("utils.validation.logger")
     def test_invalid_format_string_warns(self, mock_logger):
         validate_format_strings({"widgets": {"mpris": {"label_format": "{unclosed"}}})
@@ -473,6 +491,117 @@ class ValidateFormatStringsTest(unittest.TestCase):
                 )
                 msg = mock_logger.warning.call_args[0][0]
                 self.assertIn(f"widgets.{name}.label_format", msg)
+
+
+class DeprecationWarningTest(unittest.TestCase):
+    """Renamed keys are dropped in silence, so each one must warn.
+
+    ``validate_config_enums`` only walks the properties the schema declares and
+    nothing rejects an unknown one, so a config still setting ``label`` or
+    ``modules.osd.duration`` loses the setting with no other signal.
+    """
+
+    def _warnings(self, parsed: dict) -> list[str]:
+        with mock.patch("utils.validation.logger") as mock_logger:
+            warn_deprecated_keys(parsed)
+            return [call[0][0] for call in mock_logger.warning.call_args_list]
+
+    @mock.patch("utils.validation.logger")
+    def test_label_and_label_text_warn(self, mock_logger):
+        warn_deprecated_keys({"widgets": {"battery": {"label": True}}})
+        msg = mock_logger.warning.call_args[0][0]
+        self.assertIn("widgets.battery.label", msg)
+        self.assertIn("label_format", msg)
+
+        warn_deprecated_keys({"widgets": {"mpris": {"label_text": "Now playing"}}})
+        msg = mock_logger.warning.call_args[0][0]
+        self.assertIn("widgets.mpris.label_text", msg)
+
+    @mock.patch("utils.validation.logger")
+    def test_show_icon_warns_again(self, mock_logger):
+        """``e0b7806e`` dropped this warning; ``show_icon`` is still unread."""
+        warn_deprecated_keys({"widgets": {"cpu": {"show_icon": False}}})
+        msg = mock_logger.warning.call_args[0][0]
+        self.assertIn("widgets.cpu.show_icon", msg)
+
+    @mock.patch("utils.validation.logger")
+    def test_collapsible_group_entries_warn(self, mock_logger):
+        warn_deprecated_keys(
+            {
+                "collapsible_groups": [
+                    {"icon": "x", "show_icon": False, "label": "Tools"}
+                ]
+            }
+        )
+        warnings = [call[0][0] for call in mock_logger.warning.call_args_list]
+        self.assertTrue(
+            any("collapsible_groups[0].show_icon" in msg for msg in warnings), warnings
+        )
+        self.assertTrue(
+            any("collapsible_groups[0].label" in msg for msg in warnings), warnings
+        )
+
+    @mock.patch("utils.validation.logger")
+    def test_label_warns_inside_list_entries(self, mock_logger):
+        warn_deprecated_keys({"widgets": {"custom_buttons": [{"label": "Go"}]}})
+        msg = mock_logger.warning.call_args[0][0]
+        self.assertIn("widgets.custom_buttons[0].label", msg)
+
+    @mock.patch("utils.validation.logger")
+    def test_renamed_sections_warn(self, mock_logger):
+        for section in ("custom_button", "custom_button_group"):
+            with self.subTest(section=section):
+                warn_deprecated_keys({"widgets": {section: {"0": {}}}})
+                msg = mock_logger.warning.call_args[0][0]
+                self.assertIn(f"widgets.{section}", msg)
+                self.assertIn("widgets.custom_buttons", msg)
+
+    @mock.patch("utils.validation.logger")
+    def test_moved_cheatsheet_keys_point_at_the_module(self, mock_logger):
+        warn_deprecated_keys({"widgets": {"cheatsheet": {"columns": 3}}})
+        msg = mock_logger.warning.call_args[0][0]
+        self.assertIn("widgets.cheatsheet.columns", msg)
+        self.assertIn("modules.cheatsheet.columns", msg)
+
+    @mock.patch("utils.validation.logger")
+    def test_dropped_cheatsheet_key_says_so(self, mock_logger):
+        """``max_entries_per_group`` has no replacement, so name none."""
+        warn_deprecated_keys(
+            {"widgets": {"cheatsheet": {"max_entries_per_group": 5}}}
+        )
+        msg = mock_logger.warning.call_args[0][0]
+        self.assertIn("max_entries_per_group", msg)
+        self.assertIn("no replacement", msg)
+
+    @mock.patch("utils.validation.logger")
+    def test_renamed_module_keys_warn(self, mock_logger):
+        warn_deprecated_keys({"modules": {"osd": {"duration": 2000}}})
+        msg = mock_logger.warning.call_args[0][0]
+        self.assertIn("modules.osd.duration", msg)
+        self.assertIn("modules.osd.timeout", msg)
+
+    @mock.patch("utils.validation.logger")
+    def test_removed_osd_style_warns(self, mock_logger):
+        warn_deprecated_keys({"modules": {"osd": {"style": "notification"}}})
+        msg = mock_logger.warning.call_args[0][0]
+        self.assertIn("modules.osd.style", msg)
+
+    def test_current_config_is_silent(self):
+        """The shipped config must not trip its own deprecation warnings."""
+        root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        for name in ("config.toml", "example/config.toml"):
+            with self.subTest(config=name):
+                import tomllib
+
+                with open(os.path.join(root, name), "rb") as handle:
+                    parsed = tomllib.load(handle)
+                self.assertEqual([], self._warnings(parsed))
+
+    def test_validate_widgets_runs_the_deprecation_check(self):
+        with mock.patch("utils.validation.logger") as mock_logger:
+            validate_widgets({"widgets": {"battery": {"label": True}}}, {})
+            messages = [call[0][0] for call in mock_logger.warning.call_args_list]
+        self.assertTrue(any("widgets.battery.label" in msg for msg in messages))
 
 
 class ValidateWidgetsTest(unittest.TestCase):
