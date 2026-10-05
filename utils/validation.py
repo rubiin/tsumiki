@@ -390,8 +390,17 @@ _VALID_LABEL_FORMATS = {
     "mpris": {
         "label_format": set(["title", "artist", "album", "name"]),
     },
-    # Widgets whose only format field is the icon: ``show_icon`` became
-    # ``label_format = "{icon}"``, and omitting the field hides the icon.
+    # Widgets whose label also carries live state the widget feeds back in.
+    "keyboard": {
+        "label_format": set(["icon", "layout"]),
+    },
+    "language": {
+        "label_format": set(["icon", "language"]),
+    },
+    "submap": {
+        "label_format": set(["icon", "submap"]),
+    },
+    # Widgets whose only format field is the icon: ``label_format = "{icon}``.
     "cpu": {
         "label_format": set(["icon"]),
     },
@@ -399,12 +408,6 @@ _VALID_LABEL_FORMATS = {
         "label_format": set(["icon"]),
     },
     "hyprpicker": {
-        "label_format": set(["icon"]),
-    },
-    "keyboard": {
-        "label_format": set(["icon"]),
-    },
-    "language": {
         "label_format": set(["icon"]),
     },
     "memory": {
@@ -420,9 +423,6 @@ _VALID_LABEL_FORMATS = {
         "label_format": set(["icon"]),
     },
     "storage": {
-        "label_format": set(["icon"]),
-    },
-    "submap": {
         "label_format": set(["icon"]),
     },
     "updates": {
@@ -459,10 +459,10 @@ _VALID_LABEL_FORMATS = {
         "label_format": set(["icon"]),
     },
     "hypridle": {
-        "label_format": set(["icon"]),
+        "label_format": set(["icon", "state"]),
     },
     "hyprsunset": {
-        "label_format": set(["icon"]),
+        "label_format": set(["icon", "state"]),
     },
     "kanban": {
         "label_format": set(["icon"]),
@@ -480,30 +480,6 @@ _VALID_LABEL_FORMATS = {
         "label_format": set(["icon"]),
     },
 }
-
-
-def warn_deprecated_show_icon(parsed_data: dict) -> None:
-    """Warn about ``show_icon``, replaced by ``label_format = "{icon}"``.
-
-    ``show_icon`` is no longer read, so a config that still sets it silently
-    gets the default icon back.
-    """
-    widgets = parsed_data.get("widgets", {})
-    for widget_name, widget_cfg in widgets.items():
-        if isinstance(widget_cfg, dict) and "show_icon" in widget_cfg:
-            _warn_show_icon(f"widgets.{widget_name}")
-        # custom_buttons is a list of entries rather than a single config.
-        elif isinstance(widget_cfg, list):
-            for idx, entry in enumerate(widget_cfg):
-                if isinstance(entry, dict) and "show_icon" in entry:
-                    _warn_show_icon(f"widgets.{widget_name}[{idx}]")
-
-
-def _warn_show_icon(path: str) -> None:
-    logger.warning(
-        f"[Config] {path}.show_icon is no longer supported; "
-        'use label_format = "{icon}" to keep the icon, or drop the key to hide it.'
-    )
 
 
 def validate_format_strings(parsed_data: dict) -> None:
@@ -585,5 +561,4 @@ def validate_widgets(parsed_data, default_config):
                             widget, parsed_data, default_config, f"{group_type}[{idx}]"
                         )
 
-    warn_deprecated_show_icon(parsed_data)
     validate_format_strings(parsed_data)

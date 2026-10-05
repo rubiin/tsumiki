@@ -29,10 +29,19 @@ class LanguageWidget(ButtonWidget):
                 style_classes="panel-text",
             )
 
-        self.label_format = self.config.get("label_format", "{icon}")
-        self.add_formatted_label(self.label_format, self.config.get("icon", ""))
-
-        # The language name is a live widget, so it stays its own label.
-        self.container_box.add(self.lang)
+        self.label_format = self.config.get("label_format", "{icon} {language}")
+        self._glyph = self.config.get("icon", "")
+        # HyprlandLanguage stays off the panel: it is the data source, and its
+        # text is folded into the single formatted label.
+        self.add_formatted_label(
+            self.label_format, self._glyph, language=self.lang.get_label()
+        )
+        self._register_handlers(self.lang, {"layout_changed": self._refresh_language})
 
         self.set_tooltip_if_enabled(f"Language: {self.lang.get_label()}")
+
+    def _refresh_language(self, *_args) -> None:
+        """Mirror the live language widget into the panel label and tooltip."""
+        language = self.lang.get_label()
+        self.refresh_formatted_label(self._glyph, language=language)
+        self.set_tooltip_if_enabled(f"Language: {language}")

@@ -1,10 +1,8 @@
 from fabric.utils import logger
-from fabric.widgets.label import Label
 
 from shared.widget_container import ButtonWidget
 from utils.constants import get_kblayout_map
 from utils.hyprland import hyprland_service
-from utils.i18n import _
 
 
 class KeyboardLayoutWidget(ButtonWidget):
@@ -13,15 +11,9 @@ class KeyboardLayoutWidget(ButtonWidget):
     def __init__(self, **kwargs):
         super().__init__(name="keyboard", **kwargs)
 
-        self.kb_label = Label(
-            label=_("widget.keyboard.label"), style_classes="panel-text"
-        )
-
-        self.label_format = self.config.get("label_format", "{icon}")
-        self.add_formatted_label(self.label_format, self.config.get("icon", ""))
-
-        # The layout name changes at runtime, so it stays its own label.
-        self.container_box.add(self.kb_label)
+        self.label_format = self.config.get("label_format", "{icon} {layout}")
+        self._glyph = self.config.get("icon", "")
+        self.add_formatted_label(self.label_format, self._glyph)
 
         # all aboard...
         hyprland_service.on_ready(lambda: self.on_ready(None))
@@ -30,13 +22,17 @@ class KeyboardLayoutWidget(ButtonWidget):
         self._get_keyboard()
         logger.info("[Keyboard] Connected to the hyprland socket")
 
+    def _refresh_layout(self, layout: str) -> None:
+        """Re-render the one panel label with the layout name."""
+        self.refresh_formatted_label(self._glyph, layout=layout)
+
     def _handle_devices_data(self, data, *_):
         if data is None:
             return
         try:
             keyboards = data.get("keyboards", [])
             if not keyboards:
-                self.kb_label.set_label("Unknown")
+                self._refresh_layout("Unknown")
                 logger.warning("[Keyboard] No keyboards found in the data")
                 return
 
@@ -53,7 +49,7 @@ class KeyboardLayoutWidget(ButtonWidget):
                     f"Layout: {layout} | Caps Lock 󰪛: {caps} | Num Lock : {num}"
                 )
 
-            self.kb_label.set_label(label)
+            self._refresh_layout(label)
         except Exception as e:
             logger.exception(f"[Keyboard] Failed to parse keyboard data: {e}")
 

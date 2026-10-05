@@ -1,5 +1,4 @@
 from fabric.utils import logger
-from fabric.widgets.label import Label
 
 import utils.functions as helpers
 from utils.change_cache import ChangeCache
@@ -48,15 +47,8 @@ class CommandSwitcher(ButtonWidget):
         self.label = label
         self.tooltip = tooltip
 
-        self.label_format = self.config.get("label_format", "{icon}")
-        self.add_formatted_label(self.label_format, enabled_icon)
-
-        if self.label:
-            self.label_text = Label(
-                label=_("common.enabled"),
-                style_classes="panel-text",
-            )
-            self.container_box.add(self.label_text)
+        self.label_format = self.config.get("label_format", "{icon} {state}")
+        self.add_formatted_label(self.label_format, enabled_icon, state="")
 
         self.connect("clicked", self.on_click)
 
@@ -94,12 +86,13 @@ class CommandSwitcher(ButtonWidget):
 
         label = _("common.enabled") if is_running else _("common.disabled")
 
-        if self.label:
-            self._changes.apply("label", label, self.label_text.set_label)
-
         icon = self.enabled_icon if is_running else self.disabled_icon
+        # Keyed on icon *and* state: hypridle passes one glyph for both states,
+        # so an icon-only key would skip the text when just the state flips.
         self._changes.apply(
-            "icon", icon, lambda value: self.refresh_formatted_label(value)
+            "panel",
+            (icon, label if self.label else ""),
+            lambda value: self.refresh_formatted_label(value[0], state=value[1]),
         )
 
         if self.tooltip and self.tooltips_enabled:

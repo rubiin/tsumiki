@@ -53,7 +53,7 @@ class DesktopQuote(BaseWindow):
         self._register_repeater(
             invoke_repeater(
                 convert_seconds_to_milliseconds(
-                    self.config.get("update_interval", 600)
+                    self.config.get("interval", 600)
                 ),
                 self.update_quote,
             )

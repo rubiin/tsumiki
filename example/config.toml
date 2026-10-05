@@ -58,7 +58,6 @@ auto_hide_timeout = 3000
 enabled = true
 anchor = "top-right"
 auto_dismiss = true
-dnd_on_screencast = true
 transition_type = "slide-left"
 transition_duration = 350
 
@@ -425,7 +424,7 @@ tooltip = true
 [widgets.submap]
 icon = "󰌌"
 tooltip = true
-label_format = ""
+label_format = "{icon} {submap}"
 hide_on_default = false
 
 # --- World Clock ---

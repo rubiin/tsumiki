@@ -5,7 +5,9 @@ rendered. ``label_format`` replaced it, and the panel content now comes from one
 label built by ``format_panel_label``.
 """
 
+import re
 import unittest
+from pathlib import Path
 from unittest import mock
 
 from fabric.widgets.label import Label
@@ -122,6 +124,61 @@ class MicrophoneIconFormatTest(unittest.TestCase):
         widget._update_status()
 
         widget.panel_label.set_visible.assert_called_with(True)
+
+
+# ``add_formatted_label``'s own definition, and github_tray re-parenting the
+# formatted label into a box so its badge can overlap it.
+_LABEL_FORMAT_EXEMPT = {
+    "shared/widget_container.py",
+    "widgets/github_tray/widget.py",
+}
+
+# The widgets that used to append a sibling text label next to the formatted one.
+_SIBLING_LABEL_WIDGETS = {
+    "shared/button_toggle.py": ("label_text", "{state}"),
+    "widgets/keyboard_layout.py": ("kb_label", "{layout}"),
+    "widgets/submap.py": ("submap_label", "{submap}"),
+    "widgets/language.py": ("self.container_box.add", "{language}"),
+}
+
+
+def _widget_sources() -> list[Path]:
+    root = Path(__file__).resolve().parents[1]
+    return sorted(root.glob("widgets/**/*.py")) + sorted(root.glob("shared/**/*.py"))
+
+
+class SinglePanelLabelTest(unittest.TestCase):
+    """``add_formatted_label`` owns the panel label; no widget adds a sibling.
+
+    A second label means two children in the bar button, and the text escapes
+    ``label_format``, so it cannot be restyled or hidden through config.
+    """
+
+    def _offenders(self) -> list[str]:
+        root = Path(__file__).resolve().parents[1]
+        offenders = []
+        for path in _widget_sources():
+            # Split per class: a popover row class may add its own label.
+            for chunk in re.split(r"(?m)^class ", path.read_text(encoding="utf-8")):
+                if "add_formatted_label(" not in chunk:
+                    continue
+                if "container_box.add(" not in chunk:
+                    continue
+                name = f"{path.relative_to(root)}: {chunk.splitlines()[0]}"
+                if name.split(":")[0] not in _LABEL_FORMAT_EXEMPT:
+                    offenders.append(name)
+        return offenders
+
+    def test_no_widget_adds_a_label_next_to_the_formatted_one(self):
+        self.assertEqual([], self._offenders())
+
+    def test_each_refactored_widget_feeds_its_text_back_through_the_format(self):
+        root = Path(__file__).resolve().parents[1]
+        for name, (gone, field) in _SIBLING_LABEL_WIDGETS.items():
+            with self.subTest(widget=name):
+                source = (root / name).read_text(encoding="utf-8")
+                self.assertNotIn(gone, source)
+                self.assertIn(field, source)
 
 
 if __name__ == "__main__":

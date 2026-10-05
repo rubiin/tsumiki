@@ -242,7 +242,7 @@ DEFAULT_CONFIG = {
         },
         "hypridle": {
             "enabled_icon": "",
-            "label_format": "{icon}",
+            "label_format": "{icon} {state}",
             "disabled_icon": "",
             "tooltip": True,
         },
@@ -255,14 +255,14 @@ DEFAULT_CONFIG = {
         "hyprsunset": {
             "temperature": "2800k",
             "enabled_icon": "󱩌",
-            "label_format": "{icon}",
+            "label_format": "{icon} {state}",
             "disabled_icon": "󰛨",
             "tooltip": True,
         },
         "keyboard": {
             "icon": "󰌌",
             "tooltip": True,
-            "label_format": "{icon}",
+            "label_format": "{icon} {layout}",
         },
         "window_count": {
             "label_format": " [{count}]",
@@ -273,7 +273,7 @@ DEFAULT_CONFIG = {
             "icon": "",
             "tooltip": True,
             "truncation_size": 2,
-            "label_format": "{icon}",
+            "label_format": "{icon} {language}",
         },
         "memory": {
             "label_format": "{icon}",
@@ -356,7 +356,7 @@ DEFAULT_CONFIG = {
         "submap": {
             "icon": "󰌌",
             "tooltip": True,
-            "label_format": "{icon}",
+            "label_format": "{icon} {submap}",
             "hide_on_default": False,
         },
         "system_tray": {
@@ -504,7 +504,6 @@ DEFAULT_CONFIG = {
             "enabled": True,
             "anchor": "top-right",
             "auto_dismiss": True,
-            "dnd_on_screencast": False,  # Enable Do Not Disturb mode when screencasting
             "ignored": [],
             "respect_expire": True,  # Whether to respect the expire timeout sent by the notification
             "timeout": {"low": 3000, "normal": 8000, "critical": 15000},

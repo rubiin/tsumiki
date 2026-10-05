@@ -237,7 +237,7 @@ notification_grouping = true   # Group notification history by app in the date m
 
 [widgets.hypridle]
 enabled_icon = ""
-label_format = "{icon}"
+label_format = "{icon} {state}"
 disabled_icon = ""
 tooltip = true
 
@@ -250,14 +250,14 @@ label_format = "{icon}"
 [widgets.hyprsunset]
 temperature = "2800k"
 enabled_icon = "󱩌"
-label_format = "{icon}"
+label_format = "{icon} {state}"
 disabled_icon = "󰛨"
 tooltip = true
 
 [widgets.keyboard]
 icon = "󰌌"
 tooltip = true
-label_format = "{icon}"
+label_format = "{icon} {layout}"
 
 [widgets.window_count]
 label_format = " [{count}]"
@@ -268,7 +268,7 @@ tooltip = true
 icon = ""
 tooltip = true
 truncation_size = 2
-label_format = "{icon}"
+label_format = "{icon} {language}"
 
 
 [widgets.network_usage]
@@ -346,7 +346,7 @@ running_icon = "󱫠"
 [widgets.submap]
 icon = "󰌌"
 tooltip = true
-label_format = "{icon}"
+label_format = "{icon} {submap}"
 hide_on_default = false
 
 [widgets.system_tray]
@@ -845,7 +845,6 @@ enabled = true
 anchor = "top-right"
 auto_dismiss = true
 respect_expire = true
-dnd_on_screencast = true
 ignored = []
 transition_type = "slide-left"
 transition_duration = 350

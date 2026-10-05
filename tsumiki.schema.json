@@ -617,7 +617,30 @@
               "default": 2,
               "description": "The number of digits to display for megabytes."
             },
-            "interval": {},
+            "interval": {
+              "type": "number",
+              "default": 2000,
+              "description": "The interval for updating network usage in milliseconds."
+            }
+          },
+          "required": [
+            "tooltip",
+            "label_format",
+            "upload_threshold",
+            "download_threshold",
+            "kb_digits",
+            "mb_digits",
+            "interval"
+          ]
+        },
+        "quick_settings": {
+          "type": "object",
+          "properties": {
+            "hover_reveal": {
+              "type": "boolean",
+              "default": false,
+              "description": "Determines whether to reveal the quick settings on hover."
+            },
             "toggles": {
               "type": "array",
               "items": {
@@ -974,7 +997,11 @@
               "default": false,
               "description": "Determines whether to automatically hide the updates section."
             },
-            "interval": {},
+            "interval": {
+              "type": "number",
+              "default": 3600,
+              "description": "The interval for checking updates."
+            },
             "tooltip": {
               "type": "boolean",
               "default": true,
@@ -1095,7 +1122,11 @@
               "default": true,
               "description": "Determines whether to show the expanded view for the weather information."
             },
-            "interval": {},
+            "interval": {
+              "type": "number",
+              "default": 3600,
+              "description": "The interval at which to refresh the weather information."
+            },
             "provider": {
               "type": "string",
               "enum": ["open-meteo", "wttr"],
@@ -1457,8 +1488,8 @@
             },
             "label_format": {
               "type": "string",
-              "default": "{icon}",
-              "description": "Format string; the icon is shown when it contains {icon}."
+              "default": "{icon} {state}",
+              "description": "Specifies the format string for the panel label. Available variables: {icon}, {state}."
             },
             "tooltip": {
               "type": "boolean",
@@ -1488,8 +1519,8 @@
             },
             "label_format": {
               "type": "string",
-              "default": "{icon}",
-              "description": "Format string; the icon is shown when it contains {icon}."
+              "default": "{icon} {state}",
+              "description": "Specifies the format string for the panel label. Available variables: {icon}, {state}."
             },
             "tooltip": {
               "type": "boolean",
@@ -1514,8 +1545,8 @@
             },
             "label_format": {
               "type": "string",
-              "default": "{icon}",
-              "description": "Format string; the icon is shown when it contains {icon}."
+              "default": "{icon} {layout}",
+              "description": "Specifies the format string for the panel label. Available variables: {icon}, {layout}."
             }
           },
           "required": ["icon", "tooltip", "label_format"]
@@ -1555,8 +1586,8 @@
             },
             "label_format": {
               "type": "string",
-              "default": "{icon}",
-              "description": "Format string; the icon is shown when it contains {icon}."
+              "default": "{icon} {language}",
+              "description": "Specifies the format string for the panel label. Available variables: {icon}, {language}."
             }
           },
           "required": ["truncation_size", "tooltip", "icon", "label_format"]
@@ -1733,8 +1764,8 @@
             },
             "label_format": {
               "type": "string",
-              "default": "{icon}",
-              "description": "Format string; the icon is shown when it contains {icon}."
+              "default": "{icon} {submap}",
+              "description": "Specifies the format string for the panel label. Available variables: {icon}, {submap}."
             }
           },
           "required": ["icon", "tooltip", "label_format"]
@@ -1997,6 +2028,27 @@
             },
             "required": ["exec"]
           }
+        },
+        "wallpaper": {
+          "type": "object",
+          "properties": {
+            "icon": {
+              "type": "string",
+              "default": "󰸉",
+              "description": "The icon displayed for the wallpaper widget."
+            },
+            "label_format": {
+              "type": "string",
+              "default": "{icon}",
+              "description": "Specifies the format string for the panel label. Available variables: {icon}."
+            },
+            "tooltip": {
+              "type": "boolean",
+              "default": true,
+              "description": "Determines whether to show the tooltip."
+            }
+          },
+          "required": ["icon", "label_format", "tooltip"]
         }
       }
     },
@@ -2550,8 +2602,8 @@
               "default": "top"
             },
             "location": {
+              "type": "string",
               "enum": ["top", "bottom"],
-              "location": "string",
               "description": "Specifies the location of the bar.",
               "default": "top"
             },
@@ -2967,18 +3019,18 @@
               ],
               "description": "Specifies the anchor position of the quotes widget.",
               "default": "bottom-right"
+            },
+            "layer": {
+              "type": "string",
+              "enum": ["top", "overlay", "bottom", "background"],
+              "description": "Layer on which the quotes widget is displayed.",
+              "default": "top"
+            },
+            "interval": {
+              "type": "integer",
+              "description": "Interval in seconds to change the quote.",
+              "default": 600
             }
-          },
-          "layer": {
-            "type": "string",
-            "enum": ["top", "overlay", "bottom", "background"],
-            "description": "Layer on which the bar is displayed.",
-            "default": "top"
-          },
-          "interval": {
-            "type": "integer",
-            "description": "Interval in seconds to change the quote.",
-            "default": 600
           }
         },
         "activate_linux": {
@@ -3017,6 +3069,11 @@
         "notification": {
           "type": "object",
           "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true,
+              "description": "Determines whether the notification module is enabled."
+            },
             "ignored": {
               "type": "array",
               "description": "List of notification IDs to ignore",
