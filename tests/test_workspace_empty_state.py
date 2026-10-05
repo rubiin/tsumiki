@@ -92,6 +92,20 @@ class WorkspaceButtonOccupancyTest(unittest.TestCase):
 
         self.assertFalse(button.get_visible())
 
+    def test_occupancy_flips_visibility_without_help_from_fabric(self):
+        """Fabric only restyles on ``empty``, so the widget must re-evaluate.
+
+        The regression: ``_setup_button`` baked every button visible and nothing
+        listened for occupancy changes, so ``hide_unoccupied`` never applied.
+        """
+        button = _workspaces()._setup_button(6)
+
+        button.empty = False
+        self.assertTrue(button.get_visible())
+
+        button.empty = True
+        self.assertFalse(button.get_visible())
+
 
 class WindowTitleEmptyStateTest(unittest.TestCase):
     """The title widget must forget the window it is no longer showing."""

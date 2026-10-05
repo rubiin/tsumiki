@@ -39,14 +39,32 @@ class WorkSpacesWidget(BoxWidget):
     def _create_workspace_label(self, ws_id: int) -> str:
         return self.icon_map.get(str(ws_id), self.label_format.format(id=ws_id))
 
+    def _button_visible(self, button: WorkspaceButton) -> bool:
+        """Whether a workspace button belongs on the bar right now.
+
+        ``hide_unoccupied`` reads the button's ``empty`` flag. Fabric flips that
+        flag in ``workspace_created``/``workspace_destroyed`` but only toggles
+        the ``empty`` style class, so an empty workspace kept a visible bubble.
+        """
+        if button.id in self.ignored_ws or not (self.show_special or button.id >= 0):
+            return False
+        return not (self.hide_unoccupied and button.empty)
+
     def _setup_button(self, ws_id: int) -> WorkspaceButton:
-        visible = ws_id not in self.ignored_ws and (self.show_special or ws_id >= 0)
         button = WorkspaceButton(
             id=ws_id,
             v_align="center",
             label=self._create_workspace_label(ws_id) if self.style != "pill" else None,
-            visible=visible,
+            visible=False,
         )
+
+        # A baked button starts empty, and nothing else re-evaluates visibility
+        # when occupancy changes, so the widget owns it from here on.
+        button.connect(
+            "notify::empty",
+            lambda *_: button.set_visible(self._button_visible(button)),
+        )
+        button.set_visible(self._button_visible(button))
 
         setup_cursor_hover(button)  # fix this , do not use this
 
