@@ -60,6 +60,10 @@ item_tooltip = false
 show_images = true
 enable_pinning = true
 
+[widgets.breathe]
+icon = ""
+tooltip = true
+
 [widgets.emoji_picker]
 icon = ""
 label_format = "{icon}"
@@ -273,6 +277,8 @@ label_format = "{icon} {language}"
 
 [widgets.network_usage]
 tooltip = true
+upload = true
+download = true
 label_format = "{upload}   {download} "
 upload_threshold = 1024
 download_threshold = 1024
@@ -354,6 +360,7 @@ icon_size = 16
 ignored = []
 hidden = []
 hide_when_empty = false
+tooltip = true
 
 [widgets.taskbar]
 icon_size = 22
@@ -429,6 +436,7 @@ icon = ""
 tooltip_text = "Open Spotify"
 label_format = "{icon}"
 tooltip = true
+style_classes = []
 
 [widgets.cheatsheet]
 icon = "󰌌"
@@ -454,11 +462,23 @@ tooltip = true
 [[widgets.custom_widget]]
 id = "volume"
 exec = "pamixer --get-volume"
-label_format = "󰕾 {}%"
+exec_on_event = true
 interval = 1
+return_type = "plain"                # "plain" | "json" (Waybar JSON protocol)
+label_format = "󰕾 {}%"
+max_length = 0                       # 0 = no limit
+min_length = 0                       # Pads the output with spaces
+rotate = 0                           # Degrees to rotate the text
+tooltip = true
+tooltip_format = ""                  # {} is replaced with the output
+on_click = ""
+on_click_right = ""
+on_click_middle = ""
 on_scroll_up = "pamixer -i 5"
 on_scroll_down = "pamixer -d 5"
-exec_on_event = true
+# signal = 1                         # SIGRTMIN+N (1-30) used to trigger a refresh
+restart_interval = 0                 # Restart a continuous command after N seconds
+format_icons = {}                    # Percentage/state to icon map, e.g. { "50" = "󰕾" }
 
 [[widget_groups]]
 id = "workspaces-group"
@@ -513,11 +533,16 @@ enabled = true
 layer = "overlay"
 anchor = "center"
 title = "Hyprland Keymap"
+icon = ""
+refresh_icon = ""
+close_icon = ""
 columns = 4
 groups_per_page = 8   # Sections per page; extra sections spill onto the next page
 column_width = 300   # Fixed column width in px
 key_width = 190       # Key badge column width in px, so descriptions line up
 accent_keys = ["super"]
+transition_type = "crossfade"
+transition_duration = 200
 
 [[modules.cheatsheet.sections]]
 title = "WINDOW MANAGEMENT"
@@ -828,6 +853,8 @@ height = 320
 layout = "list"
 grid_columns = 3
 grid_spacing = 12
+plugins_enabled = true
+plugins_dir = ""
 plugins = [
     "calc",
     "clipboard-history",
@@ -937,6 +964,7 @@ auto_restart = true
 restart_delay = 1500
 multi_monitor = false
 tooltips = true
+language = "en"
 
 [styling]
 border-radius = "10px"

@@ -7,8 +7,9 @@ auto_restart = true               # Automatically restart on crash
 restart_delay = 1500              # Delay before restart (ms)
 multi_monitor = false             # Per-monitor bar instances
 tooltips = true                   # Enable widget tooltips
-check_updates = false              # Check for Tsumiki updates
+check_updates = false             # Check for Tsumiki updates
 monitor_styles = true             # Watch and reload SCSS changes
+language = "en"                   # UI language: en, es, fr, de, ar, zh, ja, ko, pt, ru, tr, nl
 
 # ── Layout ────────────────────────────────────────────
 # Widget placement in the bar. Reference widgets by name,
@@ -60,6 +61,17 @@ anchor = "top-right"
 auto_dismiss = true
 transition_type = "slide-left"
 transition_duration = 350
+ignored = []                      # Notification IDs to drop
+respect_expire = true             # Honour the expire timeout sent by the app
+per_app_limits = {}               # Per-app caps, e.g. { "Spotify" = 3 }
+max_lines = 4                     # Collapsed lines in a notification
+max_expanded_lines = 20           # Lines once a notification is expanded
+copy_code_action = true           # Offer a COPY action for one-time (2FA) codes
+show_timestamp = true             # Relative timestamp (e.g. "5m ago") in the header
+max_actions = 3                   # Action buttons shown per notification
+dismiss_on_hover = false          # Close the notification when hovered
+play_sound = false                # Play a sound on arrival
+sound_file = "notification4"      # notification1 ... notification10
 
 [modules.notification.timeout]
 low = 3000
@@ -68,6 +80,9 @@ critical = 15000
 
 [modules.notification.persist]
 enabled = true
+low = true
+normal = true
+critical = true
 max_count = 200
 
 [modules.dock]
@@ -75,6 +90,14 @@ enabled = false                   # Enable to show the dock
 behavior = "intellihide"
 icon_size = 40
 layer = "top"
+tooltip = false
+show_when_no_windows = false
+ignored = []                      # Application class names to drop
+group_apps = true                 # Merge windows of the same app into one icon
+truncation_size = 20              # Window title length before truncation
+orientation = "horizontal"        # "horizontal" | "vertical"
+show_launcher = true
+launcher_position = "first"       # "first" | "last"
 
 [modules.overview]
 enabled = false
@@ -89,6 +112,10 @@ timeout = 1500
 anchor = "bottom-center"
 orientation = "horizontal"
 osds = ["brightness", "volume"]
+transition_type = "slide-up"
+transition_duration = 500
+icon_size = 28
+percentage = true
 
 [modules.launcher]
 enabled = false
@@ -113,11 +140,31 @@ plugins = [
 enabled = false
 layer = "bottom"
 anchor = "bottom-right"
+date_format = "%Y-%m-%d"          # strftime date template
+time_format = "%H:%M"              # strftime time template
+type = "default"                   # "default" | "cookie"
+cookie_size = 230
+cookie_sides = 9
+cookie_dial_style = "dots"
+cookie_hour_hand_style = "fill"
+cookie_minute_hand_style = "medium"
+cookie_second_hand_style = "dot"
+cookie_date_style = "bubble"
+cookie_show_seconds = true
+cookie_show_hour_marks = false
+cookie_background_opacity = 1.0
+cookie_widget_scale = 1.0
 
 [modules.desktop_quotes]
 enabled = false
 anchor = "bottom-right"
+layer = "top"
 interval = 600
+
+[modules.activate_linux]
+enabled = false
+anchor = "bottom-right"
+layer = "bottom"
 
 [modules.screen_corners]
 enabled = false
@@ -129,10 +176,15 @@ size = 20
 [modules.cheatsheet]
 enabled = false
 layer = "overlay"
-anchor = "top center"
+anchor = "top-center"
 title = "Hyprland Keymap"
+icon = ""
+refresh_icon = ""
+close_icon = ""
 columns = 4
 groups_per_page = 4   # Sections per page; extra sections spill onto the next page
+transition_type = "crossfade"
+transition_duration = 200
 column_width = 300   # Fixed column width in px
 key_width = 190       # Key badge column width in px, so descriptions line up
 accent_keys = ["super"]
@@ -168,6 +220,7 @@ description = "Move Down"
 # --- Workspaces ---
 [widgets.workspaces]
 count = 10
+show_special = false
 hide_unoccupied = true
 reverse_scroll = false
 style = "numbered"                # "numbered" | "pill" | "icon" | "minimal" | "underline" | "bubble"
@@ -181,6 +234,8 @@ show_urgent = true
 [widgets.window_title]
 icon = true
 truncation = true
+mappings = true
+title_map = []
 truncation_size = 50
 tooltip = true
 fallback = "class"                # "class" | "title"
@@ -206,6 +261,7 @@ step_size = 5
 
 # --- Battery ---
 [widgets.battery]
+full_battery_level = 100
 hide_percent_when_full = true
 hide_when_missing = true
 tooltip = true
@@ -238,6 +294,7 @@ icon_size = 16
 hide_when_empty = false
 ignored = []
 hidden = []
+tooltip = true
 
 # --- Power Menu ---
 [widgets.power]
@@ -246,6 +303,7 @@ tooltip = true
 items_per_row = 3
 icon_size = 100
 confirm = true                    # Show confirmation before executing
+label_format = "{icon}"
 
 [widgets.power.item_shortcuts]
 shutdown = "s"
@@ -278,7 +336,13 @@ sliders = ["brightness", "volume"]
 
 [widgets.quick_settings.media]
 enabled = true
+ignore = []
 truncation_size = 30
+show_album = true
+show_artist = true
+show_player_icon = true
+show_time = true
+show_time_tooltip = true
 
 [widgets.quick_settings.shortcuts]
 enabled = true
@@ -300,6 +364,8 @@ icon_size = 18
 # --- CPU ---
 [widgets.cpu]
 label_format = "{icon}"
+round = true
+sensor = "acpitz"           # lm-sensors name for the CPU package
 icon = ""
 tooltip = true
 mode = "circular"                 # "label" | "graph" | "circular"
@@ -309,6 +375,7 @@ temperature_unit = "celsius"
 # --- Memory ---
 [widgets.memory]
 label_format = "{icon}"
+graph_length = 4
 icon = ""
 tooltip = true
 mode = "circular"
@@ -318,6 +385,7 @@ unit = "gb"
 [widgets.updates]
 label_format = "{icon} {total}"
 pad_zero = true
+auto_hide = false
 available_icon = "󰏗"
 no_updates_icon = "󰏖"
 os = "arch"
@@ -325,10 +393,15 @@ interval = 3600
 tooltip = true
 terminal = "kitty"
 flatpak = true
+snap = false
+brew = false
 
 # --- Weather ---
 [widgets.weather]
 location = "kathmandu"
+hover_reveal = false
+reveal_duration = 500
+expanded = true
 label_format = "{temperature} {condition}"
 tooltip = true
 temperature_unit = "celsius"
@@ -339,6 +412,12 @@ provider = "open-meteo"           # "open-meteo" | "wttr"
 # --- Network Usage ---
 [widgets.network_usage]
 tooltip = true
+upload = true
+download = true
+upload_threshold = 100            # Ignore activity below this KB/s
+download_threshold = 1024         # Ignore activity below this KB/s
+kb_digits = 0
+mb_digits = 2
 label_format = "{upload}   {download} "
 interval = 2000
 
@@ -346,6 +425,7 @@ interval = 2000
 [widgets.mpris]
 truncation_size = 20
 tooltip = true
+ignore = []                       # Player names to skip
 label_format = "{title} - {artist}"
 hide_when_no_player = true
 
@@ -366,6 +446,7 @@ label_format = "{icon}"
 
 # --- Clipboard ---
 [widgets.clipboard]
+item_tooltip = false
 icon = ""
 label_format = "{icon}"
 tooltip = true
@@ -403,17 +484,24 @@ icon = "󰄀"
 label_format = "{icon}"
 tooltip = true
 annotation = true
+capture_sound = false
+delayed = false
+delayed_timeout = 5000
 
 # --- Screen Recording ---
 [widgets.recorder]
 path = "Videos/Screencasting"
 tooltip = true
 audio = true
+delayed = false
+delayed_timeout = 5000
 
 # --- Taskbar ---
 [widgets.taskbar]
 icon_size = 22
 tooltip = true
+ignored = []
+show_current_workspace_only = false
 
 # --- Workspace Overview Button ---
 [widgets.overview_button]
@@ -435,6 +523,182 @@ use_24hr = true
 label_format = "{icon}"
 timezones = ["America/New_York", "Asia/Tokyo"]
 
+# --- App Launcher Button ---
+[widgets.launcher_button]
+icon = "view-app-grid-symbolic"
+icon_size = 16
+tooltip = true
+
+# --- GitHub Tray ---
+[widgets.github_tray]
+icon = ""
+label_format = "{icon}"
+tooltip = true
+username = ""                      # Fallback when the gh session user is unresolved
+hostname = ""                      # GitHub Enterprise Server host; empty uses github.com
+avatar_size = 44
+default_tab = "inbox"              # "inbox" | "repositories"
+max_repos = 10
+sort_by = "updated"
+sort_order = "desc"                # "asc" | "desc"
+own_repos_only = false             # Hide organization and collaborator repositories
+notification_interval = 60         # Seconds between unread-notification refreshes
+cache_ttl = 3600                   # Seconds before cached data refetches; 0 disables caching
+workflow_runs_max = 10
+show_notifications = true
+local_editor = "code"
+# Map owner/repository to a local absolute path, opened in local_editor.
+local_projects = { "owner/repository" = "~/code/repository" }
+
+# Which notification reasons feed the inbox.
+[widgets.github_tray.notify_reasons]
+review_requests = true
+mentions = true
+assignments = true
+pr_comments = true
+issue_comments = true
+
+# Desktop alerts fired from state changes.
+[widgets.github_tray.alerts]
+enabled = false
+new_stars = true
+new_forks = true
+new_issues = true
+new_followers = true
+new_notifications = true
+workflow_started = true
+workflow_success = true
+workflow_failure = true
+workflow_cancelled = true
+
+# --- IP Monitor ---
+[widgets.ip_monitor]
+icon = "󰖟"
+label_format = "{icon}"
+tooltip = true
+
+# --- USB Manager ---
+[widgets.usb_manager]
+icon = ""
+label_format = "{icon}"
+tooltip = true
+
+# --- Breathe (Breathing Timer) ---
+[widgets.breathe]
+icon = ""
+tooltip = true
+
+# --- Storage ---
+[widgets.storage]
+path = "/"                        # Mount point of the device to graph
+label_format = "{icon}"
+icon = "󰋊"
+mode = "circular"                 # "label" | "graph" | "circular"
+tooltip = true
+graph_length = 4
+unit = "gb"
+
+# --- GPU ---
+[widgets.gpu]
+label_format = "{icon}"
+icon = ""
+tooltip = true
+mode = "circular"                 # "label" | "graph" | "circular"
+graph_length = 4
+
+# --- Audio Visualizer (CAVA) ---
+[widgets.cava]
+bars = 10
+color = "#89b4fa"
+
+# --- Click Counter ---
+[widgets.click_counter]
+count = 0
+
+# --- Stopwatch ---
+[widgets.stopwatch]
+stopped_icon = "󱫞"
+running_icon = "󱫠"
+
+# --- Hyprpicker ---
+[widgets.hyprpicker]
+icon = ""
+tooltip = true
+label_format = "{icon}"
+quiet = false                     # Suppress hyprpicker notifications
+
+# --- Hypridle ---
+[widgets.hypridle]
+enabled_icon = ""
+label_format = "{icon} {state}"
+disabled_icon = ""
+tooltip = true
+
+# --- Hyprsunset ---
+[widgets.hyprsunset]
+temperature = "2800k"
+enabled_icon = "󱩌"
+label_format = "{icon} {state}"
+disabled_icon = "󰛨"
+tooltip = true
+
+# --- Keyboard Layout ---
+[widgets.keyboard]
+icon = "󰌌"
+tooltip = true
+label_format = "{icon} {layout}"
+
+# --- Window Count ---
+[widgets.window_count]
+label_format = " [{count}]"
+hide_when_zero = true
+tooltip = true
+
+# --- Language ---
+[widgets.language]
+icon = ""
+tooltip = true
+truncation_size = 2
+label_format = "{icon} {language}"
+
+# --- Kanban ---
+[widgets.kanban]
+icon = "󱞁"
+label_format = "{icon}"
+tooltip = true
+
+# --- Cheatsheet ---
+[widgets.cheatsheet]
+icon = "󰌌"
+label_format = "{icon}"
+tooltip = true
+
+# --- Pomodoro ---
+[widgets.pomodoro]
+icon = "🥅"
+label_format = "{icon}"
+tooltip = true
+
+# --- OCR ---
+[widgets.ocr]
+icon = "󰐳"
+tooltip = true
+label_format = "{icon}"
+quiet = false                     # Suppress hyprsplash notifications
+
+# --- DNS Switcher ---
+[widgets.dns_switcher]
+icon = "󰚘"
+label_format = "{icon}"
+tooltip = true
+
+# --- Cloudflare WARP ---
+[widgets.cloudflare_warp]
+label_format = "{icon}"
+tooltip = true
+connected_icon = ""
+disconnected_icon = ""
+
 # --- Custom Buttons ---
 [[widgets.custom_buttons]]
 id = "firefox"
@@ -443,6 +707,7 @@ icon = "󰈹"
 tooltip_text = "Open Firefox Browser"
 label_format = "{icon}"
 tooltip = true
+style_classes = []
 
 # ── Matugen Theme Generation ─────────────────────────
 # Uncomment and configure to auto-generate colors from your wallpaper.
@@ -454,12 +719,30 @@ tooltip = true
 # mode = "dark"
 # contrast = 0.0
 
-# ── Examples: Named Custom Widgets ───────────────────
-# Define custom widgets that run shell commands.
+# ── Custom Widget ────────────────────────────────────
+# Waybar-compatible widgets that run shell commands.
+# Reference from the layout with @custom_widget:id or @custom_widget:index.
 
-# [widgets."custom/temperature"]
+# [[widgets.custom_widget]]
+# id = "temperature"
 # exec = "sensors -j | jq '.[] | to_entries[] | select(.key | contains(\"temp\")).value[\"temp1_input\"]'"
+# exec_on_event = false
 # interval = 30
+# return_type = "plain"                # "plain" | "json" (Waybar JSON protocol)
 # label_format = "{:.1f}°C"
+# max_length = 0                       # 0 = no limit
+# min_length = 0                       # Pads the output with spaces
+# rotate = 0                           # Degrees to rotate the text
 # tooltip = true
+# tooltip_format = ""                  # {} is replaced with the output
 # on_click = "kitty -e htop"
+# on_click_right = ""
+# on_click_middle = ""
+# on_scroll_up = ""
+# on_scroll_down = ""
+# signal = 1                           # SIGRTMIN+N (1-30) used to trigger a refresh
+# restart_interval = 0                 # Restart a continuous command after N seconds
+# format_icons = {}                    # Percentage/state to icon map, e.g. { "50" = "󰕾" }
+#
+# [layout]
+# left_section = ["@custom_widget:temperature", "workspaces"]
