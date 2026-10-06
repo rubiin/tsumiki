@@ -13,7 +13,7 @@ class BlueToothWidget(ButtonWidget):
 
         self.icons = get_text_icon("bluetooth", "")
 
-        self.label_format = self.config.get("label_format", "{icon}")
+        self.label_format = self.config.get("label_format", "")
         self.add_formatted_label(self.label_format, self.icons["enabled"])
 
         self.bluetooth_client = BluetoothClient()

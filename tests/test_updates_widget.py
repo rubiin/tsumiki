@@ -1,8 +1,7 @@
 """Tests for the ``{total}`` field of the updates widget's ``label_format``.
 
-The label_format refactor dropped the count from the panel label and reduced
-the field set to ``{icon}``, so the pre-refactor icon-plus-count layout was no
-longer expressible.
+The count is the only text field; the available/no-updates glyph is passed as
+the label's leading glyph rather than through an ``{icon}`` placeholder.
 """
 
 import json
@@ -15,7 +14,7 @@ from widgets.updates import UpdatesWidget
 def make_widget(**config) -> UpdatesWidget:
     """An UpdatesWidget with stubbed GTK calls and no window."""
     widget = UpdatesWidget.__new__(UpdatesWidget)
-    widget.config = {"label_format": "{icon} {total}", **config}
+    widget.config = {"label_format": "{total}", **config}
     widget.label_format = widget.config["label_format"]
     widget.set_tooltip_if_enabled = mock.Mock()
     widget.set_visible = mock.Mock()

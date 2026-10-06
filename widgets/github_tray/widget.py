@@ -113,10 +113,8 @@ class GitHubTrayWidget(ButtonWidget, PopoverMixin):
             spacing=0,
             style_classes="github-tray-bar-content",
         )
-        self.label_format = self.config.get("label_format", "{icon}")
-        self.add_formatted_label(
-            self.label_format, self.config.get("icon", BRAND_GLYPH)
-        )
+        self.label_format = self.config.get("label_format", BRAND_GLYPH)
+        self.add_formatted_label(self.label_format)
         content.add(self.panel_label)
 
         # Sibling of the icon, not an Overlay: negative margins pull it over the glyph.

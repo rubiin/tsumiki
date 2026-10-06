@@ -179,12 +179,16 @@ class StatDisplayMixin:
         container.children = ((self.icon,) if self.icon else ()) + (self.level_label,)
 
     def _build_stat_icon(self):
-        """The stat icon, or *None* when the format string omits ``{icon}``."""
-        if not self.format_shows_icon():
+        """The stat glyph from ``label_format``, or *None* when it is empty.
+
+        These widgets have no other format field, so the string is the glyph.
+        """
+        glyph = self.config.get("label_format", self._stat_icon)
+        if not isinstance(glyph, str) or not glyph.strip():
             return None
 
         return nerd_font_icon(
-            icon=self.config.get("icon", self._stat_icon),
+            icon=glyph,
             props={"style_classes": ["panel-font-icon"]},
         )
 

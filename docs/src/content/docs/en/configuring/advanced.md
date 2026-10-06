@@ -107,13 +107,12 @@ Hide less-used widgets behind a toggle:
 id = "utility-tools"
 widgets = ["ocr", "screenshot", "recorder"]
 spacing = 4
-icon = "󰒓"
-label_format = "{icon}"
+label_format = "󰍽"
 tooltip = "Utility Tools"
 style_classes = ["utility-tools"]
 ```
 
-`label_format` is the toggle button's whole label, with `{icon}` as its only field, so `"{icon} Tools"` adds a caption next to the glyph.
+`label_format` is the toggle button's whole label, with its glyph written straight into the string, so `"󰍽 Tools"` adds a caption next to the glyph.
 
 Reference in layout with `@collapsible:utility-tools`.
 

@@ -11,20 +11,22 @@ Widgets are configured under `[widgets.<name>]` in `config.toml` and placed in t
 
 ## Panel labels
 
-`label_format` is the whole panel label. The widget renders one label, and `{icon}` is replaced with the glyph from the widget's `icon` (or its state-specific variant, e.g. `connected_icon`). Any literal text in the string is kept, so the text next to an icon is part of the format rather than a separate toggle.
+`label_format` is the whole panel label. The widget renders one label and there is no separate `icon` key: the glyph is written directly into `label_format` as a literal character. Any literal text in the string is kept, so the text next to a glyph is part of the format rather than a separate toggle.
+
+A widget whose glyph changes with state — Bluetooth, microphone mute, the update count, the WARP connection — supplies that glyph itself and leads the label with it, so its `label_format` holds only the text you want beside it.
 
 ```toml
-label_format = "{icon}"            # icon only (the default everywhere)
-label_format = "{icon} Mic"        # icon plus literal text
+label_format = "󰌌 {layout}"       # a fixed glyph plus literal text
+label_format = "🍅"                # a fixed glyph only
 label_format = "Settings"          # text only, no glyph
 label_format = ""                  # nothing at all
 ```
 
-This replaced the old per-widget `show_icon` boolean and the `label` / `label_text` keys, none of which are read any more — a config that still sets `show_icon` logs a warning at startup and falls back to the default above.
+This replaced the old per-widget `show_icon` boolean and the `label` / `label_text` keys, none of which are read any more — a config that still sets `show_icon` logs a warning at startup and falls back to the default.
 
-`{icon}` is the only field on these widgets. A few widgets print live values and declare their own fields instead: `battery` (`{percent}`, `{time_remaining}`), `mpris` (`{title}`, `{artist}`, `{album}`, `{name}`), `weather` (`{condition}`, `{temperature}`), `network_usage` (`{upload}`, `{download}`), `window_count` (`{count}`) and `workspaces` (`{id}`).
+No widget substitutes an `{icon}` field any more: the glyph is a literal character in `label_format`, and a widget whose glyph changes with state supplies it ahead of the text. Widgets that print live values declare fields for them: `mpris` (`{title}`, `{artist}`, `{album}`, `{name}`), `weather` (`{condition}`, `{temperature}`), `network_usage` (`{upload}`, `{download}`), `window_count` (`{count}`), `workspaces` (`{id}`), `updates` (`{total}`), `hypridle` and `hyprsunset` (`{state}`), `keyboard` (`{layout}`), `language` (`{language}`), `submap` (`{submap}`) and `battery` (`{percent}`, `{time_remaining}`).
 
-Indexed entries follow the same rule: a `[[collapsible_groups]]` toggle button labels itself with `label_format`, where `{icon}` is the only field.
+Indexed entries follow the same rule: a `[[collapsible_groups]]` toggle button labels itself with `label_format`, with its glyph written straight into the string.
 
 ---
 
@@ -36,8 +38,7 @@ Displays CPU usage with multiple display modes.
 
 ```toml
 [widgets.cpu]
-label_format = "{icon}"
-icon = ""
+label_format = ""
 tooltip = true
 round = true
 temperature_unit = "celsius"
@@ -56,8 +57,7 @@ Displays memory usage with multiple display modes.
 
 ```toml
 [widgets.memory]
-label_format = "{icon}"
-icon = ""
+label_format = ""
 tooltip = true
 mode = "label"          # "label" | "graph" | "circular"
 graph_length = 4
@@ -70,8 +70,7 @@ Displays GPU usage (supports AMD via `amdgpu` and NVIDIA via `nvidia-smi`).
 
 ```toml
 [widgets.gpu]
-label_format = "{icon}"
-icon = ""
+label_format = ""
 tooltip = true
 mode = "circular"       # "label" | "graph" | "circular"
 graph_length = 4
@@ -84,8 +83,7 @@ Displays disk usage for a given path.
 ```toml
 [widgets.storage]
 path = "/"
-label_format = "{icon}"
-icon = "󰋊"
+label_format = "󰋊"
 mode = "label"          # "label" | "graph" | "circular"
 tooltip = true
 graph_length = 4
@@ -115,7 +113,7 @@ Checks for system package updates (Arch Linux, Flatpak, Snap, Homebrew).
 
 ```toml
 [widgets.updates]
-label_format = "{icon} {total}"
+label_format = "{total}"
 pad_zero = true
 available_icon = "󰏗"
 no_updates_icon = "󰏖"
@@ -129,7 +127,7 @@ snap = false
 brew = false
 ```
 
-- **`label_format`**: Variables available: `{icon}`, `{total}` (the update count).
+- **`label_format`**: Variables available: `{total}` (the update count).
 - **`pad_zero`**: Zero-pads `{total}` to two digits (`05`); zero itself stays `0`.
 - **`interval`**: Polling interval in seconds (default: 3600 = 1 hour).
 - **`os`**: Distribution for native package checking (supports `arch`, `fedora`, `ubuntu`).
@@ -149,7 +147,7 @@ full_battery_level = 100
 hide_percent_when_full = true
 hide_when_missing = true
 tooltip = true
-label_format = "{icon} {percent}"
+label_format = "{percent}"
 
 [widgets.battery.notifications]
 
@@ -171,7 +169,7 @@ enabled = false
 message = ""
 ```
 
-Variables available in `label_format`: `{icon}`, `{percent}`, `{time_remaining}`.
+Variables available in `label_format`: `{percent}`, `{time_remaining}`. The level glyph leads the label.
 
 #### Notification options
 
@@ -220,7 +218,7 @@ Manages Bluetooth connections and visibility.
 
 ```toml
 [widgets.bluetooth]
-label_format = "{icon}"
+label_format = ""
 tooltip = true
 ```
 
@@ -233,7 +231,7 @@ Shows microphone status and muting.
 ```toml
 [widgets.microphone]
 tooltip = true
-label_format = "{icon}"
+label_format = ""
 ```
 
 Click to toggle microphone mute.
@@ -244,11 +242,10 @@ System power menu with shutdown, reboot, suspend, hibernate, lock, and logout.
 
 ```toml
 [widgets.power]
-icon = "󰐥"
 tooltip = true
 items_per_row = 3
 icon_size = 100
-label_format = "{icon}"
+label_format = ""
 confirm = true
 
 [widgets.power.item_shortcuts]
@@ -278,7 +275,7 @@ Toggle Hyprland's idle management daemon.
 ```toml
 [widgets.hypridle]
 enabled_icon = ""
-label_format = "{icon}"
+label_format = "{state}"
 disabled_icon = ""
 tooltip = true
 ```
@@ -291,7 +288,7 @@ Toggle blue-light filter (night mode) via Hyprsunset.
 [widgets.hyprsunset]
 temperature = "2800k"
 enabled_icon = "󱩌"
-label_format = "{icon}"
+label_format = "{state}"
 disabled_icon = "󰛨"
 tooltip = true
 ```
@@ -302,10 +299,9 @@ Color picker that captures a color from the screen.
 
 ```toml
 [widgets.hyprpicker]
-icon = ""
 tooltip = true
 quiet = false
-label_format = "{icon}"
+label_format = ""
 ```
 
 The selected color is copied to clipboard. In quiet mode, no notification is shown.
@@ -375,8 +371,7 @@ Button that opens the window overview/exposé.
 
 ```toml
 [widgets.overview_button]
-icon = "󰡃"
-label_format = "{icon}"
+label_format = ""
 tooltip = true
 ```
 
@@ -420,9 +415,8 @@ Shows time in multiple timezones.
 
 ```toml
 [widgets.world_clock]
-icon = "󰃰"
 use_24hr = true
-label_format = "{icon}"
+label_format = "󱉊"
 timezones = ["America/New_York", "Asia/Tokyo"]
 ```
 
@@ -470,8 +464,7 @@ Capture screenshots with annotation support.
 ```toml
 [widgets.screenshot]
 path = "Pictures/Screenshots"
-icon = "󰄀"
-label_format = "{icon}"
+label_format = ""
 tooltip = true
 annotation = true
 delayed = false
@@ -502,9 +495,8 @@ Extract text from a screen region using Tesseract.
 
 ```toml
 [widgets.ocr]
-icon = "󰐳"
 tooltip = true
-label_format = "{icon}"
+label_format = ""
 quiet = false
 ```
 
@@ -516,8 +508,7 @@ Clipboard history manager with image support.
 
 ```toml
 [widgets.clipboard]
-icon = ""
-label_format = "{icon}"
+label_format = ""
 tooltip = true
 item_tooltip = false
 show_images = true
@@ -532,8 +523,7 @@ Manage USB drive mounting and ejection.
 
 ```toml
 [widgets.usb_manager]
-icon = "󰕓"
-label_format = "{icon}"
+label_format = ""
 tooltip = true
 ```
 
@@ -547,9 +537,8 @@ Displays the current keyboard layout.
 
 ```toml
 [widgets.keyboard]
-icon = "󰌌"
 tooltip = true
-label_format = ""
+label_format = "󰌌 {layout}"
 ```
 
 ### Language
@@ -558,7 +547,6 @@ Shows the current input language.
 
 ```toml
 [widgets.language]
-icon = ""
 tooltip = true
 truncation_size = 2
 label_format = ""
@@ -570,9 +558,8 @@ Displays the active Hyprland keybind submap.
 
 ```toml
 [widgets.submap]
-icon = "󰌌"
 tooltip = true
-label_format = ""
+label_format = "󰌌 {submap}"
 hide_on_default = false
 ```
 
@@ -654,8 +641,7 @@ Opens the wallpaper selection popup.
 
 ```toml
 [widgets.wallpaper]
-icon = "󰸉"
-label_format = "{icon}"
+label_format = ""
 tooltip = true
 ```
 
@@ -665,7 +651,7 @@ Opens the in-app settings GUI.
 
 ```toml
 [widgets.settings]
-icon = "󰒓"
+label_format = "󰒓"
 tooltip = true
 ```
 
@@ -685,7 +671,7 @@ Displays a searchable keybind cheatsheet for Hyprland.
 
 ```toml
 [widgets.cheatsheet]
-label_format = "{icon}"           # drop {icon} to hide the icon
+label_format = "󰌌"              # the fixed glyph; "" for no label at all
 tooltip = true
 title = "Hyprland Cheatsheet"
 columns = 3
@@ -699,8 +685,7 @@ Search and insert emoji characters.
 
 ```toml
 [widgets.emoji_picker]
-icon = ""
-label_format = "{icon}"
+label_format = ""
 tooltip = true
 per_row = 9
 per_column = 4
@@ -712,8 +697,7 @@ A simple Kanban task management board.
 
 ```toml
 [widgets.kanban]
-icon = "󱞁"
-label_format = "{icon}"
+label_format = "󱞁"
 tooltip = true
 ```
 
@@ -723,8 +707,7 @@ A Pomodoro productivity timer.
 
 ```toml
 [widgets.pomodoro]
-icon = "🍅"
-label_format = "{icon}"
+label_format = "🍅"
 tooltip = true
 ```
 
@@ -742,8 +725,7 @@ gh auth login
 
 ```toml
 [widgets.github_tray]
-icon = ""
-label_format = "{icon}"
+label_format = ""
 tooltip = true
 # Optional login used as a fallback while the gh session user is resolved.
 username = ""
@@ -791,7 +773,7 @@ Manage Cloudflare WARP VPN connection — connect, disconnect, and view status.
 
 ```toml
 [widgets.cloudflare_warp]
-label_format = "{icon}"
+label_format = ""
 tooltip = true
 connected_icon = ""
 disconnected_icon = ""
@@ -808,8 +790,7 @@ Quickly switch between popular DNS providers directly from the bar.
 
 ```toml
 [widgets.dns_switcher]
-icon = "󰚘"
-label_format = "{icon}"
+label_format = "󰚘"
 tooltip = true
 ```
 
@@ -835,8 +816,7 @@ Displays the current IP address.
 
 ```toml
 [widgets.ip_monitor]
-icon = "󰖟"
-label_format = "{icon}"
+label_format = "󰖟"
 tooltip = true
 ```
 

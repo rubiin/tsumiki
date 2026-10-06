@@ -19,8 +19,7 @@ sidebar:
 
 ```toml
 [widgets.cpu]
-label_format = "{icon}"
-icon = ""
+label_format = ""
 tooltip = true
 round = true
 temperature_unit = "celsius"
@@ -35,8 +34,7 @@ graph_length = 4
 
 ```toml
 [widgets.memory]
-label_format = "{icon}"
-icon = ""
+label_format = ""
 tooltip = true
 mode = "label"          # "label" | "graph" | "circular"
 graph_length = 4
@@ -49,8 +47,7 @@ unit = "gb"
 
 ```toml
 [widgets.gpu]
-label_format = "{icon}"
-icon = ""
+label_format = ""
 tooltip = true
 mode = "circular"       # "label" | "graph" | "circular"
 graph_length = 4
@@ -63,8 +60,7 @@ graph_length = 4
 ```toml
 [widgets.storage]
 path = "/"
-label_format = "{icon}"
-icon = "󰋊"
+label_format = "󰋊"
 mode = "label"          # "label" | "graph" | "circular"
 tooltip = true
 graph_length = 4
@@ -92,7 +88,7 @@ interval = 2000
 
 ```toml
 [widgets.updates]
-label_format = "{icon} {total}"
+label_format = "{total}"
 pad_zero = true
 available_icon = "󰏗"
 no_updates_icon = "󰏖"
@@ -115,7 +111,7 @@ flatpak = true
 full_battery_level = 100
 hide_percent_when_full = true
 tooltip = true
-label_format = "{icon} {percent}"
+label_format = "{percent}"
 ```
 
 ### الصوت
@@ -144,7 +140,7 @@ step_size = 5
 
 ```toml
 [widgets.bluetooth]
-label_format = "{icon}"
+label_format = ""
 tooltip = true
 ```
 
@@ -155,7 +151,7 @@ tooltip = true
 ```toml
 [widgets.microphone]
 tooltip = true
-label_format = "{icon}"
+label_format = ""
 ```
 
 ### زر الطاقة
@@ -164,7 +160,7 @@ label_format = "{icon}"
 
 ```toml
 [widgets.power]
-icon = "󰐥"
+label_format = ""
 tooltip = true
 items_per_row = 3
 icon_size = 100
@@ -178,7 +174,7 @@ confirm = true
 ```toml
 [widgets.hypridle]
 enabled_icon = ""
-label_format = "{icon}"
+label_format = "{state}"
 disabled_icon = ""
 tooltip = true
 ```
@@ -191,7 +187,7 @@ tooltip = true
 [widgets.hyprsunset]
 temperature = "2800k"
 enabled_icon = "󱩌"
-label_format = "{icon}"
+label_format = "{state}"
 disabled_icon = "󰛨"
 tooltip = true
 ```
@@ -273,9 +269,8 @@ clock_format = "12h"   # "12h" | "24h"
 
 ```toml
 [widgets.world_clock]
-icon = "󰃰"
 use_24hr = true
-label_format = "{icon}"
+label_format = "󱉊"
 timezones = ["America/New_York", "Asia/Tokyo"]
 ```
 
@@ -317,8 +312,7 @@ color = "#89b4fa"
 ```toml
 [widgets.screenshot]
 path = "Pictures/Screenshots"
-icon = "󰄀"
-label_format = "{icon}"
+label_format = ""
 tooltip = true
 annotation = true
 delayed = false
@@ -341,9 +335,8 @@ audio = true
 
 ```toml
 [widgets.ocr]
-icon = "󰐳"
 tooltip = true
-label_format = "{icon}"
+label_format = ""
 ```
 
 ### مدير الحافظة
@@ -352,8 +345,7 @@ label_format = "{icon}"
 
 ```toml
 [widgets.clipboard]
-icon = ""
-label_format = "{icon}"
+label_format = ""
 tooltip = true
 show_images = true
 enable_pinning = true
@@ -365,8 +357,7 @@ enable_pinning = true
 
 ```toml
 [widgets.usb_manager]
-icon = "󰕓"
-label_format = "{icon}"
+label_format = ""
 tooltip = true
 ```
 
@@ -400,8 +391,7 @@ hidden = []
 
 ```toml
 [widgets.wallpaper]
-icon = "󰸉"
-label_format = "{icon}"
+label_format = ""
 tooltip = true
 ```
 
@@ -411,7 +401,7 @@ tooltip = true
 
 ```toml
 [widgets.settings]
-icon = "󰒓"
+label_format = "󰒓"
 tooltip = true
 ```
 
@@ -431,8 +421,7 @@ notify = false
 
 ```toml
 [widgets.emoji_picker]
-icon = ""
-label_format = "{icon}"
+label_format = ""
 tooltip = true
 per_row = 9
 per_column = 4
@@ -444,8 +433,7 @@ per_column = 4
 
 ```toml
 [widgets.kanban]
-icon = "󱞁"
-label_format = "{icon}"
+label_format = "󱞁"
 tooltip = true
 ```
 
@@ -455,8 +443,7 @@ tooltip = true
 
 ```toml
 [widgets.pomodoro]
-icon = "🍅"
-label_format = "{icon}"
+label_format = "🍅"
 tooltip = true
 ```
 
@@ -466,8 +453,7 @@ tooltip = true
 
 ```toml
 [widgets.github_tray]
-icon = ""
-label_format = "{icon}"
+label_format = ""
 tooltip = true
 username = "rubiin"
 max_repos = 10
@@ -479,7 +465,7 @@ max_repos = 10
 
 ```toml
 [widgets.cloudflare_warp]
-label_format = "{icon}"
+label_format = ""
 tooltip = true
 ```
 
@@ -489,8 +475,7 @@ tooltip = true
 
 ```toml
 [widgets.dns_switcher]
-icon = "󰚘"
-label_format = "{icon}"
+label_format = "󰚘"
 tooltip = true
 ```
 
@@ -500,8 +485,7 @@ tooltip = true
 
 ```toml
 [widgets.ip_monitor]
-icon = "󰖟"
-label_format = "{icon}"
+label_format = "󰖟"
 tooltip = true
 ```
 
@@ -533,8 +517,7 @@ style_classes = ["compact"]
 [[collapsible_groups]]
 widgets = ["ocr", "screenshot", "recorder"]
 spacing = 4
-icon = "󰒓"
-label_format = "{icon}"
+label_format = "󰍽"
 tooltip = "أدوات مساعدة"
 style_classes = ["utility-tools"]
 ```

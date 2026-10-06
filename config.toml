@@ -6,8 +6,7 @@ icon_size = 20
 tooltip = true
 
 [widgets.github_tray]
-icon = ""
-label_format = "{icon}"
+label_format = ""
 tooltip = true
 username = ""
 hostname = ""
@@ -48,13 +47,11 @@ workflow_failure = true
 workflow_cancelled = true
 
 [widgets.ip_monitor]
-icon = "󰖟"
-label_format = "{icon}"
+label_format = "󰖟"
 tooltip = true
 
 [widgets.clipboard]
-icon = ""
-label_format = "{icon}"
+label_format = ""
 tooltip = true
 item_tooltip = false
 show_images = true
@@ -65,15 +62,13 @@ icon = ""
 tooltip = true
 
 [widgets.emoji_picker]
-icon = ""
-label_format = "{icon}"
+label_format = ""
 tooltip = true
 per_row = 9
 per_column = 4
 
 [widgets.kanban]
-icon = "󱞁"
-label_format = "{icon}"
+label_format = "󱞁"
 tooltip = true
 
 [widgets.battery]
@@ -82,7 +77,7 @@ hide_when_missing = false
 hide_percent_when_full = true
 tooltip = true
 icon_size = 14
-label_format = "{icon} {percent}"
+label_format = "{percent}"
 
 
 [widgets.battery.notifications]
@@ -157,7 +152,7 @@ tooltip = "Launch Code"
 icon_size = 18
 
 [widgets.bluetooth]
-label_format = "{icon}"
+label_format = ""
 tooltip = true
 
 [widgets.brightness]
@@ -165,8 +160,7 @@ tooltip = true
 step_size = 5
 
 [widgets.wallpaper]
-icon = "󰸉"
-label_format = "{icon}"
+label_format = "󰸉"
 tooltip = true
 
 [widgets.cava]
@@ -174,16 +168,14 @@ bars = 10
 color = "#89b4fa"
 
 [widgets.overview_button]
-icon = "󰡃"
-label_format = "{icon}"
+label_format = "󰡃"
 tooltip = true
 
 [widgets.click_counter]
 count = 0
 
 [widgets.cpu]
-label_format = "{icon}"
-icon = ""
+label_format = ""
 tooltip = true
 round = true
 temperature_unit = "celsius"
@@ -192,8 +184,7 @@ mode = "graph"
 graph_length = 4
 
 [widgets.gpu]
-label_format = "{icon}"
-icon = ""
+label_format = ""
 tooltip = true
 mode = "circular"
 graph_length = 4
@@ -201,22 +192,19 @@ graph_length = 4
 
 [widgets.storage]
 path = "/"
-label_format = "{icon}"
-icon = "󰋊"
+label_format = "󰋊"
 mode = "label"
 tooltip = true
 graph_length = 4
 unit = "gb"
 
 [widgets.usb_manager]
-icon = "󰕓"
-label_format = "{icon}"
+label_format = "󰕓"
 tooltip = true
 
 
 [widgets.memory]
-label_format = "{icon}"
-icon = ""
+label_format = ""
 tooltip = true
 mode = "label"
 graph_length = 4
@@ -241,27 +229,25 @@ notification_grouping = true   # Group notification history by app in the date m
 
 [widgets.hypridle]
 enabled_icon = ""
-label_format = "{icon} {state}"
+label_format = "{state}"
 disabled_icon = ""
 tooltip = true
 
 [widgets.hyprpicker]
-icon = ""
 tooltip = true
 quiet = false
-label_format = "{icon}"
+label_format = ""
 
 [widgets.hyprsunset]
 temperature = "2800k"
 enabled_icon = "󱩌"
-label_format = "{icon} {state}"
+label_format = "{state}"
 disabled_icon = "󰛨"
 tooltip = true
 
 [widgets.keyboard]
-icon = "󰌌"
 tooltip = true
-label_format = "{icon} {layout}"
+label_format = "󰌌 {layout}"
 
 [widgets.window_count]
 label_format = " [{count}]"
@@ -269,10 +255,9 @@ hide_when_zero = true
 tooltip = true
 
 [widgets.language]
-icon = ""
 tooltip = true
 truncation_size = 2
-label_format = "{icon} {language}"
+label_format = " {language}"
 
 
 [widgets.network_usage]
@@ -288,7 +273,7 @@ interval = 2000
 
 [widgets.microphone]
 tooltip = true
-label_format = "{icon}"
+label_format = ""
 
 [widgets.mpris]
 truncation_size = 15
@@ -298,17 +283,15 @@ label_format = "{title} - {artist}"
 ignore = []
 
 [widgets.ocr]
-icon = "󰐳"
 tooltip = true
-label_format = "{icon}"
+label_format = "󰐳"
 quiet = false
 
 [widgets.power]
-icon = "󰐥"
 tooltip = true
 items_per_row = 3
 icon_size = 100
-label_format = "{icon}"
+label_format = "󰐥"
 confirm = true
 
 [widgets.power.item_shortcuts]
@@ -336,8 +319,7 @@ delayed_timeout = 5000
 
 [widgets.screenshot]
 path = "Pictures/Screenshots"
-icon = "󰄀"
-label_format = "{icon}"
+label_format = "󰄀"
 tooltip = true
 annotation = false
 delayed = false
@@ -350,9 +332,8 @@ running_icon = "󱫠"
 
 
 [widgets.submap]
-icon = "󰌌"
 tooltip = true
-label_format = "{icon} {submap}"
+label_format = "󰌌 {submap}"
 hide_on_default = false
 
 [widgets.system_tray]
@@ -373,7 +354,7 @@ icon = ""
 notify = false
 
 [widgets.updates]
-label_format = "{icon} {total}"
+label_format = "{total}"
 pad_zero = true
 available_icon = "󰏗"
 no_updates_icon = "󰏖"
@@ -424,30 +405,26 @@ show_special = false
 show_urgent = false
 
 [widgets.world_clock]
-icon = "󰃰"
 use_24hr = true
-label_format = "{icon}"
+label_format = "󰃰"
 timezones = ["America/New_York", "Asia/Tokyo"]
 
 [widgets.cheatsheet]
-icon = "󰌌"
-label_format = "{icon}"
+label_format = "󰌌"
 tooltip = true
 
 [widgets.pomodoro]
-icon = "🍅"
-label_format = "{icon}"
+label_format = "🍅"
 tooltip = true
 
 [widgets.dns_switcher]
-icon = "󰚘"
-label_format = "{icon}"
+label_format = "󰚘"
 tooltip = true
 
 [widgets.cloudflare_warp]
 connected_icon = ""
 disconnected_icon = ""
-label_format = "{icon}"
+label_format = ""
 tooltip = true
 
 [[widgets.custom_widget]]
@@ -506,8 +483,7 @@ reveal_duration = 500
 id = "utility-tools"
 widgets = ["ocr", "screenshot", "recorder"]
 spacing = 4
-icon = "󰒓"
-label_format = "{icon}"      # the toggle button's whole label; "{icon}" is the only field
+label_format = "󰍽"  # the toggle button's whole label
 tooltip = "Utility Tools"
 style_classes = ["utility-tools"]
 

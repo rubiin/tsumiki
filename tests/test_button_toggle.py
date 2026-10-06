@@ -28,7 +28,7 @@ def _make_switcher(
     widget.tooltips_enabled = True
     widget.enabled_icon = enabled_icon
     widget.disabled_icon = disabled_icon
-    widget.label_format = "{icon} {state}"
+    widget.label_format = "{state}"
     widget.refresh_formatted_label = mock.Mock()
     widget.get_mapped = mock.Mock(return_value=True)
     widget.toggle_css_class = mock.Mock()

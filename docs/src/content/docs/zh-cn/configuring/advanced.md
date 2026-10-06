@@ -78,8 +78,7 @@ right_section = ["@group:sys-group", "system_tray"]
 id = "utility-tools"
 widgets = ["ocr", "screenshot", "recorder"]
 spacing = 4
-icon = "󰒓"
-label_format = "{icon}"
+label_format = "󰍽"
 tooltip = "工具"
 style_classes = ["utility-tools"]
 ```

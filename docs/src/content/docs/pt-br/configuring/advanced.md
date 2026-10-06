@@ -78,8 +78,7 @@ Oculte widgets menos usados atrás de uma alternância:
 id = "utility-tools"
 widgets = ["ocr", "screenshot", "recorder"]
 spacing = 4
-icon = "󰒓"
-label_format = "{icon}"
+label_format = "󰍽"
 tooltip = "Ferramentas"
 style_classes = ["utility-tools"]
 ```

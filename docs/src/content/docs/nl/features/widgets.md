@@ -35,7 +35,7 @@ interval = 3600
 
 ```toml
 [widgets.battery]
-label_format = "{icon} {percent}"
+label_format = "{percent}"
 
 [widgets.volume]
 step_size = 5
@@ -44,7 +44,7 @@ step_size = 5
 step_size = 5
 
 [widgets.power]
-icon = "󰐥"
+label_format = ""
 confirm = true
 ```
 
@@ -80,14 +80,14 @@ color = "#89b4fa"
 
 ```toml
 [widgets.screenshot]
-label_format = "{icon}"
+label_format = ""
 annotation = true
 
 [widgets.recorder]
 audio = true
 
 [widgets.clipboard]
-label_format = "{icon}"
+label_format = ""
 show_images = true
 
 [widgets.system_tray]
@@ -112,7 +112,6 @@ style_classes = ["compact"]
 [[collapsible_groups]]
 widgets = ["ocr", "screenshot", "recorder"]
 spacing = 4
-icon = "󰒓"
-label_format = "{icon}"
+label_format = "󰍽"
 tooltip = "Hulpmiddelen"
 ```

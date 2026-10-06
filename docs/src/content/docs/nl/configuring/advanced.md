@@ -78,8 +78,7 @@ Verberg minder gebruikte widgets achter een schakelaar:
 id = "utility-tools"
 widgets = ["ocr", "screenshot", "recorder"]
 spacing = 4
-icon = "󰒓"
-label_format = "{icon}"
+label_format = "󰍽"
 tooltip = "Hulpmiddelen"
 style_classes = ["utility-tools"]
 ```

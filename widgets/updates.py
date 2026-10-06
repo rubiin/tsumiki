@@ -27,7 +27,7 @@ class UpdatesWidget(ButtonWidget):
 
         self.base_command = self._build_base_command()
 
-        self.label_format = self.config.get("label_format", "{icon} {total}")
+        self.label_format = self.config.get("label_format", "{total}")
         self.add_formatted_label(
             self.label_format,
             self.config.get("no_updates_icon", "󰒒"),

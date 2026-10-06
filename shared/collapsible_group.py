@@ -14,8 +14,7 @@ class CollapsibleGroupWidget(ButtonWidget, PopoverMixin):
         super().__init__(name="collapsible_group", **kwargs)
 
         self.widgets_config = []
-        self.icon_name = "󰍽"  # default icon
-        self.label_format = "{icon}"
+        self.label_format = "󰍽"
         self.tooltip_text = "Toggle tool menu"
 
         self.is_expanded = False
@@ -31,13 +30,12 @@ class CollapsibleGroupWidget(ButtonWidget, PopoverMixin):
     def _read_config(self):
         """Read configuration values from the config."""
         self.widgets_config = self.config.get("widgets", [])
-        self.icon_name = self.config.get("icon", "󰍽")
-        self.label_format = self.config.get("label_format", "{icon}")
+        self.label_format = self.config.get("label_format", "󰍽")
         self.tooltip_text = self.config.get("tooltip", "Toggle tool menu")
 
     def _setup_button_content(self):
         """Set up the content of the main toggle button."""
-        self.add_formatted_label(self.label_format, self.icon_name)
+        self.add_formatted_label(self.label_format)
 
     def _build_popover_content(self) -> Box:
         """Build the popover content: the grouped widgets, in a row."""

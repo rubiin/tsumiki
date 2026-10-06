@@ -12,9 +12,8 @@ class SubMapWidget(ButtonWidget):
     def __init__(self, **kwargs):
         super().__init__(name="submap", **kwargs)
 
-        self.label_format = self.config.get("label_format", "{icon} {submap}")
-        self._glyph = self.config.get("icon", "")
-        self.add_formatted_label(self.label_format, self._glyph)
+        self.label_format = self.config.get("label_format", "{submap}")
+        self.add_formatted_label(self.label_format)
 
         self._register_handlers(
             hyprland_service,
@@ -33,7 +32,7 @@ class SubMapWidget(ButtonWidget):
         if submap == "unknown request":
             submap = "default"
 
-        self.refresh_formatted_label(self._glyph, submap=submap)
+        self.refresh_formatted_label(submap=submap)
 
         if self.config.get("hide_on_default", False):
             if submap == "default":

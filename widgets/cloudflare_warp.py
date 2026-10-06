@@ -149,7 +149,7 @@ class CloudflareWarpWidget(ButtonWidget, PopoverMixin):
             )
             self.set_tooltip_text(_("widget.cloudflare_warp.not_found"))
 
-        self.label_format = self.config.get("label_format", "{icon}")
+        self.label_format = self.config.get("label_format", "")
         self.add_formatted_label(self.label_format, self._icon.get_label())
 
         if self._available:

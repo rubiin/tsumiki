@@ -15,10 +15,8 @@ class WorldClockWidget(ButtonWidget):
 
         self.clocks = []
 
-        self.label_format = self.config.get("label_format", "{icon}")
-        self.add_formatted_label(
-            self.label_format, self.config.get("icon", "󰌌")
-        )
+        self.label_format = self.config.get("label_format", "󰌌")
+        self.add_formatted_label(self.label_format)
 
         self.container_box.set_spacing(10)
 

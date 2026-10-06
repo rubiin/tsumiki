@@ -28,7 +28,7 @@ def make_widget() -> BatteryWidget:
     widget.config = {"tooltip": True, "hide_when_missing": True, "label": True}
     widget.full_battery_level = 100
     widget.hide_percent_when_full = True
-    widget.label_format = "{icon} {percent}"
+    widget.label_format = "{percent}"
     widget.battery_icons = [f"icon{i}" for i in range(11)]
     widget.charging_icons = [f"charge{i}" for i in range(11)]
     widget.tooltips_enabled = True

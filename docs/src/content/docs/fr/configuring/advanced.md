@@ -78,8 +78,7 @@ Cachez les widgets moins utilisés derrière un bouton :
 id = "utility-tools"
 widgets = ["ocr", "screenshot", "recorder"]
 spacing = 4
-icon = "󰒓"
-label_format = "{icon}"
+label_format = "󰍽"
 tooltip = "Outils utilitaires"
 style_classes = ["utility-tools"]
 ```

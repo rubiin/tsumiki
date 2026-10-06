@@ -11,9 +11,8 @@ class KeyboardLayoutWidget(ButtonWidget):
     def __init__(self, **kwargs):
         super().__init__(name="keyboard", **kwargs)
 
-        self.label_format = self.config.get("label_format", "{icon} {layout}")
-        self._glyph = self.config.get("icon", "")
-        self.add_formatted_label(self.label_format, self._glyph)
+        self.label_format = self.config.get("label_format", "{layout}")
+        self.add_formatted_label(self.label_format)
 
         # all aboard...
         hyprland_service.on_ready(lambda: self.on_ready(None))
@@ -24,7 +23,7 @@ class KeyboardLayoutWidget(ButtonWidget):
 
     def _refresh_layout(self, layout: str) -> None:
         """Re-render the one panel label with the layout name."""
-        self.refresh_formatted_label(self._glyph, layout=layout)
+        self.refresh_formatted_label(layout=layout)
 
     def _handle_devices_data(self, data, *_):
         if data is None:

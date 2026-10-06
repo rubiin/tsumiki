@@ -31,7 +31,7 @@ os = "arch"
 
 ```toml
 [widgets.battery]
-label_format = "{icon} {percent}"
+label_format = "{percent}"
 
 [widgets.volume]
 step_size = 5
@@ -90,6 +90,5 @@ style_classes = ["compact"]
 [[collapsible_groups]]
 widgets = ["ocr", "screenshot", "recorder"]
 spacing = 4
-icon = "󰒓"
-label_format = "{icon}"
+label_format = "󰍽"
 ```

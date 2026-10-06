@@ -39,13 +39,8 @@
             },
             "label_format": {
               "type": "string",
-              "default": "{icon}",
-              "description": "Format string; the icon is shown when it contains {icon}."
-            },
-            "icon": {
-              "type": "string",
               "default": "󰚘",
-              "description": "Nerd Font icon for the DNS switcher."
+              "description": "Format string for the panel label; the glyph is written in literally, so no fields are available."
             }
           }
         },
@@ -59,8 +54,8 @@
             },
             "label_format": {
               "type": "string",
-              "default": "{icon}",
-              "description": "Format string; the icon is shown when it contains {icon}."
+              "default": "",
+              "description": "Format string for the panel label; the widget prepends its live icon, so no fields are available."
             },
             "connected_icon": {
               "type": "string",
@@ -84,13 +79,8 @@
             },
             "label_format": {
               "type": "string",
-              "default": "{icon}",
-              "description": "Format string; the icon is shown when it contains {icon}."
-            },
-            "icon": {
-              "type": "string",
               "default": "",
-              "description": "Icon displayed in the GitHub Tray widget."
+              "description": "Format string for the panel label; the glyph is written in literally, so no fields are available."
             },
             "username": {
               "type": "string",
@@ -213,13 +203,8 @@
             },
             "label_format": {
               "type": "string",
-              "default": "{icon}",
-              "description": "Format string; the icon is shown when it contains {icon}."
-            },
-            "icon": {
-              "type": "string",
               "default": "󰖟",
-              "description": "Icon displayed in the IP Monitor widget."
+              "description": "Format string for the panel label; the glyph is written in literally, so no fields are available."
             }
           }
         },
@@ -233,8 +218,8 @@
             },
             "label_format": {
               "type": "string",
-              "default": "{icon} {percent}",
-              "description": "Specifies the format string for the battery label. Available variables: {icon}, {percent}, {time_remaining}."
+              "default": "{percent}",
+              "description": "Specifies the format string for the battery label. Available variables: {percent}, {time_remaining}. The level glyph leads the label."
             },
             "tooltip": {
               "type": "boolean",
@@ -335,11 +320,6 @@
         "overview_button": {
           "type": "object",
           "properties": {
-            "icon": {
-              "type": "string",
-              "default": "󰡃",
-              "description": "The icon displayed in the overview widget."
-            },
             "tooltip": {
               "type": "boolean",
               "default": true,
@@ -347,24 +327,19 @@
             },
             "label_format": {
               "type": "string",
-              "default": "{icon}",
-              "description": "Format string; the icon is shown when it contains {icon}."
+              "default": "󰡃",
+              "description": "Format string for the panel label; the glyph is written in literally, so no fields are available."
             }
           },
-          "required": ["icon", "tooltip", "label_format"]
+          "required": ["tooltip", "label_format"]
         },
         "usb_manager": {
           "type": "object",
           "properties": {
-            "icon": {
-              "type": "string",
-              "default": "",
-              "description": "Icon shown for USB manager widget."
-            },
             "label_format": {
               "type": "string",
-              "default": "{icon}",
-              "description": "Format string; the icon is shown when it contains {icon}."
+              "default": "",
+              "description": "Format string for the panel label; the glyph is written in literally, so no fields are available."
             },
             "tooltip": {
               "type": "boolean",
@@ -372,7 +347,7 @@
               "description": "Show tooltip with detected USB drive count."
             }
           },
-          "required": ["icon", "label_format", "tooltip"]
+          "required": ["label_format", "tooltip"]
         },
         "breathe": {
           "type": "object",
@@ -392,11 +367,6 @@
         "power": {
           "type": "object",
           "properties": {
-            "icon": {
-              "type": "string",
-              "default": "󰐥",
-              "description": "The icon displayed in the power widget."
-            },
             "tooltip": {
               "type": "boolean",
               "default": true,
@@ -414,8 +384,8 @@
             },
             "label_format": {
               "type": "string",
-              "default": "{icon}",
-              "description": "Format string; the icon is shown when it contains {icon}."
+              "default": "󰐥",
+              "description": "Format string for the panel label; the glyph is written in literally, so no fields are available."
             },
             "confirm": {
               "type": "boolean",
@@ -486,7 +456,7 @@
               "required": ["shutdown", "reboot", "hibernate", "suspend", "lock", "logout"]
             }
           },
-          "required": ["icon", "tooltip", "items_per_row", "icon_size", "label_format", "buttons"]
+          "required": ["tooltip", "items_per_row", "icon_size", "label_format", "buttons"]
         },
         "recorder": {
           "type": "object",
@@ -534,8 +504,8 @@
             },
             "label_format": {
               "type": "string",
-              "default": "{icon}",
-              "description": "Format string; the icon is shown when it contains {icon}."
+              "default": "󰄀",
+              "description": "Format string for the panel label; the glyph is written in literally, so no fields are available."
             },
             "annotation": {
               "type": "boolean",
@@ -546,11 +516,6 @@
               "type": "boolean",
               "default": false,
               "description": "Determines whether to capture sound."
-            },
-            "icon": {
-              "type": "string",
-              "default": "󰄀",
-              "description": "The icon displayed in the screenshot widget."
             },
             "delayed": {
               "type": "boolean",
@@ -569,7 +534,6 @@
             "label_format",
             "annotation",
             "capture_sound",
-            "icon",
             "delayed",
             "delayed_timeout"
           ]
@@ -856,13 +820,8 @@
             },
             "label_format": {
               "type": "string",
-              "default": "{icon}",
-              "description": "Format string; the icon is shown when it contains {icon}."
-            },
-            "icon": {
-              "type": "string",
               "default": "󰋊",
-              "description": "The icon to display for the storage device."
+              "description": "The stat widget glyph; an empty string hides it."
             },
             "mode": {
               "type": "string",
@@ -886,7 +845,7 @@
               "description": "The unit of measurement for the storage device."
             }
           },
-          "required": ["path", "label_format", "icon", "mode", "tooltip", "graph_length", "unit"]
+          "required": ["path", "label_format", "mode", "tooltip", "graph_length", "unit"]
         },
         "system_tray": {
           "type": "object",
@@ -969,8 +928,8 @@
           "properties": {
             "label_format": {
               "type": "string",
-              "default": "{icon} {total}",
-              "description": "Format string; fields: {icon}, {total} (the update count)."
+              "default": "{total}",
+              "description": "Specifies the format string for the panel label. Available variables: {total} (the update count)."
             },
             "pad_zero": {
               "type": "boolean",
@@ -1061,11 +1020,6 @@
         "hyprpicker": {
           "type": "object",
           "properties": {
-            "icon": {
-              "type": "string",
-              "default": "",
-              "description": "The icon displayed in the Hyprpicker widget."
-            },
             "tooltip": {
               "type": "boolean",
               "default": true,
@@ -1073,8 +1027,8 @@
             },
             "label_format": {
               "type": "string",
-              "default": "{icon}",
-              "description": "Format string; the icon is shown when it contains {icon}."
+              "default": "",
+              "description": "Format string for the panel label; the glyph is written in literally, so no fields are available."
             },
             "quiet": {
               "type": "boolean",
@@ -1082,7 +1036,7 @@
               "description": "Determines whether to run the Hyprpicker in quiet mode, suppressing notifications."
             }
           },
-          "required": ["icon", "tooltip", "label_format", "quiet"]
+          "required": ["tooltip", "label_format", "quiet"]
         },
         "weather": {
           "type": "object",
@@ -1279,8 +1233,8 @@
           "properties": {
             "label_format": {
               "type": "string",
-              "default": "{icon}",
-              "description": "Format string; the icon is shown when it contains {icon}."
+              "default": "",
+              "description": "Format string for the panel label; the widget prepends its live icon, so no fields are available."
             },
             "tooltip": {
               "type": "boolean",
@@ -1338,13 +1292,8 @@
           "properties": {
             "label_format": {
               "type": "string",
-              "default": "{icon}",
-              "description": "Format string; the icon is shown when it contains {icon}."
-            },
-            "icon": {
-              "type": "string",
               "default": "",
-              "description": "Icon to use for CPU display."
+              "description": "The stat widget glyph; an empty string hides it."
             },
             "mode": {
               "type": "string",
@@ -1380,7 +1329,6 @@
           },
           "required": [
             "label_format",
-            "icon",
             "mode",
             "tooltip",
             "temperature_unit",
@@ -1394,13 +1342,8 @@
           "properties": {
             "label_format": {
               "type": "string",
-              "default": "{icon}",
-              "description": "Format string; the icon is shown when it contains {icon}."
-            },
-            "icon": {
-              "type": "string",
               "default": "",
-              "description": "Icon to use for GPU display."
+              "description": "The stat widget glyph; an empty string hides it."
             },
             "tooltip": {
               "type": "boolean",
@@ -1419,7 +1362,7 @@
               "description": "Number of points in GPU usage graph."
             }
           },
-          "required": ["label_format", "icon", "tooltip", "mode", "graph_length"]
+          "required": ["label_format", "tooltip", "mode", "graph_length"]
         },
         "date_time": {
           "type": "object",
@@ -1493,8 +1436,8 @@
             },
             "label_format": {
               "type": "string",
-              "default": "{icon} {state}",
-              "description": "Specifies the format string for the panel label. Available variables: {icon}, {state}."
+              "default": "{state}",
+              "description": "Specifies the format string for the panel label. Available variables: {state}."
             },
             "tooltip": {
               "type": "boolean",
@@ -1524,8 +1467,8 @@
             },
             "label_format": {
               "type": "string",
-              "default": "{icon} {state}",
-              "description": "Specifies the format string for the panel label. Available variables: {icon}, {state}."
+              "default": "{state}",
+              "description": "Specifies the format string for the panel label. Available variables: {state}."
             },
             "tooltip": {
               "type": "boolean",
@@ -1538,11 +1481,6 @@
         "keyboard": {
           "type": "object",
           "properties": {
-            "icon": {
-              "type": "string",
-              "default": "󰌌",
-              "description": "Icon for the keyboard layout indicator."
-            },
             "tooltip": {
               "type": "boolean",
               "default": true,
@@ -1550,11 +1488,11 @@
             },
             "label_format": {
               "type": "string",
-              "default": "{icon} {layout}",
-              "description": "Specifies the format string for the panel label. Available variables: {icon}, {layout}."
+              "default": "󰌌 {layout}",
+              "description": "Specifies the format string for the panel label. Available variables: {layout}."
             }
           },
-          "required": ["icon", "tooltip", "label_format"]
+          "required": ["tooltip", "label_format"]
         },
         "window_count": {
           "type": "object",
@@ -1585,29 +1523,21 @@
               "type": "boolean",
               "default": true
             },
-            "icon": {
-              "type": "string",
-              "default": ""
-            },
             "label_format": {
               "type": "string",
-              "default": "{icon} {language}",
-              "description": "Specifies the format string for the panel label. Available variables: {icon}, {language}."
+              "default": " {language}",
+              "description": "Specifies the format string for the panel label. Available variables: {language}."
             }
           },
-          "required": ["truncation_size", "tooltip", "icon", "label_format"]
+          "required": ["truncation_size", "tooltip", "label_format"]
         },
         "memory": {
           "type": "object",
           "properties": {
             "label_format": {
               "type": "string",
-              "default": "{icon}",
-              "description": "Format string; the icon is shown when it contains {icon}."
-            },
-            "icon": {
-              "type": "string",
-              "default": ""
+              "default": "",
+              "description": "The stat widget glyph; an empty string hides it."
             },
             "mode": {
               "type": "string",
@@ -1628,19 +1558,15 @@
               "default": "gb"
             }
           },
-          "required": ["label_format", "icon", "mode", "tooltip", "graph_length", "unit"]
+          "required": ["label_format", "mode", "tooltip", "graph_length", "unit"]
         },
         "clipboard": {
           "type": "object",
           "properties": {
-            "icon": {
-              "type": "string",
-              "default": ""
-            },
             "label_format": {
               "type": "string",
-              "default": "{icon}",
-              "description": "Format string; the icon is shown when it contains {icon}."
+              "default": "",
+              "description": "Format string for the panel label; the glyph is written in literally, so no fields are available."
             },
             "tooltip": {
               "type": "boolean",
@@ -1659,77 +1585,60 @@
               "default": true
             }
           },
-          "required": ["icon", "label_format", "tooltip"]
+          "required": ["label_format", "tooltip"]
         },
         "cheatsheet": {
           "type": "object",
           "properties": {
-            "icon": {
-              "type": "string",
-              "default": "󰌌"
-            },
             "label_format": {
               "type": "string",
-              "default": "{icon}",
-              "description": "Format string; the icon is shown when it contains {icon}."
+              "default": "󰌌",
+              "description": "Format string for the panel label; the glyph is written in literally, so no fields are available."
             },
             "tooltip": {
               "type": "boolean",
               "default": true
             }
           },
-          "required": ["icon", "label_format", "tooltip"]
+          "required": ["label_format", "tooltip"]
         },
         "pomodoro": {
           "type": "object",
           "properties": {
-            "icon": {
-              "type": "string",
-              "default": "🍅"
-            },
             "label_format": {
               "type": "string",
-              "default": "{icon}",
-              "description": "Format string; the icon is shown when it contains {icon}."
+              "default": "🍅",
+              "description": "Format string for the panel label; the glyph is written in literally, so no fields are available."
             },
             "tooltip": {
               "type": "boolean",
               "default": true
             }
           },
-          "required": ["icon", "label_format", "tooltip"]
+          "required": ["label_format", "tooltip"]
         },
         "kanban": {
           "type": "object",
           "properties": {
-            "icon": {
-              "type": "string",
-              "default": "󱞁"
-            },
             "label_format": {
               "type": "string",
-              "default": "{icon}",
-              "description": "Format string; the icon is shown when it contains {icon}."
+              "default": "󱞁",
+              "description": "Format string for the panel label; the glyph is written in literally, so no fields are available."
             },
             "tooltip": {
               "type": "boolean",
               "default": true
             }
           },
-          "required": ["icon", "label_format", "tooltip"]
+          "required": ["label_format", "tooltip"]
         },
         "emoji_picker": {
           "type": "object",
           "properties": {
-            "icon": {
-              "type": "string",
-              "default": "",
-              "description": "The icon displayed for the emoji picker."
-            },
             "label_format": {
               "type": "string",
-              "default": "{icon}",
-              "description": "Format string; the icon is shown when it contains {icon}."
+              "default": "",
+              "description": "Format string for the panel label; the glyph is written in literally, so no fields are available."
             },
             "tooltip": {
               "type": "boolean",
@@ -1747,16 +1656,11 @@
               "description": "The number of emoji to display per column."
             }
           },
-          "required": ["icon", "label_format", "tooltip", "per_row", "per_column"]
+          "required": ["label_format", "tooltip", "per_row", "per_column"]
         },
         "submap": {
           "type": "object",
           "properties": {
-            "icon": {
-              "type": "string",
-              "default": "󰌌",
-              "description": "The icon displayed for the submap."
-            },
             "hide_on_default": {
               "type": "boolean",
               "default": false,
@@ -1769,11 +1673,11 @@
             },
             "label_format": {
               "type": "string",
-              "default": "{icon} {submap}",
-              "description": "Specifies the format string for the panel label. Available variables: {icon}, {submap}."
+              "default": "󰌌 {submap}",
+              "description": "Specifies the format string for the panel label. Available variables: {submap}."
             }
           },
-          "required": ["icon", "tooltip", "label_format"]
+          "required": ["tooltip", "label_format"]
         },
         "microphone": {
           "type": "object",
@@ -1785,8 +1689,8 @@
             },
             "label_format": {
               "type": "string",
-              "default": "{icon}",
-              "description": "Format string; the icon is shown when it contains {icon}."
+              "default": "",
+              "description": "Format string for the panel label; the widget prepends its live icon, so no fields are available."
             }
           },
           "required": ["tooltip", "label_format"]
@@ -1794,11 +1698,6 @@
         "ocr": {
           "type": "object",
           "properties": {
-            "icon": {
-              "type": "string",
-              "default": "󰐳",
-              "description": "The icon displayed for the OCR."
-            },
             "tooltip": {
               "type": "boolean",
               "default": true,
@@ -1806,8 +1705,8 @@
             },
             "label_format": {
               "type": "string",
-              "default": "{icon}",
-              "description": "Format string; the icon is shown when it contains {icon}."
+              "default": "󰐳",
+              "description": "Format string for the panel label; the glyph is written in literally, so no fields are available."
             },
             "quiet": {
               "type": "boolean",
@@ -1815,7 +1714,7 @@
               "description": "Whether to enable quiet mode for the OCR."
             }
           },
-          "required": ["icon", "tooltip", "label_format", "quiet"]
+          "required": ["tooltip", "label_format", "quiet"]
         },
         "mpris": {
           "type": "object",
@@ -1860,15 +1759,10 @@
         "world_clock": {
           "type": "object",
           "properties": {
-            "icon": {
-              "type": "string",
-              "default": "󰃰",
-              "description": "The icon displayed for the world clock."
-            },
             "label_format": {
               "type": "string",
-              "default": "{icon}",
-              "description": "Format string; the icon is shown when it contains {icon}."
+              "default": "󰃰",
+              "description": "Format string for the panel label; the glyph is written in literally, so no fields are available."
             },
             "use_24hr": {
               "type": "boolean",
@@ -1884,7 +1778,7 @@
               "default": ["America/New_York", "Asia/Tokyo"]
             }
           },
-          "required": ["icon", "label_format", "use_24hr", "timezones"]
+          "required": ["label_format", "use_24hr", "timezones"]
         },
         "custom_widget": {
           "type": "array",
@@ -1997,15 +1891,10 @@
         "wallpaper": {
           "type": "object",
           "properties": {
-            "icon": {
-              "type": "string",
-              "default": "󰸉",
-              "description": "The icon displayed for the wallpaper widget."
-            },
             "label_format": {
               "type": "string",
-              "default": "{icon}",
-              "description": "Specifies the format string for the panel label. Available variables: {icon}."
+              "default": "󰸉",
+              "description": "Format string for the panel label; the glyph is written in literally, so no fields are available."
             },
             "tooltip": {
               "type": "boolean",
@@ -2013,7 +1902,7 @@
               "description": "Determines whether to show the tooltip."
             }
           },
-          "required": ["icon", "label_format", "tooltip"]
+          "required": ["label_format", "tooltip"]
         }
       }
     },
@@ -2505,13 +2394,10 @@
           "spacing": {
             "type": "number"
           },
-          "icon": {
-            "type": "string"
-          },
           "label_format": {
             "type": "string",
-            "default": "{icon}",
-            "description": "Format string; the icon is shown when it contains {icon}."
+            "default": "󰍽",
+            "description": "Format string for the toggle button's label; the glyph is written in literally, so no fields are available."
           },
           "tooltip": {
             "type": "string"
@@ -2527,7 +2413,7 @@
             }
           }
         },
-        "required": ["widgets", "spacing", "icon", "tooltip", "style_classes"]
+        "required": ["widgets", "spacing", "tooltip", "style_classes"]
       }
     },
     "modules": {

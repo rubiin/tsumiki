@@ -17,7 +17,7 @@ class MicrophoneIndicatorWidget(ButtonWidget):
         # Initialize the audio service
         self.audio_service = audio_service
 
-        self.label_format = self.config.get("label_format", "{icon}")
+        self.label_format = self.config.get("label_format", "")
         self.add_formatted_label(self.label_format, self.mic_off_icon)
 
         self._register_handlers(

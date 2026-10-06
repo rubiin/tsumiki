@@ -45,7 +45,7 @@ flatpak = true
 
 ```toml
 [widgets.battery]
-label_format = "{icon} {percent}"
+label_format = "{percent}"
 
 [widgets.volume]
 step_size = 5
@@ -54,22 +54,22 @@ step_size = 5
 step_size = 5
 
 [widgets.bluetooth]
-label_format = "{icon}"
+label_format = ""
 
 [widgets.microphone]
-label_format = "{icon}"
+label_format = ""
 
 [widgets.power]
-icon = "󰐥"
+label_format = ""
 confirm = true
 
 [widgets.hypridle]
 enabled_icon = ""
-label_format = "{icon}"
+label_format = "{state}"
 disabled_icon = ""
 
 [widgets.hyprsunset]
-label_format = "{icon}"
+label_format = "{state}"
 temperature = "2800k"
 ```
 
@@ -121,7 +121,7 @@ color = "#89b4fa"
 
 ```toml
 [widgets.screenshot]
-label_format = "{icon}"
+label_format = ""
 annotation = true
 
 [widgets.recorder]
@@ -131,12 +131,12 @@ audio = true
 quiet = false
 
 [widgets.clipboard]
-label_format = "{icon}"
+label_format = ""
 show_images = true
 enable_pinning = true
 
 [widgets.usb_manager]
-label_format = "{icon}"
+label_format = ""
 auto_refresh = true
 ```
 
@@ -150,43 +150,40 @@ hover_reveal = false
 icon_size = 16
 
 [widgets.wallpaper]
-icon = "󰸉"
-label_format = "{icon}"
+label_format = ""
 
 [widgets.settings]
-icon = "󰒓"
+label_format = "󰒓"
 
 [widgets.theme_switcher]
 icon = ""
 
 [widgets.emoji_picker]
-label_format = "{icon}"
+label_format = ""
 per_row = 9
 
 [widgets.kanban]
-icon = "󱞁"
-label_format = "{icon}"
+label_format = "󱞁"
 
 [widgets.pomodoro]
-icon = "🍅"
+label_format = "🍅"
 
 [widgets.github_tray]
 username = "rubiin"
 max_repos = 10
 
 [widgets.cloudflare_warp]
-label_format = "{icon}"
+label_format = ""
 
 [widgets.dns_switcher]
-icon = "󰚘"
+label_format = "󰚘"
 
 [widgets.weather]
 location = "kathmandu"
 provider = "open-meteo"
 
 [widgets.ip_monitor]
-icon = "󰖟"
-label_format = "{icon}"
+label_format = "󰖟"
 ```
 
 ## Widgets de Disposition et de Groupement
@@ -214,8 +211,7 @@ style_classes = ["compact"]
 [[collapsible_groups]]
 widgets = ["ocr", "screenshot", "recorder"]
 spacing = 4
-icon = "󰒓"
-label_format = "{icon}"
+label_format = "󰍽"
 tooltip = "Outils utilitaires"
 style_classes = ["utility-tools"]
 ```

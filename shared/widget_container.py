@@ -25,16 +25,17 @@ def _source_is_alive(source_id: int) -> bool:
 def format_panel_label(template: str, glyph: str = "", **fields: str) -> str:
     """Render a ``label_format`` template into one panel label's markup.
 
-    ``{icon}`` expands to *glyph*, so a widget's icon and text share a single
-    label the way ``battery`` and ``window_count`` do. Whitespace left behind
-    by a field that rendered empty does not become a gap.
+    *glyph* leads the label instead of filling a ``{icon}`` field: a widget's
+    live icon and its text share one label, but a static icon is written into
+    ``label_format`` by the config author, so there is no placeholder to keep.
+    Whitespace left behind by a field that rendered empty does not become a gap.
     """
     try:
-        markup = template.format(icon=glyph, **fields)
+        markup = template.format(**fields)
     except (IndexError, KeyError):
         # An unknown field must not take the bar down with it.
         markup = template
-    return " ".join(markup.split())
+    return " ".join(f"{glyph} {markup}".split())
 
 
 class TeardownMixin:
@@ -259,17 +260,6 @@ class BaseWidget(Widget, TeardownMixin):
         self.general_config: dict = tsumiki_config.get("general", {})
         self.tooltips_enabled = self.general_config.get("tooltips", True)
 
-    def format_shows_icon(
-        self, key: str = "label_format", default: str = "{icon}"
-    ) -> bool:
-        """True when the widget's format string asks for the ``{icon}`` field.
-
-        Replaces the old ``show_icon`` toggle: an icon is rendered when the
-        format string mentions ``{icon}``, and dropped when it does not.
-        """
-        label_format = self.config.get(key, default)
-        return isinstance(label_format, str) and "{icon}" in label_format
-
     def _connect_hover_reveal(self) -> None:
         if not self.config.get("hover_reveal", True):
             return
@@ -413,8 +403,8 @@ class ButtonWidget(Button, BaseWidget):
     ) -> Label:
         """Add the single panel label that ``label_format`` drives.
 
-        *glyph* fills ``{icon}`` and *fields* the widget's own placeholders, so
-        icon and text share one label instead of two sibling widgets. The
+        *glyph* is a live icon (bluetooth state, battery level) that leads the
+        label; a fixed icon belongs in ``label_format`` itself. The
         ``panel-format`` class is what per-widget icon sizing keys off now.
         """
         self.panel_label = Label(style_classes=["panel-text", "panel-format"])
@@ -424,7 +414,7 @@ class ButtonWidget(Button, BaseWidget):
 
     def refresh_formatted_label(self, glyph: str = "", **fields: str) -> None:
         """Re-render the panel label after the widget's state changed."""
-        template = getattr(self, "label_format", "{icon}")
+        template = getattr(self, "label_format", "")
         self.panel_label.set_markup(format_panel_label(template, glyph, **fields))
 
 

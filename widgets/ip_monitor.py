@@ -300,8 +300,8 @@ class IPMonitorWidget(ButtonWidget, PopoverMixin):
     def __init__(self, **kwargs):
         super().__init__(name="ip_monitor", **kwargs)
 
-        self.label_format = self.config.get("label_format", "{icon}")
-        self.add_formatted_label(self.label_format, self.config.get("icon", "󰖟"))
+        self.label_format = self.config.get("label_format", "󰖟")
+        self.add_formatted_label(self.label_format)
 
         self.set_tooltip_if_enabled(_("widget.ip_monitor.tooltip"), default=True)
 

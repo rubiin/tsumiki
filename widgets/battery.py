@@ -3,7 +3,7 @@ import colorsys
 from fabric.utils import bulk_connect
 
 from services.battery import BatteryService
-from shared.widget_container import ButtonWidget
+from shared.widget_container import ButtonWidget, format_panel_label
 from utils.functions import format_seconds_to_hours_minutes, send_notification
 from utils.i18n import _
 from utils.icons import get_text_icon
@@ -25,7 +25,7 @@ class BatteryWidget(ButtonWidget):
 
         self.full_battery_level = self.config.get("full_battery_level", 100)
         self.hide_percent_when_full = self.config.get("hide_percent_when_full", True)
-        self.label_format = self.config.get("label_format", "{icon} {percent}")
+        self.label_format = self.config.get("label_format", "{percent}")
 
         # Battery levels (empty -> full)
         self.battery_icons = [
@@ -191,8 +191,9 @@ class BatteryWidget(ButtonWidget):
             )
 
         self.battery_icon.set_markup(
-            label_format.format(
-                icon=f'<span foreground="{color}">{glyph}</span>',
+            format_panel_label(
+                label_format,
+                f'<span foreground="{color}">{glyph}</span>',
                 time_remaining=state["time_remaining"],
                 percent=(
                     f'<span foreground="{color}" size="8800">{battery_percent}%</span>'

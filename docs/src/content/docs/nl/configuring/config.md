@@ -38,8 +38,7 @@ style_classes = ["bordered"]
 [[collapsible_groups]]
 widgets = ["ocr", "screenshot", "recorder"]
 spacing = 4
-icon = "󰒓"
-label_format = "{icon}"
+label_format = "󰍽"
 tooltip = "Hulpmiddelen"
 style_classes = ["utility-tools"]
 
@@ -91,8 +90,7 @@ style_classes = ["bordered"]
 [[collapsible_groups]]
 widgets = ["ocr", "screenshot", "recorder"]
 spacing = 4
-icon = "󰒓"
-label_format = "{icon}"
+label_format = "󰍽"
 tooltip = "Hulpmiddelen"
 style_classes = ["utility-tools"]
 ```

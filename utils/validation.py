@@ -369,7 +369,7 @@ def _get_named_format_keys(fmt: str) -> set[str]:
 
 _VALID_LABEL_FORMATS = {
     "battery": {
-        "label_format": set(["icon", "percent", "time_remaining"]),
+        "label_format": set(["percent", "time_remaining"]),
     },
     "network_usage": {
         "label_format": set(["download", "upload"]),
@@ -388,92 +388,81 @@ _VALID_LABEL_FORMATS = {
     },
     # Widgets whose label also carries live state the widget feeds back in.
     "keyboard": {
-        "label_format": set(["icon", "layout"]),
+        "label_format": set(["layout"]),
     },
     "language": {
-        "label_format": set(["icon", "language"]),
+        "label_format": set(["language"]),
     },
     "submap": {
-        "label_format": set(["icon", "submap"]),
-    },
-    # Widgets whose only format field is the icon: ``label_format = "{icon}``.
-    "cpu": {
-        "label_format": set(["icon"]),
-    },
-    "gpu": {
-        "label_format": set(["icon"]),
-    },
-    "hyprpicker": {
-        "label_format": set(["icon"]),
-    },
-    "memory": {
-        "label_format": set(["icon"]),
-    },
-    "microphone": {
-        "label_format": set(["icon"]),
-    },
-    "ocr": {
-        "label_format": set(["icon"]),
-    },
-    "power": {
-        "label_format": set(["icon"]),
-    },
-    "storage": {
-        "label_format": set(["icon"]),
+        "label_format": set(["submap"]),
     },
     "updates": {
-        "label_format": set(["icon", "total"]),
-    },
-    "world_clock": {
-        "label_format": set(["icon"]),
-    },
-    "cheatsheet": {
-        "label_format": set(["icon"]),
-    },
-    "dns_switcher": {
-        "label_format": set(["icon"]),
-    },
-    "pomodoro": {
-        "label_format": set(["icon"]),
-    },
-    "cloudflare_warp": {
-        "label_format": set(["icon"]),
-    },
-    "github_tray": {
-        "label_format": set(["icon"]),
-    },
-    "ip_monitor": {
-        "label_format": set(["icon"]),
-    },
-    "bluetooth": {
-        "label_format": set(["icon"]),
-    },
-    "clipboard": {
-        "label_format": set(["icon"]),
-    },
-    "emoji_picker": {
-        "label_format": set(["icon"]),
+        "label_format": set(["total"]),
     },
     "hypridle": {
-        "label_format": set(["icon", "state"]),
+        "label_format": set(["state"]),
     },
     "hyprsunset": {
-        "label_format": set(["icon", "state"]),
+        "label_format": set(["state"]),
+    },
+    # These take no field at all: the config author writes the glyph straight
+    # into ``label_format``, so anything in braces there is a typo.
+    "bluetooth": {
+        "label_format": set(),
+    },
+    "cheatsheet": {
+        "label_format": set(),
+    },
+    "clipboard": {
+        "label_format": set(),
+    },
+    "cloudflare_warp": {
+        "label_format": set(),
+    },
+    "dns_switcher": {
+        "label_format": set(),
+    },
+    "emoji_picker": {
+        "label_format": set(),
+    },
+    "github_tray": {
+        "label_format": set(),
+    },
+    "hyprpicker": {
+        "label_format": set(),
+    },
+    "ip_monitor": {
+        "label_format": set(),
     },
     "kanban": {
-        "label_format": set(["icon"]),
+        "label_format": set(),
+    },
+    "microphone": {
+        "label_format": set(),
+    },
+    "ocr": {
+        "label_format": set(),
     },
     "overview_button": {
-        "label_format": set(["icon"]),
+        "label_format": set(),
+    },
+    "pomodoro": {
+        "label_format": set(),
+    },
+    "power": {
+        "label_format": set(),
     },
     "screenshot": {
-        "label_format": set(["icon"]),
+        "label_format": set(),
     },
     "usb_manager": {
-        "label_format": set(["icon"]),
+        "label_format": set(),
     },
     "wallpaper": {
-        "label_format": set(["icon"]),
+        "label_format": set(),
+    },
+    "world_clock": {
+        "label_format": set(),
     },
 }
 
@@ -482,7 +471,7 @@ _VALID_LABEL_FORMATS = {
 # button, not a panel widget.
 _VALID_COLLECTION_LABEL_FORMATS = {
     "collapsible_groups": {
-        "label_format": set(["icon"]),
+        "label_format": set(),
     },
 }
 
@@ -495,9 +484,9 @@ _VALID_CUSTOM_WIDGET_FORMATS = {
 
 # Keys renamed after v4.8.3, mapped to what a config should use instead.
 _RENAMED_WIDGET_KEYS = {
-    "label": 'label_format (e.g. label_format = "{icon}")',
-    "label_text": 'label_format (e.g. label_format = "{icon}")',
-    "show_icon": 'label_format = "{icon}"',
+    "label": 'label_format (e.g. label_format = "\U000f0493")',
+    "label_text": 'label_format (e.g. label_format = "\U000f0493")',
+    "show_icon": 'label_format = "\U000f0493"',
 }
 
 # Top-level collections whose entries label a panel button, so they answer to the

@@ -43,8 +43,7 @@ reveal_duration = 500
 [[collapsible_groups]]
 widgets = ["ocr", "screenshot", "recorder"]
 spacing = 4
-icon = "󰒓"
-label_format = "{icon}"      # the toggle button's whole label; "{icon}" is the only field
+label_format = "󰍽"  # the toggle button's whole label
 tooltip = "Utility Tools"
 style_classes = ["utility-tools"]
 
@@ -266,7 +265,7 @@ full_battery_level = 100
 hide_percent_when_full = true
 hide_when_missing = true
 tooltip = true
-label_format = "{icon} {percent}"
+label_format = "{percent}"
 
 [widgets.battery.notifications]
 # low battery: fires when percentage drops below threshold while discharging
@@ -299,12 +298,11 @@ tooltip = true
 
 # --- Power Menu ---
 [widgets.power]
-icon = "󰐥"
 tooltip = true
 items_per_row = 3
 icon_size = 100
 confirm = true                    # Show confirmation before executing
-label_format = "{icon}"
+label_format = "󰐥"
 
 [widgets.power.item_shortcuts]
 shutdown = "s"
@@ -364,10 +362,9 @@ icon_size = 18
 
 # --- CPU ---
 [widgets.cpu]
-label_format = "{icon}"
+label_format = ""
 round = true
 sensor = "acpitz"           # lm-sensors name for the CPU package
-icon = ""
 tooltip = true
 mode = "circular"                 # "label" | "graph" | "circular"
 graph_length = 4
@@ -375,16 +372,15 @@ temperature_unit = "celsius"
 
 # --- Memory ---
 [widgets.memory]
-label_format = "{icon}"
+label_format = ""
 graph_length = 4
-icon = ""
 tooltip = true
 mode = "circular"
 unit = "gb"
 
 # --- Updates ---
 [widgets.updates]
-label_format = "{icon} {total}"
+label_format = "{total}"
 pad_zero = true
 auto_hide = false
 available_icon = "󰏗"
@@ -432,7 +428,7 @@ hide_when_no_player = true
 
 # --- Bluetooth ---
 [widgets.bluetooth]
-label_format = "{icon}"
+label_format = ""
 tooltip = true
 
 # --- Brightness ---
@@ -443,21 +439,19 @@ step_size = 5
 # --- Microphone ---
 [widgets.microphone]
 tooltip = true
-label_format = "{icon}"
+label_format = ""
 
 # --- Clipboard ---
 [widgets.clipboard]
 item_tooltip = false
-icon = ""
-label_format = "{icon}"
+label_format = ""
 tooltip = true
 show_images = true
 enable_pinning = true
 
 # --- Wallpaper ---
 [widgets.wallpaper]
-icon = "󰸉"
-label_format = "{icon}"
+label_format = "󰸉"
 tooltip = true
 
 # --- Settings ---
@@ -472,8 +466,7 @@ notify = false
 
 # --- Emoji Picker ---
 [widgets.emoji_picker]
-icon = ""
-label_format = "{icon}"
+label_format = ""
 tooltip = true
 per_row = 9
 per_column = 4
@@ -481,8 +474,7 @@ per_column = 4
 # --- Screenshot ---
 [widgets.screenshot]
 path = "Pictures/Screenshots"
-icon = "󰄀"
-label_format = "{icon}"
+label_format = "󰄀"
 tooltip = true
 annotation = true
 capture_sound = false
@@ -506,22 +498,19 @@ show_current_workspace_only = false
 
 # --- Workspace Overview Button ---
 [widgets.overview_button]
-icon = "󰡃"
-label_format = "{icon}"
+label_format = "󰡃"
 tooltip = true
 
 # --- Submap Indicator ---
 [widgets.submap]
-icon = "󰌌"
 tooltip = true
-label_format = "{icon} {submap}"
+label_format = "󰌌 {submap}"
 hide_on_default = false
 
 # --- World Clock ---
 [widgets.world_clock]
-icon = "󰃰"
 use_24hr = true
-label_format = "{icon}"
+label_format = "󰃰"
 timezones = ["America/New_York", "Asia/Tokyo"]
 
 # --- App Launcher Button ---
@@ -532,8 +521,7 @@ tooltip = true
 
 # --- GitHub Tray ---
 [widgets.github_tray]
-icon = ""
-label_format = "{icon}"
+label_format = ""
 tooltip = true
 username = ""                      # Fallback when the gh session user is unresolved
 hostname = ""                      # GitHub Enterprise Server host; empty uses github.com
@@ -574,14 +562,12 @@ workflow_cancelled = true
 
 # --- IP Monitor ---
 [widgets.ip_monitor]
-icon = "󰖟"
-label_format = "{icon}"
+label_format = "󰖟"
 tooltip = true
 
 # --- USB Manager ---
 [widgets.usb_manager]
-icon = ""
-label_format = "{icon}"
+label_format = ""
 tooltip = true
 
 # --- Breathe (Breathing Timer) ---
@@ -592,8 +578,7 @@ tooltip = true
 # --- Storage ---
 [widgets.storage]
 path = "/"                        # Mount point of the device to graph
-label_format = "{icon}"
-icon = "󰋊"
+label_format = "󰋊"
 mode = "circular"                 # "label" | "graph" | "circular"
 tooltip = true
 graph_length = 4
@@ -601,8 +586,7 @@ unit = "gb"
 
 # --- GPU ---
 [widgets.gpu]
-label_format = "{icon}"
-icon = ""
+label_format = ""
 tooltip = true
 mode = "circular"                 # "label" | "graph" | "circular"
 graph_length = 4
@@ -623,15 +607,14 @@ running_icon = "󱫠"
 
 # --- Hyprpicker ---
 [widgets.hyprpicker]
-icon = ""
 tooltip = true
-label_format = "{icon}"
+label_format = ""
 quiet = false                     # Suppress hyprpicker notifications
 
 # --- Hypridle ---
 [widgets.hypridle]
 enabled_icon = ""
-label_format = "{icon} {state}"
+label_format = "{state}"
 disabled_icon = ""
 tooltip = true
 
@@ -639,15 +622,14 @@ tooltip = true
 [widgets.hyprsunset]
 temperature = "2800k"
 enabled_icon = "󱩌"
-label_format = "{icon} {state}"
+label_format = "{state}"
 disabled_icon = "󰛨"
 tooltip = true
 
 # --- Keyboard Layout ---
 [widgets.keyboard]
-icon = "󰌌"
 tooltip = true
-label_format = "{icon} {layout}"
+label_format = "󰌌 {layout}"
 
 # --- Window Count ---
 [widgets.window_count]
@@ -657,45 +639,39 @@ tooltip = true
 
 # --- Language ---
 [widgets.language]
-icon = ""
 tooltip = true
 truncation_size = 2
-label_format = "{icon} {language}"
+label_format = " {language}"
 
 # --- Kanban ---
 [widgets.kanban]
-icon = "󱞁"
-label_format = "{icon}"
+label_format = "󱞁"
 tooltip = true
 
 # --- Cheatsheet ---
 [widgets.cheatsheet]
-icon = "󰌌"
-label_format = "{icon}"
+label_format = "󰌌"
 tooltip = true
 
 # --- Pomodoro ---
 [widgets.pomodoro]
-icon = "🥅"
-label_format = "{icon}"
+label_format = "🥅"
 tooltip = true
 
 # --- OCR ---
 [widgets.ocr]
-icon = "󰐳"
 tooltip = true
-label_format = "{icon}"
+label_format = "󰐳"
 quiet = false                     # Suppress hyprsplash notifications
 
 # --- DNS Switcher ---
 [widgets.dns_switcher]
-icon = "󰚘"
-label_format = "{icon}"
+label_format = "󰚘"
 tooltip = true
 
 # --- Cloudflare WARP ---
 [widgets.cloudflare_warp]
-label_format = "{icon}"
+label_format = ""
 tooltip = true
 connected_icon = ""
 disconnected_icon = ""

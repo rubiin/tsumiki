@@ -47,7 +47,7 @@ class CommandSwitcher(ButtonWidget):
         self.label = label
         self.tooltip = tooltip
 
-        self.label_format = self.config.get("label_format", "{icon} {state}")
+        self.label_format = self.config.get("label_format", "{state}")
         self.add_formatted_label(self.label_format, enabled_icon, state="")
 
         self.connect("clicked", self.on_click)

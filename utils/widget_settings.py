@@ -32,7 +32,6 @@ Layout = TypedDict(
 WallPaper = TypedDict(
     "WallPaper",
     {
-        "icon": str,
         "label_format": str,
         "tooltip": bool,
     },
@@ -42,7 +41,6 @@ WallPaper = TypedDict(
 PowerButton = TypedDict(
     "PowerButton",
     {
-        "icon": str,
         "tooltip": bool,
         "items_per_row": int,
         "item_shortcuts": dict,
@@ -381,7 +379,6 @@ Cpu = TypedDict(
     "Cpu",
     {
         **BaseConfig.__annotations__,
-        "icon": str,
         "mode": Widget_Mode,
         "label_format": str,
         "sensor": str,
@@ -410,7 +407,6 @@ Memory = TypedDict(
         **BaseConfig.__annotations__,
         "mode": Widget_Mode,
         "label_format": str,
-        "icon": str,
         "graph_length": int,
         "unit": Data_Unit,
     },
@@ -422,7 +418,6 @@ Gpu = TypedDict(
     {
         **BaseConfig.__annotations__,
         "label_format": str,
-        "icon": str,
         "mode": Widget_Mode,
         "graph_length": int,
     },
@@ -433,7 +428,6 @@ Submap = TypedDict(
     "Submap",
     {
         **BaseConfig.__annotations__,
-        "icon": str,
         "label_format": str,
         "hide_on_default": bool,
     },
@@ -463,7 +457,6 @@ Storage = TypedDict(
         "mode": Widget_Mode,
         "tooltip": bool,
         "label_format": str,
-        "icon": str,
         "path": str,
         "graph_length": int,
         "unit": Data_Unit,
@@ -550,7 +543,7 @@ Launcher_Button = TypedDict(
 
 # Keyboard configuration
 Keyboard = TypedDict(
-    "Keyboard", {**BaseConfig.__annotations__, "icon": str, "label_format": str}
+    "Keyboard", {**BaseConfig.__annotations__, "label_format": str}
 )
 
 # MicroPhone configuration
@@ -564,7 +557,7 @@ Cava = TypedDict("Cava", {"bars": int, "color": str})
 # Overview configuration
 Overview_Button = TypedDict(
     "Overview_Button",
-    {"icon": str, **BaseConfig.__annotations__, "label_format": str}
+    {**BaseConfig.__annotations__, "label_format": str}
 )
 
 
@@ -573,7 +566,6 @@ ClipBoard = TypedDict(
     {
         **BaseConfig.__annotations__,
         "label_format": str,
-        "icon": str,
         "enable_pinning": bool,
         "show_images": bool,
         "item_tooltip": bool,
@@ -581,13 +573,12 @@ ClipBoard = TypedDict(
 )
 
 Kanban = TypedDict(
-    "kanban", {"icon": str, **BaseConfig.__annotations__, "label_format": str}
+    "kanban", {**BaseConfig.__annotations__, "label_format": str}
 )
 
 EmojiPicker = TypedDict(
     "emoji_picker",
     {
-        "icon": str,
         **BaseConfig.__annotations__,
         "label_format": str,
         "per_row": int,
@@ -652,7 +643,6 @@ CustomWidgetConfig = TypedDict(
 WorldClock = TypedDict(
     "WorldClock",
     {
-        "icon": str,
         "label_format": str,
         "timezones": list[str],
         "use_24hr": bool,
@@ -667,7 +657,6 @@ USBManager = TypedDict(
     "USBManager",
     {
         **BaseConfig.__annotations__,
-        "icon": str,
         "label_format": str,
     },
 )
@@ -675,13 +664,13 @@ USBManager = TypedDict(
 # Hyprpicker configuration
 HyprPicker = TypedDict(
     "HyprPicker",
-    {**BaseConfig.__annotations__, "icon": str, "label_format": str, "quiet": bool},
+    {**BaseConfig.__annotations__, "label_format": str, "quiet": bool},
 )
 
 # OCR configuration
 OCR = TypedDict(
     "OCR",
-    {**BaseConfig.__annotations__, "icon": str, "quiet": bool, "label_format": str},
+    {**BaseConfig.__annotations__, "quiet": bool, "label_format": str},
 )
 
 Collapsible_Group = TypedDict(
@@ -690,7 +679,6 @@ Collapsible_Group = TypedDict(
         "widgets": list[str],
         "id": str,
         "spacing": int,
-        "icon": str,
         "label_format": str,
         "tooltip": str,
         "style_classes": list[str],
@@ -773,7 +761,6 @@ QuickSettings = TypedDict(
 Cheatsheet = TypedDict(
     "Cheatsheet",
     {
-        "icon": str,
         "label_format": str,
         "tooltip": bool,
     },
@@ -796,7 +783,6 @@ DNSSwitcher = TypedDict(
     {
         "tooltip": bool,
         "label_format": str,
-        "icon": str,
     },
 )
 
@@ -805,7 +791,6 @@ Language = TypedDict(
     "Language",
     {
         **BaseConfig.__annotations__,
-        "icon": str,
         "label_format": str,
         "truncation_size": int,
     }
@@ -832,13 +817,13 @@ Recording = TypedDict(
 
 IpMonitor = TypedDict(
     "IpMonitor",
-    {**BaseConfig.__annotations__, "label_format": str, "icon": str},
+    {**BaseConfig.__annotations__, "label_format": str},
 )
 
 
 Pomodoro = TypedDict(
     "Pomodoro",
-    {**BaseConfig.__annotations__, "label_format": str, "icon": str},
+    {**BaseConfig.__annotations__, "label_format": str},
 )
 
 
@@ -847,7 +832,6 @@ GitHubTray = TypedDict(
     {
         **BaseConfig.__annotations__,
         "label_format": str,
-        "icon": str,
         "username": str,
         "hostname": str,
         "avatar_size": int,
@@ -874,7 +858,6 @@ ScreenShot = TypedDict(
     {
         "path": str,
         "tooltip": bool,
-        "icon": str,
         "label_format": str,
         "annotation": bool,
         "capture_sound": bool,

@@ -13,7 +13,7 @@ from unittest import mock
 from fabric.widgets.label import Label
 
 from shared.mixins import StatDisplayMixin
-from shared.widget_container import ButtonWidget, format_panel_label
+from shared.widget_container import format_panel_label
 from widgets.microphone import MicrophoneIndicatorWidget
 
 
@@ -21,7 +21,6 @@ class _StatProbe(StatDisplayMixin):
     """StatDisplayMixin without ButtonWidget's GTK construction."""
 
     _setup_label_mode = StatDisplayMixin._setup_label_mode
-    format_shows_icon = ButtonWidget.format_shows_icon
 
     def __init__(self, *, label_format: str):
         self.config = {"label_format": label_format}
@@ -32,37 +31,42 @@ class _StatProbe(StatDisplayMixin):
 
 
 class FormatPanelLabelTest(unittest.TestCase):
-    """``{icon}`` is the only field: it takes the widget's glyph."""
+    """The glyph leads the label; a fixed icon lives in the format string."""
 
-    def test_the_icon_field_takes_the_glyph(self):
-        self.assertEqual("󰅚 Bluetooth", format_panel_label("{icon} Bluetooth", "󰅚"))
+    def test_the_glyph_leads_the_formatted_text(self):
+        self.assertEqual("󰅚 Bluetooth", format_panel_label("Bluetooth", "󰅚"))
 
-    def test_an_icon_only_format_renders_the_glyph_alone(self):
-        self.assertEqual("󰅚", format_panel_label("{icon}", "󰅚"))
+    def test_an_empty_format_renders_the_glyph_alone(self):
+        self.assertEqual("󰅚", format_panel_label("", "󰅚"))
 
     def test_the_default_glyph_is_empty(self):
-        self.assertEqual("", format_panel_label("{icon}"))
+        self.assertEqual("", format_panel_label(""))
 
     def test_whitespace_left_by_a_missing_glyph_is_squeezed(self):
-        self.assertEqual("Bluetooth", format_panel_label("{icon} Bluetooth"))
+        self.assertEqual("Bluetooth", format_panel_label("Bluetooth"))
 
     def test_an_unknown_field_leaves_the_template_alone(self):
         """A bad config must not take the bar down with a KeyError."""
-        self.assertEqual("{bogus}", format_panel_label("{bogus}", "X"))
+        self.assertEqual("{bogus}", format_panel_label("{bogus}"))
+        self.assertEqual("X {bogus}", format_panel_label("{bogus}", "X"))
+
+    def test_the_icon_field_is_gone(self):
+        """A fixed icon is written into the format; nothing substitutes ``{icon}``."""
+        self.assertEqual("{icon} Bluetooth", format_panel_label("{icon} Bluetooth"))
 
 
 class StatWidgetLabelFormatTest(unittest.TestCase):
-    """The stat widgets follow label_format instead of the old show_icon key."""
+    """A stat widget's ``label_format`` is the glyph: there is no other field."""
 
-    def test_label_mode_keeps_both_children_with_an_icon(self):
+    def test_label_mode_keeps_both_children_with_a_glyph(self):
         container = mock.Mock()
-        probe = _StatProbe(label_format="{icon}")
+        probe = _StatProbe(label_format="stat-glyph")
 
         probe._setup_label_mode(container)
 
         self.assertEqual(2, len(container.children))
 
-    def test_label_mode_drops_the_icon_child_without_the_field(self):
+    def test_label_mode_drops_the_glyph_child_when_the_format_is_empty(self):
         container = mock.Mock()
         probe = _StatProbe(label_format="")
 
@@ -74,7 +78,7 @@ class StatWidgetLabelFormatTest(unittest.TestCase):
 def make_microphone(**config) -> MicrophoneIndicatorWidget:
     """A microphone widget with a stubbed audio service and no GTK window."""
     widget = MicrophoneIndicatorWidget.__new__(MicrophoneIndicatorWidget)
-    widget.config = config or {"label_format": "{icon} Mic"}
+    widget.config = config or {"label_format": "Mic"}
     widget.label_format = widget.config["label_format"]
     widget.mic_on_icon = "mic-on"
     widget.mic_off_icon = "mic-off"

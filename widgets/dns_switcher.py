@@ -277,9 +277,9 @@ class DnsSwitcherWidget(ButtonWidget, PopoverMixin):
 
         self._service = dns_switcher_service
 
-        # ── Icon ──
-        self.label_format = self.config.get("label_format", "{icon}")
-        self.add_formatted_label(self.label_format, self.config.get("icon", "󰚘"))
+        # ── Panel label ──
+        self.label_format = self.config.get("label_format", "󰚘")
+        self.add_formatted_label(self.label_format)
 
         self.set_tooltip_if_enabled(_("widget.dns_switcher.tooltip"), default=True)
 

@@ -188,13 +188,16 @@ class PaginateTest(unittest.TestCase):
 
 
 class PanelWidgetConfigTest(unittest.TestCase):
-    """The panel button is icon-only and driven by ``label_format``."""
+    """The panel button is icon-only, with the glyph inside ``label_format``."""
 
     def setUp(self):
         self.widget_config = DEFAULT_CONFIG["widgets"]["cheatsheet"]
 
-    def test_the_default_format_keeps_the_icon(self):
-        self.assertEqual("{icon}", self.widget_config["label_format"])
+    def test_the_default_format_carries_the_glyph(self):
+        self.assertEqual("󰌌", self.widget_config["label_format"])
+
+    def test_the_separate_icon_prop_is_gone(self):
+        self.assertNotIn("icon", self.widget_config)
 
     def test_the_boolean_label_toggle_is_gone(self):
         self.assertNotIn("label", self.widget_config)

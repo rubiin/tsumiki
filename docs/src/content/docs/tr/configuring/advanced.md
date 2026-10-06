@@ -78,8 +78,7 @@ Daha az kullanılan widgetları bir toggle arkasında gizleyin:
 id = "utility-tools"
 widgets = ["ocr", "screenshot", "recorder"]
 spacing = 4
-icon = "󰒓"
-label_format = "{icon}"
+label_format = "󰍽"
 tooltip = "Araçlar"
 style_classes = ["utility-tools"]
 ```

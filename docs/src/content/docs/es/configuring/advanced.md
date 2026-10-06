@@ -78,8 +78,7 @@ Oculta widgets menos usados detrás de un alternador:
 id = "utility-tools"
 widgets = ["ocr", "screenshot", "recorder"]
 spacing = 4
-icon = "󰒓"
-label_format = "{icon}"
+label_format = "󰍽"
 tooltip = "Utilidades"
 style_classes = ["utility-tools"]
 ```

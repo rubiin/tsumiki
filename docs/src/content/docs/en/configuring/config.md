@@ -38,7 +38,7 @@ style_classes = ["bordered"]
 [[collapsible_groups]]
 widgets = ["ocr", "screenshot", "recorder"]
 spacing = 4
-icon = "󰒓"
+label_format = "󰍽"
 tooltip = "Utility Tools"
 style_classes = ["utility-tools"]
 
@@ -212,13 +212,12 @@ Collapsible groups hide widgets behind a toggle:
 [[collapsible_groups]]
 widgets = ["ocr", "screenshot", "recorder"]
 spacing = 4
-icon = "󰒓"
-label_format = "{icon}"
+label_format = "󰍽"
 tooltip = "Utility Tools"
 style_classes = ["utility-tools"]
 ```
 
-The toggle button is one label, driven by `label_format` like every other panel widget. `{icon}` is the only field here: literal text in the string is kept, so `"{icon} Tools"` puts a caption next to the glyph. The old `show_icon` / `label` keys are no longer read.
+The toggle button is one label, driven by `label_format` like every other panel widget, with the glyph written straight into the string: literal text is kept, so `"󰍽 Tools"` puts a caption next to the glyph. The old `show_icon` / `label` keys are no longer read.
 
 Reference groups in layout with `@group:N` (numeric index) or `@group:id` (string id).
 
@@ -235,8 +234,7 @@ style_classes = ["compact"]
 id = "utility-tools"
 widgets = ["ocr", "screenshot", "recorder"]
 spacing = 4
-icon = "󰒓"
-label_format = "{icon}"
+label_format = "󰍽"
 tooltip = "Utility Tools"
 style_classes = ["utility-tools"]
 
