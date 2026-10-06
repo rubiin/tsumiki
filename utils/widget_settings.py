@@ -630,6 +630,7 @@ CustomWidgetConfig = TypedDict(
         "interval": int,
         "return_type": Return_Type,
         "label_format": str,
+        "tooltip_text": str,
         "max_length": int,
         "min_length": int,
         "rotate": int,

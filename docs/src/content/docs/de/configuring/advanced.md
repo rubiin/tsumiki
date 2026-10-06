@@ -25,26 +25,29 @@ left_section = ["@custom_widget:volume", "workspaces"]
 
 Vollständige Konfigurationsoptionen:
 
-| Schlüssel          | Typ    | Standard     | Beschreibung                                                          |
-| ------------------ | ------ | ------------ | --------------------------------------------------------------------- |
-| `id`               | string | —            | Eindeutige Kennung für Referenz im Layout (`@custom_widget:meine-id`) |
-| `exec`             | string | erforderlich | Auszuführender Shell-Befehl                                           |
-| `interval`         | int    | `0`          | Aktualisierungsintervall in Millisekunden (0 = einmal ausführen)      |
-| `return_type`      | string | `"plain"`    | Ausgabeformat: `"plain"` oder `"json"`                                |
-| `label_format`     | string | `"{}"`       | Formatzeichenfolge, bei der `{}` durch die Ausgabe ersetzt wird       |
-| `exec_on_event`    | bool   | `false`      | Befehl nach Klick/Scrollen erneut ausführen                           |
-| `max_length`       | int    | `0`          | Maximale Textlänge (0 = kein Limit)                                   |
-| `min_length`       | int    | `0`          | Minimale Textlänge (füllt mit Leerzeichen)                            |
-| `rotate`           | int    | `0`          | Text um Grad drehen                                                   |
-| `tooltip`          | bool   | `true`       | Tooltip mit Ausgabe anzeigen                                          |
-| `tooltip_format`   | string | —            | Tooltip-Formatzeichenfolge                                            |
-| `on_click`         | string | —            | Linksklick-Befehl                                                     |
-| `on_click_right`   | string | —            | Rechtsklick-Befehl                                                    |
-| `on_click_middle`  | string | —            | Mittelklick-Befehl                                                    |
-| `on_scroll_up`     | string | —            | Scrollen-nach-oben-Befehl                                             |
-| `on_scroll_down`   | string | —            | Scrollen-nach-unten-Befehl                                            |
-| `signal`           | int    | —            | Signalnummer für sig* Ereignisauslöser                                |
-| `restart_interval` | int    | —            | Neustartintervall für persistente Skripte                             |
+| Schlüssel          | Typ    | Standard  | Beschreibung                                                          |
+| ------------------ | ------ | --------- | --------------------------------------------------------------------- |
+| `id`               | string | —         | Eindeutige Kennung für Referenz im Layout (`@custom_widget:meine-id`) |
+| `exec`             | string | —         | Auszuführender Shell-Befehl; weglassen für einen reinen Klick-Button  |
+| `icon`             | string | —         | Statisches Icon, entspricht `format_icons.default`                    |
+| `interval`         | int    | `0`       | Aktualisierungsintervall in Millisekunden (0 = einmal ausführen)      |
+| `return_type`      | string | `"plain"` | Ausgabeformat: `"plain"` oder `"json"`                                |
+| `label_format`     | string | `"{}"`    | Formatzeichenfolge, bei der `{}` durch die Ausgabe ersetzt wird       |
+| `format`           | string | —         | Waybars Name für `label_format`                                       |
+| `exec_on_event`    | bool   | `false`   | Befehl nach Klick/Scrollen erneut ausführen                           |
+| `max_length`       | int    | `0`       | Maximale Textlänge (0 = kein Limit)                                   |
+| `min_length`       | int    | `0`       | Minimale Textlänge (füllt mit Leerzeichen)                            |
+| `rotate`           | int    | `0`       | Text um Grad drehen                                                   |
+| `tooltip`          | bool   | `true`    | Tooltip mit Ausgabe anzeigen                                          |
+| `tooltip_format`   | string | —         | Tooltip-Formatzeichenfolge                                            |
+| `tooltip_text`     | string | —         | Statischer Tooltip, wenn sich die Ausgabe nie ändert                  |
+| `on_click`         | string | —         | Linksklick-Befehl                                                     |
+| `on_click_right`   | string | —         | Rechtsklick-Befehl                                                    |
+| `on_click_middle`  | string | —         | Mittelklick-Befehl                                                    |
+| `on_scroll_up`     | string | —         | Scrollen-nach-oben-Befehl                                             |
+| `on_scroll_down`   | string | —         | Scrollen-nach-unten-Befehl                                            |
+| `signal`           | int    | —         | Signalnummer für sig* Ereignisauslöser                                |
+| `restart_interval` | int    | —         | Neustartintervall für persistente Skripte                             |
 
 ## Widget-Gruppen
 

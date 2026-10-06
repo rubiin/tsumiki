@@ -486,6 +486,12 @@ _VALID_COLLECTION_LABEL_FORMATS = {
     },
 }
 
+# A custom widget's formats only ever carry its command output.
+_VALID_CUSTOM_WIDGET_FORMATS = {
+    "label_format": {"value"},
+    "tooltip_format": {"value"},
+}
+
 
 # Keys renamed after v4.8.3, mapped to what a config should use instead.
 _RENAMED_WIDGET_KEYS = {
@@ -614,6 +620,28 @@ def validate_format_strings(parsed_data: dict) -> None:
         for index, entry in enumerate(parsed_data.get(collection_name, []) or []):
             if isinstance(entry, dict):
                 _warn_unknown_format_keys(f"{collection_name}[{index}]", entry, formats)
+
+    _warn_custom_widget_format_keys(widgets.get("custom_widget"))
+
+
+def _warn_custom_widget_format_keys(collection) -> None:
+    """Custom widgets are keyed by index or by name, so both shapes are walked."""
+    if isinstance(collection, list):
+        entries = [
+            (f"widgets.custom_widget[{index}]", entry)
+            for index, entry in enumerate(collection)
+        ]
+    elif isinstance(collection, dict):
+        entries = [
+            (f"widgets.custom_widget.{name}", entry)
+            for name, entry in collection.items()
+        ]
+    else:
+        return
+
+    for path, entry in entries:
+        if isinstance(entry, dict):
+            _warn_unknown_format_keys(path, entry, _VALID_CUSTOM_WIDGET_FORMATS)
 
 
 def _validate_unique_ids(parsed_data: dict) -> None:

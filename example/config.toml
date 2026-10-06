@@ -714,18 +714,29 @@ disconnected_icon = ""
 # Waybar-compatible widgets that run shell commands.
 # Reference from the layout with @custom_widget:id or @custom_widget:index.
 
+# A click-only button: omit `exec` and give it a glyph plus `on_click`.
+# The glyph is `format_icons.default`, the entry reached when no state matches.
+# [[widgets.custom_widget]]
+# id = "firefox"
+# format_icons = { default = "󰈹" }
+# on_click = "firefox"
+# tooltip_text = "Open Firefox Browser"
+#
+# [layout]
+# left_section = ["@custom_widget:firefox", "workspaces"]
+
 # [[widgets.custom_widget]]
 # id = "temperature"
 # exec = "sensors -j | jq '.[] | to_entries[] | select(.key | contains(\"temp\")).value[\"temp1_input\"]'"
 # exec_on_event = false
 # interval = 30000                    # Milliseconds between updates (0 = run once)
 # return_type = "plain"                # "plain" | "json" (Waybar JSON protocol)
-# label_format = "{:.1f}°C"
+# label_format = "{value}°C"
 # max_length = 0                       # 0 = no limit
 # min_length = 0                       # Pads the output with spaces
 # rotate = 0                           # Degrees to rotate the text
 # tooltip = true
-# tooltip_format = ""                  # {} is replaced with the output
+# tooltip_format = ""                  # {value} is replaced with the output
 # on_click = "kitty -e htop"
 # on_click_right = ""
 # on_click_middle = ""
@@ -734,6 +745,7 @@ disconnected_icon = ""
 # signal = 1                           # SIGRTMIN+N (1-30) used to trigger a refresh
 # restart_interval = 0                 # Restart a continuous command after N seconds
 # format_icons = {}                    # Percentage/state to icon map, e.g. { "50" = "󰕾" }
+#                                       # "default" is the static glyph
 #
 # [layout]
 # left_section = ["@custom_widget:temperature", "workspaces"]

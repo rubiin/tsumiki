@@ -429,10 +429,38 @@ class ValidateFormatStringsTest(unittest.TestCase):
         self.assertIn("collapsible_groups[0].label_format", msg)
 
     @mock.patch("utils.validation.logger")
-    def test_a_list_entry_is_not_read_as_a_widget_section(self, mock_logger):
-        """``widgets.custom_widget`` is an array; only dict sections are walked."""
+    def test_a_non_string_custom_widget_format_is_ignored(self, mock_logger):
         validate_format_strings({"widgets": {"custom_widget": [{"label_format": 42}]}})
         mock_logger.warning.assert_not_called()
+
+    def test_a_custom_widget_accepts_the_value_field(self):
+        validate_format_strings(
+            {"widgets": {"custom_widget": [{"label_format": "{value}%"}]}}
+        )
+
+    @mock.patch("utils.validation.logger")
+    def test_a_custom_widget_rejects_another_field(self, mock_logger):
+        validate_format_strings(
+            {"widgets": {"custom_widget": [{"label_format": "{text}"}]}}
+        )
+        msg = mock_logger.warning.call_args[0][0]
+        self.assertIn("widgets.custom_widget[0].label_format", msg)
+
+    @mock.patch("utils.validation.logger")
+    def test_a_custom_widget_tooltip_format_is_checked(self, mock_logger):
+        validate_format_strings(
+            {"widgets": {"custom_widget": [{"tooltip_format": "{icon}"}]}}
+        )
+        msg = mock_logger.warning.call_args[0][0]
+        self.assertIn("widgets.custom_widget[0].tooltip_format", msg)
+
+    @mock.patch("utils.validation.logger")
+    def test_a_custom_widget_named_by_id_is_checked(self, mock_logger):
+        validate_format_strings(
+            {"widgets": {"custom_widget": {"volume": {"label_format": "{icon}"}}}}
+        )
+        msg = mock_logger.warning.call_args[0][0]
+        self.assertIn("widgets.custom_widget.volume.label_format", msg)
 
     @mock.patch("utils.validation.logger")
     def test_invalid_format_string_warns(self, mock_logger):

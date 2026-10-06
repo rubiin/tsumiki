@@ -28,16 +28,19 @@ Opciones de configuración completas:
 | Clave              | Tipo   | Predeterminado | Descripción                                                                |
 | ------------------ | ------ | -------------- | -------------------------------------------------------------------------- |
 | `id`               | string | —              | Identificador único para referenciar en el diseño (`@custom_widget:mi-id`) |
-| `exec`             | string | requerido      | Comando shell a ejecutar                                                   |
+| `exec`             | string | —              | Comando shell a ejecutar; omítalo para un botón solo de clic               |
+| `icon`             | string | —              | Glifo de icono estático, equivalente a `format_icons.default`              |
 | `interval`         | int    | `0`            | Intervalo de actualización en milisegundos (0 = ejecutar una vez)          |
 | `return_type`      | string | `"plain"`      | Formato de salida: `"plain"` o `"json"`                                    |
 | `label_format`     | string | `"{}"`         | Cadena de formato donde `{}` se reemplaza con la salida                    |
+| `format`           | string | —              | El nombre de `label_format` en Waybar                                      |
 | `exec_on_event`    | bool   | `false`        | Re-ejecutar comando después de clic/desplazamiento                         |
 | `max_length`       | int    | `0`            | Longitud máxima de texto (0 = sin límite)                                  |
 | `min_length`       | int    | `0`            | Longitud mínima de texto (rellena con espacios)                            |
 | `rotate`           | int    | `0`            | Rotar texto en grados                                                      |
 | `tooltip`          | bool   | `true`         | Mostrar tooltip con la salida                                              |
 | `tooltip_format`   | string | —              | Cadena de formato del tooltip                                              |
+| `tooltip_text`     | string | —              | Tooltip estático, para un widget cuya salida nunca cambia                  |
 | `on_click`         | string | —              | Comando de clic izquierdo                                                  |
 | `on_click_right`   | string | —              | Comando de clic derecho                                                    |
 | `on_click_middle`  | string | —              | Comando de clic medio                                                      |

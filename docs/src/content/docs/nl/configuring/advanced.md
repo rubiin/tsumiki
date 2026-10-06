@@ -28,16 +28,19 @@ Volledige configuratie-opties:
 | Sleutel            | Type   | Standaard | Beschrijving                                                               |
 | ------------------ | ------ | --------- | -------------------------------------------------------------------------- |
 | `id`               | string | —         | Unieke identificatie voor verwijzing in lay-out (`@custom_widget:mijn-id`) |
-| `exec`             | string | vereist   | Uit te voeren shell-commando                                               |
+| `exec`             | string | —         | Uit te voeren shell-commando; laat weg voor een klik-only knop             |
+| `icon`             | string | —         | Statisch icoonglyph, gelijk aan `format_icons.default`                     |
 | `interval`         | int    | `0`       | Vernieuwingsinterval in milliseconden (0 = eenmalig uitvoeren)             |
 | `return_type`      | string | `"plain"` | Uitvoerformaat: `"plain"` of `"json"`                                      |
 | `label_format`     | string | `"{}"`    | Formaatstring waarbij `{}` wordt vervangen door uitvoer                    |
+| `format`           | string | —         | Waybar's naam voor `label_format`                                          |
 | `exec_on_event`    | bool   | `false`   | Commando opnieuw uitvoeren na klik/scroll                                  |
 | `max_length`       | int    | `0`       | Maximale tekstlengte (0 = geen limiet)                                     |
 | `min_length`       | int    | `0`       | Minimale tekstlengte (vult met spaties)                                    |
 | `rotate`           | int    | `0`       | Tekst roteren in graden                                                    |
 | `tooltip`          | bool   | `true`    | Tooltip tonen met uitvoer                                                  |
 | `tooltip_format`   | string | —         | Tooltip-formaatstring                                                      |
+| `tooltip_text`     | string | —         | Statische tooltip, voor een widget waarvan de uitvoer nooit verandert      |
 | `on_click`         | string | —         | Linksklik-commando                                                         |
 | `on_click_right`   | string | —         | Rechtsklik-commando                                                        |
 | `on_click_middle`  | string | —         | Middelste klik-commando                                                    |

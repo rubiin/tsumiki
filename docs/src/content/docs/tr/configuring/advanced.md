@@ -25,26 +25,29 @@ left_section = ["@custom_widget:volume", "workspaces"]
 
 Tam yapılandırma seçenekleri:
 
-| Anahtar            | Tür    | Varsayılan | Açıklama                                                                |
-| ------------------ | ------ | ---------- | ----------------------------------------------------------------------- |
-| `id`               | string | —          | Düzende referans için benzersiz tanımlayıcı (`@custom_widget:kimliğim`) |
-| `exec`             | string | gerekli    | Çalıştırılacak shell komutu                                             |
-| `interval`         | int    | `0`        | Milisaniye cinsinden yenileme aralığı (0 = bir kez çalıştır)            |
-| `return_type`      | string | `"plain"`  | Çıktı formatı: `"plain"` veya `"json"`                                  |
-| `label_format`     | string | `"{}"`     | `{}` yerine çıktının geçtiği format dizisi                              |
-| `exec_on_event`    | bool   | `false`    | Tıklama/kaydırmadan sonra komutu yeniden çalıştır                       |
-| `max_length`       | int    | `0`        | Maksimum metin uzunluğu (0 = sınırsız)                                  |
-| `min_length`       | int    | `0`        | Minimum metin uzunluğu (boşluklarla doldurur)                           |
-| `rotate`           | int    | `0`        | Metni derece cinsinden döndür                                           |
-| `tooltip`          | bool   | `true`     | Çıktıyla araç ipucu göster                                              |
-| `tooltip_format`   | string | —          | Araç ipucu format dizisi                                                |
-| `on_click`         | string | —          | Sol tıklama komutu                                                      |
-| `on_click_right`   | string | —          | Sağ tıklama komutu                                                      |
-| `on_click_middle`  | string | —          | Orta tıklama komutu                                                     |
-| `on_scroll_up`     | string | —          | Yukarı kaydırma komutu                                                  |
-| `on_scroll_down`   | string | —          | Aşağı kaydırma komutu                                                   |
-| `signal`           | int    | —          | sig* olay tetikleyicileri için sinyal numarası                          |
-| `restart_interval` | int    | —          | Kalıcı betikler için yeniden başlatma aralığı                           |
+| Anahtar            | Tür    | Varsayılan | Açıklama                                                                     |
+| ------------------ | ------ | ---------- | ---------------------------------------------------------------------------- |
+| `id`               | string | —          | Düzende referans için benzersiz tanımlayıcı (`@custom_widget:kimliğim`)      |
+| `exec`             | string | —          | Çalıştırılacak shell komutu; yalnızca tıklamaya bağlı bir düğme için çıkarın |
+| `icon`             | string | —          | Sabit simge glifi; `format_icons.default` ile aynı                           |
+| `interval`         | int    | `0`        | Milisaniye cinsinden yenileme aralığı (0 = bir kez çalıştır)                 |
+| `return_type`      | string | `"plain"`  | Çıktı formatı: `"plain"` veya `"json"`                                       |
+| `label_format`     | string | `"{}"`     | `{}` yerine çıktının geçtiği format dizisi                                   |
+| `format`           | string | —          | Waybar'daki `label_format` adı                                               |
+| `exec_on_event`    | bool   | `false`    | Tıklama/kaydırmadan sonra komutu yeniden çalıştır                            |
+| `max_length`       | int    | `0`        | Maksimum metin uzunluğu (0 = sınırsız)                                       |
+| `min_length`       | int    | `0`        | Minimum metin uzunluğu (boşluklarla doldurur)                                |
+| `rotate`           | int    | `0`        | Metni derece cinsinden döndür                                                |
+| `tooltip`          | bool   | `true`     | Çıktıyla araç ipucu göster                                                   |
+| `tooltip_format`   | string | —          | Araç ipucu format dizisi                                                     |
+| `tooltip_text`     | string | —          | Çıktısı hiç değişmeyen widget için sabit araç ipucu                          |
+| `on_click`         | string | —          | Sol tıklama komutu                                                           |
+| `on_click_right`   | string | —          | Sağ tıklama komutu                                                           |
+| `on_click_middle`  | string | —          | Orta tıklama komutu                                                          |
+| `on_scroll_up`     | string | —          | Yukarı kaydırma komutu                                                       |
+| `on_scroll_down`   | string | —          | Aşağı kaydırma komutu                                                        |
+| `signal`           | int    | —          | sig* olay tetikleyicileri için sinyal numarası                               |
+| `restart_interval` | int    | —          | Kalıcı betikler için yeniden başlatma aralığı                                |
 
 ## Widget Grupları
 

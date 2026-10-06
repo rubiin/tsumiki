@@ -354,8 +354,6 @@ class NotificationWidget(EventBox, TeardownMixin):
             body_container.add(
                 CircularImage(
                     pixbuf=image_pixbuf,
-                    h_expand=True,
-                    v_expand=True,
                     size=constants.NOTIFICATION_IMAGE_SIZE,
                 ),
             )

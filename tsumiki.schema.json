@@ -1894,7 +1894,11 @@
             "properties": {
               "exec": {
                 "type": "string",
-                "description": "Command or script to execute"
+                "description": "Command or script to execute. Omit for a click-only button that just runs the on_click* handlers."
+              },
+              "tooltip_text": {
+                "type": "string",
+                "description": "Static tooltip text, for a widget whose output never changes"
               },
               "exec_on_event": {
                 "type": "boolean",
@@ -1915,8 +1919,8 @@
               },
               "label_format": {
                 "type": "string",
-                "default": "{}",
-                "description": "Format string where {} is replaced with output"
+                "default": "{value}",
+                "description": "Format string where {value} is replaced with the command output"
               },
               "max_length": {
                 "type": "integer",
@@ -1942,7 +1946,7 @@
               },
               "tooltip_format": {
                 "type": "string",
-                "description": "Tooltip format string where {} is replaced with tooltip/output text"
+                "description": "Tooltip format string where {value} is replaced with the tooltip/output text"
               },
               "on_click": {
                 "type": "string",
@@ -1985,10 +1989,9 @@
                 "additionalProperties": {
                   "type": "string"
                 },
-                "description": "Map of state/percentage to icons"
+                "description": "Map of state/percentage to icons; the 'default' entry is the widget's static glyph"
               }
-            },
-            "required": ["exec"]
+            }
           }
         },
         "wallpaper": {

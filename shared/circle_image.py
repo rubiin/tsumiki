@@ -9,6 +9,26 @@ from utils.pixbuf import load_file_pixbuf
 from .widget_container import BaseWidget
 
 
+def circle_geometry(
+    alloc_width: int, alloc_height: int, image_width: int, image_height: int
+) -> tuple[float, float, float, float]:
+    """Return ``(centre_x, centre_y, radius, scale)`` for the drawn circle.
+
+    The circle is inscribed in the allocation, not in the size request, so an
+    expanding widget keeps its artwork centred. ``scale`` covers the circle so a
+    non-square source is centre-cropped symmetrically instead of being sliced off.
+    """
+    side = min(alloc_width, alloc_height)
+    if side <= 0 or image_width <= 0 or image_height <= 0:
+        return 0.0, 0.0, 0.0, 1.0
+    return (
+        alloc_width / 2,
+        alloc_height / 2,
+        side / 2,
+        max(side / image_width, side / image_height),
+    )
+
+
 class CircularImage(Gtk.DrawingArea, BaseWidget):
     """A widget that displays an image in a circle."""
 
@@ -73,21 +93,33 @@ class CircularImage(Gtk.DrawingArea, BaseWidget):
         self.connect("draw", self.on_draw)
 
     def on_draw(self, widget: "CircularImage", ctx: cairo.Context):
-        if self._image:
-            ctx.save()
-            ctx.arc(self.size / 2, self.size / 2, self.size / 2, 0, 2 * math.pi)
-            ctx.translate(self.size * 0.5, self.size * 0.5)
-            ctx.rotate(self._angle * math.pi / 180.0)
-            ctx.translate(
-                -self.size * 0.5
-                - self._image.get_width() // 2
-                + self._image.get_height() // 2,
-                -self.size * 0.5,
-            )
-            Gdk.cairo_set_source_pixbuf(ctx, self._image, 0, 0)
-            ctx.clip()
-            ctx.paint()
-            ctx.restore()
+        if not self._image:
+            return
+
+        # Centre on the allocation and scale to cover: expanding widgets and
+        # non-square artwork otherwise get pushed off-centre and sliced lopsided.
+        centre_x, centre_y, radius, scale = circle_geometry(
+            self.get_allocated_width(),
+            self.get_allocated_height(),
+            self._image.get_width(),
+            self._image.get_height(),
+        )
+        if radius <= 0:
+            return
+
+        ctx.save()
+        ctx.arc(centre_x, centre_y, radius, 0, 2 * math.pi)
+        ctx.clip()
+        ctx.translate(centre_x, centre_y)
+        ctx.rotate(self._angle * math.pi / 180.0)
+        ctx.scale(scale, scale)
+        ctx.translate(
+            -self._image.get_width() / 2,
+            -self._image.get_height() / 2,
+        )
+        Gdk.cairo_set_source_pixbuf(ctx, self._image, 0, 0)
+        ctx.paint()
+        ctx.restore()
 
     def set_image_from_file(self, new_image_file):
         if new_image_file == "":

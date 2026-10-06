@@ -456,12 +456,12 @@ exec = "pamixer --get-volume"
 exec_on_event = true
 interval = 1000                      # Milliseconds between updates (0 = run once)
 return_type = "plain"                # "plain" | "json" (Waybar JSON protocol)
-label_format = "󰕾 {}%"
+label_format = "󰕾 {value}%"
 max_length = 0                       # 0 = no limit
 min_length = 0                       # Pads the output with spaces
 rotate = 0                           # Degrees to rotate the text
 tooltip = true
-tooltip_format = ""                  # {} is replaced with the output
+tooltip_format = ""                  # {value} is replaced with the output
 on_click = ""
 on_click_right = ""
 on_click_middle = ""
@@ -470,6 +470,13 @@ on_scroll_down = "pamixer -d 5"
 # signal = 1                         # SIGRTMIN+N (1-30) used to trigger a refresh
 restart_interval = 0                 # Restart a continuous command after N seconds
 format_icons = {}                    # Percentage/state to icon map, e.g. { "50" = "󰕾" }
+
+# A click-only button: no `exec`, just a glyph and the command to run.
+# [[widgets.custom_widget]]
+# id = "spotify"
+# format_icons = { default = "" }  # The button glyph
+# on_click = "spotify"
+# tooltip_text = "Open Spotify"
 
 [[widget_groups]]
 id = "workspaces-group"
