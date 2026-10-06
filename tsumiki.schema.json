@@ -1499,8 +1499,8 @@
           "properties": {
             "label_format": {
               "type": "string",
-              "default": " [{count}]"
-              "description": "Format string for the panel label. Available Fields: {count}.",
+              "default": " [{count}]",
+              "description": "Format string for the panel label. Available Fields: {count}."
             },
             "tooltip": {
               "type": "boolean",
