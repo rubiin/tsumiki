@@ -417,8 +417,12 @@ class ValidateFormatStringsTest(unittest.TestCase):
     def test_non_string_format_ignored(self):
         validate_format_strings({"widgets": {"mpris": {"label_format": 42}}})
 
-    def test_collapsible_group_accepts_the_icon_field(self):
+    @mock.patch("utils.validation.logger")
+    def test_collapsible_group_rejects_the_icon_field(self, mock_logger):
+        """The toggle glyph is written into the format, so there is no field."""
         validate_format_strings({"collapsible_groups": [{"label_format": "{icon}"}]})
+        msg = mock_logger.warning.call_args[0][0]
+        self.assertIn("collapsible_groups[0].label_format", msg)
 
     @mock.patch("utils.validation.logger")
     def test_collapsible_group_unknown_field_warns(self, mock_logger):
@@ -469,8 +473,12 @@ class ValidateFormatStringsTest(unittest.TestCase):
         msg = mock_logger.warning.call_args[0][0]
         self.assertIn("invalid format", msg)
 
-    def test_icon_only_widgets_accept_the_icon_field(self):
+    @mock.patch("utils.validation.logger")
+    def test_keyboard_rejects_the_icon_field(self, mock_logger):
+        """Its glyph is literal in the format; only ``{layout}`` remains."""
         validate_format_strings({"widgets": {"keyboard": {"label_format": "{icon}"}}})
+        msg = mock_logger.warning.call_args[0][0]
+        self.assertIn("widgets.keyboard.label_format", msg)
 
     @mock.patch("utils.validation.logger")
     def test_icon_only_widgets_reject_other_fields(self, mock_logger):
@@ -479,7 +487,7 @@ class ValidateFormatStringsTest(unittest.TestCase):
         self.assertIn("widgets.keyboard.label_format", msg)
 
     @mock.patch("utils.validation.logger")
-    def test_the_cheatsheet_only_takes_the_icon_field(self, mock_logger):
+    def test_the_cheatsheet_takes_no_fields(self, mock_logger):
         validate_format_strings(
             {"widgets": {"cheatsheet": {"label_format": "{label}"}}}
         )
@@ -488,6 +496,7 @@ class ValidateFormatStringsTest(unittest.TestCase):
 
     @mock.patch("utils.validation.logger")
     def test_the_icon_gated_widgets_reject_other_fields(self, mock_logger):
+        """Every widget that bakes its glyph in accepts no field but its own."""
         for name in (
             "dns_switcher",
             "pomodoro",
@@ -510,6 +519,17 @@ class ValidateFormatStringsTest(unittest.TestCase):
                 )
                 msg = mock_logger.warning.call_args[0][0]
                 self.assertIn(f"widgets.{name}.label_format", msg)
+
+    @mock.patch("utils.validation.logger")
+    def test_the_icon_gated_widgets_reject_the_icon_field(self, mock_logger):
+        """An empty valid set still names the offender, so a stale config is caught."""
+        for name in ("cheatsheet", "usb_manager", "world_clock", "microphone"):
+            with self.subTest(widget=name):
+                mock_logger.reset_mock()
+                validate_format_strings({"widgets": {name: {"label_format": "{icon}"}}})
+                msg = mock_logger.warning.call_args[0][0]
+                self.assertIn(f"widgets.{name}.label_format", msg)
+                self.assertIn("Valid keys: []", msg)
 
 
 class DeprecationWarningTest(unittest.TestCase):
