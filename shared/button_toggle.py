@@ -30,9 +30,8 @@ class CommandSwitcher(ButtonWidget):
             **kwargs,
         )
 
-        # A missing binary must not take down the whole bar: this widget is
-        # constructed during layout, so raising here would abort every widget
-        # after it. Degrade to a disabled toggle instead.
+        # A missing binary must not take down the whole bar: raising here
+        # would abort every widget laid out after this one.
         self.command_available = True
         try:
             helpers.check_executable_exists(self.command)

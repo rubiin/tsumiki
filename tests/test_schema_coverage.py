@@ -16,9 +16,8 @@ from utils.widget_settings import Modules, Widgets
 
 SCHEMA_PATH = Path(__file__).resolve().parents[1] / "tsumiki.schema.json"
 
-# Every keyword this schema is allowed to use. Anything else inside a property
-# definition is a typo, e.g. ``"location": "string"`` written where ``"type"``
-# belonged, which silently leaves the key unvalidated.
+# Every keyword this schema is allowed to use: anything else is a typo that
+# silently leaves the key unvalidated.
 KNOWN_KEYWORDS = {
     "$schema",
     "$ref",

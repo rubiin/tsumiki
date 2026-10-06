@@ -29,9 +29,8 @@ class GioDBusHelper:
 
         self.bus_name = bus_name
         self.object_path = object_path
-        # DO_NOT_AUTO_START stops the proxy from *launching* the service, which
-        # is the slow part when UPower is not already up. Properties must still
-        # load, because consumers read them via get_cached_property.
+        # DO_NOT_AUTO_START avoids launching the service, the slow part when
+        # UPower is down; properties still load via get_cached_property.
         self.proxy = Gio.DBusProxy.new_sync(
             self.bus,
             Gio.DBusProxyFlags.DO_NOT_AUTO_START,

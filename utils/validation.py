@@ -467,8 +467,7 @@ _VALID_LABEL_FORMATS = {
 }
 
 # Indexed collections hold their config per entry rather than under ``widgets``,
-# so they get their own map: a ``[[collapsible_groups]]`` entry labels its toggle
-# button, not a panel widget.
+# so an entry here labels its own toggle button, not a panel widget.
 _VALID_COLLECTION_LABEL_FORMATS = {
     "collapsible_groups": {
         "label_format": set(),

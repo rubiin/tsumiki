@@ -659,9 +659,8 @@ class DateNotificationMenu(Box):
         """Re-sync notifications from the service when the count changes."""
         if getattr(self, "_syncing_notification_count", False):
             return
-        # Track the count we last materialised, not the list length: under DND
-        # new notifications never reach the list, so the length stays put and
-        # would otherwise trigger a full re-deserialize on every arrival.
+        # Track the last materialised count, not the list length: under DND the
+        # length stays put and would re-deserialize on every arrival.
         service_count = notification_service.count
         if service_count == getattr(self, "_last_synced_count", None):
             return
@@ -776,9 +775,8 @@ class DateTimeWidget(ButtonWidget, PopoverMixin):
             self.container_box.add(self.date_label)
 
         self.connect("button-press-event", self.on_button_press)
-        # GtkButton activates through a gesture that ignores which button was
-        # pressed, so "clicked" fires for right click too: open the popover
-        # from the press instead, where the button is still known.
+        # "clicked" fires for right click too (the gesture ignores the button),
+        # so open the popover from the press, where the button is still known.
         self.setup_popover(
             lambda: DateNotificationMenu(config=self.config),
             connect_clicked=False,

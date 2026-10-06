@@ -11,9 +11,7 @@ from fabric.utils import GLib, logger
 # Auto-tune max_workers based on CPU count, fallback to 4
 _cpu_count = os.cpu_count() or 4
 #: Workers for work that can block for seconds (HTTP, subprocess, D-Bus). Fixed
-#: rather than CPU-sized: that work is I/O-bound with one call in flight per
-#: service, and the low cap is what keeps a few hung helpers from eating every
-#: thread the quick pool has.
+#: rather than CPU-sized, so a few hung helpers cannot eat the quick pool.
 _BLOCKING_WORKERS = 4
 thread_pool: ThreadPoolExecutor | None = None
 blocking_pool: ThreadPoolExecutor | None = None
