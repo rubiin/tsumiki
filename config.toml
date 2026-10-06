@@ -77,6 +77,7 @@ hide_when_missing = false
 hide_percent_when_full = true
 tooltip = true
 icon_size = 14
+# variables: {percent} {time_remaining} {capacity} {temperature} {state}
 label_format = "{percent}"
 
 
@@ -152,6 +153,7 @@ tooltip = "Launch Code"
 icon_size = 18
 
 [widgets.bluetooth]
+# {state} -> "on" / "off"
 label_format = ""
 tooltip = true
 
@@ -273,6 +275,7 @@ interval = 2000
 
 [widgets.microphone]
 tooltip = true
+# {state} -> "muted" / "on"
 label_format = ""
 
 [widgets.mpris]
@@ -284,6 +287,7 @@ ignore = []
 
 [widgets.ocr]
 tooltip = true
+# {lang} -> active tesseract language (e.g. "eng")
 label_format = "󰐳"
 quiet = false
 
@@ -373,6 +377,7 @@ step_size = 5
 
 [widgets.weather]
 location = "kathmandu"
+# variables: {location} {temperature} {condition} {humidity} {wind_speed} {sunrise} {sunset}
 label_format = "{temperature} {condition}"
 tooltip = true
 expanded = true
@@ -418,12 +423,14 @@ label_format = "🍅"
 tooltip = true
 
 [widgets.dns_switcher]
+# {current_dns} -> active provider, or the default label
 label_format = "󰚘"
 tooltip = true
 
 [widgets.cloudflare_warp]
 connected_icon = ""
 disconnected_icon = ""
+# {state} -> "connected" / "disconnected"
 label_format = ""
 tooltip = true
 

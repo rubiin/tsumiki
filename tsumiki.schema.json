@@ -40,7 +40,7 @@
             "label_format": {
               "type": "string",
               "default": "󰚘",
-              "description": "Format string for the panel label; the glyph is written in literally, so no fields are available."
+              "description": "Format string for the panel label. Available Fields: {current_dns}."
             }
           }
         },
@@ -55,7 +55,7 @@
             "label_format": {
               "type": "string",
               "default": "",
-              "description": "Format string for the panel label; the widget prepends its live icon, so no fields are available."
+              "description": "Format string for the panel label. Available Fields: {state}."
             },
             "connected_icon": {
               "type": "string",
@@ -80,7 +80,7 @@
             "label_format": {
               "type": "string",
               "default": "",
-              "description": "Format string for the panel label; the glyph is written in literally, so no fields are available."
+              "description": "Format string for the panel label. Available No fields."
             },
             "username": {
               "type": "string",
@@ -204,7 +204,7 @@
             "label_format": {
               "type": "string",
               "default": "󰖟",
-              "description": "Format string for the panel label; the glyph is written in literally, so no fields are available."
+              "description": "Format string for the panel label. Available No fields."
             }
           }
         },
@@ -219,7 +219,7 @@
             "label_format": {
               "type": "string",
               "default": "{percent}",
-              "description": "Specifies the format string for the battery label. Available variables: {percent}, {time_remaining}. The level glyph leads the label."
+              "description": "Format string for the panel label. Available Fields: {percent}, {time_remaining}, {capacity}, {temperature}, {state}."
             },
             "tooltip": {
               "type": "boolean",
@@ -328,7 +328,7 @@
             "label_format": {
               "type": "string",
               "default": "󰡃",
-              "description": "Format string for the panel label; the glyph is written in literally, so no fields are available."
+              "description": "Format string for the panel label. Available No fields."
             }
           },
           "required": ["tooltip", "label_format"]
@@ -339,7 +339,7 @@
             "label_format": {
               "type": "string",
               "default": "",
-              "description": "Format string for the panel label; the glyph is written in literally, so no fields are available."
+              "description": "Format string for the panel label. Available No fields."
             },
             "tooltip": {
               "type": "boolean",
@@ -385,7 +385,7 @@
             "label_format": {
               "type": "string",
               "default": "󰐥",
-              "description": "Format string for the panel label; the glyph is written in literally, so no fields are available."
+              "description": "Format string for the panel label. Available No fields."
             },
             "confirm": {
               "type": "boolean",
@@ -505,7 +505,7 @@
             "label_format": {
               "type": "string",
               "default": "󰄀",
-              "description": "Format string for the panel label; the glyph is written in literally, so no fields are available."
+              "description": "Format string for the panel label. Available No fields."
             },
             "annotation": {
               "type": "boolean",
@@ -544,7 +544,7 @@
             "label_format": {
               "type": "string",
               "default": " {upload}  {download}",
-              "description": "The format string for displaying network usage."
+              "description": "Format string for the panel label. Available Fields: {upload}, {download}."
             },
             "tooltip": {
               "type": "boolean",
@@ -821,7 +821,7 @@
             "label_format": {
               "type": "string",
               "default": "󰋊",
-              "description": "The stat widget glyph; an empty string hides it."
+              "description": "Stat widget glyph; hidden when empty."
             },
             "mode": {
               "type": "string",
@@ -929,7 +929,7 @@
             "label_format": {
               "type": "string",
               "default": "{total}",
-              "description": "Specifies the format string for the panel label. Available variables: {total} (the update count)."
+              "description": "Format string for the panel label. Available Fields: {total}."
             },
             "pad_zero": {
               "type": "boolean",
@@ -1028,7 +1028,7 @@
             "label_format": {
               "type": "string",
               "default": "",
-              "description": "Format string for the panel label; the glyph is written in literally, so no fields are available."
+              "description": "Format string for the panel label. Available No fields."
             },
             "quiet": {
               "type": "boolean",
@@ -1059,7 +1059,7 @@
             "label_format": {
               "type": "string",
               "default": "{condition} {temperature}",
-              "description": "The format for the weather label."
+              "description": "Format string for the panel label. Available Fields: {location}, {temperature}, {condition}, {humidity}, {wind_speed}, {sunrise}, {sunset}."
             },
             "wind_speed_unit": {
               "type": "string",
@@ -1181,7 +1181,7 @@
             "label_format": {
               "type": "string",
               "default": "{id}",
-              "description": "Format string for workspace labels."
+              "description": "Format string for the panel label. Available Fields: {id}."
             },
             "ignored": {
               "type": "array",
@@ -1234,7 +1234,7 @@
             "label_format": {
               "type": "string",
               "default": "",
-              "description": "Format string for the panel label; the widget prepends its live icon, so no fields are available."
+              "description": "Format string for the panel label. Available Fields: {state}."
             },
             "tooltip": {
               "type": "boolean",
@@ -1293,7 +1293,7 @@
             "label_format": {
               "type": "string",
               "default": "",
-              "description": "The stat widget glyph; an empty string hides it."
+              "description": "Stat widget glyph; hidden when empty."
             },
             "mode": {
               "type": "string",
@@ -1343,7 +1343,7 @@
             "label_format": {
               "type": "string",
               "default": "",
-              "description": "The stat widget glyph; an empty string hides it."
+              "description": "Stat widget glyph; hidden when empty."
             },
             "tooltip": {
               "type": "boolean",
@@ -1437,7 +1437,7 @@
             "label_format": {
               "type": "string",
               "default": "{state}",
-              "description": "Specifies the format string for the panel label. Available variables: {state}."
+              "description": "Format string for the panel label. Available Fields: {state}."
             },
             "tooltip": {
               "type": "boolean",
@@ -1468,7 +1468,7 @@
             "label_format": {
               "type": "string",
               "default": "{state}",
-              "description": "Specifies the format string for the panel label. Available variables: {state}."
+              "description": "Format string for the panel label. Available Fields: {state}."
             },
             "tooltip": {
               "type": "boolean",
@@ -1489,7 +1489,7 @@
             "label_format": {
               "type": "string",
               "default": "󰌌 {layout}",
-              "description": "Specifies the format string for the panel label. Available variables: {layout}."
+              "description": "Format string for the panel label. Available Fields: {layout}."
             }
           },
           "required": ["tooltip", "label_format"]
@@ -1500,6 +1500,7 @@
             "label_format": {
               "type": "string",
               "default": " [{count}]"
+              "description": "Format string for the panel label. Available Fields: {count}.",
             },
             "tooltip": {
               "type": "boolean",
@@ -1526,7 +1527,7 @@
             "label_format": {
               "type": "string",
               "default": " {language}",
-              "description": "Specifies the format string for the panel label. Available variables: {language}."
+              "description": "Format string for the panel label. Available Fields: {language}."
             }
           },
           "required": ["truncation_size", "tooltip", "label_format"]
@@ -1537,7 +1538,7 @@
             "label_format": {
               "type": "string",
               "default": "",
-              "description": "The stat widget glyph; an empty string hides it."
+              "description": "Stat widget glyph; hidden when empty."
             },
             "mode": {
               "type": "string",
@@ -1566,7 +1567,7 @@
             "label_format": {
               "type": "string",
               "default": "",
-              "description": "Format string for the panel label; the glyph is written in literally, so no fields are available."
+              "description": "Format string for the panel label. Available No fields."
             },
             "tooltip": {
               "type": "boolean",
@@ -1593,7 +1594,7 @@
             "label_format": {
               "type": "string",
               "default": "󰌌",
-              "description": "Format string for the panel label; the glyph is written in literally, so no fields are available."
+              "description": "Format string for the panel label. Available No fields."
             },
             "tooltip": {
               "type": "boolean",
@@ -1608,7 +1609,7 @@
             "label_format": {
               "type": "string",
               "default": "🍅",
-              "description": "Format string for the panel label; the glyph is written in literally, so no fields are available."
+              "description": "Format string for the panel label. Available No fields."
             },
             "tooltip": {
               "type": "boolean",
@@ -1623,7 +1624,7 @@
             "label_format": {
               "type": "string",
               "default": "󱞁",
-              "description": "Format string for the panel label; the glyph is written in literally, so no fields are available."
+              "description": "Format string for the panel label. Available No fields."
             },
             "tooltip": {
               "type": "boolean",
@@ -1638,7 +1639,7 @@
             "label_format": {
               "type": "string",
               "default": "",
-              "description": "Format string for the panel label; the glyph is written in literally, so no fields are available."
+              "description": "Format string for the panel label. Available No fields."
             },
             "tooltip": {
               "type": "boolean",
@@ -1674,7 +1675,7 @@
             "label_format": {
               "type": "string",
               "default": "󰌌 {submap}",
-              "description": "Specifies the format string for the panel label. Available variables: {submap}."
+              "description": "Format string for the panel label. Available Fields: {submap}."
             }
           },
           "required": ["tooltip", "label_format"]
@@ -1690,7 +1691,7 @@
             "label_format": {
               "type": "string",
               "default": "",
-              "description": "Format string for the panel label; the widget prepends its live icon, so no fields are available."
+              "description": "Format string for the panel label. Available Fields: {state}."
             }
           },
           "required": ["tooltip", "label_format"]
@@ -1706,7 +1707,7 @@
             "label_format": {
               "type": "string",
               "default": "󰐳",
-              "description": "Format string for the panel label; the glyph is written in literally, so no fields are available."
+              "description": "Format string for the panel label. Available Fields: {lang}."
             },
             "quiet": {
               "type": "boolean",
@@ -1732,7 +1733,7 @@
             "label_format": {
               "type": "string",
               "default": "{title} - {artist}",
-              "description": "Specifies the format string for the MPRIS label. Available variables: {title}, {artist}, {album}, {name}."
+              "description": "Format string for the panel label. Available Fields: {title}, {artist}, {album}, {name}."
             },
             "hide_when_no_player": {
               "type": "boolean",
@@ -1762,7 +1763,7 @@
             "label_format": {
               "type": "string",
               "default": "󰃰",
-              "description": "Format string for the panel label; the glyph is written in literally, so no fields are available."
+              "description": "Format string for the panel label. Available No fields."
             },
             "use_24hr": {
               "type": "boolean",
@@ -1814,7 +1815,7 @@
               "label_format": {
                 "type": "string",
                 "default": "{value}",
-                "description": "Format string where {value} is replaced with the command output"
+                "description": "Format string for the panel label. Available Fields: {value}."
               },
               "max_length": {
                 "type": "integer",
@@ -1894,7 +1895,7 @@
             "label_format": {
               "type": "string",
               "default": "󰸉",
-              "description": "Format string for the panel label; the glyph is written in literally, so no fields are available."
+              "description": "Format string for the panel label. Available No fields."
             },
             "tooltip": {
               "type": "boolean",
@@ -2397,7 +2398,7 @@
           "label_format": {
             "type": "string",
             "default": "󰍽",
-            "description": "Format string for the toggle button's label; the glyph is written in literally, so no fields are available."
+            "description": "Toggle button label format. No fields."
           },
           "tooltip": {
             "type": "string"

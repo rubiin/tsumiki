@@ -14,7 +14,7 @@ class BlueToothWidget(ButtonWidget):
         self.icons = get_text_icon("bluetooth", "")
 
         self.label_format = self.config.get("label_format", "")
-        self.add_formatted_label(self.label_format, self.icons["enabled"])
+        self.add_formatted_label(self.label_format, self.icons["enabled"], state="on")
 
         self.bluetooth_client = BluetoothClient()
         self._register_handlers(
@@ -29,6 +29,6 @@ class BlueToothWidget(ButtonWidget):
 
         icon = self.icons["enabled"] if bt_status == "on" else self.icons["disabled"]
 
-        self.refresh_formatted_label(icon)
+        self.refresh_formatted_label(icon, state=bt_status)
 
         self.set_tooltip_if_enabled(_("widget.bluetooth.tooltip"))

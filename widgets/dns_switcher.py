@@ -279,7 +279,10 @@ class DnsSwitcherWidget(ButtonWidget, PopoverMixin):
 
         # ── Panel label ──
         self.label_format = self.config.get("label_format", "󰚘")
-        self.add_formatted_label(self.label_format)
+        self.add_formatted_label(
+            self.label_format,
+            current_dns=self._current_dns_text(),
+        )
 
         self.set_tooltip_if_enabled(_("widget.dns_switcher.tooltip"), default=True)
 
@@ -290,8 +293,16 @@ class DnsSwitcherWidget(ButtonWidget, PopoverMixin):
 
         self.setup_popover(lambda: DnsSwitcherPopover(parent=self))
 
+    def _current_dns_text(self) -> str:
+        """The active provider, or the default label when DNS is untouched."""
+        current = self._service.current
+        if current and current != "Default":
+            return current
+        return _("widget.dns_switcher.default")
+
     def _on_current_changed(self, *_args):
         current = self._service.current
+        self.refresh_formatted_label(current_dns=self._current_dns_text())
         if current and current != "Default":
             self.set_tooltip_text(_("widget.dns_switcher.current", provider=current))
         else:

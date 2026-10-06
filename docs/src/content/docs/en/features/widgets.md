@@ -24,7 +24,7 @@ label_format = ""                  # nothing at all
 
 This replaced the old per-widget `show_icon` boolean and the `label` / `label_text` keys, none of which are read any more — a config that still sets `show_icon` logs a warning at startup and falls back to the default.
 
-No widget substitutes an `{icon}` field any more: the glyph is a literal character in `label_format`, and a widget whose glyph changes with state supplies it ahead of the text. Widgets that print live values declare fields for them: `mpris` (`{title}`, `{artist}`, `{album}`, `{name}`), `weather` (`{condition}`, `{temperature}`), `network_usage` (`{upload}`, `{download}`), `window_count` (`{count}`), `workspaces` (`{id}`), `updates` (`{total}`), `hypridle` and `hyprsunset` (`{state}`), `keyboard` (`{layout}`), `language` (`{language}`), `submap` (`{submap}`) and `battery` (`{percent}`, `{time_remaining}`).
+No widget substitutes an `{icon}` field any more: the glyph is a literal character in `label_format`, and a widget whose glyph changes with state supplies it ahead of the text. Widgets that print live values declare fields for them: `mpris` (`{title}`, `{artist}`, `{album}`, `{name}`), `weather` (`{location}`, `{temperature}`, `{condition}`, `{humidity}`, `{wind_speed}`, `{sunrise}`, `{sunset}`), `network_usage` (`{upload}`, `{download}`), `window_count` (`{count}`), `workspaces` (`{id}`), `updates` (`{total}`), `hypridle`, `hyprsunset`, `bluetooth`, `microphone` and `cloudflare_warp` (`{state}`), `dns_switcher` (`{current_dns}`), `ocr` (`{lang}`), `keyboard` (`{layout}`), `language` (`{language}`), `submap` (`{submap}`) and `battery` (`{percent}`, `{time_remaining}`, `{capacity}`, `{temperature}`, `{state}`).
 
 Indexed entries follow the same rule: a `[[collapsible_groups]]` toggle button labels itself with `label_format`, with its glyph written straight into the string.
 
@@ -169,7 +169,7 @@ enabled = false
 message = ""
 ```
 
-Variables available in `label_format`: `{percent}`, `{time_remaining}`. The level glyph leads the label.
+Variables available in `label_format`: `{percent}`, `{time_remaining}`, `{capacity}` (battery health), `{temperature}`, `{state}` (`full` / `charging` / `discharging` / `unknown`). The level glyph leads the label.
 
 #### Notification options
 
@@ -222,6 +222,8 @@ label_format = ""
 tooltip = true
 ```
 
+Supports the `{state}` field (`"on"` / `"off"`); the live Bluetooth glyph leads the label.
+
 Opens a popover to manage paired devices and toggle Bluetooth.
 
 ### Microphone
@@ -233,6 +235,8 @@ Shows microphone status and muting.
 tooltip = true
 label_format = ""
 ```
+
+Supports the `{state}` field (`"muted"` / `"on"`); the live microphone glyph leads the label.
 
 Click to toggle microphone mute.
 
@@ -499,6 +503,8 @@ tooltip = true
 label_format = ""
 quiet = false
 ```
+
+Supports the `{lang}` field, which renders the active tesseract language (e.g. `eng`).
 
 Requires `tesseract`, `slurp`, and `imagemagick`.
 
@@ -779,6 +785,8 @@ connected_icon = ""
 disconnected_icon = ""
 ```
 
+Supports the `{state}` field (`"connected"` / `"disconnected"`); the live WARP glyph leads the label.
+
 - **connected_icon** / **disconnected_icon**: Nerd Font icons shown in the bar for each state.
 - Click the widget to open a popover with a toggle button.
 - Requires `warp-cli` from [Cloudflare WARP Client for Linux](https://developers.cloudflare.com/warp-client/get-started/linux/).
@@ -793,6 +801,8 @@ Quickly switch between popular DNS providers directly from the bar.
 label_format = "󰚘"
 tooltip = true
 ```
+
+Supports the `{current_dns}` field, which renders the active provider name (or the default label when DNS is untouched). The glyph is written literally into `label_format`.
 
 Click to open a popover with pre-configured providers:
 
@@ -867,7 +877,7 @@ reveal_duration = 500
 provider = "open-meteo"        # "open-meteo" | "wttr"
 ```
 
-Variables available in `label_format`: `{temperature}`, `{condition}`.
+Variables available in `label_format`: `{location}`, `{temperature}`, `{condition}`, `{humidity}`, `{wind_speed}`, `{sunrise}`, `{sunset}`.
 
 ---
 

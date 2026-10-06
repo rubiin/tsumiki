@@ -150,17 +150,29 @@ class CloudflareWarpWidget(ButtonWidget, PopoverMixin):
             self.set_tooltip_text(_("widget.cloudflare_warp.not_found"))
 
         self.label_format = self.config.get("label_format", "")
-        self.add_formatted_label(self.label_format, self._icon.get_label())
+        self.add_formatted_label(
+            self.label_format,
+            self._icon.get_label(),
+            state=self._state_name(),
+        )
 
         if self._available:
             self.setup_popover(lambda: CloudflareWarpPopover(parent=self))
+
+    def _state_name(self) -> str:
+        """The word ``{state}`` renders for the current connection."""
+        return "connected" if self._service.connected else "disconnected"
 
     def _on_status_changed(self, *_args):
         if not self._available:
             return
         if self._service.connected:
-            self.refresh_formatted_label(self._connected_icon)
+            self.refresh_formatted_label(
+                self._connected_icon, state=self._state_name()
+            )
             self.set_tooltip_text(_("widget.cloudflare_warp.status_connected"))
         else:
-            self.refresh_formatted_label(self._disconnected_icon)
+            self.refresh_formatted_label(
+                self._disconnected_icon, state=self._state_name()
+            )
             self.set_tooltip_text(_("widget.cloudflare_warp.status_disconnected"))

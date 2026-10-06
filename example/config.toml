@@ -265,6 +265,7 @@ full_battery_level = 100
 hide_percent_when_full = true
 hide_when_missing = true
 tooltip = true
+# variables: {percent} {time_remaining} {capacity} {temperature} {state}
 label_format = "{percent}"
 
 [widgets.battery.notifications]
@@ -399,6 +400,7 @@ location = "kathmandu"
 hover_reveal = false
 reveal_duration = 500
 expanded = true
+# variables: {location} {temperature} {condition} {humidity} {wind_speed} {sunrise} {sunset}
 label_format = "{temperature} {condition}"
 tooltip = true
 temperature_unit = "celsius"
@@ -428,6 +430,7 @@ hide_when_no_player = true
 
 # --- Bluetooth ---
 [widgets.bluetooth]
+# {state} -> "on" / "off"
 label_format = ""
 tooltip = true
 
@@ -439,6 +442,7 @@ step_size = 5
 # --- Microphone ---
 [widgets.microphone]
 tooltip = true
+# {state} -> "muted" / "on"
 label_format = ""
 
 # --- Clipboard ---
@@ -661,16 +665,19 @@ tooltip = true
 # --- OCR ---
 [widgets.ocr]
 tooltip = true
+# {lang} -> active tesseract language (e.g. "eng")
 label_format = "󰐳"
 quiet = false                     # Suppress hyprsplash notifications
 
 # --- DNS Switcher ---
 [widgets.dns_switcher]
+# {current_dns} -> active provider, or the default label
 label_format = "󰚘"
 tooltip = true
 
 # --- Cloudflare WARP ---
 [widgets.cloudflare_warp]
+# {state} -> "connected" / "disconnected"
 label_format = ""
 tooltip = true
 connected_icon = ""

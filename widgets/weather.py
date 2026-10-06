@@ -76,6 +76,18 @@ class BaseWeatherWidget:
 
         return self.hourly_forecast[index]["tempF"] + "°F"
 
+    def get_label_text(self) -> str:
+        """Render ``label_format`` against the current conditions."""
+        return self.config.get("label_format", "{location}").format(
+            location=self.data["location"],
+            temperature=self.get_temperature(),
+            condition=self.get_description(),
+            humidity=self.get_humidity(),
+            wind_speed=self.get_wind_speed(),
+            sunrise=self.sunrise_time,
+            sunset=self.sunset_time,
+        )
+
 
 class WeatherMenu(BoxWidget, BaseWeatherWidget):
     """A menu to display the weather information."""
@@ -410,13 +422,7 @@ class WeatherWidget(ButtonWidget, BaseWeatherWidget, PopoverMixin):
 
         self._weather_color = weather_icon["color"]
         self._text_icon = text_icon
-        self._label_text = self.config.get("label_format", "{location}").format(
-            location=self.data["location"],
-            temperature=self.get_temperature(),
-            condition=self.get_description(),
-            humidity=self.get_humidity(),
-            wind_speed=self.get_wind_speed(),
-        )
+        self._label_text = self.get_label_text()
 
         self.weather_icon.set_markup(
             f'<span foreground="{self._weather_color}">{self._text_icon}</span>'

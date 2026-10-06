@@ -18,7 +18,7 @@ class MicrophoneIndicatorWidget(ButtonWidget):
         self.audio_service = audio_service
 
         self.label_format = self.config.get("label_format", "")
-        self.add_formatted_label(self.label_format, self.mic_off_icon)
+        self.add_formatted_label(self.label_format, self.mic_off_icon, state="muted")
 
         self._register_handlers(
             self.audio_service,
@@ -37,7 +37,8 @@ class MicrophoneIndicatorWidget(ButtonWidget):
         is_muted = current_microphone.muted
 
         self.refresh_formatted_label(
-            self.mic_off_icon if is_muted else self.mic_on_icon
+            self.mic_off_icon if is_muted else self.mic_on_icon,
+            state="muted" if is_muted else "on",
         )
 
         self.set_tooltip_if_enabled(

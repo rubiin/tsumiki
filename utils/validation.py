@@ -369,13 +369,25 @@ def _get_named_format_keys(fmt: str) -> set[str]:
 
 _VALID_LABEL_FORMATS = {
     "battery": {
-        "label_format": set(["percent", "time_remaining"]),
+        "label_format": set(
+            ["percent", "time_remaining", "capacity", "temperature", "state"]
+        ),
     },
     "network_usage": {
         "label_format": set(["download", "upload"]),
     },
     "weather": {
-        "label_format": set(["temperature", "condition"]),
+        "label_format": set(
+            [
+                "temperature",
+                "condition",
+                "location",
+                "humidity",
+                "wind_speed",
+                "sunrise",
+                "sunset",
+            ]
+        ),
     },
     "workspaces": {
         "label_format": set(["id"]),
@@ -405,21 +417,27 @@ _VALID_LABEL_FORMATS = {
     "hyprsunset": {
         "label_format": set(["state"]),
     },
+    "bluetooth": {
+        "label_format": set(["state"]),
+    },
+    "cloudflare_warp": {
+        "label_format": set(["state"]),
+    },
+    "dns_switcher": {
+        "label_format": set(["current_dns"]),
+    },
+    "microphone": {
+        "label_format": set(["state"]),
+    },
+    "ocr": {
+        "label_format": set(["lang"]),
+    },
     # These take no field at all: the config author writes the glyph straight
     # into ``label_format``, so anything in braces there is a typo.
-    "bluetooth": {
-        "label_format": set(),
-    },
     "cheatsheet": {
         "label_format": set(),
     },
     "clipboard": {
-        "label_format": set(),
-    },
-    "cloudflare_warp": {
-        "label_format": set(),
-    },
-    "dns_switcher": {
         "label_format": set(),
     },
     "emoji_picker": {
@@ -435,12 +453,6 @@ _VALID_LABEL_FORMATS = {
         "label_format": set(),
     },
     "kanban": {
-        "label_format": set(),
-    },
-    "microphone": {
-        "label_format": set(),
-    },
-    "ocr": {
         "label_format": set(),
     },
     "overview_button": {

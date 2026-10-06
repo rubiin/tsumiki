@@ -134,6 +134,9 @@ class BatteryWidget(ButtonWidget):
             "percent": battery_percent,
             "charging": is_charging,
             "time_remaining": formatted_time,
+            "capacity": round(capacity),
+            "temperature": temperature,
+            "state": self._state_name(battery_state, battery_percent, is_charging),
         }
 
         self._render_label()
@@ -171,6 +174,16 @@ class BatteryWidget(ButtonWidget):
 
         return True
 
+    def _state_name(self, state_code: int, percent: int, is_charging: bool) -> str:
+        """Map the UPower state code to the word ``{state}`` renders."""
+        if percent >= self.full_battery_level:
+            return "full"
+        if is_charging:
+            return "charging"
+        if state_code == 2:
+            return "discharging"
+        return "unknown"
+
     def _render_label(self):
         """Rebuild the label markup, using the hover color while hovered."""
         state = self._last_state
@@ -198,6 +211,9 @@ class BatteryWidget(ButtonWidget):
                 percent=(
                     f'<span foreground="{color}" size="8800">{battery_percent}%</span>'
                 ),
+                capacity=f"{state['capacity']}%",
+                temperature=f"{state['temperature']}°C",
+                state=state["state"],
             )
         )
 

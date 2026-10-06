@@ -21,7 +21,7 @@ class OCRWidget(ButtonWidget):
         self._lang_finalize_id = 0
 
         self.label_format = self.config.get("label_format", "")
-        self.add_formatted_label(self.label_format)
+        self.add_formatted_label(self.label_format, lang=self.current_lang)
 
         # Left click for OCR
         self.connect("button-press-event", self.on_button_press)
@@ -111,4 +111,5 @@ class OCRWidget(ButtonWidget):
 
     def on_language_selected(self, _sender, lang):
         self.current_lang = lang
+        self.refresh_formatted_label(lang=lang)
         self.set_tooltip_if_enabled(_("widget.ocr.lang_selected", lang=lang))

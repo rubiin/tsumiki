@@ -523,13 +523,61 @@ class ValidateFormatStringsTest(unittest.TestCase):
     @mock.patch("utils.validation.logger")
     def test_the_icon_gated_widgets_reject_the_icon_field(self, mock_logger):
         """An empty valid set still names the offender, so a stale config is caught."""
-        for name in ("cheatsheet", "usb_manager", "world_clock", "microphone"):
+        for name in ("cheatsheet", "usb_manager", "world_clock"):
             with self.subTest(widget=name):
                 mock_logger.reset_mock()
                 validate_format_strings({"widgets": {name: {"label_format": "{icon}"}}})
                 msg = mock_logger.warning.call_args[0][0]
                 self.assertIn(f"widgets.{name}.label_format", msg)
                 self.assertIn("Valid keys: []", msg)
+
+    @mock.patch("utils.validation.logger")
+    def test_the_state_widgets_accept_the_state_field(self, mock_logger):
+        """Bluetooth, microphone and WARP drive their label through {state}."""
+        for name in ("bluetooth", "microphone", "cloudflare_warp"):
+            with self.subTest(widget=name):
+                mock_logger.reset_mock()
+                validate_format_strings(
+                    {"widgets": {name: {"label_format": "{state}"}}}
+                )
+                mock_logger.warning.assert_not_called()
+
+    @mock.patch("utils.validation.logger")
+    def test_battery_accepts_the_health_fields(self, mock_logger):
+        validate_format_strings(
+            {
+                "widgets": {
+                    "battery": {
+                        "label_format": "{percent} {capacity} {temperature} {state}"
+                    }
+                }
+            }
+        )
+        mock_logger.warning.assert_not_called()
+
+    @mock.patch("utils.validation.logger")
+    def test_weather_accepts_every_declared_field(self, mock_logger):
+        validate_format_strings(
+            {
+                "widgets": {
+                    "weather": {
+                        "label_format": (
+                            "{location} {temperature} {condition} {humidity} "
+                            "{wind_speed} {sunrise} {sunset}"
+                        )
+                    }
+                }
+            }
+        )
+        mock_logger.warning.assert_not_called()
+
+    @mock.patch("utils.validation.logger")
+    def test_dns_and_ocr_accept_their_fields(self, mock_logger):
+        validate_format_strings(
+            {"widgets": {"dns_switcher": {"label_format": "{current_dns}"}}}
+        )
+        validate_format_strings({"widgets": {"ocr": {"label_format": "{lang}"}}})
+        mock_logger.warning.assert_not_called()
 
 
 class DeprecationWarningTest(unittest.TestCase):
