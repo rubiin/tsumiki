@@ -491,6 +491,7 @@ WindowTitle = TypedDict(
         "mappings": bool,
         "title_map": list[dict[str, str]],
         "fallback": Title_Fallback,
+        "fallback_icon": str,
     },
 )
 
@@ -538,7 +539,7 @@ Weather = TypedDict(
 )
 
 Launcher_Button = TypedDict(
-    "LauncherButton", {"tooltip": bool, "icon": str, "icon_size": int}
+    "LauncherButton", {"tooltip": bool, "label_format": str}
 )
 
 # Keyboard configuration
@@ -650,7 +651,7 @@ WorldClock = TypedDict(
 )
 
 # ThemeSwitcher configuration
-ThemeSwitcher = TypedDict("ThemeSwitcher", {"icon": str, "notify": bool})
+ThemeSwitcher = TypedDict("ThemeSwitcher", {"label_format": str, "notify": bool})
 
 # USB manager configuration
 USBManager = TypedDict(
@@ -869,7 +870,7 @@ ScreenShot = TypedDict(
 # Breathe configuration
 Breathe = TypedDict(
     "Breathe",
-    {"tooltip": bool, "icon": str},
+    {"tooltip": bool, "label_format": str},
 )
 
 

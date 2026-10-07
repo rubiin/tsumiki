@@ -85,6 +85,7 @@ show_urgent = false
 [widgets.window_title]
 truncation = true
 truncation_size = 50
+fallback_icon = "󰣆"
 
 [widgets.window_count]
 hide_when_zero = true
@@ -156,7 +157,7 @@ label_format = ""
 label_format = "󰒓"
 
 [widgets.theme_switcher]
-icon = ""
+label_format = ""
 
 [widgets.emoji_picker]
 label_format = ""

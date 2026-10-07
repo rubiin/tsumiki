@@ -91,7 +91,9 @@ class WindowTitleWidget(HyprlandActiveWindow, BaseWidget):
             else win_title.lower()
         )
         fallback = truncate(fallback, trunc_size) if trunc else fallback
-        return f"󰣆 {fallback}"
+        # A configured glyph may be empty, which drops it without a second key.
+        fallback_icon = self.config.get("fallback_icon", "\U000f08c6")
+        return f"{fallback_icon} {fallback}" if fallback_icon else fallback
 
     def _get_compiled_pattern(self, pattern: str) -> re.Pattern | None:
         """Get or compile a regex pattern, caching the result."""

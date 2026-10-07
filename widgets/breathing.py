@@ -8,8 +8,6 @@ from fabric.widgets.scrolledwindow import ScrolledWindow
 
 from shared.widget_container import BoxWidget, ButtonWidget
 from utils.i18n import _
-from utils.icons import get_text_icon
-from utils.widget_utils import nerd_font_icon
 
 # ── Data ─────────────────────────────────────────────────────────────────────
 
@@ -553,19 +551,10 @@ class BreatheWidget(ButtonWidget):
 
         self.popup = None
 
+        self.label_format = self.config.get("label_format", "\uee4a")
+        self.add_formatted_label(self.label_format)
+
         self.connect("clicked", self.on_click)
-
-        self.label = Label(
-            label=_("widget.breathing.label"), style_classes="breathe-label"
-        )
-        self.icon = nerd_font_icon(
-            icon=get_text_icon("notifications.noisy", "󰂜"),
-            props={
-                "style_classes": ["panel-font-icon"],
-            },
-        )
-
-        self.container_box.add(self.label)
 
     def on_click(self, *_):
         if self.popup is None:

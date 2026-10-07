@@ -1,10 +1,10 @@
 "$schema" = "https://raw.githubusercontent.com/rubiin/tsumiki/refs/heads/master/tsumiki.schema.json"
 
 [widgets.launcher_button]
-icon = "view-app-grid-symbolic"
-icon_size = 20
+label_format = "󰀻"
 tooltip = true
 
+# {unread}
 [widgets.github_tray]
 label_format = ""
 tooltip = true
@@ -58,7 +58,7 @@ show_images = true
 enable_pinning = true
 
 [widgets.breathe]
-icon = ""
+label_format = ""
 tooltip = true
 
 [widgets.emoji_picker]
@@ -200,11 +200,13 @@ tooltip = true
 graph_length = 4
 unit = "gb"
 
+# {count}
 [widgets.usb_manager]
 label_format = "󰕓"
 tooltip = true
 
 
+# {used} {total} {percentage}
 [widgets.memory]
 label_format = ""
 tooltip = true
@@ -240,6 +242,8 @@ tooltip = true
 quiet = false
 label_format = ""
 
+
+# {temp}
 [widgets.hyprsunset]
 temperature = "2800k"
 enabled_icon = "󱩌"
@@ -276,7 +280,7 @@ interval = 2000
 [widgets.microphone]
 tooltip = true
 # {state} -> "muted" / "on"
-label_format = ""
+label_format = "{state}"
 
 [widgets.mpris]
 truncation_size = 15
@@ -353,8 +357,9 @@ ignored = []
 tooltip = true
 show_current_workspace_only = false
 
+# {theme}
 [widgets.theme_switcher]
-icon = ""
+label_format = ""
 notify = false
 
 [widgets.updates]
@@ -396,6 +401,7 @@ tooltip = true
 mappings = true
 title_map = []
 fallback = "class"
+fallback_icon = "󰣆"    # Glyph for the fallback title; "" drops it
 
 [widgets.workspaces]
 count = 10

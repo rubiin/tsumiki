@@ -223,6 +223,7 @@ truncation = true
 truncation_size = 50
 tooltip = true
 fallback = "class"       # "class" | "title"
+fallback_icon = "󰣆"
 ```
 
 ### عدد النوافذ
@@ -411,7 +412,7 @@ tooltip = true
 
 ```toml
 [widgets.theme_switcher]
-icon = ""
+label_format = ""
 notify = false
 ```
 

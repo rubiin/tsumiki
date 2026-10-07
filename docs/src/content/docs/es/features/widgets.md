@@ -299,6 +299,7 @@ tooltip = true
 mappings = true
 title_map = []
 fallback = "class"       # "class" | "title"
+fallback_icon = "󰣆"
 ```
 
 - **`title_map`**: Lista de reglas de mapeo para renombrar títulos de ventana.
@@ -527,8 +528,7 @@ Abre el popup del lanzador de aplicaciones.
 
 ```toml
 [widgets.launcher_button]
-icon = "view-app-grid-symbolic"
-icon_size = 20
+label_format = "󰀻"
 tooltip = true
 ```
 
@@ -606,7 +606,7 @@ Cambia rápidamente entre temas instalados.
 
 ```toml
 [widgets.theme_switcher]
-icon = ""
+label_format = ""
 notify = false    # Mostrar notificación al cambiar de tema
 ```
 
@@ -749,7 +749,7 @@ Un widget guía de ejercicios de respiración.
 
 ```toml
 [widgets.breathe]
-icon = ""
+label_format = ""
 tooltip = true
 ```
 

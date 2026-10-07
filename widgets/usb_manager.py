@@ -596,3 +596,5 @@ class USBManagerWidget(ButtonWidget, PopoverMixin):
         if count:
             text = f"{text} ({count})"
         self.set_tooltip_if_enabled(text, default=True)
+        # The panel only learns a count once the popover has been opened once.
+        self.refresh_formatted_label(count=str(count) if count else "")

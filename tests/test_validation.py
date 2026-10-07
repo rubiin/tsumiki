@@ -501,7 +501,6 @@ class ValidateFormatStringsTest(unittest.TestCase):
             "dns_switcher",
             "pomodoro",
             "cloudflare_warp",
-            "github_tray",
             "bluetooth",
             "clipboard",
             "emoji_picker",
@@ -510,7 +509,6 @@ class ValidateFormatStringsTest(unittest.TestCase):
             "kanban",
             "overview_button",
             "screenshot",
-            "usb_manager",
             "wallpaper",
         ):
             with self.subTest(widget=name):
@@ -523,13 +521,37 @@ class ValidateFormatStringsTest(unittest.TestCase):
     @mock.patch("utils.validation.logger")
     def test_the_icon_gated_widgets_reject_the_icon_field(self, mock_logger):
         """An empty valid set still names the offender, so a stale config is caught."""
-        for name in ("cheatsheet", "usb_manager", "world_clock"):
+        for name in ("cheatsheet", "world_clock"):
             with self.subTest(widget=name):
                 mock_logger.reset_mock()
                 validate_format_strings({"widgets": {name: {"label_format": "{icon}"}}})
                 msg = mock_logger.warning.call_args[0][0]
                 self.assertIn(f"widgets.{name}.label_format", msg)
                 self.assertIn("Valid keys: []", msg)
+
+    @mock.patch("utils.validation.logger")
+    def test_the_newly_fielded_widgets_accept_their_own_field(self, mock_logger):
+        """theme_switcher, usb_manager and github_tray grew a field."""
+        for name, field in (
+            ("theme_switcher", "{theme}"),
+            ("usb_manager", "{count}"),
+            ("github_tray", "{unread}"),
+        ):
+            with self.subTest(widget=name):
+                mock_logger.reset_mock()
+                validate_format_strings({"widgets": {name: {"label_format": field}}})
+                mock_logger.warning.assert_not_called()
+
+    @mock.patch("utils.validation.logger")
+    def test_the_newly_fielded_widgets_reject_the_icon_field(self, mock_logger):
+        """``{icon}`` is gone everywhere; these three now name their real key."""
+        for name in ("theme_switcher", "usb_manager", "github_tray"):
+            with self.subTest(widget=name):
+                mock_logger.reset_mock()
+                validate_format_strings({"widgets": {name: {"label_format": "{icon}"}}})
+                msg = mock_logger.warning.call_args[0][0]
+                self.assertIn(f"widgets.{name}.label_format", msg)
+                self.assertNotIn("Valid keys: []", msg)
 
     @mock.patch("utils.validation.logger")
     def test_the_state_widgets_accept_the_state_field(self, mock_logger):

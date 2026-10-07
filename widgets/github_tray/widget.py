@@ -562,14 +562,19 @@ class GitHubTrayWidget(ButtonWidget, PopoverMixin):
     def _update_badge(self):
         count = self.unread_count
         if count > 0:
-            self.badge_label.set_label("99+" if count > 99 else str(count))
+            # The badge and ``{unread}`` share one capped string, so dropping the
+            # badge for the format field shows the same number.
+            capped = "99+" if count > 99 else str(count)
+            self.badge_label.set_label(capped)
             self.badge_label.set_visible(True)
+            self.refresh_formatted_label(unread=capped)
             # Routed through the per-widget flag, and restorable when the count
             # drops back to zero.
             self.set_tooltip_if_enabled(f"GitHub Tray — {count} unread", default=True)
         else:
             self.badge_label.set_visible(False)
             self.badge_label.set_label("")
+            self.refresh_formatted_label(unread="")
             self.set_tooltip_if_enabled(self._base_tooltip, default=True)
 
     def _popover_content(self):

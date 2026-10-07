@@ -24,7 +24,7 @@ label_format = ""                  # nothing at all
 
 This replaced the old per-widget `show_icon` boolean and the `label` / `label_text` keys, none of which are read any more — a config that still sets `show_icon` logs a warning at startup and falls back to the default.
 
-No widget substitutes an `{icon}` field any more: the glyph is a literal character in `label_format`, and a widget whose glyph changes with state supplies it ahead of the text. Widgets that print live values declare fields for them: `mpris` (`{title}`, `{artist}`, `{album}`, `{name}`), `weather` (`{location}`, `{temperature}`, `{condition}`, `{humidity}`, `{wind_speed}`, `{sunrise}`, `{sunset}`), `network_usage` (`{upload}`, `{download}`), `window_count` (`{count}`), `workspaces` (`{id}`), `updates` (`{total}`), `hypridle`, `hyprsunset`, `bluetooth`, `microphone` and `cloudflare_warp` (`{state}`), `dns_switcher` (`{current_dns}`), `ocr` (`{lang}`), `keyboard` (`{layout}`), `language` (`{language}`), `submap` (`{submap}`) and `battery` (`{percent}`, `{time_remaining}`, `{capacity}`, `{temperature}`, `{state}`).
+No widget substitutes an `{icon}` field any more: the glyph is a literal character in `label_format`, and a widget whose glyph changes with state supplies it ahead of the text. Widgets that print live values declare fields for them: `mpris` (`{title}`, `{artist}`, `{album}`, `{name}`), `weather` (`{location}`, `{temperature}`, `{condition}`, `{humidity}`, `{wind_speed}`, `{sunrise}`, `{sunset}`), `network_usage` (`{upload}`, `{download}`), `window_count` (`{count}`), `workspaces` (`{id}`), `updates` (`{total}`), `hypridle`, `hyprsunset`, `bluetooth`, `microphone` and `cloudflare_warp` (`{state}`), `dns_switcher` (`{current_dns}`), `ocr` (`{lang}`), `keyboard` (`{layout}`), `language` (`{language}`), `submap` (`{submap}`), `theme_switcher` (`{theme}`), `usb_manager` (`{count}`), `github_tray` (`{unread}`) and `battery` (`{percent}`, `{time_remaining}`, `{capacity}`, `{temperature}`, `{state}`).
 
 Indexed entries follow the same rule: a `[[collapsible_groups]]` toggle button labels itself with `label_format`, with its glyph written straight into the string.
 
@@ -351,10 +351,15 @@ tooltip = true
 mappings = true
 title_map = []
 fallback = "class"       # "class" | "title"
+fallback_icon = "󰣆"   # Glyph for the fallback title; "" drops it
 ```
 
 - **`title_map`**: List of mapping rules to rename window titles.
 - **`fallback`**: What to show when no title is available.
+- **`fallback_icon`**: Glyph prefixed to the fallback title, used when no
+  `title_map` rule matches. Defaults to a window glyph; set it to `""` to show the
+  bare title. Note that `icon = false` only drops the glyph from `title_map`
+  matches, not from the fallback.
 
 ### Window Count
 
@@ -533,6 +538,10 @@ label_format = ""
 tooltip = true
 ```
 
+Supports the `{count}` field, which renders the number of mounted USB partitions.
+It stays empty until the popover has been opened once, since that is when the
+device scan runs.
+
 ---
 
 ## Input & Language Widgets
@@ -581,8 +590,7 @@ Opens the application launcher popup.
 
 ```toml
 [widgets.launcher_button]
-icon = "view-app-grid-symbolic"
-icon_size = 20
+label_format = "󰀻"
 tooltip = true
 ```
 
@@ -667,7 +675,7 @@ Quickly switch between installed themes.
 
 ```toml
 [widgets.theme_switcher]
-icon = ""
+label_format = ""
 notify = false    # Show notification on theme change
 ```
 
@@ -855,7 +863,7 @@ A breathing exercise guide widget.
 
 ```toml
 [widgets.breathe]
-icon = ""
+label_format = ""
 tooltip = true
 ```
 

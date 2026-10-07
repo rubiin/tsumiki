@@ -432,8 +432,20 @@ _VALID_LABEL_FORMATS = {
     "ocr": {
         "label_format": set(["lang"]),
     },
+    "theme_switcher": {
+        "label_format": set(["theme"]),
+    },
+    "usb_manager": {
+        "label_format": set(["count"]),
+    },
+    "github_tray": {
+        "label_format": set(["unread"]),
+    },
     # These take no field at all: the config author writes the glyph straight
     # into ``label_format``, so anything in braces there is a typo.
+    "breathe": {
+        "label_format": set(),
+    },
     "cheatsheet": {
         "label_format": set(),
     },
@@ -443,9 +455,6 @@ _VALID_LABEL_FORMATS = {
     "emoji_picker": {
         "label_format": set(),
     },
-    "github_tray": {
-        "label_format": set(),
-    },
     "hyprpicker": {
         "label_format": set(),
     },
@@ -453,6 +462,9 @@ _VALID_LABEL_FORMATS = {
         "label_format": set(),
     },
     "kanban": {
+        "label_format": set(),
+    },
+    "launcher_button": {
         "label_format": set(),
     },
     "overview_button": {
@@ -465,9 +477,6 @@ _VALID_LABEL_FORMATS = {
         "label_format": set(),
     },
     "screenshot": {
-        "label_format": set(),
-    },
-    "usb_manager": {
         "label_format": set(),
     },
     "wallpaper": {

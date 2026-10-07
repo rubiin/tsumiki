@@ -54,6 +54,7 @@ show_urgent = false
 
 [widgets.window_title]
 truncation = true
+fallback_icon = "󰣆"
 
 [widgets.taskbar]
 icon_size = 22

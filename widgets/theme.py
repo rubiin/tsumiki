@@ -4,7 +4,7 @@ from services import style_service
 from shared.widget_container import ButtonWidget
 from utils.colors import Colors
 from utils.functions import send_notification
-from utils.widget_utils import nerd_font_icon
+from utils.i18n import _
 
 
 class ThemeSwitcherWidget(ButtonWidget):
@@ -18,10 +18,9 @@ class ThemeSwitcherWidget(ButtonWidget):
         # Get current theme from service
         self._current_theme = self._style_service.current_theme
 
-        self.children = nerd_font_icon(
-            icon=self.config.get("icon"),
-            props={"style_classes": ["panel-font-icon"]},
-        )
+        self.label_format = self.config.get("label_format", "\ue22b")
+        self.add_formatted_label(self.label_format)
+
         self.set_tooltip_text(self._current_theme)
         self.connect("clicked", self.on_click)
 
@@ -29,11 +28,12 @@ class ThemeSwitcherWidget(ButtonWidget):
         self._style_service.connect("theme_changed", self._on_theme_changed)
 
     def _on_theme_changed(self, _service, theme_name: str):
-        """Update tooltip when the theme changes externally."""
+        """Keep the tooltip and the panel label in sync with the theme."""
         self._current_theme = theme_name
         self.set_tooltip_text(theme_name)
+        self.refresh_formatted_label(theme=theme_name)
 
-    def on_click(self, *_):
+    def on_click(self, *_args):
         """Cycle to the next theme via StyleService."""
         if not self._style_service.available_themes:
             logger.warning(f"{Colors.WARNING}[ThemeSwitcher] No themes available")

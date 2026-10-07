@@ -239,6 +239,7 @@ title_map = []
 truncation_size = 50
 tooltip = true
 fallback = "class"                # "class" | "title"
+fallback_icon = "󰣆"   # Glyph for the fallback title; "" drops it
 
 # --- Date & Time ---
 [widgets.date_time]
@@ -464,8 +465,9 @@ icon = "󰒓"
 tooltip = true
 
 # --- Theme Switcher ---
+# {theme}
 [widgets.theme_switcher]
-icon = ""
+label_format = ""
 notify = false
 
 # --- Emoji Picker ---
@@ -519,11 +521,11 @@ timezones = ["America/New_York", "Asia/Tokyo"]
 
 # --- App Launcher Button ---
 [widgets.launcher_button]
-icon = "view-app-grid-symbolic"
-icon_size = 16
+label_format = "󰀻"
 tooltip = true
 
 # --- GitHub Tray ---
+# {unread}
 [widgets.github_tray]
 label_format = ""
 tooltip = true
@@ -570,13 +572,14 @@ label_format = "󰖟"
 tooltip = true
 
 # --- USB Manager ---
+# {count}
 [widgets.usb_manager]
 label_format = ""
 tooltip = true
 
 # --- Breathe (Breathing Timer) ---
 [widgets.breathe]
-icon = ""
+label_format = ""
 tooltip = true
 
 # --- Storage ---

@@ -514,6 +514,8 @@ class _RenderHarness(GitHubTrayWidget):
         self._popup = _StubPopover(content, visible)
         self._popover_built = True
         self.badge_label = mock.Mock()
+        self.panel_label = mock.Mock()
+        self.label_format = ""
         self.tooltips_enabled = False
         self.config = {} if config is None else config
         self._base_tooltip = "GitHub Tray"

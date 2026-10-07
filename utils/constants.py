@@ -47,8 +47,7 @@ DEFAULT_CONFIG = {
     "$schema": f"./{APPLICATION_NAME}.schema.json",
     "widgets": {
         "launcher_button": {
-            "icon": "view-app-grid-symbolic",
-            "icon_size": 16,
+            "label_format": "\U000f003b",
             "tooltip": True,
         },
         "clipboard": {
@@ -59,7 +58,7 @@ DEFAULT_CONFIG = {
             "enable_pinning": True,
         },
         "breathe": {
-            "icon": "",
+            "label_format": "",
             "tooltip": True,
         },
         "emoji_picker": {
@@ -353,7 +352,7 @@ DEFAULT_CONFIG = {
             "show_current_workspace_only": False,
         },
         "theme_switcher": {
-            "icon": "",
+            "label_format": "",
             "notify": False,  # Whether to show a notification when the theme is changed
         },
         "updates": {
@@ -398,6 +397,7 @@ DEFAULT_CONFIG = {
             "mappings": True,
             "title_map": [],
             "fallback": "class",
+            "fallback_icon": "\U000f08c6",
         },
         "workspaces": {
             "count": 10,

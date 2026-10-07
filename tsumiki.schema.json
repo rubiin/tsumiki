@@ -17,15 +17,10 @@
               "default": true,
               "description": "Determines whether the app launcher button has a tooltip."
             },
-            "icon": {
+            "label_format": {
               "type": "string",
-              "default": "view-app-grid-symbolic",
-              "description": "Icon name for the app launcher button."
-            },
-            "icon_size": {
-              "type": "integer",
-              "default": 16,
-              "description": "Size of the app launcher button icon."
+              "default": "󰀻",
+              "description": "Format string for the panel label. Available No fields."
             }
           }
         },
@@ -80,7 +75,7 @@
             "label_format": {
               "type": "string",
               "default": "",
-              "description": "Format string for the panel label. Available No fields."
+              "description": "Format string for the panel label. Available Fields: {unread}."
             },
             "username": {
               "type": "string",
@@ -339,7 +334,7 @@
             "label_format": {
               "type": "string",
               "default": "",
-              "description": "Format string for the panel label. Available No fields."
+              "description": "Format string for the panel label. Available Fields: {count}."
             },
             "tooltip": {
               "type": "boolean",
@@ -357,12 +352,13 @@
               "default": true,
               "description": "Determines whether to show the tooltip."
             },
-            "icon": {
+            "label_format": {
               "type": "string",
-              "description": "The icon"
+              "default": "",
+              "description": "Format string for the panel label. Available No fields."
             }
           },
-          "required": ["tooltip", "icon"]
+          "required": ["tooltip", "label_format"]
         },
         "power": {
           "type": "object",
@@ -910,10 +906,10 @@
         "theme_switcher": {
           "type": "object",
           "properties": {
-            "icon": {
+            "label_format": {
               "type": "string",
               "default": "",
-              "description": "The icon displayed in the theme switcher."
+              "description": "Format string for the panel label. Available Fields: {theme}."
             },
             "notify": {
               "type": "boolean",
@@ -921,7 +917,7 @@
               "description": "Determines whether to show notifications for theme changes."
             }
           },
-          "required": ["icon", "notify"]
+          "required": ["label_format", "notify"]
         },
         "updates": {
           "type": "object",
@@ -1145,6 +1141,11 @@
               "default": "class",
               "description": "Fallback title for the window.",
               "enum": ["class", "title"]
+            },
+            "fallback_icon": {
+              "type": "string",
+              "default": "󰣆",
+              "description": "Glyph prefixed to the fallback title when no title_map rule matches. Empty drops the glyph."
             }
           },
           "required": ["icon", "tooltip", "truncation", "truncation_size", "title_map"]
