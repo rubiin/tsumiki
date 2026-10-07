@@ -279,7 +279,6 @@ interval = 2000
 
 [widgets.microphone]
 tooltip = true
-# {state} -> "muted" / "on"
 label_format = "{state}"
 
 [widgets.mpris]
@@ -357,7 +356,6 @@ ignored = []
 tooltip = true
 show_current_workspace_only = false
 
-# {theme}
 [widgets.theme_switcher]
 label_format = ""
 notify = false
@@ -382,7 +380,6 @@ step_size = 5
 
 [widgets.weather]
 location = "kathmandu"
-# variables: {location} {temperature} {condition} {humidity} {wind_speed} {sunrise} {sunset}
 label_format = "{temperature} {condition}"
 tooltip = true
 expanded = true
@@ -401,7 +398,7 @@ tooltip = true
 mappings = true
 title_map = []
 fallback = "class"
-fallback_icon = "󰣆"    # Glyph for the fallback title; "" drops it
+fallback_icon = "󰣆"
 
 [widgets.workspaces]
 count = 10
