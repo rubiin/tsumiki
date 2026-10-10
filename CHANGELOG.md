@@ -1,5 +1,31 @@
 # Changelog
 
+## [4.8.5](https://github.com/rubiin/tsumiki/compare/v4.8.4...v4.8.5) (2026-10-10)
+
+### 🐛 Bug Fixes
+
+- **deps:** update all non-major dependencies ([8f7d7b3](https://github.com/rubiin/tsumiki/commit/8f7d7b36199c56cdabbc6b60a19a5381bd390387))
+- **deps:** update all non-major dependencies ([3930f36](https://github.com/rubiin/tsumiki/commit/3930f362c1a5c2c2b9bada37883b67fde1e5d7f1))
+- **deps:** update all non-major npm dependencies ([ec2ca76](https://github.com/rubiin/tsumiki/commit/ec2ca767cc4b4752678cadda6363510bc02b25de))
+- **deps:** update all non-major npm dependencies ([002afd3](https://github.com/rubiin/tsumiki/commit/002afd3efff81b217b684d1febed3101307dda5a))
+- **deps:** update all non-major npm dependencies ([9a8abe1](https://github.com/rubiin/tsumiki/commit/9a8abe19b06569309892f8c28eec2aaf9986eb02))
+- **deps:** update all non-major npm dependencies ([ac2b923](https://github.com/rubiin/tsumiki/commit/ac2b92343f5c91b118c34039c00e34f60c6bddf4))
+- set config flags in SettingSlider constructor ([fd40f00](https://github.com/rubiin/tsumiki/commit/fd40f00700524e8766f92caebc1b48d859e51ca2))
+
+### ⚙️ Chores
+
+- **deps:** lock file maintenance ([80a8e74](https://github.com/rubiin/tsumiki/commit/80a8e748db59ab1a0880fdff4dde4d36161e80c4))
+- **deps:** lock file maintenance ([86183d5](https://github.com/rubiin/tsumiki/commit/86183d53766fd0eca479423efb68750da7b86559))
+- **deps:** lock file maintenance ([#449](https://github.com/rubiin/tsumiki/issues/449)) ([edaed58](https://github.com/rubiin/tsumiki/commit/edaed58fca8ec23398925619391c7e57aaa214d9))
+- **deps:** update dependency pnpm to v12.8.1 ([43fc7bf](https://github.com/rubiin/tsumiki/commit/43fc7bfb40e5976640751f4c7133a19508e9d427))
+- **deps:** update dependency pnpm to v12.8.1 ([43e227e](https://github.com/rubiin/tsumiki/commit/43e227e586f848ec1051d8d52bb3eba2e23008b3))
+- **deps:** update dependency ruff to &gt;=0.16.10 ([aa88178](https://github.com/rubiin/tsumiki/commit/aa881787d7701634d38d8bdb848d9c3bff2db107))
+- **deps:** update dependency ruff to &gt;=0.16.10 ([cf0d909](https://github.com/rubiin/tsumiki/commit/cf0d90994768beecf79f88083cfbeb4f0680ac84))
+
+### ♻️ Code Refactoring
+
+- remove outdated bug audit documentation ([3aa5b39](https://github.com/rubiin/tsumiki/commit/3aa5b396c2fa0c63e515bbda4a2d5bb7a329e1b8))
+
 ## [4.8.4](https://github.com/rubiin/tsumiki/compare/v4.8.3...v4.8.4) (2026-09-28)
 
 ### 🐛 Bug Fixes
