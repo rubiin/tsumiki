@@ -21,7 +21,7 @@ jobs:
 
       - uses: actions/setup-node@v7
         with:
-          node-version: 24.22.1
+          node-version: 24.22.2
           cache: pnpm
           cache-dependency-path: docs/pnpm-lock.yaml
 
