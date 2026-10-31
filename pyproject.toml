@@ -3,7 +3,7 @@ name = "Tsumiki"
 version = "4.8.4"
 description = "A semi-customizable bar written using the Fabric Widget System"
 readme = "README.md"
-requires-python = ">=3.15.1"
+requires-python = ">=3.15.2"
 authors = [{ name = "Rubin Bhandari", email = "roobin.bhandari@gmail.com" }]
 
 keywords = ["widgets", "gtk", "linux", "pygobject", "bar", "statusbar", "panel", "dock"]
@@ -121,7 +121,7 @@ line-ending = "auto"
 "Changelog" = "https://github.com/rubiin/tsumiki/blob/master/CHANGELOG.md"
 
 [dependency-groups]
-dev = ["ruff>=0.17.2"]
+dev = ["ruff>=0.17.3"]
 
 [tool.uv]
 # Tsumiki is an application, not an importable package.
