@@ -22,20 +22,20 @@ repos:
 
   # Ruff for linting, formatting, and import sorting
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.17.2
+    rev: v0.17.3
     hooks:
       - id: ruff
         args: ["--fix"]
 
   # isort for import sorting
   - repo: https://github.com/PyCQA/isort
-    rev: 10.0.0b1
+    rev: 10.0.0b2
     hooks:
       - id: isort
         args: ["--profile", "black"]
 
   - repo: https://github.com/betterleaks/betterleaks
-    rev: v2.0.0-rc.3
+    rev: v2.0.0-rc.6
     hooks:
       - id: betterleaks
 
