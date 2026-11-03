@@ -29,6 +29,8 @@ left_section = ["@custom_widget:volume", "workspaces"]
 | ------------------ | ------ | --------- | ------------------------------------------------- |
 | `id`               | string | —         | 在布局中引用的唯一标识符 (`@custom_widget:my-id`) |
 | `exec`             | string | —         | 要执行的 shell 命令；纯点击按钮可省略             |
+| `exec_if`          | string | —         | 仅当此命令退出码为 0 时才运行 exec                |
+| `hide_empty_text`  | bool   | `false`   | 输出为空时隐藏该小组件                            |
 | `icon`             | string | —         | 静态图标字形，等同于 `format_icons.default`       |
 | `interval`         | int    | `0`       | 刷新间隔（毫秒），0 = 仅执行一次                  |
 | `return_type`      | string | `"plain"` | 输出格式：`"plain"` 或 `"json"`                   |

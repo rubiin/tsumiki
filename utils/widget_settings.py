@@ -618,6 +618,8 @@ CustomWidgetConfig = TypedDict(
     {
         "id": str,
         "exec": str,
+        "exec_if": str,
+        "hide_empty_text": bool,
         "exec_on_event": bool,
         "interval": int,
         "return_type": Return_Type,

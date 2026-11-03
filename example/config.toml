@@ -714,6 +714,8 @@ disconnected_icon = ""
 # [[widgets.custom_widget]]
 # id = "temperature"
 # exec = "sensors -j | jq '.[] | to_entries[] | select(.key | contains(\"temp\")).value[\"temp1_input\"]'"
+# exec_if = "which sensors"             # only run exec when this exits 0
+# hide_empty_text = false               # hide the widget when output is empty
 # exec_on_event = false
 # interval = 30000                    # Milliseconds between updates (0 = run once)
 # return_type = "plain"                # "plain" | "json" (Waybar JSON protocol)

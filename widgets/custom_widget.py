@@ -1,5 +1,6 @@
 import contextlib
 import json
+import shlex
 import signal
 
 from fabric.utils import (
@@ -103,16 +104,25 @@ class CustomWidgetPresenter:
         )
         # Static tooltip, for a widget whose text never changes.
         self._tooltip_text = _get_config_value(module_config, "tooltip_text")
+        self._hide_empty_text = _get_config_value(
+            module_config,
+            "hide_empty_text",
+            "hide-empty-text",
+            default=False,
+        )
         self._last_class: str | None = None
 
         if self._tooltip_enabled and self._tooltip_text:
             self._host_widget.set_tooltip_text(self._tooltip_text)
 
     def handle_output(self, output: str):
-        if not output:
+        stripped = (output or "").strip()
+        if not stripped:
+            if self._hide_empty_text:
+                self._host_widget.set_visible(False)
             return
-
-        stripped = output.strip()
+        if self._hide_empty_text:
+            self._host_widget.set_visible(True)
         return_type = self._config.get("return_type", "plain")
         if return_type == "json" or stripped.startswith("{"):
             self._handle_json_output(stripped)
@@ -208,6 +218,7 @@ class CustomWidgetExecutor:
         self._config = module_config
         self._on_output = on_output
         self._exec_cmd = module_config.get("exec")
+        self._exec_if = _get_config_value(module_config, "exec_if", "exec-if")
         self._interval = module_config.get("interval", 0)
         self._process: Gio.Subprocess | None = None
         self._repeater_handler_id: int | None = None
@@ -250,10 +261,39 @@ class CustomWidgetExecutor:
     def execute_once(self):
         if not self._exec_cmd:
             return
+        if self._exec_if:
+            self._run_condition(self._do_execute_once)
+            return
+        self._do_execute_once()
+
+    def _do_execute_once(self):
         exec_shell_command_async(
             os.path.expanduser(self._exec_cmd),
             self._on_output,
         )
+
+    def _run_condition(self, on_ok):
+        """Run ``exec_if``; call ``on_ok`` only when it exits 0."""
+        try:
+            proc = Gio.Subprocess.new(
+                shlex.split(os.path.expanduser(self._exec_if)),
+                Gio.SubprocessFlags.NONE,
+            )
+        except Exception as err:
+            logger.warning(
+                f"{Colors.WARNING}[CustomWidget] Failed to start exec_if: {err}"
+            )
+            return
+
+        def _done(process, res):
+            try:
+                process.wait_check_finish(res)
+            except Exception:
+                # Condition not met; skip this update.
+                return
+            on_ok()
+
+        proc.wait_check_async(None, _done)
 
     def _periodic_execute(self, *_) -> bool:
         self.execute_once()
@@ -264,7 +304,12 @@ class CustomWidgetExecutor:
             return
         if self._process and self._process.get_if_running():
             return
+        if self._exec_if:
+            self._run_condition(self._start_continuous_inner)
+            return
+        self._start_continuous_inner()
 
+    def _start_continuous_inner(self):
         restart = self._config.get("restart_interval", 0)
 
         try:

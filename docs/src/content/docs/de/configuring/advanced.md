@@ -29,6 +29,8 @@ Vollständige Konfigurationsoptionen:
 | ------------------ | ------ | --------- | --------------------------------------------------------------------- |
 | `id`               | string | —         | Eindeutige Kennung für Referenz im Layout (`@custom_widget:meine-id`) |
 | `exec`             | string | —         | Auszuführender Shell-Befehl; weglassen für einen reinen Klick-Button  |
+| `exec_if`          | string | —         | Führt exec nur aus, wenn dieser Befehl mit Status 0 endet             |
+| `hide_empty_text`  | bool   | `false`   | Blendet das Widget aus, wenn die Ausgabe leer ist                     |
 | `icon`             | string | —         | Statisches Icon, entspricht `format_icons.default`                    |
 | `interval`         | int    | `0`       | Aktualisierungsintervall in Millisekunden (0 = einmal ausführen)      |
 | `return_type`      | string | `"plain"` | Ausgabeformat: `"plain"` oder `"json"`                                |

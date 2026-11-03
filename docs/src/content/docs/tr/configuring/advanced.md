@@ -29,6 +29,8 @@ Tam yapılandırma seçenekleri:
 | ------------------ | ------ | ---------- | ---------------------------------------------------------------------------- |
 | `id`               | string | —          | Düzende referans için benzersiz tanımlayıcı (`@custom_widget:kimliğim`)      |
 | `exec`             | string | —          | Çalıştırılacak shell komutu; yalnızca tıklamaya bağlı bir düğme için çıkarın |
+| `exec_if`          | string | —          | Bu komut 0 kodu ile çıkarsa exec çalıştırılır                                |
+| `hide_empty_text`  | bool   | `false`    | Çıktı boş olduğunda widget gizlenir                                          |
 | `icon`             | string | —          | Sabit simge glifi; `format_icons.default` ile aynı                           |
 | `interval`         | int    | `0`        | Milisaniye cinsinden yenileme aralığı (0 = bir kez çalıştır)                 |
 | `return_type`      | string | `"plain"`  | Çıktı formatı: `"plain"` veya `"json"`                                       |

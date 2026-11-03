@@ -440,6 +440,8 @@ tooltip = true
 [[widgets.custom_widget]]
 id = "volume"
 exec = "pamixer --get-volume"
+# exec_if = "which pamixer"             # only run exec when this exits 0
+hide_empty_text = false               # hide the widget when output is empty
 exec_on_event = true
 interval = 1000                      # Milliseconds between updates (0 = run once)
 return_type = "plain"                # "plain" | "json" (Waybar JSON protocol)

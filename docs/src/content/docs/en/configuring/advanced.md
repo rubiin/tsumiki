@@ -44,6 +44,8 @@ Full configuration options:
 | ------------------ | ------ | ----------- | -------------------------------------------------------------------- |
 | `id`               | string | —           | Unique identifier for referencing in layout (`@custom_widget:my-id`) |
 | `exec`             | string | —           | Shell command to execute; omit for a click-only button               |
+| `exec_if`          | string | —           | Only run exec when this command exits 0                              |
+| `hide_empty_text`  | bool   | `false`     | Hide the widget when the command output is empty                     |
 | `interval`         | int    | `0`         | Refresh interval in milliseconds (0 = run once)                      |
 | `return_type`      | string | `"plain"`   | Output format: `"plain"` or `"json"`                                 |
 | `label_format`     | string | `"{value}"` | Format string where `{value}` is replaced with the output            |

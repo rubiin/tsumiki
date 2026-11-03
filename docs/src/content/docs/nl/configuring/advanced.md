@@ -29,6 +29,8 @@ Volledige configuratie-opties:
 | ------------------ | ------ | --------- | -------------------------------------------------------------------------- |
 | `id`               | string | —         | Unieke identificatie voor verwijzing in lay-out (`@custom_widget:mijn-id`) |
 | `exec`             | string | —         | Uit te voeren shell-commando; laat weg voor een klik-only knop             |
+| `exec_if`          | string | —         | Voert exec alleen uit als dit commando met status 0 afsluit                |
+| `hide_empty_text`  | bool   | `false`   | Verbergt de widget wanneer de uitvoer leeg is                              |
 | `icon`             | string | —         | Statisch icoonglyph, gelijk aan `format_icons.default`                     |
 | `interval`         | int    | `0`       | Vernieuwingsinterval in milliseconden (0 = eenmalig uitvoeren)             |
 | `return_type`      | string | `"plain"` | Uitvoerformaat: `"plain"` of `"json"`                                      |

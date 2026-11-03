@@ -281,5 +281,113 @@ class StaticTooltipTest(unittest.TestCase):
         self.assertIsNone(self._tooltip(config))
 
 
+class HideEmptyTextTest(unittest.TestCase):
+    """``hide_empty_text`` hides the button until there is output again."""
+
+    def _presenter(self, config: dict):
+        label, icon, host = mock.Mock(), mock.Mock(), mock.Mock()
+        return CustomWidgetPresenter(config, label, icon, host), host
+
+    def test_empty_output_hides_the_widget(self):
+        presenter, host = self._presenter({"hide_empty_text": True})
+
+        presenter.handle_output("")
+
+        host.set_visible.assert_called_once_with(False)
+
+    def test_whitespace_output_hides_the_widget(self):
+        presenter, host = self._presenter({"hide_empty_text": True})
+
+        presenter.handle_output("   \n")
+
+        host.set_visible.assert_called_once_with(False)
+
+    def test_output_shows_the_widget_again(self):
+        presenter, host = self._presenter({"hide_empty_text": True})
+
+        presenter.handle_output("")
+        presenter.handle_output("50")
+
+        self.assertEqual(
+            [mock.call(False), mock.call(True)], host.set_visible.call_args_list
+        )
+
+    def test_default_leaves_visibility_alone(self):
+        presenter, host = self._presenter({})
+
+        presenter.handle_output("")
+
+        host.set_visible.assert_not_called()
+
+    def test_the_hyphenated_alias_is_accepted(self):
+        presenter, host = self._presenter({"hide-empty-text": True})
+
+        presenter.handle_output("")
+
+        host.set_visible.assert_called_once_with(False)
+
+
+class ExecIfTest(unittest.TestCase):
+    """``exec_if`` gates every run of ``exec`` on its exit status."""
+
+    def _run_condition(self, exit_ok: bool, config: dict | None = None):
+        config = config or {"exec": "echo hi", "exec_if": "which pamixer"}
+        on_ok = mock.Mock()
+        executor = CustomWidgetExecutor(config, mock.Mock())
+        proc = mock.Mock()
+
+        def fake_wait_check_async(_cancellable, callback):
+            callback(proc, mock.Mock())
+
+        proc.wait_check_async.side_effect = fake_wait_check_async
+        if not exit_ok:
+            proc.wait_check_finish.side_effect = Exception("exit 1")
+        with mock.patch("widgets.custom_widget.Gio") as gio:
+            gio.Subprocess.new.return_value = proc
+            executor._run_condition(on_ok)
+        return on_ok
+
+    def test_a_zero_exit_runs_the_command(self):
+        self.assertTrue(self._run_condition(exit_ok=True).called)
+
+    def test_a_non_zero_exit_skips_the_command(self):
+        self.assertFalse(self._run_condition(exit_ok=False).called)
+
+    def test_a_failing_exec_if_itself_skips_the_command(self):
+        on_ok = mock.Mock()
+        executor = CustomWidgetExecutor(
+            {"exec": "echo hi", "exec_if": "not-a-real-command-xyz"}, mock.Mock()
+        )
+        with mock.patch("widgets.custom_widget.Gio") as gio:
+            gio.Subprocess.new.side_effect = Exception("spawn failed")
+            executor._run_condition(on_ok)
+
+        on_ok.assert_not_called()
+
+    def test_exec_if_gates_execute_once(self):
+        config = {"exec": "echo hi", "exec_if": "which pamixer"}
+        proc = mock.Mock()
+
+        def fake_wait_check_async(_cancellable, callback):
+            callback(proc, mock.Mock())
+
+        proc.wait_check_async.side_effect = fake_wait_check_async
+        proc.wait_check_finish.side_effect = Exception("exit 1")
+        with (
+            mock.patch("widgets.custom_widget.Gio") as gio,
+            mock.patch("widgets.custom_widget.exec_shell_command_async") as run,
+        ):
+            gio.Subprocess.new.return_value = proc
+            CustomWidgetExecutor(config, mock.Mock()).execute_once()
+
+        run.assert_not_called()
+
+    def test_the_hyphenated_alias_is_accepted(self):
+        config = {"exec": "echo hi", "exec-if": "which pamixer"}
+        executor = CustomWidgetExecutor(config, mock.Mock())
+
+        self.assertEqual("which pamixer", executor._exec_if)
+
+
 if __name__ == "__main__":
     unittest.main()

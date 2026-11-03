@@ -1792,6 +1792,15 @@
                 "type": "string",
                 "description": "Command or script to execute. Omit for a click-only button that just runs the on_click* handlers."
               },
+              "exec_if": {
+                "type": "string",
+                "description": "Only run exec when this command exits with status 0"
+              },
+              "hide_empty_text": {
+                "type": "boolean",
+                "default": false,
+                "description": "Hide the widget when the command output is empty"
+              },
               "tooltip_text": {
                 "type": "string",
                 "description": "Static tooltip text, for a widget whose output never changes"

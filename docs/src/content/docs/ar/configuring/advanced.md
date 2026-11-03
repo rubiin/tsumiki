@@ -29,6 +29,8 @@ left_section = ["@custom_widget:volume", "workspaces"]
 | ------------------ | ------ | --------- | ---------------------------------------------------- |
 | `id`               | string | —         | معرف فريد للإشارة في التخطيط (`@custom_widget:معرفي`) |
 | `exec`             | string | —         | أمر shell للتنفيذ؛ احذفه لزر ينفّذ الأمر عند النقر فقط |
+| `exec_if`          | string | —         | لا ينفّذ exec إلا إذا خرج هذا الأمر بالحالة 0            |
+| `hide_empty_text`  | bool   | `false`   | يخفي الأداة عندما تكون المخرجات فارغة                 |
 | `icon`             | string | —         | أيقونة ثابتة، تعادل `format_icons.default`           |
 | `interval`         | int    | `0`       | فترة التحديث بالمللي ثانية (0 = تنفيذ مرة واحدة)     |
 | `return_type`      | string | `"plain"` | تنسيق المخرجات: `"plain"` أو `"json"`                |

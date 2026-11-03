@@ -29,6 +29,8 @@ Opções completas de configuração:
 | ------------------ | ------ | --------- | ----------------------------------------------------------------------- |
 | `id`               | string | —         | Identificador único para referência no layout (`@custom_widget:meu-id`) |
 | `exec`             | string | —         | Comando shell a ser executado; omita para um botão só de clique         |
+| `exec_if`          | string | —         | Executa exec apenas quando este comando termina com código 0            |
+| `hide_empty_text`  | bool   | `false`   | Oculta o widget quando a saída está vazia                               |
 | `icon`             | string | —         | Glifo de ícone estático, equivalente a `format_icons.default`           |
 | `interval`         | int    | `0`       | Intervalo de atualização em milissegundos (0 = executar uma vez)        |
 | `return_type`      | string | `"plain"` | Formato de saída: `"plain"` ou `"json"`                                 |
