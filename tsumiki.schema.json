@@ -704,6 +704,11 @@
                   "type": "boolean",
                   "default": true,
                   "description": "Determines whether to show the current playback time."
+                },
+                "hide_when_stopped": {
+                  "type": "boolean",
+                  "default": false,
+                  "description": "Hide the media section when no player is playing or paused, mirroring the bar mpris widget's hide_when_no_player."
                 }
               },
               "required": [

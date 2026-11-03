@@ -625,6 +625,8 @@ show_artist = true
 show_player_icon = true
 show_time = true
 show_time_tooltip = true
+# Hide the media section when no player is playing or paused
+hide_when_stopped = true
 
 [widgets.quick_settings.shortcuts]
 enabled = true

@@ -120,6 +120,7 @@ DEFAULT_CONFIG = {
                 "show_player_icon": True,
                 "show_time": True,
                 "show_time_tooltip": True,
+                "hide_when_stopped": True,
             },
             "shortcuts": {
                 "enabled": True,

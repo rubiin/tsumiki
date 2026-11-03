@@ -195,6 +195,75 @@ class PlayerBoxStackLostPlayerTest(unittest.TestCase):
 
 
 @unittest.skipUnless(HAS_GDKPIXBUF, "GdkPixbuf bindings unavailable")
+class PlayerBoxStackHideWhenStoppedTest(unittest.TestCase):
+    """``hide_when_stopped`` mirrors the bar widget's hide_when_no_player."""
+
+    def _make_stack(self, players, current=0, section=None):
+        """players: list of (name, playback_status)."""
+        stack = PlayerBoxStack.__new__(PlayerBoxStack)
+        stack.config = {"ignore": [], "hide_when_stopped": True}
+        stack.current_stack_pos = current
+        stack._section = section
+        stack.set_visible = mock.Mock()
+
+        player_stack = _FakePlayerStack()
+        for name, status in players:
+            box = mock.Mock()
+            box.player_name = name
+            box.player.playback_status = status
+            box.destroy.side_effect = lambda box=box: player_stack.discard(box)
+            player_stack.children = [*player_stack.children, box]
+        stack.player_stack = player_stack
+        return stack
+
+    def test_a_stopped_player_hides_the_section(self):
+        section = mock.Mock()
+        stack = self._make_stack([("vlc", "stopped")], section=section)
+
+        stack._refresh_media_state()
+
+        stack.set_visible.assert_called_once_with(False)
+        section.set_visible.assert_called_once_with(False)
+
+    def test_a_paused_player_stays_visible(self):
+        stack = self._make_stack([("vlc", "paused")])
+
+        stack._refresh_media_state()
+
+        stack.set_visible.assert_called_once_with(True)
+
+    def test_a_playing_player_beats_a_stopped_one(self):
+        stack = self._make_stack([("vlc", "stopped"), ("mpd", "playing")])
+
+        stack._refresh_media_state()
+
+        stack.set_visible.assert_called_once_with(True)
+        self.assertIs(stack.player_stack.visible_child.player_name, "mpd")
+
+    def test_default_off_keeps_stopped_players_visible(self):
+        stack = self._make_stack([("vlc", "stopped")])
+        stack.config = {"ignore": []}
+
+        stack._refresh_media_state()
+
+        stack.set_visible.assert_called_once_with(True)
+
+    def test_pausing_hides_then_playing_shows_again(self):
+        section = mock.Mock()
+        stack = self._make_stack([("vlc", "playing")], section=section)
+        stack._refresh_media_state()
+
+        box = stack.player_stack.get_children()[0]
+        box.player.playback_status = "stopped"
+        stack._refresh_media_state()
+        stack.set_visible.assert_called_with(False)
+
+        box.player.playback_status = "playing"
+        stack._refresh_media_state()
+        stack.set_visible.assert_called_with(True)
+
+
+@unittest.skipUnless(HAS_GDKPIXBUF, "GdkPixbuf bindings unavailable")
 class PlayerBoxSeekbarTickTest(unittest.TestCase):
     """The 1 Hz seekbar tick must only run while playback advances."""
 

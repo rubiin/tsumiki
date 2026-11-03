@@ -717,6 +717,7 @@ Media = TypedDict(
         "show_player_icon": bool,
         "show_time": bool,
         "show_time_tooltip": bool,
+        "hide_when_stopped": bool,
     },
 )
 

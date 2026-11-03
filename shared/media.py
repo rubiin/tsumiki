@@ -159,6 +159,11 @@ class PlayerBoxStack(Box):
             player_name=player_name,
         )
         player_box.connect("destroy", lambda *_: self._refresh_media_state())
+        # A status flip to "stopped" may hide this card while others stay.
+        player_box.player.connect(
+            "notify::playback-status",
+            lambda *_: self._refresh_media_state(),
+        )
         self.player_stack.children = [
             *self.player_stack.children,
             player_box,
@@ -187,16 +192,34 @@ class PlayerBoxStack(Box):
         if self._section is not None:
             self._section.set_visible(visible)
 
+    def _visible_players(self):
+        """Cards with a player actually in a playable state.
+
+        A stopped-but-still-connected player (e.g. Spotify open with nothing
+        playing) counts as absent, mirroring the bar mpris widget.
+        """
+        players = self.player_stack.get_children()
+        if not self.config.get("hide_when_stopped", False):
+            return players
+        return [
+            box
+            for box in players
+            if box.player.playback_status in ("playing", "paused")
+        ]
+
     def _refresh_media_state(self):
         """Re-evaluate cards: fall back to a remaining player or hide."""
         players: list = self.player_stack.get_children()
-        if not players:
+        visible = self._visible_players()
+        if not visible:
             self.current_stack_pos = 0
             self._set_media_visible(False)
             return
         self._set_media_visible(True)
         if self.current_stack_pos >= len(players):
             self.current_stack_pos = len(players) - 1
+        if players[self.current_stack_pos] not in visible:
+            self.current_stack_pos = players.index(visible[0])
         self.player_stack.set_visible_child(players[self.current_stack_pos])
         self._sync_dots()
 
