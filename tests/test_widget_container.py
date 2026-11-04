@@ -104,6 +104,56 @@ class AddFormattedLabelTest(unittest.TestCase):
         self.Label_mock.return_value.set_markup.assert_called_with("mic-on Mic")
 
 
+class AddFormattedLabelHoverRevealTest(unittest.TestCase):
+    """``hover_reveal`` parks the panel label behind a revealer."""
+
+    def setUp(self):
+        for name in ("Label", "Revealer"):
+            patcher = mock.patch.object(widget_container, name)
+            setattr(self, f"{name}_mock", patcher.start())
+            self.addCleanup(patcher.stop)
+
+    def _widget(self) -> ButtonWidget:
+        widget = ButtonWidget.__new__(ButtonWidget)
+        widget.container_box = mock.Mock()
+        widget.label_format = "{total}"
+        return widget
+
+    def test_the_label_lives_inside_the_revealer(self):
+        widget = self._widget()
+
+        widget.add_formatted_label("{total}", "󰏗", hover_reveal=True, total="03")
+
+        self.Revealer_mock.assert_called_once_with(
+            child=self.Label_mock.return_value,
+            transition_duration=500,
+            transition_type="slide_right",
+        )
+        widget.container_box.add.assert_called_once_with(
+            self.Revealer_mock.return_value
+        )
+        # The hover handler keys off this attribute, so it must be published.
+        self.assertIs(widget.revealer, self.Revealer_mock.return_value)
+
+    def test_the_reveal_duration_is_configurable(self):
+        widget = self._widget()
+
+        widget.add_formatted_label("{total}", hover_reveal=True, reveal_duration=250)
+
+        self.assertEqual(
+            250, self.Revealer_mock.call_args.kwargs["transition_duration"]
+        )
+
+    def test_without_hover_reveal_the_label_is_added_directly(self):
+        widget = self._widget()
+
+        widget.add_formatted_label("{total}", "󰏗", total="03")
+
+        self.Revealer_mock.assert_not_called()
+        widget.container_box.add.assert_called_once_with(self.Label_mock.return_value)
+        self.assertFalse(hasattr(widget, "revealer"))
+
+
 class AddPanelContentTest(unittest.TestCase):
     """The icon/label pair is built the same way for every panel widget."""
 

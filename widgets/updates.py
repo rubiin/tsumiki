@@ -31,6 +31,8 @@ class UpdatesWidget(ButtonWidget):
         self.add_formatted_label(
             self.label_format,
             self.config.get("no_updates_icon", "󰒒"),
+            hover_reveal=self.config.get("hover_reveal", False),
+            reveal_duration=self.config.get("reveal_duration", 500),
             total=self._format_total(0),
         )
 

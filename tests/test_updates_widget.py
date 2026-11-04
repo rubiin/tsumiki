@@ -8,6 +8,7 @@ import json
 import unittest
 from unittest import mock
 
+from shared.widget_container import ButtonWidget
 from widgets.updates import UpdatesWidget
 
 
@@ -71,6 +72,39 @@ class UpdatesTotalFieldTest(unittest.TestCase):
         widget._update_values("not json")
 
         widget.refresh_formatted_label.assert_not_called()
+
+
+class UpdatesHoverRevealTest(unittest.TestCase):
+    """The widget forwards ``hover_reveal`` to the panel label builder.
+
+    The revealer itself is built by ``add_formatted_label``; what must not be
+    lost again is the wiring that tells it to build one.
+    """
+
+    def _build(self, **config):
+        with (
+            mock.patch.object(ButtonWidget, "__init__", autospec=True) as base_init,
+            mock.patch.object(ButtonWidget, "add_formatted_label") as add_label,
+            mock.patch.object(UpdatesWidget, "connect"),
+            mock.patch.object(UpdatesWidget, "_check_update"),
+            mock.patch.object(UpdatesWidget, "_register_repeater"),
+            mock.patch("widgets.updates.invoke_repeater", return_value=1),
+        ):
+            base_init.side_effect = lambda self, **_kwargs: setattr(
+                self, "config", {"label_format": "{total}", **config}
+            )
+            UpdatesWidget()
+
+        return add_label
+
+    def test_hover_reveal_is_forwarded(self):
+        add_label = self._build(hover_reveal=True, reveal_duration=250)
+
+        self.assertTrue(add_label.call_args.kwargs["hover_reveal"])
+        self.assertEqual(250, add_label.call_args.kwargs["reveal_duration"])
+
+    def test_hover_reveal_is_off_unless_configured(self):
+        self.assertFalse(self._build().call_args.kwargs["hover_reveal"])
 
 
 if __name__ == "__main__":

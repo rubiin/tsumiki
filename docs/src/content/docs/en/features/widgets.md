@@ -118,6 +118,8 @@ pad_zero = true
 available_icon = "󰏗"
 no_updates_icon = "󰏖"
 os = "arch"
+hover_reveal = false
+reveal_duration = 500
 interval = 3600 # Refresh interval in seconds
 tooltip = true
 terminal = "kitty"
@@ -132,6 +134,8 @@ brew = false
 - **`interval`**: Polling interval in seconds (default: 3600 = 1 hour).
 - **`os`**: Distribution for native package checking (supports `arch`, `fedora`, `ubuntu`).
 - **`flatpak`/`snap`/`brew`**: Enable checking for these package formats.
+- **`hover_reveal`**: Hide the count behind a revealer that slides open on hover (default: `false`).
+- **`reveal_duration`**: Hover-reveal transition in milliseconds (default: `500`).
 
 ---
 

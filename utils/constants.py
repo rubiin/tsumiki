@@ -362,6 +362,8 @@ DEFAULT_CONFIG = {
             "available_icon": "󰏗",
             "no_updates_icon": "󰏖",
             "os": "arch",
+            "hover_reveal": False,  # Whether to reveal the update count on hover
+            "reveal_duration": 500,
             "interval": HIGH_POLL_INTERVAL,
             "tooltip": True,
             "terminal": "kitty",
@@ -517,6 +519,7 @@ DEFAULT_CONFIG = {
             "tooltip": False,
             "layer": "top",
             "show_when_no_windows": False,
+            "hide_special_workspace_apps": False,
             "group_apps": True,
             "truncation_size": 20,
             "orientation": "horizontal",

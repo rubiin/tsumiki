@@ -952,6 +952,16 @@
               "default": "arch",
               "description": "The operating system for updates."
             },
+            "hover_reveal": {
+              "type": "boolean",
+              "default": false,
+              "description": "Determines whether to reveal the update count on hover."
+            },
+            "reveal_duration": {
+              "type": "number",
+              "default": 500,
+              "description": "The duration of the reveal animation for the update count."
+            },
             "terminal": {
               "type": "string",
               "default": "kitty",
@@ -993,6 +1003,8 @@
             "available_icon",
             "no_updates_icon",
             "os",
+            "hover_reveal",
+            "reveal_duration",
             "terminal",
             "auto_hide",
             "interval",
@@ -2719,6 +2731,11 @@
               "type": "boolean",
               "default": true,
               "description": "Determines whether the app launcher is shown in the dock."
+            },
+            "hide_special_workspace_apps": {
+              "type": "boolean",
+              "default": false,
+              "description": "Determines whether apps on special workspaces (scratchpads) are hidden from the dock."
             },
             "layer": {
               "type": "string",

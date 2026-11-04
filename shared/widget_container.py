@@ -399,16 +399,32 @@ class ButtonWidget(Button, BaseWidget):
             )
 
     def add_formatted_label(
-        self, template: str, glyph: str = "", **fields: str
+        self,
+        template: str,
+        glyph: str = "",
+        *,
+        hover_reveal: bool = False,
+        reveal_duration: int = 500,
+        **fields: str,
     ) -> Label:
         """Add the single panel label that ``label_format`` drives.
 
         *glyph* is a live icon (bluetooth state, battery level) that leads the
         label; a fixed icon belongs in ``label_format`` itself. The
         ``panel-format`` class is what per-widget icon sizing keys off now.
+        ``hover_reveal`` parks the label behind a revealer, which the widget's
+        hover handlers (``_connect_hover_reveal``) open and close.
         """
         self.panel_label = Label(style_classes=["panel-text", "panel-format"])
-        self.container_box.add(self.panel_label)
+        if hover_reveal:
+            self.revealer = Revealer(
+                child=self.panel_label,
+                transition_duration=reveal_duration,
+                transition_type="slide_right",
+            )
+            self.container_box.add(self.revealer)
+        else:
+            self.container_box.add(self.panel_label)
         self.refresh_formatted_label(glyph, **fields)
         return self.panel_label
 

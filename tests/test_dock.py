@@ -258,5 +258,51 @@ class SyncSchedulingTest(unittest.TestCase):
         self.assertFalse(dock._has_timeout(AppBar._SYNC_TIMER))
 
 
+class SpecialWorkspaceFilterTest(unittest.TestCase):
+    """``_process_clients`` honours ``hide_special_workspace_apps``."""
+
+    def setUp(self):
+        self.normal = {"address": "0x1000", "class": "firefox", "workspace": {"id": 2}}
+        self.special = {"address": "0x2000", "class": "kitty", "workspace": {"id": -98}}
+
+    def make_bar(self, config: dict) -> AppBar:
+        bar = AppBar.__new__(AppBar)
+        bar.config = config
+        bar._group_apps = False
+        bar._clients_by_address = {}
+        bar._active_address = None
+        bar._sync_in_progress = False
+        bar._sync_ungrouped_clients = mock.Mock()
+        bar._sync_grouped_clients = mock.Mock()
+        return bar
+
+    def addresses(self, bar: AppBar) -> set:
+        return set(bar._clients_by_address)
+
+    def test_special_workspace_apps_show_by_default(self):
+        bar = self.make_bar({"ignored": []})
+
+        bar._process_clients([self.normal, self.special], None)
+
+        self.assertEqual({"0x1000", "0x2000"}, self.addresses(bar))
+
+    def test_special_workspace_apps_are_hidden_when_enabled(self):
+        bar = self.make_bar(
+            {"ignored": [], "hide_special_workspace_apps": True}
+        )
+
+        bar._process_clients([self.normal, self.special], None)
+
+        self.assertEqual({"0x1000"}, self.addresses(bar))
+
+    def test_a_client_without_workspace_info_is_skipped(self):
+        orphan = {"address": "0x3000", "class": "obs"}
+        bar = self.make_bar({"ignored": []})
+
+        bar._process_clients([self.normal, orphan], None)
+
+        self.assertEqual({"0x1000"}, self.addresses(bar))
+
+
 if __name__ == "__main__":
     unittest.main()

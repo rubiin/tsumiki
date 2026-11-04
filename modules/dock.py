@@ -352,8 +352,11 @@ class AppBar(BoxWidget):
         self._active_address = active_address
         try:
             clients = []
+            hide_special = self.config.get("hide_special_workspace_apps", False)
             for item in raw_clients:
-                if item.get("workspace", {}).get("id", -1) <= 0:
+                workspace_id = item.get("workspace", {}).get("id")
+                # Special workspaces (scratchpads) use negative IDs.
+                if workspace_id is None or (workspace_id <= 0 and hide_special):
                     continue
 
                 client = HyprlandClient(item, active_address)
