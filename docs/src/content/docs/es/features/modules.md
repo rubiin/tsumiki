@@ -143,6 +143,7 @@ Lanzador de aplicaciones controlado por teclado con búsqueda, diseño de cuadr�
 enabled = false
 tooltip = true
 icon_size = 35
+ignored = []
 anchor = "center"
 width = 280
 height = 320
@@ -155,6 +156,7 @@ plugins_dir = "" # predeterminado: <config>/plugins
 
 - **`layout`**: `grid` muestra iconos en cuadrícula; `list` los muestra como lista con nombres.
 - **`anchor`**: Posición en pantalla (`center`, `top`, `bottom`, etc.).
+- **`ignored`**: Lista de nombres de archivos .desktop a excluir de los resultados de búsqueda.
 - **`plugins_enabled`**: Activa los plugins de comandos slash (`/calc`, `/translate`, ...).
 - **`plugins_dir`**: Directorio con los plugins Python; por defecto `<config>/plugins`.
 

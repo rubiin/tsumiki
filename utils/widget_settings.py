@@ -318,6 +318,7 @@ Launcher = TypedDict(
         "enabled": bool,
         "tooltip": bool,
         "icon_size": int,
+        "ignored": list[str],
         "plugins_enabled": bool,
         "plugins_dir": str,
         "plugins": list[str],

@@ -3186,6 +3186,14 @@
               "maximum": 128,
               "default": 16
             },
+            "ignored": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "List of desktop file ids or names to exclude from search results (e.g. [\"firefox.desktop\", \"KTorrent\"]).",
+              "default": []
+            },
             "plugins_enabled": {
               "type": "boolean",
               "description": "Enables launcher slash-command plugins (/calc, /translate, ...)",

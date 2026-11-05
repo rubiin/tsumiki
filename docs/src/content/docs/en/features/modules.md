@@ -145,6 +145,7 @@ Keyboard-driven application launcher with search, grid/list layout, and drag-to-
 enabled = false
 tooltip = true
 icon_size = 35
+ignored = []
 anchor = "center"
 width = 280
 height = 320
@@ -158,6 +159,7 @@ plugins = ["calc", "emoji"] # allowlist of plugins to load (empty = none)
 
 - **`layout`**: `grid` shows app icons in a grid; `list` shows them as a list with names.
 - **`anchor`**: Position on screen (`center`, `top`, `bottom`, etc.).
+- **`ignored`**: List of desktop file names to exclude from search results.
 - **`plugins_enabled`**: Enables slash-command plugins (`/calc`, `/translate`, ...).
 - **`plugins_dir`**: Directory containing Python plugins; defaults to `<config>/plugins`.
 - **`plugins`**: Strict allowlist of plugin names to load (e.g. `["calc", "emoji"]`).

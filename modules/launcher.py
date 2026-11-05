@@ -67,6 +67,22 @@ def _score_app_match(
     return best * 100.0
 
 
+def _app_ignore_keys(app: DesktopApp) -> set[str]:
+    """Names an ``ignored`` entry may use for *app*: desktop id, name, wm class."""
+    keys = {
+        value.casefold()
+        for value in (app.name, app.display_name, app.window_class)
+        if value
+    }
+    with suppress(Exception):
+        # The desktop file id (e.g. "firefox.desktop") sits behind _app.
+        desktop_id = app._app.get_id()
+        if desktop_id:
+            keys.add(desktop_id.casefold())
+            keys.add(desktop_id.removesuffix(".desktop").casefold())
+    return keys
+
+
 class LauncherConfig:
     """Configuration validator and defaults for AppLauncher."""
 
@@ -92,6 +108,14 @@ class LauncherConfig:
 
         icon_size = self.raw_config.get("icon_size", self.DEFAULT_ICON_SIZE)
         self.icon_size = max(16, min(128, icon_size))
+
+        # Desktop ids/names to keep out of search; matched case-insensitively.
+        raw_ignored = self.raw_config.get("ignored", [])
+        self.ignored = (
+            {str(entry).casefold() for entry in raw_ignored}
+            if isinstance(raw_ignored, list)
+            else set()
+        )
 
         layout = self.raw_config.get("layout", self.DEFAULT_LAYOUT)
         self.layout_mode = layout if layout in ["list", "grid"] else self.DEFAULT_LAYOUT
@@ -258,7 +282,7 @@ class Launcher(PopupWindow):
 
         self._arranger_handler: int = 0
         self.app_util = AppUtils()
-        self._all_apps = self.app_util.all_applications
+        self._all_apps = self._load_apps()
         self._grid_position = 0
         self._first_app = None  # First app matching the current query (Enter)
         # Rendered app results: (widget, app) pairs in display order.
@@ -526,6 +550,17 @@ class Launcher(PopupWindow):
             app.name or "",
             app.generic_name or "",
         )
+
+    def _load_apps(self) -> list[DesktopApp]:
+        """All desktop apps minus the ones the config hides from search."""
+        ignored = self.config.ignored
+        if not ignored:
+            return self.app_util.all_applications
+        return [
+            app
+            for app in self.app_util.all_applications
+            if ignored.isdisjoint(_app_ignore_keys(app))
+        ]
 
     def _filter_applications(self, query: str) -> Iterator[DesktopApp]:
         """Filter applications by query, best first; ties keep source order."""
@@ -948,7 +983,7 @@ class Launcher(PopupWindow):
             self.close_launcher()
         else:
             self._reset_plugin_state()
-            self._all_apps = self.app_util.all_applications
+            self._all_apps = self._load_apps()
             self.search_entry.set_text("")
             self.search_entry.grab_focus_without_selecting()
             self.toggle_popup()

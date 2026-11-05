@@ -54,6 +54,7 @@ transition_type = "crossfade"
 enabled = false
 tooltip = true
 icon_size = 35
+ignored = []
 anchor = "center"
 width = 280
 height = 320

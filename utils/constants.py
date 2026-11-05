@@ -471,6 +471,7 @@ DEFAULT_CONFIG = {
             "enabled": False,
             "tooltip": True,
             "icon_size": 16,
+            "ignored": [],
             "anchor": "center",
             "width": 280,
             "height": 320,
