@@ -1,3 +1,5 @@
+import json
+
 from fabric.core.widgets import WorkspaceButton
 from fabric.hyprland.service import HyprlandEvent
 from fabric.hyprland.widgets import HyprlandWorkspaces
@@ -5,6 +7,14 @@ from fabric.hyprland.widgets import HyprlandWorkspaces
 from shared.widget_container import BoxWidget
 from utils.functions import unique_list
 from utils.widget_utils import setup_cursor_hover
+
+
+def _event_workspace_id(event: HyprlandEvent) -> int | None:
+    """Numeric id from a v2 payload; scratchpads put an address there."""
+    try:
+        return int(event.data[0])
+    except (IndexError, TypeError, ValueError):
+        return None
 
 
 class WorkSpacesWidget(BoxWidget):
@@ -83,11 +93,38 @@ class WorkSpacesWidget(BoxWidget):
 
 
 class _HyprlandWorkspaces(HyprlandWorkspaces):
-    """HyprlandWorkspaces subclass that gates urgent handling on config."""
+    """Gates urgent handling on config; tolerates id-less special workspaces."""
 
     def __init__(self, show_urgent: bool = False, **kwargs):
         self._show_urgent = show_urgent
         super().__init__(**kwargs)
+
+    def on_ready(self, *_):
+        # Fabric indexes workspace["id"], which Hyprland 0.57 drops for scratchpads.
+        workspaces = json.loads(
+            self.connection.send_command("j/workspaces").reply.decode()
+        )
+        active_id = json.loads(
+            self.connection.send_command("j/activeworkspace").reply.decode()
+        ).get("id")
+
+        for workspace in workspaces:
+            ws_id = workspace.get("id")
+            if ws_id is None:
+                continue
+            self.workspace_created(ws_id)
+            if ws_id == active_id:
+                self.workspace_activated(ws_id)
+
+    def on_create_workspace(self, _, event: HyprlandEvent):
+        if len(event.data) != 2 or (ws_id := _event_workspace_id(event)) is None:
+            return
+        return self.workspace_created(ws_id)
+
+    def on_destroy_workspace(self, _, event: HyprlandEvent):
+        if len(event.data) != 2 or (ws_id := _event_workspace_id(event)) is None:
+            return
+        return self.workspace_destroyed(ws_id)
 
     def on_urgent(self, _, event: HyprlandEvent):
         if not self._show_urgent:
