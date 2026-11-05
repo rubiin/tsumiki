@@ -10,7 +10,7 @@ keywords = ["widgets", "gtk", "linux", "pygobject", "bar", "statusbar", "panel",
 
 dependencies = [
   "click>=8.5.0",
-  "fabric @ git+https://github.com/Fabric-Development/fabric.git@8ae7550978c443d45984ba68f79158536dc26dd7",
+  "fabric @ git+https://github.com/Fabric-Development/fabric.git",
   "loguru>=0.7.3",
   "pillow>=13.0.0",
   "psutil>=7.2.2",

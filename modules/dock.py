@@ -29,6 +29,17 @@ DOCK_DND_TARGET = [Gtk.TargetEntry.new("dock-app", Gtk.TargetFlags.SAME_APP, 0)]
 DOCK_SYNC_DEBOUNCE_MS = 60
 
 
+def is_special_workspace(workspace: dict) -> bool:
+    """Detect a scratchpad; newer Hyprland omits the numeric id entirely."""
+    if workspace.get("type") == "special":
+        return True
+    ws_id = workspace.get("id")
+    if isinstance(ws_id, int) and ws_id < 0:
+        return True
+    name = workspace.get("name") or ""
+    return name == "special" or name.startswith("special:")
+
+
 class MultiDotIndicator(Gtk.DrawingArea):
     """A dot indicator widget that can show multiple dots for grouped apps."""
 
@@ -354,9 +365,8 @@ class AppBar(BoxWidget):
             clients = []
             hide_special = self.config.get("hide_special_workspace_apps", False)
             for item in raw_clients:
-                workspace_id = item.get("workspace", {}).get("id")
-                # Special workspaces (scratchpads) use negative IDs.
-                if workspace_id is None or (workspace_id <= 0 and hide_special):
+                workspace = item.get("workspace") or {}
+                if not workspace or (hide_special and is_special_workspace(workspace)):
                     continue
 
                 client = HyprlandClient(item, active_address)

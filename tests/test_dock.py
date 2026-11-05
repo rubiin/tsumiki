@@ -9,7 +9,7 @@ import unittest
 from unittest import mock
 
 from modules import dock as dock_module
-from modules.dock import AppBar
+from modules.dock import AppBar, is_special_workspace
 from shared import widget_container as container
 
 
@@ -264,6 +264,16 @@ class SpecialWorkspaceFilterTest(unittest.TestCase):
     def setUp(self):
         self.normal = {"address": "0x1000", "class": "firefox", "workspace": {"id": 2}}
         self.special = {"address": "0x2000", "class": "kitty", "workspace": {"id": -98}}
+        # Hyprland >= 0.57 drops the numeric id for special workspaces.
+        self.special_modern = {
+            "address": "0x4000",
+            "class": "org.kde.ktorrent",
+            "workspace": {
+                "address": "special:special",
+                "type": "special",
+                "name": "special:special",
+            },
+        }
 
     def make_bar(self, config: dict) -> AppBar:
         bar = AppBar.__new__(AppBar)
@@ -294,6 +304,32 @@ class SpecialWorkspaceFilterTest(unittest.TestCase):
         bar._process_clients([self.normal, self.special], None)
 
         self.assertEqual({"0x1000"}, self.addresses(bar))
+
+    def test_special_workspace_without_id_shows_by_default(self):
+        """Regression: Hyprland 0.57 omits ``workspace.id`` for scratchpads."""
+        bar = self.make_bar({"ignored": []})
+
+        bar._process_clients([self.normal, self.special_modern], None)
+
+        self.assertEqual({"0x1000", "0x4000"}, self.addresses(bar))
+
+    def test_special_workspace_without_id_is_hidden_when_enabled(self):
+        bar = self.make_bar({"ignored": [], "hide_special_workspace_apps": True})
+
+        bar._process_clients([self.normal, self.special_modern], None)
+
+        self.assertEqual({"0x1000"}, self.addresses(bar))
+
+    def test_is_special_workspace_detects_each_format(self):
+        cases = [
+            ({"id": -98, "name": "special:scratch"}, True),
+            ({"type": "special", "name": "special:special"}, True),
+            ({"id": 2, "type": "normal", "name": "2"}, False),
+            ({"id": 2, "name": "2"}, False),
+        ]
+        for workspace, expected in cases:
+            with self.subTest(workspace=workspace):
+                self.assertEqual(expected, is_special_workspace(workspace))
 
     def test_a_client_without_workspace_info_is_skipped(self):
         orphan = {"address": "0x3000", "class": "obs"}
