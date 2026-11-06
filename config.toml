@@ -76,7 +76,6 @@ full_battery_level = 100
 hide_when_missing = false
 hide_percent_when_full = true
 tooltip = true
-icon_size = 14
 # variables: {percent} {time_remaining} {capacity} {temperature} {state}
 label_format = "{percent}"
 
@@ -217,7 +216,7 @@ graph_length = 4
 unit = "gb"
 
 [widgets.settings]
-icon = "󰒓"
+label_format = "󰒓"
 tooltip = true
 
 [widgets.date_time]
@@ -896,7 +895,6 @@ size = 20
 
 [modules.dock]
 enabled = true
-ignored_apps = []
 icon_size = 40
 behavior = "intellihide"
 tooltip = false

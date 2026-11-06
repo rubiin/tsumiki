@@ -86,6 +86,73 @@ class ConfigCompletenessTest(unittest.TestCase):
                         self.assertEqual(missing_keys(item_props, entry), set())
 
 
+def unknown_keys(value, spec, path, found) -> None:
+    """Collect *path* for every config key *spec* does not declare.
+
+    A node with no ``properties`` declares nothing, so any child of it is
+    unknown. Free-form maps are the exception: ``additionalProperties`` as a
+    schema (or ``patternProperties``) explicitly invites arbitrary keys, and
+    ``additionalProperties: true``/absent child schemas do the same. Those
+    are recursed into with their own spec instead of being flagged.
+    """
+    if not isinstance(spec, dict):
+        return
+    if isinstance(value, dict):
+        properties = spec.get("properties")
+        if not isinstance(properties, dict):
+            return
+        additional = spec.get("additionalProperties")
+        patterns = spec.get("patternProperties")
+        for key, child in value.items():
+            child_path = f"{path}.{key}" if path else key
+            if key in properties:
+                unknown_keys(child, properties[key], child_path, found)
+            elif isinstance(additional, dict):
+                unknown_keys(child, additional, child_path, found)
+            elif additional is True or (
+                isinstance(patterns, dict)
+                and any(isinstance(pat, dict) for pat in patterns.values())
+            ):
+                continue
+            else:
+                found.append(child_path)
+    elif isinstance(value, list):
+        items = spec.get("items")
+        if isinstance(items, dict):
+            for index, child in enumerate(value):
+                unknown_keys(child, items, f"{path}[{index}]", found)
+
+
+class UnknownConfigKeysTest(unittest.TestCase):
+    """No shipped config key may be absent from the schema.
+
+    The reverse of ``missing_keys``: a typo'd or renamed key in
+    ``config.toml`` (``widgets.battery.icon_size``) or a config section with
+    no schema object at all (``[widgets.settings]``) is silently ignored at
+    runtime, so nothing but this test can catch it.
+    """
+
+    # ``styling`` maps arbitrary SCSS variables (bar, modules, widgets, ...)
+    # straight into styles/_settings.scss, so it is deliberately free-form
+    # and has no schema object; it is the only exempt top-level section.
+    FREE_FORM_TOP_LEVEL = ("styling",)
+
+    def test_no_unknown_keys_in_shipped_configs(self):
+        schema = load_schema()["properties"]
+        for name in CONFIG_FILES:
+            unknown: list[str] = []
+            for group, section in load_config(name).items():
+                if group in self.FREE_FORM_TOP_LEVEL:
+                    continue
+                spec = schema.get(group)
+                if spec is None:
+                    unknown.append(group)
+                    continue
+                unknown_keys(section, spec, group, unknown)
+            with self.subTest(config=name):
+                self.assertEqual(unknown, [])
+
+
 class ConfigTypeTest(unittest.TestCase):
     """Values must match the schema's declared types and ranges."""
 

@@ -1931,6 +1931,22 @@
             }
           },
           "required": ["label_format", "tooltip"]
+        },
+        "settings": {
+          "type": "object",
+          "properties": {
+            "label_format": {
+              "type": "string",
+              "default": "󰒓",
+              "description": "Format string for the panel label. Available No fields."
+            },
+            "tooltip": {
+              "type": "boolean",
+              "default": true,
+              "description": "Determines whether to show the tooltip."
+            }
+          },
+          "required": ["label_format", "tooltip"]
         }
       }
     },

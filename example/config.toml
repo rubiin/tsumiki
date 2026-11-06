@@ -467,7 +467,7 @@ tooltip = true
 
 # --- Settings ---
 [widgets.settings]
-icon = "󰒓"
+label_format = "󰒓"
 tooltip = true
 
 # --- Theme Switcher ---

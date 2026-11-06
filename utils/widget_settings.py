@@ -37,6 +37,15 @@ WallPaper = TypedDict(
     },
 )
 
+# Settings button configuration
+Settings = TypedDict(
+    "Settings",
+    {
+        "label_format": str,
+        "tooltip": bool,
+    },
+)
+
 # Power button configuration
 PowerButton = TypedDict(
     "PowerButton",
@@ -885,6 +894,7 @@ class Widgets(TypedDict):
     """Configuration for all widgets in the bar"""
 
     battery: Battery
+    settings: Settings
     bluetooth: BlueTooth
     breathe: Breathe
     brightness: Brightness
