@@ -9,7 +9,7 @@ authors = [{ name = "Rubin Bhandari", email = "roobin.bhandari@gmail.com" }]
 keywords = ["widgets", "gtk", "linux", "pygobject", "bar", "statusbar", "panel", "dock"]
 
 dependencies = [
-  "click>=8.5.0",
+  "click>=8.5.1",
   "fabric @ git+https://github.com/Fabric-Development/fabric.git",
   "loguru>=0.7.3",
   "pillow>=13.0.0",
@@ -121,7 +121,7 @@ line-ending = "auto"
 "Changelog" = "https://github.com/rubiin/tsumiki/blob/master/CHANGELOG.md"
 
 [dependency-groups]
-dev = ["ruff>=0.17.3"]
+dev = ["ruff>=0.17.4"]
 
 [tool.uv]
 # Tsumiki is an application, not an importable package.
