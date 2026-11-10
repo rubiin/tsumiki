@@ -22,7 +22,7 @@ repos:
 
   # Ruff for linting, formatting, and import sorting
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.17.3
+    rev: v0.17.4
     hooks:
       - id: ruff
         args: ["--fix"]
@@ -35,13 +35,13 @@ repos:
         args: ["--profile", "black"]
 
   - repo: https://github.com/betterleaks/betterleaks
-    rev: v2.0.0-rc.6
+    rev: v2.0.0-rc.7
     hooks:
       - id: betterleaks
 
   # oxfmt for docs formatting
   - repo: https://github.com/oxc-project/mirrors-oxfmt
-    rev: v0.74.0
+    rev: v0.78.0
     hooks:
       - id: oxfmt
         name: Format docs with oxfmt
