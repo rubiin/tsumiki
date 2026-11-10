@@ -57,12 +57,10 @@ class TagEntry(Box, BaseWidget):
                 entry.set_text("")
                 return True
 
-        # Handle backspace
-        elif keyval == Gdk.KEY_BackSpace:
-            if entry.get_text() == "" and self.tags:
-                # Remove the last tag
-                self.remove_last_tag()
-                return True
+        # Handle backspace: remove the last tag only when the entry is empty
+        elif keyval == Gdk.KEY_BackSpace and entry.get_text() == "" and self.tags:
+            self.remove_last_tag()
+            return True
 
         return False
 
