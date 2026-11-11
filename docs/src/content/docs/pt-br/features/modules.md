@@ -81,6 +81,7 @@ Teclado: `Cima`/`Baixo` movem a seleção, `Enter` ativa a linha destacada, `Esc
 [modules.osd]
 enabled = false
 timeout = 3000
+style = "default"
 osds = ["brightness", "volume"]
 ```
 

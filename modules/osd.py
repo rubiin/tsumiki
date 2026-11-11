@@ -14,18 +14,40 @@ from utils.widget_utils import (
     create_scale,
 )
 
+#: Elements each OSD style leaves out; roles are matched by ``styled_children``.
+_STYLE_HIDDEN = {
+    "compact": ("scale",),
+    "bar": ("icon",),
+}
+
+
+def styled_children(style: str, *parts: tuple[str, object]) -> tuple:
+    """The *parts* the configured ``style`` keeps, in their given order.
+
+    A style only ever drops elements, so an unknown value keeps everything and
+    a detached part (a slider left out of ``bar``) stays usable by the code
+    that updates it.
+    """
+    hidden = _STYLE_HIDDEN.get(style, ())
+    return tuple(widget for role, widget in parts if role not in hidden)
+
 
 class GenericOSDContainer(Box, BaseWidget):
     """A generic OSD container to display the OSD for brightness and audio."""
 
     def __init__(self, config: dict, **kwargs):
         is_vertical = config.get("orientation", "horizontal") == "vertical"
+        self.style = config.get("style", "default")
+
+        style_classes = [self.style]
+        if is_vertical:
+            style_classes.append("vertical")
 
         super().__init__(
             orientation=config.get("orientation", "horizontal"),
             spacing=10,
             name="osd-container",
-            style_classes="vertical" if is_vertical else [],
+            style_classes=style_classes,
             **kwargs,
         )
 
@@ -51,7 +73,9 @@ class GenericOSDContainer(Box, BaseWidget):
             style=scale_style,
         )
 
-        self.children = (self.icon, self.scale)
+        self.children = styled_children(
+            self.style, ("icon", self.icon), ("scale", self.scale)
+        )
 
         self.show_level = config.get("percentage", True)
 

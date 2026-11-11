@@ -524,10 +524,6 @@ _MOVED_CHEATSHEET_KEYS = {
 
 _RENAMED_MODULE_KEYS = {
     ("osd", "duration"): "modules.osd.timeout",
-    ("osd", "style"): (
-        "nothing -- the OSD look now comes from orientation, anchor, "
-        "transition_type and transition_duration"
-    ),
 }
 
 

@@ -291,6 +291,7 @@ OSD = TypedDict(
         "anchor": Anchor,
         "percentage": bool,
         "orientation": str,
+        "style": str,
         "icon_size": int,
         "transition_type": Reveal_Animations,
         "transition_duration": int,

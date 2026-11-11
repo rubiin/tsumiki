@@ -85,6 +85,7 @@ Tastatur: `Auf`/`Ab` bewegen die Auswahl, `Enter` aktiviert die markierte Zeile,
 [modules.osd]
 enabled = false
 timeout = 3000
+style = "default"
 osds = ["brightness", "volume"]
 ```
 

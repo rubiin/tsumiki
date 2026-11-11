@@ -681,10 +681,11 @@ class DeprecationWarningTest(unittest.TestCase):
         self.assertIn("modules.osd.timeout", msg)
 
     @mock.patch("utils.validation.logger")
-    def test_removed_osd_style_warns(self, mock_logger):
-        warn_deprecated_keys({"modules": {"osd": {"style": "notification"}}})
-        msg = mock_logger.warning.call_args[0][0]
-        self.assertIn("modules.osd.style", msg)
+    def test_osd_style_is_live_again(self, mock_logger):
+        """``modules.osd.style`` was restored as a real key, so it must be silent."""
+        warn_deprecated_keys({"modules": {"osd": {"style": "compact"}}})
+
+        self.assertEqual([], mock_logger.warning.call_args_list)
 
     def test_current_config_is_silent(self):
         """The shipped config must not trip its own deprecation warnings."""

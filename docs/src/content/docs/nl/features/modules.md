@@ -86,6 +86,7 @@ Toetsenbord: `Omhoog`/`Omlaag` verplaatst de selectie, `Enter` activeert de gema
 [modules.osd]
 enabled = false
 timeout = 3000
+style = "default"
 osds = ["brightness", "volume"]
 ```
 

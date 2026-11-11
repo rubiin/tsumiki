@@ -47,3 +47,17 @@
 #osd-container.vertical {
   padding: common.toEm(20) common.toEm(12);
 }
+
+// Structural presets from modules.osd.style; styling...widget_style stays the
+// skin knob. Declared after .vertical so their padding wins the specificity tie.
+#osd-container.bar {
+  padding-top: common.toEm(6);
+  padding-bottom: common.toEm(6);
+}
+
+#osd-container.minimal {
+  background-color: transparent;
+  padding: 0;
+  border: none;
+  box-shadow: none;
+}

@@ -112,6 +112,7 @@ enabled = false
 timeout = 1500
 anchor = "bottom-center"
 orientation = "horizontal"
+style = "default"
 osds = ["brightness", "volume"]
 transition_type = "slide-up"
 transition_duration = 500

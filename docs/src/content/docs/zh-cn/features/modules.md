@@ -81,6 +81,7 @@ plugins_dir = ""
 [modules.osd]
 enabled = false
 timeout = 3000
+style = "default"
 osds = ["brightness", "volume"]
 ```
 

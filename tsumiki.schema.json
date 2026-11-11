@@ -3164,6 +3164,12 @@
               "description": "Specifies the orientation of the osd.",
               "default": "horizontal"
             },
+            "style": {
+              "type": "string",
+              "enum": ["default", "compact", "bar", "minimal"],
+              "description": "Structural style of the OSD: default shows icon, slider and percentage, compact drops the slider, bar drops the icon, minimal removes the box background.",
+              "default": "default"
+            },
             "timeout": {
               "type": "integer",
               "minimum": 0,

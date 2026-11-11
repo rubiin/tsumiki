@@ -107,6 +107,7 @@ enabled = false
 timeout = 1500
 anchor = "bottom-center"
 orientation = "horizontal"
+style = "default"
 osds = ["brightness", "volume"]
 ```
 

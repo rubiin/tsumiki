@@ -461,6 +461,7 @@ DEFAULT_CONFIG = {
             "timeout": 1500,
             "anchor": "bottom-center",
             "orientation": "horizontal",
+            "style": "default",
             "percentage": True,
             "icon_size": 28,
             "transition_type": "slide-up",

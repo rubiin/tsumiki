@@ -827,6 +827,7 @@ enabled = true
 timeout = 3_000
 anchor = "bottom-center"
 orientation = "horizontal"
+style = "default"
 percentage = true
 icon_size = 25
 transition_type = "slide-up"

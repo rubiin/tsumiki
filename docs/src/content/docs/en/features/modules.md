@@ -266,6 +266,7 @@ enabled = false
 timeout = 1500
 anchor = "bottom-center"
 orientation = "horizontal"
+style = "default" # "default" | "compact" | "bar" | "minimal"
 percentage = true
 icon_size = 28
 transition_type = "slide-up" # "slide-up" | "slide-down" | "slide-left" | "slide-right" | "crossfade"
@@ -275,6 +276,7 @@ osds = ["brightness", "volume"]
 
 - **`osds`**: Which OSD types to show. Available: `brightness`, `volume`, `microphone`, `lockkeys`.
 - **`percentage`**: Shows a percentage indicator alongside the icon.
+- **`style`**: Structural style of the OSD: `default` shows icon, slider and percentage, `compact` drops the slider, `bar` drops the icon, `minimal` removes the box background.
 
 ---
 

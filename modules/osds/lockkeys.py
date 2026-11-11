@@ -5,7 +5,7 @@ from fabric.utils import GObject, logger
 from utils.hyprland import hyprland_service
 from utils.icons import symbolic_icons
 
-from ..osd import GenericOSDContainer
+from ..osd import GenericOSDContainer, styled_children
 
 
 class LockkeysOSDContainer(GenericOSDContainer):
@@ -34,8 +34,10 @@ class LockkeysOSDContainer(GenericOSDContainer):
             name="lock-label",
         )
 
-        # Replace scale with lock display
-        self.children = (self.icon, self.lock_label)
+        # Replace scale with lock display; the style still drops its icon.
+        self.children = styled_children(
+            self.style, ("icon", self.icon), ("label", self.lock_label)
+        )
 
         # TeardownMixin already binds this to "destroy"; no cleanup() needed.
         self._register_handlers(
