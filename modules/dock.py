@@ -10,7 +10,7 @@ from fabric.widgets.eventbox import EventBox
 from fabric.widgets.image import Image
 from fabric.widgets.revealer import Revealer
 
-from shared.widget_container import BaseWindow, BoxWidget
+from shared.widget_container import BaseWindow, BoxWidget, tooltips_enabled
 from utils.app import AppUtils
 from utils.config import tsumiki_config
 from utils.constants import PINNED_APPS_FILE
@@ -259,7 +259,7 @@ class AppBar(BoxWidget):
             for group in self._app_groups.values():
                 is_active = any(c.get_activated() for c in group["clients"])
                 self._set_active_state(group["button"], is_active)
-                if self.config.get("tooltip", True) and group["clients"]:
+                if tooltips_enabled() and group["clients"]:
                     active = next(
                         (c for c in group["clients"] if c.get_activated()),
                         group["clients"][0],
@@ -710,7 +710,7 @@ class AppBar(BoxWidget):
             self._icon_resolver.resolve_icon_pixbuf(app_id, self.icon_size)
         )
 
-        if self.config.get("tooltip", True):
+        if tooltips_enabled():
             active = next((c for c in clients if c.get_activated()), clients[0])
             group["button"].set_tooltip_text(active.get_title())
         else:
@@ -796,7 +796,7 @@ class AppBar(BoxWidget):
                     )
                 )
                 entry["button"].set_tooltip_text(
-                    client.get_title() if self.config.get("tooltip", True) else None
+                    client.get_title() if tooltips_enabled() else None
                 )
             else:
                 self._add_ungrouped_client(client)
