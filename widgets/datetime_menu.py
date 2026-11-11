@@ -169,17 +169,16 @@ class DateNotificationMenu(Box):
         self._vadj_handler = None
 
         if self.notification_enabled:
-            self.all_notifications: list[Notification] = (
-                notification_service.get_deserialized()
-            )
-            # Seeded so the first count event is not mistaken for a change.
-            self._last_synced_count = notification_service.count
+            self.all_notifications: list[Notification] = []
+            # Seeded so the first post-load count event is not mistaken for a change.
+            self._last_synced_count = None
+            self._notifications_loaded = False
 
             self.notifications_listbox = ListBox(
                 name="notification-list",
                 h_align="center",
                 h_expand=True,
-                visible=len(self.all_notifications) > 0,
+                visible=False,
             )
 
             self.loaded_count = 0
@@ -187,8 +186,6 @@ class DateNotificationMenu(Box):
             self.batch_size = 8  # how many to load per scroll
             self.grouped_entries: list[tuple[str, list[Notification]]] = []
             self._app_expand_state: dict[str, bool] = {}
-            self._rebuild_grouped_entries()
-            self._load_next_batch()
 
             # Placeholder for when there are no notifications
             self.placeholder = Box(
@@ -198,7 +195,7 @@ class DateNotificationMenu(Box):
                 v_align="center",
                 v_expand=True,
                 h_expand=True,
-                visible=len(self.all_notifications) == 0,
+                visible=True,
                 children=(
                     nerd_font_icon(
                         icon=get_text_icon("notifications.checked", "󱇥"),
@@ -231,9 +228,7 @@ class DateNotificationMenu(Box):
 
             self.clear_icon = nerd_font_icon(
                 name="clear-icon",
-                icon=get_text_icon("trash.empty", "")
-                if len(self.all_notifications) == 0
-                else get_text_icon("trash.full", ""),
+                icon=get_text_icon("trash.empty", ""),
                 props={"style_classes": ["panel-font-icon"]},
             )
 
@@ -261,6 +256,7 @@ class DateNotificationMenu(Box):
             vadj = self.scrolled_window.get_vadjustment()
             self._vadj_handler = vadj.connect("value-changed", self.on_scroll)
             self.connect("destroy", self._on_destroy)
+            self.connect("map", self._on_map)
 
             notification_column = Box(
                 name="notification-column",
@@ -314,9 +310,24 @@ class DateNotificationMenu(Box):
 
             self.dnd_switch.connect("notify::active", self.on_dnd_switch_toggled)
 
+    def _on_map(self, *_):
+        """Populate notifications lazily when the popover content is first shown."""
+        self._ensure_notifications_loaded()
+
+    def _ensure_notifications_loaded(self):
+        """Deserialize and render notifications on first use."""
+        if not self.notification_enabled or self._notifications_loaded:
+            return
+
+        self.all_notifications = notification_service.get_deserialized()
+        self._last_synced_count = notification_service.count
+        self._notifications_loaded = True
+        self._reload_grouped_list()
+
     def _handle_clear_click(self, *_):
         """Handle clear button click."""
 
+        self._notifications_loaded = True
         self.notifications_listbox.remove_all()
         self.all_notifications.clear()
         self.grouped_entries.clear()
@@ -324,6 +335,8 @@ class DateNotificationMenu(Box):
         self._last_synced_count = 0
 
         notification_service.clear_all_notifications()
+        self.placeholder.set_visible(True)
+        self.notifications_listbox.set_visible(False)
         self.clear_icon.set_label(get_text_icon("trash.empty", ""))
 
     def _notification_id(self, notification: Notification) -> int | None:
@@ -645,6 +658,7 @@ class DateNotificationMenu(Box):
 
     def on_clear_all_notifications(self, *_):
         """Handle clearing all notifications."""
+        self._notifications_loaded = True
         self.all_notifications.clear()
         self.grouped_entries.clear()
         self._app_expand_state.clear()
@@ -662,13 +676,16 @@ class DateNotificationMenu(Box):
         # Track the last materialised count, not the list length: under DND the
         # length stays put and would re-deserialize on every arrival.
         service_count = notification_service.count
-        if service_count == getattr(self, "_last_synced_count", None):
+        if self._notifications_loaded and service_count == getattr(
+            self, "_last_synced_count", None
+        ):
             return
 
         self._syncing_notification_count = True
         try:
             self.all_notifications = notification_service.get_deserialized()
             self._last_synced_count = service_count
+            self._notifications_loaded = True
             self._reload_grouped_list()
         finally:
             self._syncing_notification_count = False
@@ -676,6 +693,10 @@ class DateNotificationMenu(Box):
     def on_notification_closed(self, _, id, reason):
         """Handle notification being closed."""
         if reason not in {"dismissed-by-user", "dismissed-by-limit"}:
+            return
+
+        if not self._notifications_loaded:
+            self._ensure_notifications_loaded()
             return
 
         self.all_notifications = [
@@ -687,6 +708,10 @@ class DateNotificationMenu(Box):
     def on_new_notification(self, fabric_notification, id):
         if notification_service.dont_disturb:
             # Deferred to the count handler, which resyncs in one pass.
+            return
+
+        if not self._notifications_loaded:
+            self._ensure_notifications_loaded()
             return
 
         fabric_notification: Notification = (
