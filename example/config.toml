@@ -427,6 +427,7 @@ kb_digits = 0
 mb_digits = 2
 label_format = "{upload}   {download} "
 interval = 2000
+compact_mode = false              # Whole numbers, no bytes, promote before four digits
 
 # --- MPRIS (Media Player) ---
 [widgets.mpris]

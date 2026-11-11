@@ -581,6 +581,11 @@
               "type": "number",
               "default": 2000,
               "description": "The interval for updating network usage in milliseconds."
+            },
+            "compact_mode": {
+              "type": "boolean",
+              "default": false,
+              "description": "Use compact speed formatting: whole numbers, no bytes, and promotes units before four digits."
             }
           },
           "required": [

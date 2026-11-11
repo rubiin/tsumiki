@@ -303,6 +303,7 @@ class NetworkUsageWidget(FabricatorBoundWidget):
         )
 
         self.label_format: str = self.config.get("label_format", "")
+        self.compact_mode = self.config.get("compact_mode", False)
 
         # Thresholds (in bytes/s)
         self.download_threshold = self.config.get("download_threshold", 0)
@@ -312,8 +313,9 @@ class NetworkUsageWidget(FabricatorBoundWidget):
         self.kb_digits = self.config.get("kb_digits", 0)
         self.mb_digits = self.config.get("mb_digits", 2)
 
+        initial_label = "0 KB/s" if self.compact_mode else "0 MB"
         self.network_label = Label(
-            name="network_label", label="0 MB", style_classes="panel-text"
+            name="network_label", label=initial_label, style_classes="panel-text"
         )
 
         self.container_box.children = [self.network_label]
@@ -329,12 +331,36 @@ class NetworkUsageWidget(FabricatorBoundWidget):
 
     def format_speed(self, speed: float):
         speed_bps = max(float(speed), 0.0)
+        if self.compact_mode:
+            return self._format_compact_speed(speed_bps)
+
         if speed_bps < 1024:
             return f"{speed_bps:.0f} B/s"
-        elif speed_bps < 1024 * 1024:
+        if speed_bps < 1024 * 1024:
             return f"{speed_bps / 1024:.{self.kb_digits}f} KB/s"
-        else:
-            return f"{speed_bps / (1024 * 1024):.{self.mb_digits}f} MB/s"
+        return f"{speed_bps / (1024 * 1024):.{self.mb_digits}f} MB/s"
+
+    @staticmethod
+    def _format_compact_speed(speed_bps: float) -> str:
+        if speed_bps <= 0:
+            return "0 KB/s"
+
+        kb = speed_bps / 1024
+        if kb < 1:
+            return "1 KB/s"
+        if kb < 1000:
+            return f"{round(kb):.0f} KB/s"
+
+        mb = speed_bps / (1024 * 1024)
+        if mb < 1:
+            return "1 MB/s"
+        if mb < 1000:
+            return f"{round(mb):.0f} MB/s"
+
+        gb = speed_bps / (1024**3)
+        if gb < 1:
+            return "1 GB/s"
+        return f"{round(gb):.0f} GB/s"
 
     def _update_ui(self, *_):
         """Update the network usage label with the current network usage."""

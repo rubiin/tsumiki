@@ -276,6 +276,7 @@ DEFAULT_CONFIG = {
             "kb_digits": 0,
             "mb_digits": 2,
             "interval": 2000,
+            "compact_mode": False,
         },
         "microphone": {
             "tooltip": True,

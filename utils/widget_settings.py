@@ -459,6 +459,7 @@ NetworkUsage = TypedDict(
         "interval": int,
         "kb_digits": int,
         "mb_digits": int,
+        "compact_mode": bool,
     },
 )
 
