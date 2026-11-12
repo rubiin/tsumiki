@@ -745,3 +745,21 @@ disconnected_icon = ""
 #
 # [layout]
 # left_section = ["@custom_widget:temperature", "workspaces"]
+
+# ── Per-widget colors (styling, optional) ────────────
+# Configure under styling.bar.widgets.<type>.colors and, for id'd instances,
+# styling.bar.widgets.<type>.overrides."<id>".colors.
+# Values: theme palette token names or literal colors (#hex/rgb(a)/hsl(a)).
+#
+# [styling.bar.widgets.battery.colors]
+# background = "surface-neutral"   # theme token
+# foreground = "text-main"
+# [styling.bar.widgets.battery.colors.hover]
+# background = "surface-highlight"
+# [styling.bar.widgets.battery.colors.active]
+# background = "accent-blue"
+# foreground = "background-dark"
+#
+# [styling.bar.widgets.custom_widget.overrides."volume".colors]
+# background = "#1e66f5"           # literal color
+# foreground = "#ffffff"

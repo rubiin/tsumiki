@@ -373,6 +373,8 @@ class CustomWidget(ButtonWidget):
         "icon",
         "module_config",
         "text_label",
+        "widget_instance_id",
+        "widget_type",
     )
 
     def __init__(
@@ -386,6 +388,31 @@ class CustomWidget(ButtonWidget):
         # Use passed config or get from widget_config
         self.module_config = config or self.config
         self._signal_handler_id: int | None = None
+
+        self.widget_type = "custom_widget"
+        instance_id = (
+            self.module_config.get("id")
+            if isinstance(self.module_config, dict)
+            else None
+        )
+        self.widget_instance_id = (
+            str(instance_id)
+            if isinstance(instance_id, str) and instance_id.strip()
+            else None
+        )
+        if self.widget_instance_id:
+            safe_id = "".join(
+                ch if ch.isalnum() or ch in ("-", "_") else "-"
+                for ch in self.widget_instance_id
+            )
+            if safe_id:
+                self.add_style_class(f"instance-{safe_id}")
+
+        # Re-run after instance identity is known (ButtonWidget init ran earlier).
+        self._setup_instance_color_overrides(
+            widget_type=self.widget_type,
+            instance_id=self.widget_instance_id,
+        )
 
         # Cache frequently accessed config values
         self._exec_on_event = _get_config_value(

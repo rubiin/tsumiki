@@ -9,8 +9,15 @@ from fabric.widgets.label import Label
 from fabric.widgets.revealer import Revealer
 from fabric.widgets.wayland import WaylandWindow as Window
 from fabric.widgets.widget import Widget
+from loguru import logger
 
 from utils.functions import safe_disconnect
+from utils.widget_colors import (
+    build_widget_colors_css,
+    get_widget_instance_selector,
+    resolve_color_value,
+    resolve_widget_instance_colors,
+)
 
 
 def _source_is_alive(source_id: int) -> bool:
@@ -304,6 +311,199 @@ class BaseWidget(Widget, TeardownMixin):
         if self.config.get("tooltip", default) and self.tooltips_enabled:
             self.set_tooltip_text(text)
 
+    # ── Runtime per-instance color overrides ───────────────────
+
+    def _setup_instance_color_overrides(
+        self, widget_type: str | None = None, instance_id: str | None = None
+    ) -> None:
+        """Resolve and apply per-instance color overrides for this widget."""
+        if widget_type is None:
+            widget_type = getattr(self, "widget_type", None) or getattr(
+                self, "name", None
+            )
+        if instance_id is None:
+            instance_id = getattr(self, "widget_instance_id", None)
+        if not widget_type:
+            return
+
+        if getattr(self, "_widget_colors_initialized", False):
+            self._widget_color_type = widget_type
+            self._widget_color_instance_id = instance_id
+            self._refresh_instance_color_overrides()
+            return
+
+        self._widget_colors_initialized = True
+        self._widget_color_type = widget_type
+        self._widget_color_instance_id = instance_id
+        self._widget_color_provider = None
+        self._widget_color_handlers = []
+
+        self._refresh_instance_color_overrides()
+
+        try:
+            from services.style import style_service
+
+            for signal_name in ("theme_changed", "css_recompiled"):
+                try:
+                    handler_id = self._register_handler(
+                        style_service,
+                        style_service.connect(
+                            signal_name,
+                            lambda *_args, **_kwargs: (
+                                self._refresh_instance_color_overrides()
+                            ),
+                        ),
+                    )
+                    self._widget_color_handlers.append((style_service, handler_id))
+                except Exception as exc:
+                    logger.warning(
+                        f"[WidgetColors] Failed to connect {signal_name} for "
+                        f"{widget_type}/{instance_id}: {exc}"
+                    )
+        except Exception as exc:
+            logger.warning(
+                f"[WidgetColors] Failed to set up theme listeners for "
+                f"{widget_type}/{instance_id}: {exc}"
+            )
+
+        with contextlib.suppress(Exception):
+            self.connect("destroy", self._cleanup_instance_color_overrides)
+
+    def _refresh_instance_color_overrides(self, *_args) -> None:
+        widget_type = getattr(self, "_widget_color_type", None) or getattr(
+            self, "widget_type", None
+        )
+        instance_id = getattr(self, "_widget_color_instance_id", None)
+        if not widget_type:
+            return
+        try:
+            from services.style import style_service
+            from utils.config import tsumiki_config
+
+            styling = tsumiki_config.get("styling", {})
+            merged = resolve_widget_instance_colors(
+                widget_type, instance_id, styling, warn=True
+            )
+            if not merged:
+                self._remove_instance_color_provider()
+                return
+
+            theme_map = {}
+            try:
+                theme_map = style_service.get_theme_color_map() or {}
+            except Exception as exc:
+                logger.warning(
+                    f"[WidgetColors] Failed to read theme map for "
+                    f"{widget_type}/{instance_id}: {exc}"
+                )
+                theme_map = {}
+
+            resolved = self._resolve_instance_colors_for_css(
+                merged,
+                theme_map,
+                widget_type=widget_type,
+                instance_id=instance_id,
+            )
+            if not resolved:
+                self._remove_instance_color_provider()
+                return
+
+            selector = get_widget_instance_selector(
+                widget_type,
+                instance_id,
+                widget_name=getattr(self, "name", None),
+            )
+            if not selector:
+                return
+            css = build_widget_colors_css(selector, resolved, theme_map=theme_map)
+            if not css.strip():
+                self._remove_instance_color_provider()
+                return
+            self._apply_instance_color_css(css)
+        except Exception as exc:
+            logger.warning(
+                f"[WidgetColors] Failed to apply instance colors for "
+                f"{widget_type}/{instance_id}: {exc}"
+            )
+
+    def _resolve_instance_colors_for_css(
+        self,
+        colors: dict,
+        theme_map: dict[str, str],
+        *,
+        widget_type: str | None = None,
+        instance_id: str | None = None,
+    ) -> dict:
+        """Resolve tokens to concrete values for runtime CSS providers."""
+        result: dict = {}
+        if not isinstance(colors, dict):
+            return result
+        base_ctx = {"widget_type": widget_type, "instance_id": instance_id}
+        for field in ("background", "foreground"):
+            if field in colors:
+                resolved = resolve_color_value(
+                    colors.get(field),
+                    theme_map,
+                    warn_context={**base_ctx, "field": field},
+                )
+                if resolved is not None:
+                    result[field] = resolved
+        for state in ("hover", "active"):
+            state_val = colors.get(state)
+            if not isinstance(state_val, dict):
+                continue
+            resolved_state = {}
+            for field in ("background", "foreground"):
+                if field in state_val:
+                    resolved = resolve_color_value(
+                        state_val.get(field),
+                        theme_map,
+                        warn_context={**base_ctx, "state": state, "field": field},
+                    )
+                    if resolved is not None:
+                        resolved_state[field] = resolved
+            if resolved_state:
+                result[state] = resolved_state
+        return result
+
+    def _apply_instance_color_css(self, css: str) -> None:
+        try:
+            context = self.get_style_context()
+        except Exception as exc:
+            logger.warning(f"[WidgetColors] Failed to get style context: {exc}")
+            return
+
+        try:
+            if getattr(self, "_widget_color_provider", None) is None:
+                self._widget_color_provider = Gtk.CssProvider()
+                # Higher than app stylesheet so per-instance overrides win.
+                priority = getattr(Gtk, "STYLE_PROVIDER_PRIORITY_USER", 800)
+                context.add_provider(self._widget_color_provider, priority)
+            self._widget_color_provider.load_from_data(css.encode("utf-8"))
+        except Exception as exc:
+            logger.warning(f"[WidgetColors] Failed to load instance CSS: {exc}")
+
+    def _remove_instance_color_provider(self) -> None:
+        provider = getattr(self, "_widget_color_provider", None)
+        if provider is None:
+            return
+        try:
+            context = self.get_style_context()
+            context.remove_provider(provider)
+        except Exception:
+            pass
+        self._widget_color_provider = None
+
+    def _cleanup_instance_color_overrides(self, *_args) -> None:
+        self._remove_instance_color_provider()
+        for source, handler_id in list(getattr(self, "_widget_color_handlers", [])):
+            with contextlib.suppress(Exception):
+                safe_disconnect(source, handler_id)
+            if hasattr(self, "_handlers"):
+                with contextlib.suppress(ValueError):
+                    self._handlers.remove((source, handler_id))
+        self._widget_color_handlers = []
+
 
 class BaseWindow(Window, TeardownMixin):
     """A base window class that can be extended for custom windows."""
@@ -366,6 +566,11 @@ class ButtonWidget(Button, BaseWidget):
         self._connect_hover_reveal()
 
         self.connect("state-flags-changed", self._sync_hover_cursor)
+
+        self._setup_instance_color_overrides(
+            widget_type=getattr(self, "widget_type", widget_name),
+            instance_id=getattr(self, "widget_instance_id", None),
+        )
 
     def add_panel_content(
         self,

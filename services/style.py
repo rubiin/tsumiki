@@ -1,6 +1,8 @@
+import copy
 import json
 import threading
 from collections.abc import Callable
+from typing import Any
 
 from fabric import Application
 from fabric.core.service import Signal
@@ -23,6 +25,12 @@ from utils.functions import (
     read_toml_file,
     update_styling_mode,
     update_theme_config,
+)
+from utils.widget_colors import (
+    format_settings_color_value,
+    is_color_literal,
+    is_theme_token,
+    parse_scss_theme_variables,
 )
 
 from .base import SingletonService
@@ -105,6 +113,24 @@ class StyleService(SingletonService):
     def theme_contents(self) -> dict | None:
         """Parsed contents of the active theme (the selected mode's section)."""
         return self._theme_contents
+
+    def get_theme_color_map(self) -> dict[str, str]:
+        """Return active theme token map {name: color}."""
+        if isinstance(self._theme_contents, dict):
+            return {
+                str(k): str(v)
+                for k, v in self._theme_contents.items()
+                if isinstance(k, str) and isinstance(v, str)
+            }
+
+        theme_path = f"{self._styles_dir}/_theme.scss"
+        try:
+            if os.path.exists(theme_path):
+                with open(theme_path, "r", encoding="utf-8") as f:
+                    return parse_scss_theme_variables(f.read())
+        except OSError:
+            return {}
+        return {}
 
     # ── Public API ─────────────────────────────────────────────
 
@@ -279,8 +305,8 @@ class StyleService(SingletonService):
         logger.info("[CONFIG] Generating theme css...")
         self.write_css_file(flatten_dict(selected_theme), destination_file)
 
-    def write_css_file(self, contents, file):
-        """Generate SCSS settings file from theme config."""
+    def write_css_file(self, contents, file, header: str = ""):
+        """Generate SCSS settings file from flattened config."""
 
         css_styles = contents
 
@@ -291,6 +317,10 @@ class StyleService(SingletonService):
         ]
 
         with open(file, "w") as f:
+            if header:
+                f.write(header)
+                if not header.endswith("\n"):
+                    f.write("\n")
             f.write("\n".join(lines))
             f.write("\n")
 
@@ -381,10 +411,113 @@ class StyleService(SingletonService):
 
     def write_settings_css(self):
         logger.info("[CONFIG] Generating settings css...")
-        self.write_css_file(
-            flatten_dict(exclude_keys(self._config.get("styling", {}), ["matugen"])),
-            f"{self._styles_dir}/_settings.scss",
+        styling = copy.deepcopy(
+            exclude_keys(self._config.get("styling", {}), ["matugen"])
         )
+        theme_tokens = set(self.get_theme_color_map().keys())
+        self._transform_color_settings(styling, theme_tokens=theme_tokens)
+        self.write_css_file(
+            flatten_dict(styling),
+            f"{self._styles_dir}/_settings.scss",
+            header='@use "theme";',
+        )
+
+    def _transform_color_settings(
+        self,
+        node,
+        in_colors: bool = False,
+        *,
+        theme_tokens: set[str] | None = None,
+        path: list[str] | None = None,
+    ):
+        """Convert/validate widget color settings for SCSS emission."""
+        path = path or []
+        if isinstance(node, dict):
+            for key, value in list(node.items()):
+                next_path = [*path, str(key)]
+                next_in_colors = in_colors or key == "colors"
+                if isinstance(value, (dict, list)):
+                    self._transform_color_settings(
+                        value,
+                        next_in_colors,
+                        theme_tokens=theme_tokens,
+                        path=next_path,
+                    )
+                elif next_in_colors:
+                    context = self._build_color_context(next_path)
+                    if _is_unset_color_setting(value):
+                        node.pop(key, None)
+                        continue
+                    if is_color_literal(value):
+                        continue
+                    if isinstance(value, str) and is_theme_token(value):
+                        if theme_tokens is not None and value not in theme_tokens:
+                            self._warn_invalid_color_setting(value, context)
+                            node.pop(key, None)
+                            continue
+                        formatted = format_settings_color_value(
+                            value, theme_tokens=theme_tokens
+                        )
+                        if formatted is not None:
+                            node[key] = formatted
+                        else:
+                            self._warn_invalid_color_setting(value, context)
+                            node.pop(key, None)
+                        continue
+                    # malformed/non-string/invalid
+                    self._warn_invalid_color_setting(value, context)
+                    node.pop(key, None)
+        elif isinstance(node, list):
+            for idx, item in enumerate(node):
+                self._transform_color_settings(
+                    item,
+                    in_colors,
+                    theme_tokens=theme_tokens,
+                    path=[*path, str(idx)],
+                )
+
+    @staticmethod
+    def _build_color_context(path: list[str]) -> dict[str, str | None]:
+        context: dict[str, str | None] = {
+            "widget_type": None,
+            "instance_id": None,
+            "state": None,
+            "field": None,
+        }
+        try:
+            if len(path) >= 4 and path[0] == "bar" and path[1] == "widgets":
+                context["widget_type"] = path[2]
+                # <type>.colors[.state].field or <type>.overrides.<id>.colors...
+                if "colors" in path:
+                    ci = path.index("colors")
+                    if ci >= 4 and path[3] == "overrides":
+                        context["instance_id"] = path[4]
+                    tail = path[ci + 1 :]
+                    if len(tail) == 1:
+                        context["field"] = tail[0]
+                    elif len(tail) >= 2:
+                        context["state"] = tail[0]
+                        context["field"] = tail[1]
+        except Exception:
+            pass
+        return context
+
+    @staticmethod
+    def _warn_invalid_color_setting(value, context: dict[str, str | None]) -> None:
+        parts = []
+        for key in ("widget_type", "instance_id", "state", "field"):
+            v = context.get(key)
+            if v:
+                parts.append(f"{key}={v}")
+        suffix = f" ({', '.join(parts)})" if parts else ""
+        logger.warning(
+            f"{Colors.WARNING}[StyleService] Ignoring invalid widget color value "
+            f"{value!r}{suffix}"
+        )
+
+
+def _is_unset_color_setting(value: Any) -> bool:
+    return value is None or (isinstance(value, str) and value.strip() == "")
 
 
 style_service = StyleService()

@@ -1074,6 +1074,16 @@ gap = "2px"
 [styling.bar.widgets.battery]
 icon_size = "14px"
 spacing = "0.125em"
+# Per-widget colors (optional). Values: theme token names or literal colors (#hex/rgb(a)/hsl(a)).
+# [styling.bar.widgets.battery.colors]
+# background = "surface-neutral"
+# foreground = "text-main"
+# [styling.bar.widgets.battery.colors.hover]
+# background = "surface-highlight"
+# foreground = "text-main"
+# [styling.bar.widgets.battery.colors.active]
+# background = "accent-blue"
+# foreground = "background-dark"
 
 [styling.bar.widgets.battery.border]
 enabled = false
@@ -1157,6 +1167,10 @@ width = "1px"
 [styling.bar.widgets.custom_widget]
 icon_size = "12px"
 spacing = "0.125em"
+# Per-instance color overrides by widget id (e.g. [[widgets.custom_widget]] id = "volume").
+# [styling.bar.widgets.custom_widget.overrides."volume".colors]
+# background = "#1e66f5"
+# foreground = "#ffffff"
 
 [styling.bar.widgets.custom_widget.border]
 enabled = false

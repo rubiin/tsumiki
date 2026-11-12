@@ -127,9 +127,8 @@ class WidgetResolver:
 
         from widgets.custom_widget import CustomWidget
 
-        safe_name = widget_name.replace("/", "_").replace(" ", "_")
         return CustomWidget(
-            widget_name=f"custom_widget_{safe_name}",
+            widget_name="custom_widget",
             config=module_config,
         )
 
@@ -219,7 +218,7 @@ class WidgetResolver:
         from widgets.custom_widget import CustomWidget
 
         return CustomWidget(
-            widget_name=f"custom_widget_{index}",
+            widget_name="custom_widget",
             config=module_config,
         )
 

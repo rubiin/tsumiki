@@ -152,27 +152,72 @@
               "type": "object",
               "description": "Which notification reasons are included in the inbox.",
               "properties": {
-                "review_requests": { "type": "boolean", "default": true },
-                "mentions": { "type": "boolean", "default": true },
-                "assignments": { "type": "boolean", "default": true },
-                "pr_comments": { "type": "boolean", "default": true },
-                "issue_comments": { "type": "boolean", "default": true }
+                "review_requests": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "mentions": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "assignments": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "pr_comments": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "issue_comments": {
+                  "type": "boolean",
+                  "default": true
+                }
               }
             },
             "alerts": {
               "type": "object",
               "description": "Desktop alerts fired from state changes.",
               "properties": {
-                "enabled": { "type": "boolean", "default": true },
-                "new_stars": { "type": "boolean", "default": true },
-                "new_forks": { "type": "boolean", "default": true },
-                "new_issues": { "type": "boolean", "default": true },
-                "new_followers": { "type": "boolean", "default": true },
-                "new_notifications": { "type": "boolean", "default": true },
-                "workflow_started": { "type": "boolean", "default": true },
-                "workflow_success": { "type": "boolean", "default": true },
-                "workflow_failure": { "type": "boolean", "default": true },
-                "workflow_cancelled": { "type": "boolean", "default": true }
+                "enabled": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "new_stars": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "new_forks": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "new_issues": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "new_followers": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "new_notifications": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "workflow_started": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "workflow_success": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "workflow_failure": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "workflow_cancelled": {
+                  "type": "boolean",
+                  "default": true
+                }
               }
             },
             "local_editor": {
@@ -182,7 +227,9 @@
             },
             "local_projects": {
               "type": "object",
-              "additionalProperties": { "type": "string" },
+              "additionalProperties": {
+                "type": "string"
+              },
               "description": "Map of owner/repository to a local absolute path.",
               "default": {}
             }
@@ -3335,6 +3382,39 @@
           "enum": ["en", "es", "fr", "de", "ar", "zh", "ja", "ko", "pt", "ru", "tr", "nl"]
         }
       }
+    },
+    "styling": {
+      "type": "object",
+      "description": "Visual styling configuration.",
+      "properties": {
+        "bar": {
+          "type": "object",
+          "properties": {
+            "widgets": {
+              "type": "object",
+              "description": "Per-widget styling for bar widgets.",
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "colors": {
+                        "$ref": "#/$defs/widgetColors"
+                      },
+                      "overrides": {
+                        "$ref": "#/$defs/widgetColorOverrides"
+                      }
+                    }
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
     }
   },
   "required": [
@@ -3345,5 +3425,103 @@
     "collapsible_groups",
     "modules",
     "general"
-  ]
+  ],
+  "$defs": {
+    "widgetColorState": {
+      "type": "object",
+      "properties": {
+        "background": {
+          "type": "string"
+        },
+        "foreground": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "widgetColors": {
+      "type": "object",
+      "description": "Per-widget color overrides. Values are theme palette token names or literal colors (#hex/rgb(a)/hsl(a)).",
+      "properties": {
+        "background": {
+          "type": "string"
+        },
+        "foreground": {
+          "type": "string"
+        },
+        "hover": {
+          "type": "object",
+          "properties": {
+            "background": {
+              "type": "string"
+            },
+            "foreground": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "active": {
+          "type": "object",
+          "properties": {
+            "background": {
+              "type": "string"
+            },
+            "foreground": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "widgetColorOverrides": {
+      "type": "object",
+      "description": "Per-instance color overrides keyed by instance id.",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "colors": {
+            "type": "object",
+            "description": "Per-widget color overrides. Values are theme palette token names or literal colors (#hex/rgb(a)/hsl(a)).",
+            "properties": {
+              "background": {
+                "type": "string"
+              },
+              "foreground": {
+                "type": "string"
+              },
+              "hover": {
+                "type": "object",
+                "properties": {
+                  "background": {
+                    "type": "string"
+                  },
+                  "foreground": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "active": {
+                "type": "object",
+                "properties": {
+                  "background": {
+                    "type": "string"
+                  },
+                  "foreground": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  }
 }

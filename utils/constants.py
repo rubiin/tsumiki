@@ -645,241 +645,290 @@ DEFAULT_CONFIG = {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "14px",
                     "spacing": "0.125em",
+                    "colors": {}
                 },
                 "bluetooth": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "12px",
                     "spacing": "0.125em",
+                    "colors": {}
                 },
                 "brightness": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "12px",
                     "spacing": "0.25em",
+                    "colors": {}
                 },
                 "cava": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "spacing": "0.125em",
+                    "colors": {}
                 },
                 "cheatsheet": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "12px",
                     "spacing": "0.125em",
+                    "colors": {}
                 },
                 "click_counter": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "14px",
                     "spacing": "0.125em",
+                    "colors": {}
                 },
                 "clipboard": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "12px",
                     "spacing": "0.125em",
+                    "colors": {}
                 },
                 "cloudflare_warp": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "12px",
                     "spacing": "0.125em",
+                    "colors": {}
                 },
                 "cpu": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "12px",
                     "spacing": "0.125em",
+                    "colors": {}
                 },
                 "custom_widget": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "12px",
                     "spacing": "0.125em",
+                    "colors": {},
+                    "overrides": {}
                 },
                 "date_time": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "12px",
                     "spacing": "0.125em",
+                    "colors": {}
                 },
-                "divider": {"margin_x": "0", "margin_y": "1.25em", "size": " 2px"},
+                "divider": {"margin_x": "0", "margin_y": "1.25em", "size": " 2px", "colors": {}},
                 "dns_switcher": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "12px",
                     "spacing": "0.125em",
+                    "colors": {}
                 },
                 "emoji_picker": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "12px",
                     "spacing": "0.125em",
+                    "colors": {}
                 },
                 "gap": "2px",
                 "github_tray": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "12px",
                     "spacing": "0.125em",
+                    "colors": {}
                 },
                 "hypridle": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "14px",
                     "spacing": "0.125em",
+                    "colors": {}
                 },
                 "hyprpicker": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "14px",
                     "spacing": "0.125em",
+                    "colors": {}
                 },
                 "hyprsunset": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "14px",
                     "spacing": "0.125em",
+                    "colors": {}
                 },
                 "ip_monitor": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "14px",
                     "spacing": "0.125em",
+                    "colors": {}
                 },
                 "kanban": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "12px",
                     "spacing": "0.125em",
+                    "colors": {}
                 },
                 "keyboard": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "14px",
                     "spacing": "0.125em",
+                    "colors": {}
                 },
                 "language": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "14px",
                     "spacing": "0.125em",
+                    "colors": {}
                 },
                 "launcher_button": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "12px",
                     "spacing": "0.125em",
+                    "colors": {}
                 },
                 "memory": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "14px",
                     "spacing": "0.125em",
+                    "colors": {}
                 },
                 "microphone": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "14px",
                     "spacing": "0.125em",
+                    "colors": {}
                 },
                 "mpris": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "14px",
                     "spacing": "0.125em",
+                    "colors": {}
                 },
                 "network_usage": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "14px",
                     "spacing": "0.125em",
+                    "colors": {}
                 },
                 "ocr": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "14px",
                     "spacing": "0.125em",
+                    "colors": {}
                 },
                 "overview": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "14px",
                     "spacing": "0.125em",
+                    "colors": {}
                 },
                 "overview_button": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "12px",
                     "spacing": "0.125em",
+                    "colors": {}
                 },
                 "pomodoro": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "12px",
                     "spacing": "0.125em",
+                    "colors": {}
                 },
                 "power": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "14px",
                     "spacing": "0.125em",
+                    "colors": {}
                 },
                 "quick_settings": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "17px",
                     "sliders": {"height": "7px", "knob": True, "knob_height": "8px"},
                     "spacing": "0.125em",
+                    "colors": {}
                 },
                 "radio_player": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "12px",
                     "spacing": "0.125em",
+                    "colors": {}
                 },
                 "recorder": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "14px",
                     "spacing": "0.125em",
+                    "colors": {}
                 },
                 "screenshot": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "14px",
                     "spacing": "0.125em",
+                    "colors": {}
                 },
-                "spacing": {"size": " 20px"},
+                "spacing": {"size": " 20px", "colors": {}},
                 "stopwatch": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "14px",
                     "spacing": "0.125em",
+                    "colors": {}
                 },
                 "storage": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "14px",
                     "spacing": "0.125em",
+                    "colors": {}
                 },
                 "submap": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "14px",
                     "spacing": "0.125em",
+                    "colors": {}
                 },
                 "system_tray": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "spacing": "0.3em",
+                    "colors": {}
                 },
                 "taskbar": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "spacing": "0.125em",
+                    "colors": {}
                 },
                 "theme": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "14px",
                     "spacing": "0.125em",
+                    "colors": {}
                 },
                 "theme_switcher": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "12px",
                     "spacing": "0.125em",
+                    "colors": {}
                 },
                 "updates": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "14px",
                     "spacing": "0.125em",
+                    "colors": {}
                 },
                 "usb_manager": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "14px",
                     "spacing": "0.125em",
+                    "colors": {}
                 },
                 "volume": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "12px",
                     "spacing": "0.125em",
+                    "colors": {}
                 },
                 "weather": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "17px",
                     "spacing": "0.125em",
+                    "colors": {}
                 },
                 "window_count": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "spacing": "0.125em",
+                    "colors": {}
                 },
                 "window_title": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "14px",
                     "spacing": "0.125em",
+                    "colors": {}
                 },
                 "workspaces": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
@@ -891,11 +940,13 @@ DEFAULT_CONFIG = {
                         "width": "0.5em",
                     },
                     "spacing": "0.125em",
+                    "colors": {}
                 },
                 "world_clock": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "12px",
                     "spacing": "0.125em",
+                    "colors": {}
                 },
             },
         },

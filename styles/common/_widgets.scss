@@ -1,4 +1,6 @@
 @use "sass:color";
+@use "sass:map";
+@use "sass:meta";
 @use "mixins";
 @use "../_variable.scss";
 @use "../_theme.scss";
@@ -57,6 +59,56 @@
   @if $icon-size != null {
     @include mixins.nerd-icon($icon-size, $spacing);
   }
+}
+
+// Type-level per-widget color overrides.
+// Source vars: $bar-widgets-<type>-colors-{background,foreground} and nested
+// hover/active variants, emitted into settings as theme.$token refs or literals
+// only when configured. Targets: widget surface (#<type>) for background,
+// text/icon content for foreground. :hover/.active selectors use ID specificity
+// to override .panel-button:hover and .panel-button.active defaults.
+@mixin _emit-widget-color-rule($selector, $bg, $fg) {
+  @if $bg != "" or $fg != "" {
+    #{$selector} {
+      @if $bg != "" {
+        background-color: $bg;
+      }
+      @if $fg != "" {
+        color: $fg;
+      }
+    }
+
+    @if $fg != "" {
+      #{$selector} .panel-text,
+      #{$selector} .panel-font-icon,
+      #{$selector} label,
+      #{$selector} image {
+        color: $fg;
+      }
+    }
+  }
+}
+
+@function _widget-color-var($name, $suffix) {
+  $vars: meta.module-variables("variable");
+  $key: "bar-widgets-#{$name}-#{$suffix}";
+  @if map.has-key($vars, $key) {
+    @return map.get($vars, $key);
+  }
+  @return "";
+}
+
+@mixin widget-colors($name) {
+  $bg: _widget-color-var($name, "colors-background");
+  $fg: _widget-color-var($name, "colors-foreground");
+  $hbg: _widget-color-var($name, "colors-hover-background");
+  $hfg: _widget-color-var($name, "colors-hover-foreground");
+  $abg: _widget-color-var($name, "colors-active-background");
+  $afg: _widget-color-var($name, "colors-active-foreground");
+
+  @include _emit-widget-color-rule("##{$name}", $bg, $fg);
+  @include _emit-widget-color-rule("##{$name}:hover", $hbg, $hfg);
+  @include _emit-widget-color-rule("##{$name}.active", $abg, $afg);
 }
 
 /// Generate widget-shell blocks for simple widgets (border + optional nerd-icon only).
@@ -526,4 +578,64 @@ $widget-shell-widgets: (
       @extend %desktop-widget;
     }
   }
+}
+
+// Apply configured type-level color overrides (no output when unset).
+$widget-color-types: (
+  "battery",
+  "bluetooth",
+  "brightness",
+  "cava",
+  "cheatsheet",
+  "click_counter",
+  "clipboard",
+  "cloudflare_warp",
+  "cpu",
+  "custom_widget",
+  "date_time",
+  "divider",
+  "dns_switcher",
+  "emoji_picker",
+  "github_tray",
+  "hypridle",
+  "hyprpicker",
+  "hyprsunset",
+  "ip_monitor",
+  "kanban",
+  "keyboard",
+  "language",
+  "launcher_button",
+  "memory",
+  "microphone",
+  "mpris",
+  "network_usage",
+  "ocr",
+  "overview",
+  "overview_button",
+  "pomodoro",
+  "power",
+  "quick_settings",
+  "radio_player",
+  "recorder",
+  "screenshot",
+  "spacing",
+  "stopwatch",
+  "storage",
+  "submap",
+  "system_tray",
+  "taskbar",
+  "theme",
+  "theme_switcher",
+  "updates",
+  "usb_manager",
+  "volume",
+  "weather",
+  "window_count",
+  "window_title",
+  "workspaces",
+  "world_clock"
+);
+
+@each $wtype in $widget-color-types {
+  @include widget-colors($wtype);
 }
