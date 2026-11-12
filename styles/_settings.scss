@@ -1,3 +1,4 @@
+@use "theme";
 $bar-border-enabled: true;
 $bar-border-radius: 16px;
 $bar-border-width: 4px;
@@ -279,6 +280,12 @@ $bar-widgets-updates-border-radius: 16px;
 $bar-widgets-updates-border-width: 1px;
 $bar-widgets-updates-icon_size: 14px;
 $bar-widgets-updates-spacing: 0.125em;
+$bar-widgets-updates-colors-active-background: theme.$accent-blue;
+$bar-widgets-updates-colors-active-foreground: theme.$background-dark;
+$bar-widgets-updates-colors-background: #1e66f5;
+$bar-widgets-updates-colors-foreground: theme.$text-main;
+$bar-widgets-updates-colors-hover-background: theme.$surface-highlight;
+$bar-widgets-updates-colors-hover-foreground: theme.$text-main;
 $bar-widgets-usb_manager-border-enabled: false;
 $bar-widgets-usb_manager-border-radius: 16px;
 $bar-widgets-usb_manager-border-width: 1px;

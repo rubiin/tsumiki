@@ -1489,6 +1489,15 @@ width = "1px"
 [styling.bar.widgets.updates]
 icon_size = "14px"
 spacing = "0.125em"
+# [styling.bar.widgets.updates.colors]
+# background = "surface-neutral"   # theme token or literal "#hex"/"rgb(a,...)"
+# foreground = "text-main"
+# [styling.bar.widgets.updates.colors.hover]
+# background = "surface-highlight"
+# foreground = "text-main"
+# [styling.bar.widgets.updates.colors.active]
+# background = "accent-blue"
+# foreground = "background-dark"
 
 [styling.bar.widgets.updates.border]
 enabled = false
