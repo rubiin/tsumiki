@@ -316,6 +316,10 @@
     background-color: theme.$surface-highlight;
     color: theme.$text-main;
   }
+
+  &.busy {
+    opacity: 0.5;
+  }
 }
 
 .github-tray-action-icon {

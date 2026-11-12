@@ -355,6 +355,8 @@ class CurrencyPluginTest(unittest.TestCase):
                 self.currency_module, "_today", return_value="2026-08-12"
             )
         )
+        self.currency_module._DOWNLOAD_COOLDOWN_UNTIL = 0.0
+        self.addCleanup(setattr, self.currency_module, "_DOWNLOAD_COOLDOWN_UNTIL", 0.0)
 
     def _write_cache(self, payload=None):
         payload = payload if payload is not None else self._SAMPLE_RATES
@@ -552,6 +554,55 @@ class CurrencyPluginTest(unittest.TestCase):
         # A shared-pool worker sleeping on the lock starves battery/network/etc.
         self.assertTrue(locked_during_sleep)
         self.assertFalse(any(locked_during_sleep))
+
+    def test_cold_cache_burst_does_not_duplicate_first_download(self):
+        import threading
+
+        backing_off = threading.Event()
+        release = threading.Event()
+        calls = {"n": 0}
+        results: dict = {}
+
+        def fake_download(cancelled=None):
+            calls["n"] += 1
+            if calls["n"] == 1:
+                raise RuntimeError("down")  # first attempt fails on cold cache
+            return "2026-08-12", {"EUR": 1.0, "USD": 1.2}
+
+        def blocking_sleep(_seconds):
+            backing_off.set()
+            release.wait(5)
+
+        def read_rates(key):
+            results[key] = self.load_rates()
+
+        with (
+            unittest.mock.patch.object(
+                self.currency_module, "_download_rates", side_effect=fake_download
+            ),
+            unittest.mock.patch.object(
+                self.currency_module.time, "sleep", side_effect=blocking_sleep
+            ),
+        ):
+            first = threading.Thread(target=read_rates, args=("first",))
+            first.start()
+            self.assertTrue(backing_off.wait(5))
+
+            second = threading.Thread(target=read_rates, args=("second",))
+            second.start()
+            second.join(timeout=0.2)
+            # A burst query must not fire a duplicate request during backoff.
+            self.assertEqual(calls["n"], 1)
+
+            release.set()
+            first.join(timeout=5)
+            second.join(timeout=5)
+
+        self.assertFalse(first.is_alive())
+        self.assertFalse(second.is_alive())
+        self.assertEqual(results["first"]["rates"]["USD"], 1.2)
+        self.assertEqual(results["second"]["rates"]["USD"], 1.2)
+        self.assertEqual(calls["n"], 2)
 
     def test_other_thread_reads_rates_while_retry_backs_off(self):
         import threading

@@ -32,6 +32,8 @@ _MIN_RATES_COUNT = 10
 
 # Keeps concurrent worker threads from downloading the daily file twice.
 _RATES_LOCK = threading.Lock()
+# Suppresses duplicate cold-cache requests while a failed attempt backs off.
+_DOWNLOAD_COOLDOWN_UNTIL = 0.0
 
 #: Common names/symbols → ISO 4217 codes, so "dollar", "$" and "euro" work.
 _COMMON_CURRENCIES = {
@@ -160,29 +162,48 @@ def _write_cache(payload: dict) -> None:
 
 def load_rates(cancelled=None) -> dict:
     """Return daily rates, downloading at most once a day; falls back to a snapshot."""
+    global _DOWNLOAD_COOLDOWN_UNTIL
     for attempt in range(_RETRY_ATTEMPTS):
+        delay = 0.0
         with _RATES_LOCK:
             cached = _read_cache()
             if cached and cached.get("fetched") == _today():
                 return cached
-            try:
-                fx_date, rates = _download_rates(cancelled=cancelled)
-            except _DownloadCancelledError:
-                raise  # superseded — propagate so handle() bails out
-            except Exception as exc:
-                if attempt < _RETRY_ATTEMPTS - 1 and not _is_client_error(exc):
-                    pass  # fall through to the unlocked backoff below
-                elif cached:  # network hiccup — use the last snapshot
+
+            now = time.monotonic()
+            if now < _DOWNLOAD_COOLDOWN_UNTIL:
+                # A cold-cache attempt recently failed; don't duplicate the request.
+                if cached:
                     return cached
+                delay = max(delay, _DOWNLOAD_COOLDOWN_UNTIL - now)
+
+            if delay == 0.0:
+                try:
+                    fx_date, rates = _download_rates(cancelled=cancelled)
+                except _DownloadCancelledError:
+                    raise  # superseded — propagate so handle() bails out
+                except Exception as exc:
+                    retryable = (
+                        attempt < _RETRY_ATTEMPTS - 1 and not _is_client_error(exc)
+                    )
+                    if retryable:
+                        if not cached:
+                            _DOWNLOAD_COOLDOWN_UNTIL = (
+                                time.monotonic() + _RETRY_DELAY_SECONDS
+                            )
+                        delay = _RETRY_DELAY_SECONDS
+                    elif cached:  # network hiccup — use the last snapshot
+                        return cached
+                    else:
+                        raise
                 else:
-                    raise
-            else:
-                payload = {"date": fx_date, "fetched": _today(), "rates": rates}
-                _write_cache(payload)
-                return payload
+                    payload = {"date": fx_date, "fetched": _today(), "rates": rates}
+                    _write_cache(payload)
+                    return payload
         # Backoff runs unlocked: the shared worker pool must stay free, and other
         # queries may refresh the cache (or serve the stale snapshot) meanwhile.
-        time.sleep(_RETRY_DELAY_SECONDS)
+        if delay > 0:
+            time.sleep(delay)
     raise RuntimeError("unreachable")  # pragma: no cover - loop returns or raises
 
 
