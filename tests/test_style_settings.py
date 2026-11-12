@@ -122,6 +122,31 @@ class StyleServiceThemeMapAndSettingsTest(unittest.TestCase):
         self.assertIn("clock", logs)
         self.assertIn("not a color", logs)
 
+    def test_write_settings_css_strips_bar_widget_colors_when_monochrome(self):
+        service = self._make_service()
+        service._config["styling"]["bar"]["monochrome"] = True
+        service._config["styling"]["bar"]["widgets"]["custom_widget"] = {
+            "icon_size": "12px",
+            "colors": {"background": "#fff", "foreground": "#000"},
+            "overrides": {
+                "volume": {
+                    "colors": {
+                        "background": "accent-blue",
+                        "hover": {"foreground": "#eee"},
+                    }
+                }
+            },
+        }
+        service.write_settings_css()
+        settings_path = os.path.join(service._styles_dir, "_settings.scss")
+        with open(settings_path, encoding="utf-8") as f:
+            content = f.read()
+        self.assertIn("$bar-monochrome: true;", content)
+        self.assertIn("$bar-widgets-custom_widget-icon_size: 12px;", content)
+        self.assertNotIn("$bar-widgets-clock-colors-", content)
+        self.assertNotIn("$bar-widgets-custom_widget-colors-", content)
+        self.assertNotIn("$bar-widgets-custom_widget-overrides-volume-colors-", content)
+
 
 if __name__ == "__main__":
     unittest.main()

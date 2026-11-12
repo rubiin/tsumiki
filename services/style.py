@@ -414,6 +414,8 @@ class StyleService(SingletonService):
         styling = copy.deepcopy(
             exclude_keys(self._config.get("styling", {}), ["matugen"])
         )
+        if styling.get("bar", {}).get("monochrome", False):
+            self._strip_bar_widget_colors(styling)
         theme_tokens = set(self.get_theme_color_map().keys())
         self._transform_color_settings(styling, theme_tokens=theme_tokens)
         self.write_css_file(
@@ -421,6 +423,25 @@ class StyleService(SingletonService):
             f"{self._styles_dir}/_settings.scss",
             header='@use "theme";',
         )
+
+    @staticmethod
+    def _strip_bar_widget_colors(styling: dict) -> None:
+        """Remove per-widget bar color overrides when monochrome is enabled."""
+        bar = styling.get("bar")
+        if not isinstance(bar, dict):
+            return
+        widgets = bar.get("widgets")
+        if not isinstance(widgets, dict):
+            return
+        for widget_cfg in widgets.values():
+            if not isinstance(widget_cfg, dict):
+                continue
+            widget_cfg.pop("colors", None)
+            overrides = widget_cfg.get("overrides")
+            if isinstance(overrides, dict):
+                for override_cfg in overrides.values():
+                    if isinstance(override_cfg, dict):
+                        override_cfg.pop("colors", None)
 
     def _transform_color_settings(
         self,

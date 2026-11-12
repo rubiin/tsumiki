@@ -751,6 +751,9 @@ disconnected_icon = ""
 # styling.bar.widgets.<type>.overrides."<id>".colors.
 # Values: theme palette token names or literal colors (#hex/rgb(a)/hsl(a)).
 #
+# [styling.bar]
+# monochrome = false  # If true, all bar widgets use the same panel/button colors.
+#
 # [styling.bar.widgets.battery.colors]
 # background = "surface-neutral"   # theme token
 # foreground = "text-main"

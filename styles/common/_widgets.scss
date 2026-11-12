@@ -98,17 +98,27 @@
   @return "";
 }
 
-@mixin widget-colors($name) {
-  $bg: _widget-color-var($name, "colors-background");
-  $fg: _widget-color-var($name, "colors-foreground");
-  $hbg: _widget-color-var($name, "colors-hover-background");
-  $hfg: _widget-color-var($name, "colors-hover-foreground");
-  $abg: _widget-color-var($name, "colors-active-background");
-  $afg: _widget-color-var($name, "colors-active-foreground");
+@function _bar-monochrome-enabled() {
+  $vars: meta.module-variables("variable");
+  @if map.has-key($vars, "bar-monochrome") {
+    @return map.get($vars, "bar-monochrome");
+  }
+  @return false;
+}
 
-  @include _emit-widget-color-rule("##{$name}", $bg, $fg);
-  @include _emit-widget-color-rule("##{$name}:hover", $hbg, $hfg);
-  @include _emit-widget-color-rule("##{$name}.active", $abg, $afg);
+@mixin widget-colors($name) {
+  @if not _bar-monochrome-enabled() {
+    $bg: _widget-color-var($name, "colors-background");
+    $fg: _widget-color-var($name, "colors-foreground");
+    $hbg: _widget-color-var($name, "colors-hover-background");
+    $hfg: _widget-color-var($name, "colors-hover-foreground");
+    $abg: _widget-color-var($name, "colors-active-background");
+    $afg: _widget-color-var($name, "colors-active-foreground");
+
+    @include _emit-widget-color-rule("##{$name}", $bg, $fg);
+    @include _emit-widget-color-rule("##{$name}:hover", $hbg, $hfg);
+    @include _emit-widget-color-rule("##{$name}.active", $abg, $afg);
+  }
 }
 
 /// Generate widget-shell blocks for simple widgets (border + optional nerd-icon only).

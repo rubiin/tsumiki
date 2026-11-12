@@ -3390,6 +3390,11 @@
         "bar": {
           "type": "object",
           "properties": {
+            "monochrome": {
+              "type": "boolean",
+              "description": "If true, all bar widgets use the same background and foreground colors instead of per-widget colors.",
+              "default": false
+            },
             "widgets": {
               "type": "object",
               "description": "Per-widget styling for bar widgets.",

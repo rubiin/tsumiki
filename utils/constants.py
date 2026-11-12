@@ -572,6 +572,7 @@ DEFAULT_CONFIG = {
     },
     "styling": {
         "bar": {
+            "monochrome": False,
             "border": {"enabled": True, "radius": "16px", "width": "4px"},
             "buttons": {
                 "hover_opacity": 90,

@@ -381,6 +381,9 @@ class BaseWidget(Widget, TeardownMixin):
             from utils.config import tsumiki_config
 
             styling = tsumiki_config.get("styling", {})
+            if styling.get("bar", {}).get("monochrome", False):
+                self._remove_instance_color_provider()
+                return
             merged = resolve_widget_instance_colors(
                 widget_type, instance_id, styling, warn=True
             )
