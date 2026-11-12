@@ -7,6 +7,7 @@ import json
 import os
 from concurrent.futures import Future
 from datetime import datetime, timezone
+from urllib.parse import urlparse
 
 from utils.decorators import thread
 from utils.functions import ensure_directory, read_json_file, write_json_file
@@ -321,14 +322,22 @@ def web_notification_url(item: dict, web_base: str) -> str:
     subject_url = str(subject.get("url") or "")
     repo = item.get("repository") or {}
     if subject_url:
-        if "/api/v3/" in subject_url or "api.github.com/" in subject_url:
-            api_part = (
-                subject_url.split("/api/v3/", 1)[1]
-                if "/api/v3/" in subject_url
-                else subject_url.split("api.github.com/", 1)[1]
-            )
-            if api_part.startswith("repos/"):
-                subject_url = web_base + "/" + api_part[len("repos/") :]
+        parsed = urlparse(subject_url)
+        path = parsed.path or ""
+        api_part = ""
+
+        if parsed.hostname == "api.github.com" and path.startswith("/repos/"):
+            api_part = path[len("/repos/") :]
+        elif path.startswith("/api/v3/repos/"):
+            api_part = path[len("/api/v3/repos/") :]
+        elif subject_url.startswith("api/v3/repos/"):
+            api_part = subject_url[len("api/v3/repos/") :]
+        elif subject_url.startswith("repos/"):
+            api_part = subject_url[len("repos/") :]
+
+        if api_part:
+            subject_url = web_base + "/" + api_part
+
         if str(subject.get("type") or "").startswith("PullRequest"):
             subject_url = subject_url.replace("/pulls/", "/pull/").replace(
                 "/issues/", "/pull/"
