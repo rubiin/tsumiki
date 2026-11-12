@@ -381,6 +381,54 @@ def get_widget_instance_selector(
     return f"#{base}.instance-{safe_id}"
 
 
+def _clean_colors_only(
+    colors: Any,
+    theme_tokens: set[str] | None = None,
+    warn_context: Mapping[str, Any] | None = None,
+) -> dict:
+    """Return only valid color fields/states from *colors* (no merging)."""
+    if not isinstance(colors, dict):
+        return {}
+    cleaned: dict[str, Any] = {}
+
+    for field in _COLOR_FIELDS:
+        value = _clean_field(
+            colors.get(field),
+            theme_tokens=theme_tokens,
+            warn_context=(
+                {**(warn_context or {}), "field": field} if warn_context else None
+            ),
+        )
+        if value is not None:
+            cleaned[field] = value
+
+    for state in _COLOR_STATES:
+        state_val = colors.get(state)
+        if not isinstance(state_val, dict):
+            if state in colors and not _is_unset_color_value(state_val):
+                _log_invalid_color(
+                    state_val,
+                    {**(warn_context or {}), "state": state} if warn_context else None,
+                )
+            continue
+        state_ctx = {**(warn_context or {}), "state": state} if warn_context else None
+        state_cleaned: dict[str, str] = {}
+        for field in _COLOR_FIELDS:
+            value = _clean_field(
+                state_val.get(field),
+                theme_tokens=theme_tokens,
+                warn_context=(
+                    {**state_ctx, "field": field} if state_ctx else None
+                ),
+            )
+            if value is not None:
+                state_cleaned[field] = value
+        if state_cleaned:
+            cleaned[state] = state_cleaned
+
+    return cleaned
+
+
 def resolve_widget_instance_colors(
     widget_type: str,
     instance_id: str | None,
@@ -389,11 +437,13 @@ def resolve_widget_instance_colors(
     *,
     warn: bool = False,
 ) -> dict:
-    """Return merged effective colors for a specific instance override.
+    """Return effective per-instance runtime color overrides.
 
-    Returns an empty dict when there is no instance-specific override block, so
-    callers can skip creating a runtime provider (type-level styling comes from
-    SCSS). Token values are preserved for later theme re-resolution.
+    Returns only the valid fields defined in the instance's override block (not
+    merged with type-level colors) so type-level SCSS remains the source for
+    inherited fields. Returns an empty dict when no instance-specific override
+    exists or when no valid override fields remain, so callers can skip creating
+    a runtime provider. Token values are preserved for later theme re-resolution.
     """
     if not widget_type or not isinstance(styling_config, dict):
         return {}
@@ -407,7 +457,6 @@ def resolve_widget_instance_colors(
     if not isinstance(type_cfg, dict):
         return {}
 
-    type_colors = type_cfg.get("colors")
     overrides = type_cfg.get("overrides", {})
     if (
         not instance_id
@@ -423,9 +472,9 @@ def resolve_widget_instance_colors(
     warn_context = (
         {"widget_type": widget_type, "instance_id": instance_id} if warn else None
     )
-    # Only produce a runtime override when an instance override is actually present.
-    return merge_widget_colors(
-        type_colors if isinstance(type_colors, dict) else {},
+    # Runtime provider should only emit instance-defined overrides; type-level
+    # fields stay in SCSS to avoid pinning/diverging semantics.
+    return _clean_colors_only(
         instance_colors if isinstance(instance_colors, dict) else {},
         theme_tokens=theme_tokens,
         warn_context=warn_context,

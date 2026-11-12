@@ -22,7 +22,7 @@ class WidgetInstanceColorLookupTest(unittest.TestCase):
         merged = resolve_widget_instance_colors("battery", "bat-1", styling)
         self.assertEqual(merged, {})
 
-    def test_instance_id_match_merges_per_field(self):
+    def test_instance_id_match_returns_only_instance_override_fields(self):
         styling = {
             "bar": {
                 "widgets": {
@@ -45,10 +45,11 @@ class WidgetInstanceColorLookupTest(unittest.TestCase):
             }
         }
         merged = resolve_widget_instance_colors("custom_widget", "volume", styling)
-        self.assertEqual(merged["background"], "#111")
+        # Only instance-defined fields are emitted at runtime; type-level fields
+        # remain in SCSS so they are not pinned by the runtime provider.
+        self.assertNotIn("background", merged)
         self.assertEqual(merged["foreground"], "#fff")
-        self.assertEqual(merged["hover"]["background"], "accent-blue")
-        self.assertEqual(merged["hover"]["foreground"], "#ddd")
+        self.assertEqual(merged["hover"], {"background": "accent-blue"})
 
     def test_unknown_instance_id_returns_no_override(self):
         styling = {
@@ -81,7 +82,9 @@ class WidgetInstanceColorLookupTest(unittest.TestCase):
             }
         }
         merged = resolve_widget_instance_colors("memory", "main", styling)
-        self.assertEqual(merged["background"], "surface")
+        # Instance runtime override includes only instance-defined fields; token
+        # values are preserved for later theme re-resolution.
+        self.assertNotIn("background", merged)
         self.assertEqual(merged["foreground"], "accent-blue")
         self.assertEqual(merged["hover"]["background"], "surface-bright")
 
@@ -107,7 +110,9 @@ class WidgetInstanceColorLookupTest(unittest.TestCase):
             merged = resolve_widget_instance_colors(
                 "custom_widget", "vol", styling, warn=True
             )
-        self.assertEqual(merged, {"foreground": "#eee"})
+        # All instance-defined fields invalid => no runtime override emitted; type
+        # fields remain governed by SCSS (not returned here).
+        self.assertEqual(merged, {})
         self.assertTrue(warn.called)
         messages = " ".join(str(call.args[0]) for call in warn.call_args_list)
         self.assertIn("custom_widget", messages)
