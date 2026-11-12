@@ -94,7 +94,10 @@
             },
             "default_tab": {
               "type": "string",
-              "enum": ["inbox", "repos"],
+              "enum": [
+                "inbox",
+                "repos"
+              ],
               "default": "inbox",
               "description": "Tab shown first when the popup opens."
             },
@@ -107,13 +110,22 @@
             },
             "sort_by": {
               "type": "string",
-              "enum": ["updated", "pushed", "created", "stars", "name"],
+              "enum": [
+                "updated",
+                "pushed",
+                "created",
+                "stars",
+                "name"
+              ],
               "default": "updated",
               "description": "Sort key for the repositories tab."
             },
             "sort_order": {
               "type": "string",
-              "enum": ["desc", "asc"],
+              "enum": [
+                "desc",
+                "asc"
+              ],
               "default": "desc",
               "description": "Sort direction for the repositories tab."
             },
@@ -373,7 +385,10 @@
               "description": "Format string for the panel label. Available No fields."
             }
           },
-          "required": ["tooltip", "label_format"]
+          "required": [
+            "tooltip",
+            "label_format"
+          ]
         },
         "usb_manager": {
           "type": "object",
@@ -389,7 +404,10 @@
               "description": "Show tooltip with detected USB drive count."
             }
           },
-          "required": ["label_format", "tooltip"]
+          "required": [
+            "label_format",
+            "tooltip"
+          ]
         },
         "breathe": {
           "type": "object",
@@ -405,7 +423,10 @@
               "description": "Format string for the panel label. Available No fields."
             }
           },
-          "required": ["tooltip", "label_format"]
+          "required": [
+            "tooltip",
+            "label_format"
+          ]
         },
         "power": {
           "type": "object",
@@ -496,10 +517,23 @@
                   "default": "loginctl terminate-user $USER"
                 }
               },
-              "required": ["shutdown", "reboot", "hibernate", "suspend", "lock", "logout"]
+              "required": [
+                "shutdown",
+                "reboot",
+                "hibernate",
+                "suspend",
+                "lock",
+                "logout"
+              ]
             }
           },
-          "required": ["tooltip", "items_per_row", "icon_size", "label_format", "buttons"]
+          "required": [
+            "tooltip",
+            "items_per_row",
+            "icon_size",
+            "label_format",
+            "buttons"
+          ]
         },
         "recorder": {
           "type": "object",
@@ -530,7 +564,13 @@
               "description": "The timeout duration for delayed recording."
             }
           },
-          "required": ["path", "audio", "tooltip", "delayed", "delayed_timeout"]
+          "required": [
+            "path",
+            "audio",
+            "tooltip",
+            "delayed",
+            "delayed_timeout"
+          ]
         },
         "screenshot": {
           "type": "object",
@@ -697,7 +737,11 @@
                   "description": "Determines whether to show the distribution icon."
                 }
               },
-              "required": ["avatar", "name", "distro_icon"]
+              "required": [
+                "avatar",
+                "name",
+                "distro_icon"
+              ]
             },
             "controls": {
               "type": "object",
@@ -707,11 +751,16 @@
                   "items": {
                     "type": "string"
                   },
-                  "default": ["brightness", "volume"],
+                  "default": [
+                    "brightness",
+                    "volume"
+                  ],
                   "description": "The list of sliders to display in the quick settings."
                 }
               },
-              "required": ["sliders"]
+              "required": [
+                "sliders"
+              ]
             },
             "media": {
               "type": "object",
@@ -808,7 +857,13 @@
                         "description": "The size of the icon for the shortcut."
                       }
                     },
-                    "required": ["icon", "label", "command", "tooltip", "icon_size"]
+                    "required": [
+                      "icon",
+                      "label",
+                      "command",
+                      "tooltip",
+                      "icon_size"
+                    ]
                   },
                   "default": [
                     {
@@ -842,10 +897,20 @@
                   ]
                 }
               },
-              "required": ["enabled", "items"]
+              "required": [
+                "enabled",
+                "items"
+              ]
             }
           },
-          "required": ["hover_reveal", "toggles", "user", "controls", "media", "shortcuts"]
+          "required": [
+            "hover_reveal",
+            "toggles",
+            "user",
+            "controls",
+            "media",
+            "shortcuts"
+          ]
         },
         "stopwatch": {
           "type": "object",
@@ -861,7 +926,10 @@
               "description": "The icon displayed when the stopwatch is running."
             }
           },
-          "required": ["stopped_icon", "running_icon"]
+          "required": [
+            "stopped_icon",
+            "running_icon"
+          ]
         },
         "storage": {
           "type": "object",
@@ -878,7 +946,11 @@
             },
             "mode": {
               "type": "string",
-              "enum": ["label", "graph", "circular"],
+              "enum": [
+                "label",
+                "graph",
+                "circular"
+              ],
               "description": "Specifies the mode of the widget.",
               "default": "circular"
             },
@@ -898,7 +970,14 @@
               "description": "The unit of measurement for the storage device."
             }
           },
-          "required": ["path", "label_format", "mode", "tooltip", "graph_length", "unit"]
+          "required": [
+            "path",
+            "label_format",
+            "mode",
+            "tooltip",
+            "graph_length",
+            "unit"
+          ]
         },
         "system_tray": {
           "type": "object",
@@ -931,7 +1010,12 @@
               "description": "Determines whether to show the tooltip for the system tray icons."
             }
           },
-          "required": ["icon_size", "ignored", "hidden", "hide_when_empty"]
+          "required": [
+            "icon_size",
+            "ignored",
+            "hidden",
+            "hide_when_empty"
+          ]
         },
         "taskbar": {
           "type": "object",
@@ -958,7 +1042,11 @@
               "description": "When true, only show applications that are on the current workspace."
             }
           },
-          "required": ["icon_size", "ignored", "tooltip"]
+          "required": [
+            "icon_size",
+            "ignored",
+            "tooltip"
+          ]
         },
         "theme_switcher": {
           "type": "object",
@@ -974,7 +1062,10 @@
               "description": "Determines whether to show notifications for theme changes."
             }
           },
-          "required": ["label_format", "notify"]
+          "required": [
+            "label_format",
+            "notify"
+          ]
         },
         "updates": {
           "type": "object",
@@ -1080,7 +1171,10 @@
               "description": "The step size for volume adjustments."
             }
           },
-          "required": ["tooltip", "step_size"]
+          "required": [
+            "tooltip",
+            "step_size"
+          ]
         },
         "hyprpicker": {
           "type": "object",
@@ -1101,7 +1195,11 @@
               "description": "Determines whether to run the Hyprpicker in quiet mode, suppressing notifications."
             }
           },
-          "required": ["tooltip", "label_format", "quiet"]
+          "required": [
+            "tooltip",
+            "label_format",
+            "quiet"
+          ]
         },
         "weather": {
           "type": "object",
@@ -1153,7 +1251,10 @@
             },
             "provider": {
               "type": "string",
-              "enum": ["open-meteo", "wttr"],
+              "enum": [
+                "open-meteo",
+                "wttr"
+              ],
               "default": "open-meteo",
               "description": "The weather API provider to use."
             }
@@ -1209,7 +1310,10 @@
               "type": "string",
               "default": "class",
               "description": "Fallback title for the window.",
-              "enum": ["class", "title"]
+              "enum": [
+                "class",
+                "title"
+              ]
             },
             "fallback_icon": {
               "type": "string",
@@ -1217,7 +1321,13 @@
               "description": "Glyph prefixed to the fallback title when no title_map rule matches. Empty drops the glyph."
             }
           },
-          "required": ["icon", "tooltip", "truncation", "truncation_size", "title_map"]
+          "required": [
+            "icon",
+            "tooltip",
+            "truncation",
+            "truncation_size",
+            "title_map"
+          ]
         },
         "workspaces": {
           "type": "object",
@@ -1258,7 +1368,9 @@
               "items": {
                 "type": "number"
               },
-              "default": [-99],
+              "default": [
+                -99
+              ],
               "description": "List of workspace IDs to ignore."
             },
             "reverse_scroll": {
@@ -1312,7 +1424,10 @@
               "description": "Show a tooltip with Bluetooth connection details."
             }
           },
-          "required": ["label_format", "tooltip"]
+          "required": [
+            "label_format",
+            "tooltip"
+          ]
         },
         "brightness": {
           "type": "object",
@@ -1328,7 +1443,10 @@
               "description": "Step size percentage for brightness adjustments."
             }
           },
-          "required": ["tooltip", "step_size"]
+          "required": [
+            "tooltip",
+            "step_size"
+          ]
         },
         "cava": {
           "type": "object",
@@ -1344,7 +1462,10 @@
               "description": "Color of the CAVA visualizer bars."
             }
           },
-          "required": ["bars", "color"]
+          "required": [
+            "bars",
+            "color"
+          ]
         },
         "click_counter": {
           "type": "object",
@@ -1355,7 +1476,9 @@
               "description": "The current value of the click counter."
             }
           },
-          "required": ["count"]
+          "required": [
+            "count"
+          ]
         },
         "cpu": {
           "type": "object",
@@ -1367,7 +1490,11 @@
             },
             "mode": {
               "type": "string",
-              "enum": ["label", "graph", "circular"],
+              "enum": [
+                "label",
+                "graph",
+                "circular"
+              ],
               "description": "Specifies the mode of the widget.",
               "default": "circular"
             },
@@ -1422,7 +1549,11 @@
             },
             "mode": {
               "type": "string",
-              "enum": ["label", "graph", "circular"],
+              "enum": [
+                "label",
+                "graph",
+                "circular"
+              ],
               "description": "Specifies the mode of the widget.",
               "default": "circular"
             },
@@ -1432,7 +1563,12 @@
               "description": "Number of points in GPU usage graph."
             }
           },
-          "required": ["label_format", "tooltip", "mode", "graph_length"]
+          "required": [
+            "label_format",
+            "tooltip",
+            "mode",
+            "graph_length"
+          ]
         },
         "date_time": {
           "type": "object",
@@ -1486,10 +1622,20 @@
                   "description": "Group notification history by app in the date menu. When false, notifications are shown as a flat list."
                 }
               },
-              "required": ["enabled", "count", "hide_count_on_zero", "notification_grouping"]
+              "required": [
+                "enabled",
+                "count",
+                "hide_count_on_zero",
+                "notification_grouping"
+              ]
             }
           },
-          "required": ["date_format", "calendar", "clock_format", "notification"]
+          "required": [
+            "date_format",
+            "calendar",
+            "clock_format",
+            "notification"
+          ]
         },
         "hypridle": {
           "type": "object",
@@ -1515,7 +1661,12 @@
               "description": "Show tooltip with idle mode details."
             }
           },
-          "required": ["enabled_icon", "disabled_icon", "label_format", "tooltip"]
+          "required": [
+            "enabled_icon",
+            "disabled_icon",
+            "label_format",
+            "tooltip"
+          ]
         },
         "hyprsunset": {
           "type": "object",
@@ -1546,7 +1697,13 @@
               "description": "Show tooltip with sunset mode details."
             }
           },
-          "required": ["temperature", "enabled_icon", "disabled_icon", "label_format", "tooltip"]
+          "required": [
+            "temperature",
+            "enabled_icon",
+            "disabled_icon",
+            "label_format",
+            "tooltip"
+          ]
         },
         "keyboard": {
           "type": "object",
@@ -1562,7 +1719,10 @@
               "description": "Format string for the panel label. Available Fields: {layout}."
             }
           },
-          "required": ["tooltip", "label_format"]
+          "required": [
+            "tooltip",
+            "label_format"
+          ]
         },
         "window_count": {
           "type": "object",
@@ -1581,7 +1741,11 @@
               "default": true
             }
           },
-          "required": ["label_format", "tooltip", "hide_when_zero"]
+          "required": [
+            "label_format",
+            "tooltip",
+            "hide_when_zero"
+          ]
         },
         "language": {
           "type": "object",
@@ -1600,7 +1764,11 @@
               "description": "Format string for the panel label. Available Fields: {language}."
             }
           },
-          "required": ["truncation_size", "tooltip", "label_format"]
+          "required": [
+            "truncation_size",
+            "tooltip",
+            "label_format"
+          ]
         },
         "memory": {
           "type": "object",
@@ -1612,7 +1780,11 @@
             },
             "mode": {
               "type": "string",
-              "enum": ["label", "graph", "circular"],
+              "enum": [
+                "label",
+                "graph",
+                "circular"
+              ],
               "description": "Specifies the mode of the widget.",
               "default": "circular"
             },
@@ -1629,7 +1801,13 @@
               "default": "gb"
             }
           },
-          "required": ["label_format", "mode", "tooltip", "graph_length", "unit"]
+          "required": [
+            "label_format",
+            "mode",
+            "tooltip",
+            "graph_length",
+            "unit"
+          ]
         },
         "clipboard": {
           "type": "object",
@@ -1656,7 +1834,10 @@
               "default": true
             }
           },
-          "required": ["label_format", "tooltip"]
+          "required": [
+            "label_format",
+            "tooltip"
+          ]
         },
         "cheatsheet": {
           "type": "object",
@@ -1671,7 +1852,10 @@
               "default": true
             }
           },
-          "required": ["label_format", "tooltip"]
+          "required": [
+            "label_format",
+            "tooltip"
+          ]
         },
         "pomodoro": {
           "type": "object",
@@ -1686,7 +1870,10 @@
               "default": true
             }
           },
-          "required": ["label_format", "tooltip"]
+          "required": [
+            "label_format",
+            "tooltip"
+          ]
         },
         "kanban": {
           "type": "object",
@@ -1701,7 +1888,10 @@
               "default": true
             }
           },
-          "required": ["label_format", "tooltip"]
+          "required": [
+            "label_format",
+            "tooltip"
+          ]
         },
         "emoji_picker": {
           "type": "object",
@@ -1727,7 +1917,12 @@
               "description": "The number of emoji to display per column."
             }
           },
-          "required": ["label_format", "tooltip", "per_row", "per_column"]
+          "required": [
+            "label_format",
+            "tooltip",
+            "per_row",
+            "per_column"
+          ]
         },
         "submap": {
           "type": "object",
@@ -1748,7 +1943,10 @@
               "description": "Format string for the panel label. Available Fields: {submap}."
             }
           },
-          "required": ["tooltip", "label_format"]
+          "required": [
+            "tooltip",
+            "label_format"
+          ]
         },
         "microphone": {
           "type": "object",
@@ -1764,7 +1962,10 @@
               "description": "Format string for the panel label. Available Fields: {state}."
             }
           },
-          "required": ["tooltip", "label_format"]
+          "required": [
+            "tooltip",
+            "label_format"
+          ]
         },
         "ocr": {
           "type": "object",
@@ -1785,7 +1986,11 @@
               "description": "Whether to enable quiet mode for the OCR."
             }
           },
-          "required": ["tooltip", "label_format", "quiet"]
+          "required": [
+            "tooltip",
+            "label_format",
+            "quiet"
+          ]
         },
         "mpris": {
           "type": "object",
@@ -1846,10 +2051,17 @@
               "items": {
                 "type": "string"
               },
-              "default": ["America/New_York", "Asia/Tokyo"]
+              "default": [
+                "America/New_York",
+                "Asia/Tokyo"
+              ]
             }
           },
-          "required": ["label_format", "use_24hr", "timezones"]
+          "required": [
+            "label_format",
+            "use_24hr",
+            "timezones"
+          ]
         },
         "custom_widget": {
           "type": "array",
@@ -1887,7 +2099,10 @@
               },
               "return_type": {
                 "type": "string",
-                "enum": ["plain", "json"],
+                "enum": [
+                  "plain",
+                  "json"
+                ],
                 "default": "plain",
                 "description": "Output format: empty for plain text, 'json' for Waybar JSON protocol"
               },
@@ -1982,7 +2197,10 @@
               "description": "Determines whether to show the tooltip."
             }
           },
-          "required": ["label_format", "tooltip"]
+          "required": [
+            "label_format",
+            "tooltip"
+          ]
         },
         "settings": {
           "type": "object",
@@ -1998,7 +2216,10 @@
               "description": "Determines whether to show the tooltip."
             }
           },
-          "required": ["label_format", "tooltip"]
+          "required": [
+            "label_format",
+            "tooltip"
+          ]
         }
       }
     },
@@ -2090,7 +2311,10 @@
               }
             ]
           },
-          "default": ["workspaces", "window_title"],
+          "default": [
+            "workspaces",
+            "window_title"
+          ],
           "description": "Widgets on the left section."
         },
         "middle_section": {
@@ -2178,7 +2402,9 @@
               }
             ]
           },
-          "default": ["date_time"],
+          "default": [
+            "date_time"
+          ],
           "description": "Widgets on the middle section."
         },
         "right_section": {
@@ -2266,11 +2492,17 @@
               }
             ]
           },
-          "default": ["system_tray"],
+          "default": [
+            "system_tray"
+          ],
           "description": "Widgets on the right section."
         }
       },
-      "required": ["left_section", "middle_section", "right_section"]
+      "required": [
+        "left_section",
+        "middle_section",
+        "right_section"
+      ]
     },
     "widget_groups": {
       "type": "array",
@@ -2394,7 +2626,11 @@
             "description": "Nerd Font icon shown when hover_reveal is enabled and the group is collapsed."
           }
         },
-        "required": ["widgets", "spacing", "style_classes"],
+        "required": [
+          "widgets",
+          "spacing",
+          "style_classes"
+        ],
         "additionalProperties": false
       }
     },
@@ -2509,7 +2745,12 @@
             }
           }
         },
-        "required": ["widgets", "spacing", "tooltip", "style_classes"]
+        "required": [
+          "widgets",
+          "spacing",
+          "tooltip",
+          "style_classes"
+        ]
       }
     },
     "modules": {
@@ -2525,7 +2766,10 @@
             },
             "location": {
               "type": "string",
-              "enum": ["top", "bottom"],
+              "enum": [
+                "top",
+                "bottom"
+              ],
               "description": "Specifies the location of the bar.",
               "default": "top"
             },
@@ -2589,7 +2833,14 @@
             },
             "transition_type": {
               "type": "string",
-              "enum": ["crossfade", "slide-left", "slide-right", "slide-up", "slide-down", "none"],
+              "enum": [
+                "crossfade",
+                "slide-left",
+                "slide-right",
+                "slide-up",
+                "slide-down",
+                "none"
+              ],
               "description": "Specifies the type of transition effect for notifications.",
               "default": "crossfade"
             },
@@ -2611,7 +2862,12 @@
             },
             "layer": {
               "type": "string",
-              "enum": ["top", "overlay", "bottom", "background"],
+              "enum": [
+                "top",
+                "overlay",
+                "bottom",
+                "background"
+              ],
               "description": "Layer on which the cheatsheet overlay is displayed.",
               "default": "overlay"
             },
@@ -2682,7 +2938,9 @@
                 "type": "string"
               },
               "description": "Key names rendered with the accent style, matched case-insensitively.",
-              "default": ["super"]
+              "default": [
+                "super"
+              ]
             },
             "sections": {
               "type": "array",
@@ -2704,7 +2962,10 @@
                       "type": "object",
                       "properties": {
                         "keys": {
-                          "type": ["array", "string"],
+                          "type": [
+                            "array",
+                            "string"
+                          ],
                           "items": {
                             "type": "string"
                           },
@@ -2715,16 +2976,27 @@
                           "description": "Text shown next to the key badges."
                         }
                       },
-                      "required": ["description"]
+                      "required": [
+                        "description"
+                      ]
                     }
                   }
                 },
-                "required": ["rows"]
+                "required": [
+                  "rows"
+                ]
               }
             },
             "transition_type": {
               "type": "string",
-              "enum": ["crossfade", "slide-left", "slide-right", "slide-up", "slide-down", "none"],
+              "enum": [
+                "crossfade",
+                "slide-left",
+                "slide-right",
+                "slide-up",
+                "slide-down",
+                "none"
+              ],
               "description": "Specifies the type of transition effect for the cheatsheet overlay.",
               "default": "crossfade"
             },
@@ -2746,7 +3018,10 @@
             },
             "behavior": {
               "type": "string",
-              "enum": ["always_show", "intellihide"],
+              "enum": [
+                "always_show",
+                "intellihide"
+              ],
               "description": "Specifies the behavior of the dock.",
               "default": "intellihide"
             },
@@ -2785,13 +3060,19 @@
             },
             "orientation": {
               "type": "string",
-              "enum": ["horizontal", "vertical"],
+              "enum": [
+                "horizontal",
+                "vertical"
+              ],
               "default": "horizontal",
               "description": "Specifies the orientation of the dock."
             },
             "launcher_position": {
               "type": "string",
-              "enum": ["first", "last"],
+              "enum": [
+                "first",
+                "last"
+              ],
               "default": "first",
               "description": "Position of the app launcher in the dock (first = first position)"
             },
@@ -2807,7 +3088,12 @@
             },
             "layer": {
               "type": "string",
-              "enum": ["top", "overlay", "bottom", "background"],
+              "enum": [
+                "top",
+                "overlay",
+                "bottom",
+                "background"
+              ],
               "description": "Layer on which the bar is displayed.",
               "default": "top"
             }
@@ -2823,7 +3109,12 @@
             },
             "layer": {
               "type": "string",
-              "enum": ["background", "bottom", "top", "overlay"],
+              "enum": [
+                "background",
+                "bottom",
+                "top",
+                "overlay"
+              ],
               "description": "Determines the layer of the desktop clock.",
               "default": "bottom"
             },
@@ -2856,7 +3147,10 @@
             },
             "type": {
               "type": "string",
-              "enum": ["default", "cookie"],
+              "enum": [
+                "default",
+                "cookie"
+              ],
               "description": "Selects the desktop clock style.",
               "default": "default"
             },
@@ -2872,31 +3166,56 @@
             },
             "cookie_dial_style": {
               "type": "string",
-              "enum": ["dots", "numbers", "full", "none"],
+              "enum": [
+                "dots",
+                "numbers",
+                "full",
+                "none"
+              ],
               "description": "Dial marker style for the cookie clock.",
               "default": "dots"
             },
             "cookie_hour_hand_style": {
               "type": "string",
-              "enum": ["fill", "hollow", "classic", "hide"],
+              "enum": [
+                "fill",
+                "hollow",
+                "classic",
+                "hide"
+              ],
               "description": "Hour hand style for the cookie clock.",
               "default": "fill"
             },
             "cookie_minute_hand_style": {
               "type": "string",
-              "enum": ["bold", "medium", "thin", "classic", "hide"],
+              "enum": [
+                "bold",
+                "medium",
+                "thin",
+                "classic",
+                "hide"
+              ],
               "description": "Minute hand style for the cookie clock.",
               "default": "medium"
             },
             "cookie_second_hand_style": {
               "type": "string",
-              "enum": ["dot", "classic", "line", "hide"],
+              "enum": [
+                "dot",
+                "classic",
+                "line",
+                "hide"
+              ],
               "description": "Second hand style for the cookie clock.",
               "default": "dot"
             },
             "cookie_date_style": {
               "type": "string",
-              "enum": ["bubble", "rect", "hide"],
+              "enum": [
+                "bubble",
+                "rect",
+                "hide"
+              ],
               "description": "Date indicator style for the cookie clock.",
               "default": "bubble"
             },
@@ -2949,7 +3268,12 @@
             },
             "layer": {
               "type": "string",
-              "enum": ["top", "overlay", "bottom", "background"],
+              "enum": [
+                "top",
+                "overlay",
+                "bottom",
+                "background"
+              ],
               "description": "Layer on which the quotes widget is displayed.",
               "default": "top"
             },
@@ -2987,7 +3311,12 @@
             },
             "layer": {
               "type": "string",
-              "enum": ["top", "overlay", "bottom", "background"],
+              "enum": [
+                "top",
+                "overlay",
+                "bottom",
+                "background"
+              ],
               "description": "Layer on which the bar is displayed.",
               "default": "bottom"
             }
@@ -3011,7 +3340,14 @@
             },
             "transition_type": {
               "type": "string",
-              "enum": ["crossfade", "slide-left", "slide-right", "slide-up", "slide-down", "none"],
+              "enum": [
+                "crossfade",
+                "slide-left",
+                "slide-right",
+                "slide-up",
+                "slide-down",
+                "none"
+              ],
               "description": "Specifies the type of transition effect for notifications.",
               "default": "slide-left"
             },
@@ -3191,7 +3527,14 @@
             },
             "transition_type": {
               "type": "string",
-              "enum": ["crossfade", "slide-left", "slide-right", "slide-up", "slide-down", "none"],
+              "enum": [
+                "crossfade",
+                "slide-left",
+                "slide-right",
+                "slide-up",
+                "slide-down",
+                "none"
+              ],
               "description": "Specifies the type of transition effect for notifications.",
               "default": "slide-up"
             },
@@ -3205,20 +3548,36 @@
               "minItems": 1,
               "items": {
                 "type": "string",
-                "enum": ["brightness", "volume", "microphone", "lockkeys"]
+                "enum": [
+                  "brightness",
+                  "volume",
+                  "microphone",
+                  "lockkeys"
+                ]
               },
-              "default": ["brightness", "volume"],
+              "default": [
+                "brightness",
+                "volume"
+              ],
               "description": "List of OSDs to enable"
             },
             "orientation": {
               "type": "string",
-              "enum": ["horizontal", "vertical"],
+              "enum": [
+                "horizontal",
+                "vertical"
+              ],
               "description": "Specifies the orientation of the osd.",
               "default": "horizontal"
             },
             "style": {
               "type": "string",
-              "enum": ["default", "compact", "bar", "minimal"],
+              "enum": [
+                "default",
+                "compact",
+                "bar",
+                "minimal"
+              ],
               "description": "Structural style of the OSD: default shows icon, slider and percentage, compact drops the slider, bar drops the icon, minimal removes the box background.",
               "default": "default"
             },
@@ -3317,7 +3676,10 @@
             },
             "layout": {
               "type": "string",
-              "enum": ["list", "grid"],
+              "enum": [
+                "list",
+                "grid"
+              ],
               "description": "Layout mode for displaying applications",
               "default": "list"
             },
@@ -3379,7 +3741,20 @@
           "type": "string",
           "description": "The language code for the user interface (e.g., 'en', 'es', 'fr', 'de').",
           "default": "en",
-          "enum": ["en", "es", "fr", "de", "ar", "zh", "ja", "ko", "pt", "ru", "tr", "nl"]
+          "enum": [
+            "en",
+            "es",
+            "fr",
+            "de",
+            "ar",
+            "zh",
+            "ja",
+            "ko",
+            "pt",
+            "ru",
+            "tr",
+            "nl"
+          ]
         }
       }
     },
@@ -3400,16 +3775,35 @@
                     "properties": {
                       "colors": {
                         "$ref": "#/$defs/widgetColors"
-                      },
-                      "overrides": {
-                        "$ref": "#/$defs/widgetColorOverrides"
                       }
-                    }
+                    },
+                    "additionalProperties": true
                   },
                   {
                     "type": "string"
                   }
                 ]
+              },
+              "properties": {
+                "custom_widget": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "colors": {
+                          "$ref": "#/$defs/widgetColors"
+                        },
+                        "overrides": {
+                          "$ref": "#/$defs/widgetColorOverrides"
+                        }
+                      },
+                      "additionalProperties": true
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ]
+                }
               }
             }
           }
