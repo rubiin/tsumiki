@@ -1,8 +1,10 @@
 @use "sass:color";
 @use "sass:map";
 @use "sass:meta";
+@use "sass:string";
 @use "mixins";
 @use "../_variable.scss";
+@use "../_settings.scss" as settings;
 @use "../_theme.scss";
 @use "functions";
 
@@ -89,25 +91,50 @@
   }
 }
 
-@function _widget-color-var($name, $suffix) {
-  $vars: meta.module-variables("variable");
-  $key: "bar-widgets-#{$name}-#{$suffix}";
+@function _module-var($module, $key, $fallback: "") {
+  $vars: meta.module-variables($module);
   @if map.has-key($vars, $key) {
     @return map.get($vars, $key);
   }
-  @return "";
+  @return $fallback;
+}
+
+@function _widget-color-var($name, $suffix) {
+  $key: "bar-widgets-#{$name}-#{$suffix}";
+  $value: _module-var("variable", $key, null);
+  @if $value == null {
+    $value: _module-var("settings", $key, null);
+  }
+  @if $value == null or $value == "" {
+    // Theme defaults use $widgets-<type>-{background,foreground,hover-*,active-*}
+    // while bar overrides use $bar-widgets-<type>-colors-*.
+    $theme-suffix: $suffix;
+    @if string.index($suffix, "colors-") == 1 {
+      $theme-suffix: string.slice($suffix, 8);
+    }
+    $theme-key: "widgets-#{$name}-#{$theme-suffix}";
+    $theme-value: _module-var("theme", $theme-key, "");
+    @if $theme-value != "" {
+      @return $theme-value;
+    }
+  }
+  @if $value == null {
+    @return "";
+  }
+  @return $value;
 }
 
 @function _bar-monochrome-enabled() {
-  $vars: meta.module-variables("variable");
-  @if map.has-key($vars, "bar-monochrome") {
-    @return map.get($vars, "bar-monochrome");
+  $value: _module-var("variable", "bar-monochrome", null);
+  @if $value == null {
+    $value: _module-var("settings", "bar-monochrome", false);
   }
-  @return false;
+  @return $value;
 }
 
 @mixin widget-colors($name) {
-  @if not _bar-monochrome-enabled() {
+  $always-colored: $name == "battery" or $name == "weather";
+  @if not _bar-monochrome-enabled() or $always-colored {
     $bg: _widget-color-var($name, "colors-background");
     $fg: _widget-color-var($name, "colors-foreground");
     $hbg: _widget-color-var($name, "colors-hover-background");

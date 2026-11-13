@@ -426,15 +426,19 @@ class StyleService(SingletonService):
 
     @staticmethod
     def _strip_bar_widget_colors(styling: dict) -> None:
-        """Remove per-widget bar color overrides when monochrome is enabled."""
+        """Remove per-widget bar color overrides when monochrome is enabled.
+
+        Battery and weather keep their colors in all modes.
+        """
         bar = styling.get("bar")
         if not isinstance(bar, dict):
             return
         widgets = bar.get("widgets")
         if not isinstance(widgets, dict):
             return
-        for widget_cfg in widgets.values():
-            if not isinstance(widget_cfg, dict):
+        always_colored = {"battery", "weather"}
+        for widget_name, widget_cfg in widgets.items():
+            if widget_name in always_colored or not isinstance(widget_cfg, dict):
                 continue
             widget_cfg.pop("colors", None)
             overrides = widget_cfg.get("overrides")
