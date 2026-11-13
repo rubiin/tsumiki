@@ -980,7 +980,7 @@ scheme = "scheme-tonal-spot"
 wallpaper = "~/2.jpg"
 
 [styling.bar]
-monochrome = false
+monochrome = true
 margin_x = "0"
 margin_y = "1.25em"
 opacity = 90
