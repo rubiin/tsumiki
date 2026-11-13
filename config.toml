@@ -983,7 +983,7 @@ wallpaper = "~/2.jpg"
 monochrome = false
 margin_x = "0"
 margin_y = "1.25em"
-opacity = 10
+opacity = 90
 padding_x = "0.8em"
 padding_y = "0.6em"
 scaling = 100
@@ -1003,8 +1003,8 @@ padding_y = "1.25em"
 scaling = 100
 
 [styling.bar.buttons.shadow]
-blur = 0
 enabled = false
+blur = 0
 offset = 0
 opacity = 100
 spread = 0
@@ -1033,8 +1033,8 @@ radius = "1.5em"
 width = "1px"
 
 [styling.bar.menus.popover.shadow]
-blur = 0
 enabled = false
+blur = 0
 offset = 0
 opacity = 100
 spread = 0
@@ -1615,7 +1615,7 @@ width = "1px"
 [styling.modules.dock]
 margin_x = "8px"
 margin_y = "8px"
-opacity = 10
+opacity = 90
 padding_x = "8px"
 padding_y = "4px"
 scaling = 100

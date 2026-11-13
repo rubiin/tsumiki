@@ -1,4 +1,5 @@
 @use "sass:color";
+@use "sass:math";
 @use "../_theme";
 @use "../_variable";
 
@@ -403,7 +404,7 @@
 /// Semi-transparent bar/dock background derived from an opacity percentage.
 /// @param {Number} $opacity - Bar opacity percentage (0-100)
 @mixin bar-background($opacity) {
-  $opacity-ratio: $opacity * 0.01;
-  $transparency-value: (1 - $opacity-ratio) * 100%;
-  background-color: color.mix(theme.$general-bar-background, transparent, $transparency-value);
+  // The setting is an opacity percentage: 10 -> 10% opaque, 90 -> 90% opaque.
+  $alpha: math.clamp(0, $opacity * 0.01, 1);
+  background-color: color.change(theme.$general-bar-background, $alpha: $alpha);
 }

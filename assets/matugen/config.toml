@@ -20,4 +20,4 @@ white   = { color = "#FFFFFF", blend = true }
 
 [templates.tsumiki]
 input_path = "~/.config/tsumiki/assets/matugen/matugen.scss"
-output_path = "~/.config/tsumiki/styles/theme.scss"
+output_path = "~/.config/tsumiki/styles/_theme.scss"

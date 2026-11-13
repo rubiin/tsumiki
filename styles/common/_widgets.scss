@@ -99,7 +99,26 @@
   @return $fallback;
 }
 
+// Sass normalises underscores to hyphens in variable names, so a widget id
+// like `system_tray` must look up `widgets-system-tray-background`.
+@function _dashify-name($name) {
+  $result: "";
+  $rest: $name;
+  @while string.length($rest) > 0 {
+    $index: string.index($rest, "_");
+    @if $index == null {
+      $result: $result + $rest;
+      $rest: "";
+    } @else {
+      $result: $result + string.slice($rest, 1, $index - 1) + "-";
+      $rest: string.slice($rest, $index + 1);
+    }
+  }
+  @return $result;
+}
+
 @function _widget-color-var($name, $suffix) {
+  $name: _dashify-name($name);
   $key: "bar-widgets-#{$name}-#{$suffix}";
   $value: _module-var("variable", $key, null);
   @if $value == null {
@@ -621,6 +640,7 @@ $widget-shell-widgets: (
 $widget-color-types: (
   "battery",
   "bluetooth",
+  "breathe",
   "brightness",
   "cava",
   "cheatsheet",
@@ -634,6 +654,7 @@ $widget-color-types: (
   "dns_switcher",
   "emoji_picker",
   "github_tray",
+  "gpu",
   "hypridle",
   "hyprpicker",
   "hyprsunset",
@@ -655,6 +676,7 @@ $widget-color-types: (
   "radio_player",
   "recorder",
   "screenshot",
+  "settings",
   "spacing",
   "stopwatch",
   "storage",
@@ -666,6 +688,7 @@ $widget-color-types: (
   "updates",
   "usb_manager",
   "volume",
+  "wallpaper",
   "weather",
   "window_count",
   "window_title",

@@ -1,5 +1,6 @@
 
 @use "sass:color";
+@use "sass:math";
 
 /*
 * Css Colors
@@ -60,368 +61,439 @@ $general-shadow-color: $shadow; // Drop shadows
 $general-bar-background: $surface_container_low; // Status bar background
 
 /* ---------------------------- */
+/* Contrast helpers             */
+/* ---------------------------- */
+@function _linearize($channel) {
+  $value: math.div($channel, 255);
+  @if $value <= 0.04045 {
+    @return math.div($value, 12.92);
+  }
+  @return math.pow(math.div($value + 0.055, 1.055), 2.4);
+}
+
+@function _luminance($value) {
+  $r: _linearize(color.channel($value, "red", $space: rgb));
+  $g: _linearize(color.channel($value, "green", $space: rgb));
+  $b: _linearize(color.channel($value, "blue", $space: rgb));
+  @return 0.2126 * $r + 0.7152 * $g + 0.0722 * $b;
+}
+
+@function _contrast($first, $second) {
+  $a: _luminance($first);
+  $b: _luminance($second);
+  @if $a < $b {
+    $swap: $a;
+    $a: $b;
+    $b: $swap;
+  }
+  @return math.div($a + 0.05, $b + 0.05);
+}
+
+@function _readable-on($background) {
+  $best: $text-main;
+  $best-ratio: _contrast($background, $best);
+  @each $candidate in ($background-main, $background-dark, #000000, #ffffff) {
+    $ratio: _contrast($background, $candidate);
+    @if $ratio > $best-ratio {
+      $best: $candidate;
+      $best-ratio: $ratio;
+    }
+  }
+  @return $best;
+}
+
+/* ---------------------------- */
 /* Widget Colors (per-widget)   */
 /* ---------------------------- */
+
 $widgets-battery-background: $surface-neutral;
-$widgets-battery-foreground: $text-main;
+$widgets-battery-foreground: _readable-on($surface-neutral);
 $widgets-battery-hover-background: $surface-highlight;
-$widgets-battery-hover-foreground: $text-main;
+$widgets-battery-hover-foreground: _readable-on($surface-highlight);
 $widgets-battery-active-background: $accent-blue;
-$widgets-battery-active-foreground: $background-dark;
+$widgets-battery-active-foreground: _readable-on($accent-blue);
 
-$widgets-bluetooth-background: $surface-neutral;
-$widgets-bluetooth-foreground: $text-main;
+$widgets-bluetooth-background: $accent-blue;
+$widgets-bluetooth-foreground: _readable-on($accent-blue);
 $widgets-bluetooth-hover-background: $surface-highlight;
-$widgets-bluetooth-hover-foreground: $text-main;
+$widgets-bluetooth-hover-foreground: _readable-on($surface-highlight);
 $widgets-bluetooth-active-background: $accent-blue;
-$widgets-bluetooth-active-foreground: $background-dark;
+$widgets-bluetooth-active-foreground: _readable-on($accent-blue);
 
-$widgets-dns_switcher-background: $surface-neutral;
-$widgets-dns_switcher-foreground: $text-main;
-$widgets-dns_switcher-hover-background: $surface-highlight;
-$widgets-dns_switcher-hover-foreground: $text-main;
-$widgets-dns_switcher-active-background: $accent-blue;
-$widgets-dns_switcher-active-foreground: $background-dark;
+$widgets-breathe-background: $accent-teal;
+$widgets-breathe-foreground: _readable-on($accent-teal);
+$widgets-breathe-hover-background: $surface-highlight;
+$widgets-breathe-hover-foreground: _readable-on($surface-highlight);
+$widgets-breathe-active-background: $accent-blue;
+$widgets-breathe-active-foreground: _readable-on($accent-blue);
 
-$widgets-cloudflare_warp-background: $surface-neutral;
-$widgets-cloudflare_warp-foreground: $text-main;
-$widgets-cloudflare_warp-hover-background: $surface-highlight;
-$widgets-cloudflare_warp-hover-foreground: $text-main;
-$widgets-cloudflare_warp-active-background: $accent-blue;
-$widgets-cloudflare_warp-active-foreground: $background-dark;
-
-$widgets-cheatsheet-background: $surface-neutral;
-$widgets-cheatsheet-foreground: $text-main;
-$widgets-cheatsheet-hover-background: $surface-highlight;
-$widgets-cheatsheet-hover-foreground: $text-main;
-$widgets-cheatsheet-active-background: $accent-blue;
-$widgets-cheatsheet-active-foreground: $background-dark;
-
-$widgets-usb_manager-background: $surface-neutral;
-$widgets-usb_manager-foreground: $text-main;
-$widgets-usb_manager-hover-background: $surface-highlight;
-$widgets-usb_manager-hover-foreground: $text-main;
-$widgets-usb_manager-active-background: $accent-blue;
-$widgets-usb_manager-active-foreground: $background-dark;
-
-$widgets-ip_monitor-background: $surface-neutral;
-$widgets-ip_monitor-foreground: $text-main;
-$widgets-ip_monitor-hover-background: $surface-highlight;
-$widgets-ip_monitor-hover-foreground: $text-main;
-$widgets-ip_monitor-active-background: $accent-blue;
-$widgets-ip_monitor-active-foreground: $background-dark;
-
-$widgets-github_tray-background: $surface-neutral;
-$widgets-github_tray-foreground: $text-main;
-$widgets-github_tray-hover-background: $surface-highlight;
-$widgets-github_tray-hover-foreground: $text-main;
-$widgets-github_tray-active-background: $accent-blue;
-$widgets-github_tray-active-foreground: $background-dark;
-
-$widgets-pomodoro-background: $surface-neutral;
-$widgets-pomodoro-foreground: $text-main;
-$widgets-pomodoro-hover-background: $surface-highlight;
-$widgets-pomodoro-hover-foreground: $text-main;
-$widgets-pomodoro-active-background: $accent-blue;
-$widgets-pomodoro-active-foreground: $background-dark;
-
-$widgets-custom_widget-background: $surface-neutral;
-$widgets-custom_widget-foreground: $text-main;
-$widgets-custom_widget-hover-background: $surface-highlight;
-$widgets-custom_widget-hover-foreground: $text-main;
-$widgets-custom_widget-active-background: $accent-blue;
-$widgets-custom_widget-active-foreground: $background-dark;
-
-$widgets-brightness-background: $surface-neutral;
-$widgets-brightness-foreground: $text-main;
+$widgets-brightness-background: $accent-purple;
+$widgets-brightness-foreground: _readable-on($accent-purple);
 $widgets-brightness-hover-background: $surface-highlight;
-$widgets-brightness-hover-foreground: $text-main;
+$widgets-brightness-hover-foreground: _readable-on($surface-highlight);
 $widgets-brightness-active-background: $accent-blue;
-$widgets-brightness-active-foreground: $background-dark;
+$widgets-brightness-active-foreground: _readable-on($accent-blue);
 
-$widgets-cava-background: $surface-neutral;
-$widgets-cava-foreground: $text-main;
+$widgets-cava-background: $accent-orange;
+$widgets-cava-foreground: _readable-on($accent-orange);
 $widgets-cava-hover-background: $surface-highlight;
-$widgets-cava-hover-foreground: $text-main;
+$widgets-cava-hover-foreground: _readable-on($surface-highlight);
 $widgets-cava-active-background: $accent-blue;
-$widgets-cava-active-foreground: $background-dark;
+$widgets-cava-active-foreground: _readable-on($accent-blue);
 
-$widgets-click_counter-background: $surface-neutral;
-$widgets-click_counter-foreground: $text-main;
+$widgets-cheatsheet-background: $accent-green;
+$widgets-cheatsheet-foreground: _readable-on($accent-green);
+$widgets-cheatsheet-hover-background: $surface-highlight;
+$widgets-cheatsheet-hover-foreground: _readable-on($surface-highlight);
+$widgets-cheatsheet-active-background: $accent-blue;
+$widgets-cheatsheet-active-foreground: _readable-on($accent-blue);
+
+$widgets-click_counter-background: $accent-pink;
+$widgets-click_counter-foreground: _readable-on($accent-pink);
 $widgets-click_counter-hover-background: $surface-highlight;
-$widgets-click_counter-hover-foreground: $text-main;
+$widgets-click_counter-hover-foreground: _readable-on($surface-highlight);
 $widgets-click_counter-active-background: $accent-blue;
-$widgets-click_counter-active-foreground: $background-dark;
+$widgets-click_counter-active-foreground: _readable-on($accent-blue);
 
-$widgets-clipboard-background: $surface-neutral;
-$widgets-clipboard-foreground: $text-main;
+$widgets-clipboard-background: $accent-yellow;
+$widgets-clipboard-foreground: _readable-on($accent-yellow);
 $widgets-clipboard-hover-background: $surface-highlight;
-$widgets-clipboard-hover-foreground: $text-main;
+$widgets-clipboard-hover-foreground: _readable-on($surface-highlight);
 $widgets-clipboard-active-background: $accent-blue;
-$widgets-clipboard-active-foreground: $background-dark;
+$widgets-clipboard-active-foreground: _readable-on($accent-blue);
 
-$widgets-launcher_button-background: $surface-neutral;
-$widgets-launcher_button-foreground: $text-main;
-$widgets-launcher_button-hover-background: $surface-highlight;
-$widgets-launcher_button-hover-foreground: $text-main;
-$widgets-launcher_button-active-background: $accent-blue;
-$widgets-launcher_button-active-foreground: $background-dark;
+$widgets-cloudflare_warp-background: $accent-red;
+$widgets-cloudflare_warp-foreground: _readable-on($accent-red);
+$widgets-cloudflare_warp-hover-background: $surface-highlight;
+$widgets-cloudflare_warp-hover-foreground: _readable-on($surface-highlight);
+$widgets-cloudflare_warp-active-background: $accent-blue;
+$widgets-cloudflare_warp-active-foreground: _readable-on($accent-blue);
 
-$widgets-overview_button-background: $surface-neutral;
-$widgets-overview_button-foreground: $text-main;
-$widgets-overview_button-hover-background: $surface-highlight;
-$widgets-overview_button-hover-foreground: $text-main;
-$widgets-overview_button-active-background: $accent-blue;
-$widgets-overview_button-active-foreground: $background-dark;
-
-$widgets-theme_switcher-background: $surface-neutral;
-$widgets-theme_switcher-foreground: $text-main;
-$widgets-theme_switcher-hover-background: $surface-highlight;
-$widgets-theme_switcher-hover-foreground: $text-main;
-$widgets-theme_switcher-active-background: $accent-blue;
-$widgets-theme_switcher-active-foreground: $background-dark;
-
-$widgets-cpu-background: $surface-neutral;
-$widgets-cpu-foreground: $text-main;
+$widgets-cpu-background: $accent-light-blue;
+$widgets-cpu-foreground: _readable-on($accent-light-blue);
 $widgets-cpu-hover-background: $surface-highlight;
-$widgets-cpu-hover-foreground: $text-main;
+$widgets-cpu-hover-foreground: _readable-on($surface-highlight);
 $widgets-cpu-active-background: $accent-blue;
-$widgets-cpu-active-foreground: $background-dark;
+$widgets-cpu-active-foreground: _readable-on($accent-blue);
 
-$widgets-date_time-background: $surface-neutral;
-$widgets-date_time-foreground: $text-main;
+$widgets-custom_widget-background: $accent-lavender;
+$widgets-custom_widget-foreground: _readable-on($accent-lavender);
+$widgets-custom_widget-hover-background: $surface-highlight;
+$widgets-custom_widget-hover-foreground: _readable-on($surface-highlight);
+$widgets-custom_widget-active-background: $accent-blue;
+$widgets-custom_widget-active-foreground: _readable-on($accent-blue);
+
+$widgets-date_time-background: $accent-blue;
+$widgets-date_time-foreground: _readable-on($accent-blue);
 $widgets-date_time-hover-background: $surface-highlight;
-$widgets-date_time-hover-foreground: $text-main;
+$widgets-date_time-hover-foreground: _readable-on($surface-highlight);
 $widgets-date_time-active-background: $accent-blue;
-$widgets-date_time-active-foreground: $background-dark;
+$widgets-date_time-active-foreground: _readable-on($accent-blue);
 
-$widgets-divider-background: $surface-neutral;
-$widgets-divider-foreground: $text-main;
+$widgets-divider-background: $accent-teal;
+$widgets-divider-foreground: _readable-on($accent-teal);
 $widgets-divider-hover-background: $surface-highlight;
-$widgets-divider-hover-foreground: $text-main;
+$widgets-divider-hover-foreground: _readable-on($surface-highlight);
 $widgets-divider-active-background: $accent-blue;
-$widgets-divider-active-foreground: $background-dark;
+$widgets-divider-active-foreground: _readable-on($accent-blue);
 
-$widgets-emoji_picker-background: $surface-neutral;
-$widgets-emoji_picker-foreground: $text-main;
+$widgets-dns_switcher-background: $accent-purple;
+$widgets-dns_switcher-foreground: _readable-on($accent-purple);
+$widgets-dns_switcher-hover-background: $surface-highlight;
+$widgets-dns_switcher-hover-foreground: _readable-on($surface-highlight);
+$widgets-dns_switcher-active-background: $accent-blue;
+$widgets-dns_switcher-active-foreground: _readable-on($accent-blue);
+
+$widgets-emoji_picker-background: $accent-orange;
+$widgets-emoji_picker-foreground: _readable-on($accent-orange);
 $widgets-emoji_picker-hover-background: $surface-highlight;
-$widgets-emoji_picker-hover-foreground: $text-main;
+$widgets-emoji_picker-hover-foreground: _readable-on($surface-highlight);
 $widgets-emoji_picker-active-background: $accent-blue;
-$widgets-emoji_picker-active-foreground: $background-dark;
+$widgets-emoji_picker-active-foreground: _readable-on($accent-blue);
 
-$widgets-hypridle-background: $surface-neutral;
-$widgets-hypridle-foreground: $text-main;
+$widgets-github_tray-background: $accent-green;
+$widgets-github_tray-foreground: _readable-on($accent-green);
+$widgets-github_tray-hover-background: $surface-highlight;
+$widgets-github_tray-hover-foreground: _readable-on($surface-highlight);
+$widgets-github_tray-active-background: $accent-blue;
+$widgets-github_tray-active-foreground: _readable-on($accent-blue);
+
+$widgets-gpu-background: $accent-pink;
+$widgets-gpu-foreground: _readable-on($accent-pink);
+$widgets-gpu-hover-background: $surface-highlight;
+$widgets-gpu-hover-foreground: _readable-on($surface-highlight);
+$widgets-gpu-active-background: $accent-blue;
+$widgets-gpu-active-foreground: _readable-on($accent-blue);
+
+$widgets-hypridle-background: $accent-yellow;
+$widgets-hypridle-foreground: _readable-on($accent-yellow);
 $widgets-hypridle-hover-background: $surface-highlight;
-$widgets-hypridle-hover-foreground: $text-main;
+$widgets-hypridle-hover-foreground: _readable-on($surface-highlight);
 $widgets-hypridle-active-background: $accent-blue;
-$widgets-hypridle-active-foreground: $background-dark;
+$widgets-hypridle-active-foreground: _readable-on($accent-blue);
 
-$widgets-hyprpicker-background: $surface-neutral;
-$widgets-hyprpicker-foreground: $text-main;
+$widgets-hyprpicker-background: $accent-red;
+$widgets-hyprpicker-foreground: _readable-on($accent-red);
 $widgets-hyprpicker-hover-background: $surface-highlight;
-$widgets-hyprpicker-hover-foreground: $text-main;
+$widgets-hyprpicker-hover-foreground: _readable-on($surface-highlight);
 $widgets-hyprpicker-active-background: $accent-blue;
-$widgets-hyprpicker-active-foreground: $background-dark;
+$widgets-hyprpicker-active-foreground: _readable-on($accent-blue);
 
-$widgets-hyprsunset-background: $surface-neutral;
-$widgets-hyprsunset-foreground: $text-main;
+$widgets-hyprsunset-background: $accent-light-blue;
+$widgets-hyprsunset-foreground: _readable-on($accent-light-blue);
 $widgets-hyprsunset-hover-background: $surface-highlight;
-$widgets-hyprsunset-hover-foreground: $text-main;
+$widgets-hyprsunset-hover-foreground: _readable-on($surface-highlight);
 $widgets-hyprsunset-active-background: $accent-blue;
-$widgets-hyprsunset-active-foreground: $background-dark;
+$widgets-hyprsunset-active-foreground: _readable-on($accent-blue);
 
-$widgets-kanban-background: $surface-neutral;
-$widgets-kanban-foreground: $text-main;
+$widgets-ip_monitor-background: $accent-lavender;
+$widgets-ip_monitor-foreground: _readable-on($accent-lavender);
+$widgets-ip_monitor-hover-background: $surface-highlight;
+$widgets-ip_monitor-hover-foreground: _readable-on($surface-highlight);
+$widgets-ip_monitor-active-background: $accent-blue;
+$widgets-ip_monitor-active-foreground: _readable-on($accent-blue);
+
+$widgets-kanban-background: $accent-blue;
+$widgets-kanban-foreground: _readable-on($accent-blue);
 $widgets-kanban-hover-background: $surface-highlight;
-$widgets-kanban-hover-foreground: $text-main;
+$widgets-kanban-hover-foreground: _readable-on($surface-highlight);
 $widgets-kanban-active-background: $accent-blue;
-$widgets-kanban-active-foreground: $background-dark;
+$widgets-kanban-active-foreground: _readable-on($accent-blue);
 
-$widgets-keyboard-background: $surface-neutral;
-$widgets-keyboard-foreground: $text-main;
+$widgets-keyboard-background: $accent-teal;
+$widgets-keyboard-foreground: _readable-on($accent-teal);
 $widgets-keyboard-hover-background: $surface-highlight;
-$widgets-keyboard-hover-foreground: $text-main;
+$widgets-keyboard-hover-foreground: _readable-on($surface-highlight);
 $widgets-keyboard-active-background: $accent-blue;
-$widgets-keyboard-active-foreground: $background-dark;
+$widgets-keyboard-active-foreground: _readable-on($accent-blue);
 
-$widgets-language-background: $surface-neutral;
-$widgets-language-foreground: $text-main;
+$widgets-language-background: $accent-purple;
+$widgets-language-foreground: _readable-on($accent-purple);
 $widgets-language-hover-background: $surface-highlight;
-$widgets-language-hover-foreground: $text-main;
+$widgets-language-hover-foreground: _readable-on($surface-highlight);
 $widgets-language-active-background: $accent-blue;
-$widgets-language-active-foreground: $background-dark;
+$widgets-language-active-foreground: _readable-on($accent-blue);
 
-$widgets-memory-background: $surface-neutral;
-$widgets-memory-foreground: $text-main;
+$widgets-launcher_button-background: $accent-orange;
+$widgets-launcher_button-foreground: _readable-on($accent-orange);
+$widgets-launcher_button-hover-background: $surface-highlight;
+$widgets-launcher_button-hover-foreground: _readable-on($surface-highlight);
+$widgets-launcher_button-active-background: $accent-blue;
+$widgets-launcher_button-active-foreground: _readable-on($accent-blue);
+
+$widgets-memory-background: $accent-green;
+$widgets-memory-foreground: _readable-on($accent-green);
 $widgets-memory-hover-background: $surface-highlight;
-$widgets-memory-hover-foreground: $text-main;
+$widgets-memory-hover-foreground: _readable-on($surface-highlight);
 $widgets-memory-active-background: $accent-blue;
-$widgets-memory-active-foreground: $background-dark;
+$widgets-memory-active-foreground: _readable-on($accent-blue);
 
-$widgets-microphone-background: $surface-neutral;
-$widgets-microphone-foreground: $text-main;
+$widgets-microphone-background: $accent-pink;
+$widgets-microphone-foreground: _readable-on($accent-pink);
 $widgets-microphone-hover-background: $surface-highlight;
-$widgets-microphone-hover-foreground: $text-main;
+$widgets-microphone-hover-foreground: _readable-on($surface-highlight);
 $widgets-microphone-active-background: $accent-blue;
-$widgets-microphone-active-foreground: $background-dark;
+$widgets-microphone-active-foreground: _readable-on($accent-blue);
 
-$widgets-mpris-background: $surface-neutral;
-$widgets-mpris-foreground: $text-main;
+$widgets-mpris-background: $accent-yellow;
+$widgets-mpris-foreground: _readable-on($accent-yellow);
 $widgets-mpris-hover-background: $surface-highlight;
-$widgets-mpris-hover-foreground: $text-main;
+$widgets-mpris-hover-foreground: _readable-on($surface-highlight);
 $widgets-mpris-active-background: $accent-blue;
-$widgets-mpris-active-foreground: $background-dark;
+$widgets-mpris-active-foreground: _readable-on($accent-blue);
 
-$widgets-network_usage-background: $surface-neutral;
-$widgets-network_usage-foreground: $text-main;
+$widgets-network_usage-background: $accent-red;
+$widgets-network_usage-foreground: _readable-on($accent-red);
 $widgets-network_usage-hover-background: $surface-highlight;
-$widgets-network_usage-hover-foreground: $text-main;
+$widgets-network_usage-hover-foreground: _readable-on($surface-highlight);
 $widgets-network_usage-active-background: $accent-blue;
-$widgets-network_usage-active-foreground: $background-dark;
+$widgets-network_usage-active-foreground: _readable-on($accent-blue);
 
-$widgets-ocr-background: $surface-neutral;
-$widgets-ocr-foreground: $text-main;
+$widgets-ocr-background: $accent-light-blue;
+$widgets-ocr-foreground: _readable-on($accent-light-blue);
 $widgets-ocr-hover-background: $surface-highlight;
-$widgets-ocr-hover-foreground: $text-main;
+$widgets-ocr-hover-foreground: _readable-on($surface-highlight);
 $widgets-ocr-active-background: $accent-blue;
-$widgets-ocr-active-foreground: $background-dark;
+$widgets-ocr-active-foreground: _readable-on($accent-blue);
 
-$widgets-overview-background: $surface-neutral;
-$widgets-overview-foreground: $text-main;
+$widgets-overview-background: $accent-lavender;
+$widgets-overview-foreground: _readable-on($accent-lavender);
 $widgets-overview-hover-background: $surface-highlight;
-$widgets-overview-hover-foreground: $text-main;
+$widgets-overview-hover-foreground: _readable-on($surface-highlight);
 $widgets-overview-active-background: $accent-blue;
-$widgets-overview-active-foreground: $background-dark;
+$widgets-overview-active-foreground: _readable-on($accent-blue);
 
-$widgets-power-background: $surface-neutral;
-$widgets-power-foreground: $text-main;
+$widgets-overview_button-background: $accent-blue;
+$widgets-overview_button-foreground: _readable-on($accent-blue);
+$widgets-overview_button-hover-background: $surface-highlight;
+$widgets-overview_button-hover-foreground: _readable-on($surface-highlight);
+$widgets-overview_button-active-background: $accent-blue;
+$widgets-overview_button-active-foreground: _readable-on($accent-blue);
+
+$widgets-pomodoro-background: $accent-teal;
+$widgets-pomodoro-foreground: _readable-on($accent-teal);
+$widgets-pomodoro-hover-background: $surface-highlight;
+$widgets-pomodoro-hover-foreground: _readable-on($surface-highlight);
+$widgets-pomodoro-active-background: $accent-blue;
+$widgets-pomodoro-active-foreground: _readable-on($accent-blue);
+
+$widgets-power-background: $accent-purple;
+$widgets-power-foreground: _readable-on($accent-purple);
 $widgets-power-hover-background: $surface-highlight;
-$widgets-power-hover-foreground: $text-main;
+$widgets-power-hover-foreground: _readable-on($surface-highlight);
 $widgets-power-active-background: $accent-blue;
-$widgets-power-active-foreground: $background-dark;
+$widgets-power-active-foreground: _readable-on($accent-blue);
 
-$widgets-quick_settings-background: $surface-neutral;
-$widgets-quick_settings-foreground: $text-main;
+$widgets-quick_settings-background: $accent-orange;
+$widgets-quick_settings-foreground: _readable-on($accent-orange);
 $widgets-quick_settings-hover-background: $surface-highlight;
-$widgets-quick_settings-hover-foreground: $text-main;
+$widgets-quick_settings-hover-foreground: _readable-on($surface-highlight);
 $widgets-quick_settings-active-background: $accent-blue;
-$widgets-quick_settings-active-foreground: $background-dark;
+$widgets-quick_settings-active-foreground: _readable-on($accent-blue);
 
-$widgets-radio_player-background: $surface-neutral;
-$widgets-radio_player-foreground: $text-main;
+$widgets-radio_player-background: $accent-green;
+$widgets-radio_player-foreground: _readable-on($accent-green);
 $widgets-radio_player-hover-background: $surface-highlight;
-$widgets-radio_player-hover-foreground: $text-main;
+$widgets-radio_player-hover-foreground: _readable-on($surface-highlight);
 $widgets-radio_player-active-background: $accent-blue;
-$widgets-radio_player-active-foreground: $background-dark;
+$widgets-radio_player-active-foreground: _readable-on($accent-blue);
 
-$widgets-recorder-background: $surface-neutral;
-$widgets-recorder-foreground: $text-main;
+$widgets-recorder-background: $accent-pink;
+$widgets-recorder-foreground: _readable-on($accent-pink);
 $widgets-recorder-hover-background: $surface-highlight;
-$widgets-recorder-hover-foreground: $text-main;
+$widgets-recorder-hover-foreground: _readable-on($surface-highlight);
 $widgets-recorder-active-background: $accent-blue;
-$widgets-recorder-active-foreground: $background-dark;
+$widgets-recorder-active-foreground: _readable-on($accent-blue);
 
-$widgets-screenshot-background: $surface-neutral;
-$widgets-screenshot-foreground: $text-main;
+$widgets-screenshot-background: $accent-yellow;
+$widgets-screenshot-foreground: _readable-on($accent-yellow);
 $widgets-screenshot-hover-background: $surface-highlight;
-$widgets-screenshot-hover-foreground: $text-main;
+$widgets-screenshot-hover-foreground: _readable-on($surface-highlight);
 $widgets-screenshot-active-background: $accent-blue;
-$widgets-screenshot-active-foreground: $background-dark;
+$widgets-screenshot-active-foreground: _readable-on($accent-blue);
 
-$widgets-spacing-background: $surface-neutral;
-$widgets-spacing-foreground: $text-main;
+$widgets-settings-background: $accent-red;
+$widgets-settings-foreground: _readable-on($accent-red);
+$widgets-settings-hover-background: $surface-highlight;
+$widgets-settings-hover-foreground: _readable-on($surface-highlight);
+$widgets-settings-active-background: $accent-blue;
+$widgets-settings-active-foreground: _readable-on($accent-blue);
+
+$widgets-spacing-background: $accent-light-blue;
+$widgets-spacing-foreground: _readable-on($accent-light-blue);
 $widgets-spacing-hover-background: $surface-highlight;
-$widgets-spacing-hover-foreground: $text-main;
+$widgets-spacing-hover-foreground: _readable-on($surface-highlight);
 $widgets-spacing-active-background: $accent-blue;
-$widgets-spacing-active-foreground: $background-dark;
+$widgets-spacing-active-foreground: _readable-on($accent-blue);
 
-$widgets-stopwatch-background: $surface-neutral;
-$widgets-stopwatch-foreground: $text-main;
+$widgets-stopwatch-background: $accent-lavender;
+$widgets-stopwatch-foreground: _readable-on($accent-lavender);
 $widgets-stopwatch-hover-background: $surface-highlight;
-$widgets-stopwatch-hover-foreground: $text-main;
+$widgets-stopwatch-hover-foreground: _readable-on($surface-highlight);
 $widgets-stopwatch-active-background: $accent-blue;
-$widgets-stopwatch-active-foreground: $background-dark;
+$widgets-stopwatch-active-foreground: _readable-on($accent-blue);
 
-$widgets-storage-background: $surface-neutral;
-$widgets-storage-foreground: $text-main;
+$widgets-storage-background: $accent-blue;
+$widgets-storage-foreground: _readable-on($accent-blue);
 $widgets-storage-hover-background: $surface-highlight;
-$widgets-storage-hover-foreground: $text-main;
+$widgets-storage-hover-foreground: _readable-on($surface-highlight);
 $widgets-storage-active-background: $accent-blue;
-$widgets-storage-active-foreground: $background-dark;
+$widgets-storage-active-foreground: _readable-on($accent-blue);
 
-$widgets-submap-background: $surface-neutral;
-$widgets-submap-foreground: $text-main;
+$widgets-submap-background: $accent-teal;
+$widgets-submap-foreground: _readable-on($accent-teal);
 $widgets-submap-hover-background: $surface-highlight;
-$widgets-submap-hover-foreground: $text-main;
+$widgets-submap-hover-foreground: _readable-on($surface-highlight);
 $widgets-submap-active-background: $accent-blue;
-$widgets-submap-active-foreground: $background-dark;
+$widgets-submap-active-foreground: _readable-on($accent-blue);
 
-$widgets-system_tray-background: $surface-neutral;
-$widgets-system_tray-foreground: $text-main;
+$widgets-system_tray-background: $accent-purple;
+$widgets-system_tray-foreground: _readable-on($accent-purple);
 $widgets-system_tray-hover-background: $surface-highlight;
-$widgets-system_tray-hover-foreground: $text-main;
+$widgets-system_tray-hover-foreground: _readable-on($surface-highlight);
 $widgets-system_tray-active-background: $accent-blue;
-$widgets-system_tray-active-foreground: $background-dark;
+$widgets-system_tray-active-foreground: _readable-on($accent-blue);
 
-$widgets-taskbar-background: $surface-neutral;
-$widgets-taskbar-foreground: $text-main;
+$widgets-taskbar-background: $accent-orange;
+$widgets-taskbar-foreground: _readable-on($accent-orange);
 $widgets-taskbar-hover-background: $surface-highlight;
-$widgets-taskbar-hover-foreground: $text-main;
+$widgets-taskbar-hover-foreground: _readable-on($surface-highlight);
 $widgets-taskbar-active-background: $accent-blue;
-$widgets-taskbar-active-foreground: $background-dark;
+$widgets-taskbar-active-foreground: _readable-on($accent-blue);
 
-$widgets-theme-background: $surface-neutral;
-$widgets-theme-foreground: $text-main;
+$widgets-theme-background: $accent-green;
+$widgets-theme-foreground: _readable-on($accent-green);
 $widgets-theme-hover-background: $surface-highlight;
-$widgets-theme-hover-foreground: $text-main;
+$widgets-theme-hover-foreground: _readable-on($surface-highlight);
 $widgets-theme-active-background: $accent-blue;
-$widgets-theme-active-foreground: $background-dark;
+$widgets-theme-active-foreground: _readable-on($accent-blue);
 
-$widgets-updates-background: $surface-neutral;
-$widgets-updates-foreground: $text-main;
+$widgets-theme_switcher-background: $accent-pink;
+$widgets-theme_switcher-foreground: _readable-on($accent-pink);
+$widgets-theme_switcher-hover-background: $surface-highlight;
+$widgets-theme_switcher-hover-foreground: _readable-on($surface-highlight);
+$widgets-theme_switcher-active-background: $accent-blue;
+$widgets-theme_switcher-active-foreground: _readable-on($accent-blue);
+
+$widgets-updates-background: $accent-yellow;
+$widgets-updates-foreground: _readable-on($accent-yellow);
 $widgets-updates-hover-background: $surface-highlight;
-$widgets-updates-hover-foreground: $text-main;
+$widgets-updates-hover-foreground: _readable-on($surface-highlight);
 $widgets-updates-active-background: $accent-blue;
-$widgets-updates-active-foreground: $background-dark;
+$widgets-updates-active-foreground: _readable-on($accent-blue);
 
-$widgets-volume-background: $surface-neutral;
-$widgets-volume-foreground: $text-main;
+$widgets-usb_manager-background: $accent-red;
+$widgets-usb_manager-foreground: _readable-on($accent-red);
+$widgets-usb_manager-hover-background: $surface-highlight;
+$widgets-usb_manager-hover-foreground: _readable-on($surface-highlight);
+$widgets-usb_manager-active-background: $accent-blue;
+$widgets-usb_manager-active-foreground: _readable-on($accent-blue);
+
+$widgets-volume-background: $accent-light-blue;
+$widgets-volume-foreground: _readable-on($accent-light-blue);
 $widgets-volume-hover-background: $surface-highlight;
-$widgets-volume-hover-foreground: $text-main;
+$widgets-volume-hover-foreground: _readable-on($surface-highlight);
 $widgets-volume-active-background: $accent-blue;
-$widgets-volume-active-foreground: $background-dark;
+$widgets-volume-active-foreground: _readable-on($accent-blue);
+
+$widgets-wallpaper-background: $accent-lavender;
+$widgets-wallpaper-foreground: _readable-on($accent-lavender);
+$widgets-wallpaper-hover-background: $surface-highlight;
+$widgets-wallpaper-hover-foreground: _readable-on($surface-highlight);
+$widgets-wallpaper-active-background: $accent-blue;
+$widgets-wallpaper-active-foreground: _readable-on($accent-blue);
 
 $widgets-weather-background: $surface-neutral;
-$widgets-weather-foreground: $text-main;
+$widgets-weather-foreground: _readable-on($surface-neutral);
 $widgets-weather-hover-background: $surface-highlight;
-$widgets-weather-hover-foreground: $text-main;
+$widgets-weather-hover-foreground: _readable-on($surface-highlight);
 $widgets-weather-active-background: $accent-blue;
-$widgets-weather-active-foreground: $background-dark;
+$widgets-weather-active-foreground: _readable-on($accent-blue);
 
-$widgets-window_count-background: $surface-neutral;
-$widgets-window_count-foreground: $text-main;
+$widgets-window_count-background: $accent-blue;
+$widgets-window_count-foreground: _readable-on($accent-blue);
 $widgets-window_count-hover-background: $surface-highlight;
-$widgets-window_count-hover-foreground: $text-main;
+$widgets-window_count-hover-foreground: _readable-on($surface-highlight);
 $widgets-window_count-active-background: $accent-blue;
-$widgets-window_count-active-foreground: $background-dark;
+$widgets-window_count-active-foreground: _readable-on($accent-blue);
 
-$widgets-window_title-background: $surface-neutral;
-$widgets-window_title-foreground: $text-main;
+$widgets-window_title-background: $accent-teal;
+$widgets-window_title-foreground: _readable-on($accent-teal);
 $widgets-window_title-hover-background: $surface-highlight;
-$widgets-window_title-hover-foreground: $text-main;
+$widgets-window_title-hover-foreground: _readable-on($surface-highlight);
 $widgets-window_title-active-background: $accent-blue;
-$widgets-window_title-active-foreground: $background-dark;
+$widgets-window_title-active-foreground: _readable-on($accent-blue);
 
-$widgets-workspaces-background: $surface-neutral;
-$widgets-workspaces-foreground: $text-main;
+$widgets-workspaces-background: $accent-purple;
+$widgets-workspaces-foreground: _readable-on($accent-purple);
 $widgets-workspaces-hover-background: $surface-highlight;
-$widgets-workspaces-hover-foreground: $text-main;
+$widgets-workspaces-hover-foreground: _readable-on($surface-highlight);
 $widgets-workspaces-active-background: $accent-blue;
-$widgets-workspaces-active-foreground: $background-dark;
+$widgets-workspaces-active-foreground: _readable-on($accent-blue);
 
-$widgets-world_clock-background: $surface-neutral;
-$widgets-world_clock-foreground: $text-main;
+$widgets-world_clock-background: $accent-orange;
+$widgets-world_clock-foreground: _readable-on($accent-orange);
 $widgets-world_clock-hover-background: $surface-highlight;
-$widgets-world_clock-hover-foreground: $text-main;
+$widgets-world_clock-hover-foreground: _readable-on($surface-highlight);
 $widgets-world_clock-active-background: $accent-blue;
-$widgets-world_clock-active-foreground: $background-dark;
+$widgets-world_clock-active-foreground: _readable-on($accent-blue);

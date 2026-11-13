@@ -40,12 +40,12 @@ shadow-color = "rgba(0, 0, 0, 0.6)"
 
 
 [dark.widgets.updates]
-background = "#3c4242"
-foreground = "#dcdccc"
+background = "#5f7f5f"
+foreground = "#000000"
 
 [dark.widgets.updates.hover]
 background = "#a8c0b3"
-foreground = "#dcdccc"
+foreground = "#2e2e2e"
 
 [dark.widgets.updates.active]
 background = "#87afaf"
@@ -60,543 +60,543 @@ foreground = "#dcdccc"
 
 [dark.widgets.battery.active]
 background = "#4e4e4e"
-foreground = "#2e2e2e"
+foreground = "#dcdccc"
 
 [dark.widgets.bluetooth]
-background = "#3c4242"
-foreground = "#dcdccc"
+background = "#5f7f5f"
+foreground = "#000000"
 
 [dark.widgets.bluetooth.hover]
 background = "#a8c0b3"
-foreground = "#dcdccc"
+foreground = "#2e2e2e"
 
 [dark.widgets.bluetooth.active]
 background = "#87afaf"
 foreground = "#2e2e2e"
 
 [dark.widgets.dns_switcher]
-background = "#3c4242"
-foreground = "#dcdccc"
+background = "#5f7f5f"
+foreground = "#000000"
 
 [dark.widgets.dns_switcher.hover]
 background = "#a8c0b3"
-foreground = "#dcdccc"
+foreground = "#2e2e2e"
 
 [dark.widgets.dns_switcher.active]
 background = "#87afaf"
 foreground = "#2e2e2e"
 
 [dark.widgets.cloudflare_warp]
-background = "#4d4229"
-foreground = "#dcdccc"
+background = "#5f7f5f"
+foreground = "#000000"
 
 [dark.widgets.cloudflare_warp.hover]
 background = "#a8c0b3"
-foreground = "#dcdccc"
+foreground = "#2e2e2e"
 
 [dark.widgets.cloudflare_warp.active]
 background = "#87afaf"
 foreground = "#2e2e2e"
 
 [dark.widgets.cheatsheet]
-background = "#3d443d"
-foreground = "#dcdccc"
+background = "#5f7f5f"
+foreground = "#000000"
 
 [dark.widgets.cheatsheet.hover]
 background = "#a8c0b3"
-foreground = "#dcdccc"
+foreground = "#2e2e2e"
 
 [dark.widgets.cheatsheet.active]
 background = "#87afaf"
 foreground = "#2e2e2e"
 
 [dark.widgets.usb_manager]
-background = "#3d443d"
-foreground = "#dcdccc"
+background = "#5f7f5f"
+foreground = "#000000"
 
 [dark.widgets.usb_manager.hover]
 background = "#a8c0b3"
-foreground = "#dcdccc"
+foreground = "#2e2e2e"
 
 [dark.widgets.usb_manager.active]
 background = "#87afaf"
 foreground = "#2e2e2e"
 
 [dark.widgets.ip_monitor]
-background = "#3c4242"
-foreground = "#dcdccc"
+background = "#5f7f5f"
+foreground = "#000000"
 
 [dark.widgets.ip_monitor.hover]
 background = "#a8c0b3"
-foreground = "#dcdccc"
+foreground = "#2e2e2e"
 
 [dark.widgets.ip_monitor.active]
 background = "#87afaf"
 foreground = "#2e2e2e"
 
 [dark.widgets.github_tray]
-background = "#403b3d"
-foreground = "#dcdccc"
+background = "#5f7f5f"
+foreground = "#000000"
 
 [dark.widgets.github_tray.hover]
 background = "#a8c0b3"
-foreground = "#dcdccc"
+foreground = "#2e2e2e"
 
 [dark.widgets.github_tray.active]
 background = "#87afaf"
 foreground = "#2e2e2e"
 
 [dark.widgets.pomodoro]
-background = "#473737"
-foreground = "#dcdccc"
+background = "#5f7f5f"
+foreground = "#000000"
 
 [dark.widgets.pomodoro.hover]
 background = "#a8c0b3"
-foreground = "#dcdccc"
+foreground = "#2e2e2e"
 
 [dark.widgets.pomodoro.active]
 background = "#87afaf"
 foreground = "#2e2e2e"
 
 [dark.widgets.custom_widget]
-background = "#3d443d"
-foreground = "#dcdccc"
+background = "#5f7f5f"
+foreground = "#000000"
 
 [dark.widgets.custom_widget.hover]
 background = "#a8c0b3"
-foreground = "#dcdccc"
+foreground = "#2e2e2e"
 
 [dark.widgets.custom_widget.active]
 background = "#87afaf"
 foreground = "#2e2e2e"
 
 [dark.widgets.brightness]
-background = "#474242"
-foreground = "#dcdccc"
+background = "#5f7f5f"
+foreground = "#000000"
 
 [dark.widgets.brightness.hover]
 background = "#a8c0b3"
-foreground = "#dcdccc"
+foreground = "#2e2e2e"
 
 [dark.widgets.brightness.active]
 background = "#87afaf"
 foreground = "#2e2e2e"
 
 [dark.widgets.cava]
-background = "#403b3d"
-foreground = "#dcdccc"
+background = "#5f7f5f"
+foreground = "#000000"
 
 [dark.widgets.cava.hover]
 background = "#a8c0b3"
-foreground = "#dcdccc"
+foreground = "#2e2e2e"
 
 [dark.widgets.cava.active]
 background = "#87afaf"
 foreground = "#2e2e2e"
 
 [dark.widgets.click_counter]
-background = "#4d4229"
-foreground = "#dcdccc"
+background = "#5f7f5f"
+foreground = "#000000"
 
 [dark.widgets.click_counter.hover]
 background = "#a8c0b3"
-foreground = "#dcdccc"
+foreground = "#2e2e2e"
 
 [dark.widgets.click_counter.active]
 background = "#87afaf"
 foreground = "#2e2e2e"
 
 [dark.widgets.clipboard]
-background = "#403b3d"
-foreground = "#dcdccc"
+background = "#5f7f5f"
+foreground = "#000000"
 
 [dark.widgets.clipboard.hover]
 background = "#a8c0b3"
-foreground = "#dcdccc"
+foreground = "#2e2e2e"
 
 [dark.widgets.clipboard.active]
 background = "#87afaf"
 foreground = "#2e2e2e"
 
 [dark.widgets.launcher_button]
-background = "#3c4242"
-foreground = "#dcdccc"
+background = "#5f7f5f"
+foreground = "#000000"
 
 [dark.widgets.launcher_button.hover]
 background = "#a8c0b3"
-foreground = "#dcdccc"
+foreground = "#2e2e2e"
 
 [dark.widgets.launcher_button.active]
 background = "#87afaf"
 foreground = "#2e2e2e"
 
 [dark.widgets.overview_button]
-background = "#3c4242"
-foreground = "#dcdccc"
+background = "#5f7f5f"
+foreground = "#000000"
 
 [dark.widgets.overview_button.hover]
 background = "#a8c0b3"
-foreground = "#dcdccc"
+foreground = "#2e2e2e"
 
 [dark.widgets.overview_button.active]
 background = "#87afaf"
 foreground = "#2e2e2e"
 
 [dark.widgets.theme_switcher]
-background = "#403b3d"
-foreground = "#dcdccc"
+background = "#5f7f5f"
+foreground = "#000000"
 
 [dark.widgets.theme_switcher.hover]
 background = "#a8c0b3"
-foreground = "#dcdccc"
+foreground = "#2e2e2e"
 
 [dark.widgets.theme_switcher.active]
 background = "#87afaf"
 foreground = "#2e2e2e"
 
 [dark.widgets.cpu]
-background = "#473737"
-foreground = "#dcdccc"
+background = "#5f7f5f"
+foreground = "#000000"
 
 [dark.widgets.cpu.hover]
 background = "#a8c0b3"
-foreground = "#dcdccc"
+foreground = "#2e2e2e"
 
 [dark.widgets.cpu.active]
 background = "#87afaf"
 foreground = "#2e2e2e"
 
 [dark.widgets.date_time]
-background = "#3c4242"
-foreground = "#dcdccc"
+background = "#5f7f5f"
+foreground = "#000000"
 
 [dark.widgets.date_time.hover]
 background = "#a8c0b3"
-foreground = "#dcdccc"
+foreground = "#2e2e2e"
 
 [dark.widgets.date_time.active]
 background = "#87afaf"
 foreground = "#2e2e2e"
 
 [dark.widgets.divider]
-background = "#3c4242"
-foreground = "#dcdccc"
+background = "#5f7f5f"
+foreground = "#000000"
 
 [dark.widgets.divider.hover]
 background = "#a8c0b3"
-foreground = "#dcdccc"
+foreground = "#2e2e2e"
 
 [dark.widgets.divider.active]
 background = "#87afaf"
 foreground = "#2e2e2e"
 
 [dark.widgets.emoji_picker]
-background = "#474242"
-foreground = "#dcdccc"
+background = "#5f7f5f"
+foreground = "#000000"
 
 [dark.widgets.emoji_picker.hover]
 background = "#a8c0b3"
-foreground = "#dcdccc"
+foreground = "#2e2e2e"
 
 [dark.widgets.emoji_picker.active]
 background = "#87afaf"
 foreground = "#2e2e2e"
 
 [dark.widgets.hypridle]
-background = "#3d443d"
-foreground = "#dcdccc"
+background = "#5f7f5f"
+foreground = "#000000"
 
 [dark.widgets.hypridle.hover]
 background = "#a8c0b3"
-foreground = "#dcdccc"
+foreground = "#2e2e2e"
 
 [dark.widgets.hypridle.active]
 background = "#87afaf"
 foreground = "#2e2e2e"
 
 [dark.widgets.hyprpicker]
-background = "#4b4b4b"
-foreground = "#dcdccc"
+background = "#5f7f5f"
+foreground = "#000000"
 
 [dark.widgets.hyprpicker.hover]
 background = "#a8c0b3"
-foreground = "#dcdccc"
+foreground = "#2e2e2e"
 
 [dark.widgets.hyprpicker.active]
 background = "#87afaf"
 foreground = "#2e2e2e"
 
 [dark.widgets.hyprsunset]
-background = "#4d4229"
-foreground = "#dcdccc"
+background = "#5f7f5f"
+foreground = "#000000"
 
 [dark.widgets.hyprsunset.hover]
 background = "#a8c0b3"
-foreground = "#dcdccc"
+foreground = "#2e2e2e"
 
 [dark.widgets.hyprsunset.active]
 background = "#87afaf"
 foreground = "#2e2e2e"
 
 [dark.widgets.kanban]
-background = "#373b37"
-foreground = "#dcdccc"
+background = "#5f7f5f"
+foreground = "#000000"
 
 [dark.widgets.kanban.hover]
 background = "#a8c0b3"
-foreground = "#dcdccc"
+foreground = "#2e2e2e"
 
 [dark.widgets.kanban.active]
 background = "#87afaf"
 foreground = "#2e2e2e"
 
 [dark.widgets.keyboard]
-background = "#403b3d"
-foreground = "#dcdccc"
+background = "#5f7f5f"
+foreground = "#000000"
 
 [dark.widgets.keyboard.hover]
 background = "#a8c0b3"
-foreground = "#dcdccc"
+foreground = "#2e2e2e"
 
 [dark.widgets.keyboard.active]
 background = "#87afaf"
 foreground = "#2e2e2e"
 
 [dark.widgets.language]
-background = "#403b3d"
-foreground = "#dcdccc"
+background = "#5f7f5f"
+foreground = "#000000"
 
 [dark.widgets.language.hover]
 background = "#a8c0b3"
-foreground = "#dcdccc"
+foreground = "#2e2e2e"
 
 [dark.widgets.language.active]
 background = "#87afaf"
 foreground = "#2e2e2e"
 
 [dark.widgets.memory]
-background = "#474242"
-foreground = "#dcdccc"
+background = "#5f7f5f"
+foreground = "#000000"
 
 [dark.widgets.memory.hover]
 background = "#a8c0b3"
-foreground = "#dcdccc"
+foreground = "#2e2e2e"
 
 [dark.widgets.memory.active]
 background = "#87afaf"
 foreground = "#2e2e2e"
 
 [dark.widgets.microphone]
-background = "#473737"
-foreground = "#dcdccc"
+background = "#5f7f5f"
+foreground = "#000000"
 
 [dark.widgets.microphone.hover]
 background = "#a8c0b3"
-foreground = "#dcdccc"
+foreground = "#2e2e2e"
 
 [dark.widgets.microphone.active]
 background = "#87afaf"
 foreground = "#2e2e2e"
 
 [dark.widgets.mpris]
-background = "#373b37"
-foreground = "#dcdccc"
+background = "#5f7f5f"
+foreground = "#000000"
 
 [dark.widgets.mpris.hover]
 background = "#a8c0b3"
-foreground = "#dcdccc"
+foreground = "#2e2e2e"
 
 [dark.widgets.mpris.active]
 background = "#87afaf"
 foreground = "#2e2e2e"
 
 [dark.widgets.network_usage]
-background = "#3c4242"
-foreground = "#dcdccc"
+background = "#5f7f5f"
+foreground = "#000000"
 
 [dark.widgets.network_usage.hover]
 background = "#a8c0b3"
-foreground = "#dcdccc"
+foreground = "#2e2e2e"
 
 [dark.widgets.network_usage.active]
 background = "#87afaf"
 foreground = "#2e2e2e"
 
 [dark.widgets.ocr]
-background = "#403b3d"
-foreground = "#dcdccc"
+background = "#5f7f5f"
+foreground = "#000000"
 
 [dark.widgets.ocr.hover]
 background = "#a8c0b3"
-foreground = "#dcdccc"
+foreground = "#2e2e2e"
 
 [dark.widgets.ocr.active]
 background = "#87afaf"
 foreground = "#2e2e2e"
 
 [dark.widgets.overview]
-background = "#3c4242"
-foreground = "#dcdccc"
+background = "#5f7f5f"
+foreground = "#000000"
 
 [dark.widgets.overview.hover]
 background = "#a8c0b3"
-foreground = "#dcdccc"
+foreground = "#2e2e2e"
 
 [dark.widgets.overview.active]
 background = "#87afaf"
 foreground = "#2e2e2e"
 
 [dark.widgets.power]
-background = "#473737"
-foreground = "#dcdccc"
+background = "#5f7f5f"
+foreground = "#000000"
 
 [dark.widgets.power.hover]
 background = "#a8c0b3"
-foreground = "#dcdccc"
+foreground = "#2e2e2e"
 
 [dark.widgets.power.active]
 background = "#87afaf"
 foreground = "#2e2e2e"
 
 [dark.widgets.quick_settings]
-background = "#403b3d"
-foreground = "#dcdccc"
+background = "#5f7f5f"
+foreground = "#000000"
 
 [dark.widgets.quick_settings.hover]
 background = "#a8c0b3"
-foreground = "#dcdccc"
+foreground = "#2e2e2e"
 
 [dark.widgets.quick_settings.active]
 background = "#87afaf"
 foreground = "#2e2e2e"
 
 [dark.widgets.radio_player]
-background = "#4b4b4b"
-foreground = "#dcdccc"
+background = "#5f7f5f"
+foreground = "#000000"
 
 [dark.widgets.radio_player.hover]
 background = "#a8c0b3"
-foreground = "#dcdccc"
+foreground = "#2e2e2e"
 
 [dark.widgets.radio_player.active]
 background = "#87afaf"
 foreground = "#2e2e2e"
 
 [dark.widgets.recorder]
-background = "#473737"
-foreground = "#dcdccc"
+background = "#5f7f5f"
+foreground = "#000000"
 
 [dark.widgets.recorder.hover]
 background = "#a8c0b3"
-foreground = "#dcdccc"
+foreground = "#2e2e2e"
 
 [dark.widgets.recorder.active]
 background = "#87afaf"
 foreground = "#2e2e2e"
 
 [dark.widgets.screenshot]
-background = "#3d443d"
-foreground = "#dcdccc"
+background = "#5f7f5f"
+foreground = "#000000"
 
 [dark.widgets.screenshot.hover]
 background = "#a8c0b3"
-foreground = "#dcdccc"
+foreground = "#2e2e2e"
 
 [dark.widgets.screenshot.active]
 background = "#87afaf"
 foreground = "#2e2e2e"
 
 [dark.widgets.spacing]
-background = "#3c4242"
-foreground = "#dcdccc"
+background = "#5f7f5f"
+foreground = "#000000"
 
 [dark.widgets.spacing.hover]
 background = "#a8c0b3"
-foreground = "#dcdccc"
+foreground = "#2e2e2e"
 
 [dark.widgets.spacing.active]
 background = "#87afaf"
 foreground = "#2e2e2e"
 
 [dark.widgets.stopwatch]
-background = "#4d4229"
-foreground = "#dcdccc"
+background = "#5f7f5f"
+foreground = "#000000"
 
 [dark.widgets.stopwatch.hover]
 background = "#a8c0b3"
-foreground = "#dcdccc"
+foreground = "#2e2e2e"
 
 [dark.widgets.stopwatch.active]
 background = "#87afaf"
 foreground = "#2e2e2e"
 
 [dark.widgets.storage]
-background = "#403b3d"
-foreground = "#dcdccc"
+background = "#5f7f5f"
+foreground = "#000000"
 
 [dark.widgets.storage.hover]
 background = "#a8c0b3"
-foreground = "#dcdccc"
+foreground = "#2e2e2e"
 
 [dark.widgets.storage.active]
 background = "#87afaf"
 foreground = "#2e2e2e"
 
 [dark.widgets.submap]
-background = "#474242"
-foreground = "#dcdccc"
+background = "#5f7f5f"
+foreground = "#000000"
 
 [dark.widgets.submap.hover]
 background = "#a8c0b3"
-foreground = "#dcdccc"
+foreground = "#2e2e2e"
 
 [dark.widgets.submap.active]
 background = "#87afaf"
 foreground = "#2e2e2e"
 
 [dark.widgets.system_tray]
-background = "#3c4242"
-foreground = "#dcdccc"
+background = "#5f7f5f"
+foreground = "#000000"
 
 [dark.widgets.system_tray.hover]
 background = "#a8c0b3"
-foreground = "#dcdccc"
+foreground = "#2e2e2e"
 
 [dark.widgets.system_tray.active]
 background = "#87afaf"
 foreground = "#2e2e2e"
 
 [dark.widgets.taskbar]
-background = "#3c4242"
-foreground = "#dcdccc"
+background = "#5f7f5f"
+foreground = "#000000"
 
 [dark.widgets.taskbar.hover]
 background = "#a8c0b3"
-foreground = "#dcdccc"
+foreground = "#2e2e2e"
 
 [dark.widgets.taskbar.active]
 background = "#87afaf"
 foreground = "#2e2e2e"
 
 [dark.widgets.theme]
-background = "#403b3d"
-foreground = "#dcdccc"
+background = "#5f7f5f"
+foreground = "#000000"
 
 [dark.widgets.theme.hover]
 background = "#a8c0b3"
-foreground = "#dcdccc"
+foreground = "#2e2e2e"
 
 [dark.widgets.theme.active]
 background = "#87afaf"
 foreground = "#2e2e2e"
 
 [dark.widgets.volume]
-background = "#3c4242"
-foreground = "#dcdccc"
+background = "#5f7f5f"
+foreground = "#000000"
 
 [dark.widgets.volume.hover]
 background = "#a8c0b3"
-foreground = "#dcdccc"
+foreground = "#2e2e2e"
 
 [dark.widgets.volume.active]
 background = "#87afaf"
@@ -612,55 +612,103 @@ foreground = "#dcdccc"
 
 [dark.widgets.weather.active]
 background = "#4e4e4e"
-foreground = "#2e2e2e"
+foreground = "#dcdccc"
 
 [dark.widgets.window_count]
-background = "#403b3d"
-foreground = "#dcdccc"
+background = "#5f7f5f"
+foreground = "#000000"
 
 [dark.widgets.window_count.hover]
 background = "#a8c0b3"
-foreground = "#dcdccc"
+foreground = "#2e2e2e"
 
 [dark.widgets.window_count.active]
 background = "#87afaf"
 foreground = "#2e2e2e"
 
 [dark.widgets.window_title]
-background = "#403b3d"
-foreground = "#dcdccc"
+background = "#5f7f5f"
+foreground = "#000000"
 
 [dark.widgets.window_title.hover]
 background = "#a8c0b3"
-foreground = "#dcdccc"
+foreground = "#2e2e2e"
 
 [dark.widgets.window_title.active]
 background = "#87afaf"
 foreground = "#2e2e2e"
 
 [dark.widgets.workspaces]
-background = "#3c4242"
-foreground = "#dcdccc"
+background = "#5f7f5f"
+foreground = "#000000"
 
 [dark.widgets.workspaces.hover]
 background = "#a8c0b3"
-foreground = "#dcdccc"
+foreground = "#2e2e2e"
 
 [dark.widgets.workspaces.active]
 background = "#87afaf"
 foreground = "#2e2e2e"
 
 [dark.widgets.world_clock]
-background = "#3d443d"
-foreground = "#dcdccc"
+background = "#5f7f5f"
+foreground = "#000000"
 
 [dark.widgets.world_clock.hover]
 background = "#a8c0b3"
-foreground = "#dcdccc"
+foreground = "#2e2e2e"
 
 [dark.widgets.world_clock.active]
 background = "#87afaf"
 foreground = "#2e2e2e"
+[dark.widgets.breathe]
+background = "#87afaf"
+foreground = "#2e2e2e"
+
+[dark.widgets.breathe.hover]
+background = "#a8c0b3"
+foreground = "#2e2e2e"
+
+[dark.widgets.breathe.active]
+background = "#87afaf"
+foreground = "#2e2e2e"
+
+[dark.widgets.gpu]
+background = "#5f7f5f"
+foreground = "#000000"
+
+[dark.widgets.gpu.hover]
+background = "#a8c0b3"
+foreground = "#2e2e2e"
+
+[dark.widgets.gpu.active]
+background = "#87afaf"
+foreground = "#2e2e2e"
+
+[dark.widgets.settings]
+background = "#9f7f8d"
+foreground = "#000000"
+
+[dark.widgets.settings.hover]
+background = "#a8c0b3"
+foreground = "#2e2e2e"
+
+[dark.widgets.settings.active]
+background = "#87afaf"
+foreground = "#2e2e2e"
+
+[dark.widgets.wallpaper]
+background = "#f0f0f0"
+foreground = "#2e2e2e"
+
+[dark.widgets.wallpaper.hover]
+background = "#a8c0b3"
+foreground = "#2e2e2e"
+
+[dark.widgets.wallpaper.active]
+background = "#87afaf"
+foreground = "#2e2e2e"
+
 [light.background]
 main = "#c0c0c0" # Main background (dark gray with a slight greenish hue)
 alt = "#b1b1b1" # Secondary background (slightly darker gray)
@@ -702,16 +750,16 @@ bar-background = "rgba(63, 63, 63, 0.8)"
 shadow-color = "rgba(0, 0, 0, 0.6)"
 
 [light.widgets.updates]
-background = "#8d7777"
-foreground = "#232333"
+background = "#785050"
+foreground = "#ffffff"
 
 [light.widgets.updates.hover]
 background = "#573f4c"
-foreground = "#232333"
+foreground = "#d1d1d1"
 
 [light.widgets.updates.active]
 background = "#785050"
-foreground = "#d1d1d1"
+foreground = "#ffffff"
 
 [light.widgets.battery]
 background = "#b1b1b1"
@@ -723,547 +771,547 @@ foreground = "#232333"
 
 [light.widgets.battery.active]
 background = "#b1b1b1"
-foreground = "#d1d1d1"
+foreground = "#232333"
 
 [light.widgets.bluetooth]
-background = "#8d7777"
-foreground = "#232333"
+background = "#785050"
+foreground = "#ffffff"
 
 [light.widgets.bluetooth.hover]
 background = "#573f4c"
-foreground = "#232333"
+foreground = "#d1d1d1"
 
 [light.widgets.bluetooth.active]
 background = "#785050"
-foreground = "#d1d1d1"
+foreground = "#ffffff"
 
 [light.widgets.dns_switcher]
-background = "#8d7777"
-foreground = "#232333"
+background = "#785050"
+foreground = "#ffffff"
 
 [light.widgets.dns_switcher.hover]
 background = "#573f4c"
-foreground = "#232333"
+foreground = "#d1d1d1"
 
 [light.widgets.dns_switcher.active]
 background = "#785050"
-foreground = "#d1d1d1"
+foreground = "#ffffff"
 
 [light.widgets.cloudflare_warp]
-background = "#4b77d7"
-foreground = "#232333"
+background = "#0050ff"
+foreground = "#ffffff"
 
 [light.widgets.cloudflare_warp.hover]
 background = "#573f4c"
-foreground = "#232333"
+foreground = "#d1d1d1"
 
 [light.widgets.cloudflare_warp.active]
 background = "#785050"
-foreground = "#d1d1d1"
+foreground = "#ffffff"
 
 [light.widgets.cheatsheet]
-background = "#897089"
-foreground = "#232333"
+background = "#704370"
+foreground = "#d1d1d1"
 
 [light.widgets.cheatsheet.hover]
 background = "#573f4c"
-foreground = "#232333"
+foreground = "#d1d1d1"
 
 [light.widgets.cheatsheet.active]
 background = "#785050"
-foreground = "#d1d1d1"
+foreground = "#ffffff"
 
 [light.widgets.usb_manager]
-background = "#897089"
-foreground = "#232333"
+background = "#704370"
+foreground = "#d1d1d1"
 
 [light.widgets.usb_manager.hover]
 background = "#573f4c"
-foreground = "#232333"
+foreground = "#d1d1d1"
 
 [light.widgets.usb_manager.active]
 background = "#785050"
-foreground = "#d1d1d1"
+foreground = "#ffffff"
 
 [light.widgets.ip_monitor]
-background = "#8d7777"
-foreground = "#232333"
+background = "#785050"
+foreground = "#ffffff"
 
 [light.widgets.ip_monitor.hover]
 background = "#573f4c"
-foreground = "#232333"
+foreground = "#d1d1d1"
 
 [light.widgets.ip_monitor.active]
 background = "#785050"
-foreground = "#d1d1d1"
+foreground = "#ffffff"
 
 [light.widgets.github_tray]
-background = "#80928a"
-foreground = "#232333"
+background = "#608072"
+foreground = "#000000"
 
 [light.widgets.github_tray.hover]
 background = "#573f4c"
-foreground = "#232333"
+foreground = "#d1d1d1"
 
 [light.widgets.github_tray.active]
 background = "#785050"
-foreground = "#d1d1d1"
+foreground = "#ffffff"
 
 [light.widgets.pomodoro]
-background = "#61a3a3"
+background = "#28a0a0"
 foreground = "#232333"
 
 [light.widgets.pomodoro.hover]
 background = "#573f4c"
-foreground = "#232333"
+foreground = "#d1d1d1"
 
 [light.widgets.pomodoro.active]
 background = "#785050"
-foreground = "#d1d1d1"
+foreground = "#ffffff"
 
 [light.widgets.custom_widget]
-background = "#897089"
-foreground = "#232333"
+background = "#704370"
+foreground = "#d1d1d1"
 
 [light.widgets.custom_widget.hover]
 background = "#573f4c"
-foreground = "#232333"
+foreground = "#d1d1d1"
 
 [light.widgets.custom_widget.active]
 background = "#785050"
-foreground = "#d1d1d1"
+foreground = "#ffffff"
 
 [light.widgets.brightness]
-background = "#617777"
-foreground = "#232333"
+background = "#285050"
+foreground = "#d1d1d1"
 
 [light.widgets.brightness.hover]
 background = "#573f4c"
-foreground = "#232333"
+foreground = "#d1d1d1"
 
 [light.widgets.brightness.active]
 background = "#785050"
-foreground = "#d1d1d1"
+foreground = "#ffffff"
 
 [light.widgets.cava]
-background = "#80928a"
-foreground = "#232333"
+background = "#608072"
+foreground = "#000000"
 
 [light.widgets.cava.hover]
 background = "#573f4c"
-foreground = "#232333"
+foreground = "#d1d1d1"
 
 [light.widgets.cava.active]
 background = "#785050"
-foreground = "#d1d1d1"
+foreground = "#ffffff"
 
 [light.widgets.click_counter]
-background = "#4b77d7"
-foreground = "#232333"
+background = "#0050ff"
+foreground = "#ffffff"
 
 [light.widgets.click_counter.hover]
 background = "#573f4c"
-foreground = "#232333"
+foreground = "#d1d1d1"
 
 [light.widgets.click_counter.active]
 background = "#785050"
-foreground = "#d1d1d1"
+foreground = "#ffffff"
 
 [light.widgets.clipboard]
-background = "#80928a"
-foreground = "#232333"
+background = "#608072"
+foreground = "#000000"
 
 [light.widgets.clipboard.hover]
 background = "#573f4c"
-foreground = "#232333"
+foreground = "#d1d1d1"
 
 [light.widgets.clipboard.active]
 background = "#785050"
-foreground = "#d1d1d1"
+foreground = "#ffffff"
 
 [light.widgets.launcher_button]
-background = "#8d7777"
-foreground = "#232333"
+background = "#785050"
+foreground = "#ffffff"
 
 [light.widgets.launcher_button.hover]
 background = "#573f4c"
-foreground = "#232333"
+foreground = "#d1d1d1"
 
 [light.widgets.launcher_button.active]
 background = "#785050"
-foreground = "#d1d1d1"
+foreground = "#ffffff"
 
 [light.widgets.overview_button]
-background = "#8d7777"
-foreground = "#232333"
+background = "#785050"
+foreground = "#ffffff"
 
 [light.widgets.overview_button.hover]
 background = "#573f4c"
-foreground = "#232333"
+foreground = "#d1d1d1"
 
 [light.widgets.overview_button.active]
 background = "#785050"
-foreground = "#d1d1d1"
+foreground = "#ffffff"
 
 [light.widgets.theme_switcher]
-background = "#80928a"
-foreground = "#232333"
+background = "#608072"
+foreground = "#000000"
 
 [light.widgets.theme_switcher.hover]
 background = "#573f4c"
-foreground = "#232333"
+foreground = "#d1d1d1"
 
 [light.widgets.theme_switcher.active]
 background = "#785050"
-foreground = "#d1d1d1"
+foreground = "#ffffff"
 
 [light.widgets.cpu]
-background = "#61a3a3"
+background = "#28a0a0"
 foreground = "#232333"
 
 [light.widgets.cpu.hover]
 background = "#573f4c"
-foreground = "#232333"
+foreground = "#d1d1d1"
 
 [light.widgets.cpu.active]
 background = "#785050"
-foreground = "#d1d1d1"
+foreground = "#ffffff"
 
 [light.widgets.date_time]
-background = "#8d7777"
-foreground = "#232333"
+background = "#785050"
+foreground = "#ffffff"
 
 [light.widgets.date_time.hover]
 background = "#573f4c"
-foreground = "#232333"
+foreground = "#d1d1d1"
 
 [light.widgets.date_time.active]
 background = "#785050"
-foreground = "#d1d1d1"
+foreground = "#ffffff"
 
 [light.widgets.divider]
-background = "#8d7777"
-foreground = "#232333"
+background = "#785050"
+foreground = "#ffffff"
 
 [light.widgets.divider.hover]
 background = "#573f4c"
-foreground = "#232333"
+foreground = "#d1d1d1"
 
 [light.widgets.divider.active]
 background = "#785050"
-foreground = "#d1d1d1"
+foreground = "#ffffff"
 
 [light.widgets.emoji_picker]
-background = "#617777"
-foreground = "#232333"
+background = "#285050"
+foreground = "#d1d1d1"
 
 [light.widgets.emoji_picker.hover]
 background = "#573f4c"
-foreground = "#232333"
+foreground = "#d1d1d1"
 
 [light.widgets.emoji_picker.active]
 background = "#785050"
-foreground = "#d1d1d1"
+foreground = "#ffffff"
 
 [light.widgets.hypridle]
-background = "#897089"
-foreground = "#232333"
+background = "#704370"
+foreground = "#d1d1d1"
 
 [light.widgets.hypridle.hover]
 background = "#573f4c"
-foreground = "#232333"
+foreground = "#d1d1d1"
 
 [light.widgets.hypridle.active]
 background = "#785050"
-foreground = "#d1d1d1"
+foreground = "#ffffff"
 
 [light.widgets.hyprpicker]
-background = "#535353"
-foreground = "#232333"
+background = "#0f0f0f"
+foreground = "#d1d1d1"
 
 [light.widgets.hyprpicker.hover]
 background = "#573f4c"
-foreground = "#232333"
+foreground = "#d1d1d1"
 
 [light.widgets.hyprpicker.active]
 background = "#785050"
-foreground = "#d1d1d1"
+foreground = "#ffffff"
 
 [light.widgets.hyprsunset]
-background = "#4b77d7"
-foreground = "#232333"
+background = "#0050ff"
+foreground = "#ffffff"
 
 [light.widgets.hyprsunset.hover]
 background = "#573f4c"
-foreground = "#232333"
+foreground = "#d1d1d1"
 
 [light.widgets.hyprsunset.active]
 background = "#785050"
-foreground = "#d1d1d1"
+foreground = "#ffffff"
 
 [light.widgets.kanban]
-background = "#a392a3"
-foreground = "#232333"
+background = "#704370"
+foreground = "#d1d1d1"
 
 [light.widgets.kanban.hover]
 background = "#573f4c"
-foreground = "#232333"
+foreground = "#d1d1d1"
 
 [light.widgets.kanban.active]
 background = "#785050"
-foreground = "#d1d1d1"
+foreground = "#ffffff"
 
 [light.widgets.keyboard]
-background = "#80928a"
-foreground = "#232333"
+background = "#608072"
+foreground = "#000000"
 
 [light.widgets.keyboard.hover]
 background = "#573f4c"
-foreground = "#232333"
+foreground = "#d1d1d1"
 
 [light.widgets.keyboard.active]
 background = "#785050"
-foreground = "#d1d1d1"
+foreground = "#ffffff"
 
 [light.widgets.language]
-background = "#80928a"
-foreground = "#232333"
+background = "#608072"
+foreground = "#000000"
 
 [light.widgets.language.hover]
 background = "#573f4c"
-foreground = "#232333"
+foreground = "#d1d1d1"
 
 [light.widgets.language.active]
 background = "#785050"
-foreground = "#d1d1d1"
+foreground = "#ffffff"
 
 [light.widgets.memory]
-background = "#617777"
-foreground = "#232333"
+background = "#285050"
+foreground = "#d1d1d1"
 
 [light.widgets.memory.hover]
 background = "#573f4c"
-foreground = "#232333"
+foreground = "#d1d1d1"
 
 [light.widgets.memory.active]
 background = "#785050"
-foreground = "#d1d1d1"
+foreground = "#ffffff"
 
 [light.widgets.microphone]
-background = "#61a3a3"
+background = "#28a0a0"
 foreground = "#232333"
 
 [light.widgets.microphone.hover]
 background = "#573f4c"
-foreground = "#232333"
+foreground = "#d1d1d1"
 
 [light.widgets.microphone.active]
 background = "#785050"
-foreground = "#d1d1d1"
+foreground = "#ffffff"
 
 [light.widgets.mpris]
-background = "#a392a3"
-foreground = "#232333"
+background = "#704370"
+foreground = "#d1d1d1"
 
 [light.widgets.mpris.hover]
 background = "#573f4c"
-foreground = "#232333"
+foreground = "#d1d1d1"
 
 [light.widgets.mpris.active]
 background = "#785050"
-foreground = "#d1d1d1"
+foreground = "#ffffff"
 
 [light.widgets.network_usage]
-background = "#8d7777"
-foreground = "#232333"
+background = "#785050"
+foreground = "#ffffff"
 
 [light.widgets.network_usage.hover]
 background = "#573f4c"
-foreground = "#232333"
+foreground = "#d1d1d1"
 
 [light.widgets.network_usage.active]
 background = "#785050"
-foreground = "#d1d1d1"
+foreground = "#ffffff"
 
 [light.widgets.ocr]
-background = "#80928a"
-foreground = "#232333"
+background = "#608072"
+foreground = "#000000"
 
 [light.widgets.ocr.hover]
 background = "#573f4c"
-foreground = "#232333"
+foreground = "#d1d1d1"
 
 [light.widgets.ocr.active]
 background = "#785050"
-foreground = "#d1d1d1"
+foreground = "#ffffff"
 
 [light.widgets.overview]
-background = "#8d7777"
-foreground = "#232333"
+background = "#785050"
+foreground = "#ffffff"
 
 [light.widgets.overview.hover]
 background = "#573f4c"
-foreground = "#232333"
+foreground = "#d1d1d1"
 
 [light.widgets.overview.active]
 background = "#785050"
-foreground = "#d1d1d1"
+foreground = "#ffffff"
 
 [light.widgets.power]
-background = "#61a3a3"
+background = "#28a0a0"
 foreground = "#232333"
 
 [light.widgets.power.hover]
 background = "#573f4c"
-foreground = "#232333"
+foreground = "#d1d1d1"
 
 [light.widgets.power.active]
 background = "#785050"
-foreground = "#d1d1d1"
+foreground = "#ffffff"
 
 [light.widgets.quick_settings]
-background = "#80928a"
-foreground = "#232333"
+background = "#608072"
+foreground = "#000000"
 
 [light.widgets.quick_settings.hover]
 background = "#573f4c"
-foreground = "#232333"
+foreground = "#d1d1d1"
 
 [light.widgets.quick_settings.active]
 background = "#785050"
-foreground = "#d1d1d1"
+foreground = "#ffffff"
 
 [light.widgets.radio_player]
-background = "#535353"
-foreground = "#232333"
+background = "#0f0f0f"
+foreground = "#d1d1d1"
 
 [light.widgets.radio_player.hover]
 background = "#573f4c"
-foreground = "#232333"
+foreground = "#d1d1d1"
 
 [light.widgets.radio_player.active]
 background = "#785050"
-foreground = "#d1d1d1"
+foreground = "#ffffff"
 
 [light.widgets.recorder]
-background = "#61a3a3"
+background = "#28a0a0"
 foreground = "#232333"
 
 [light.widgets.recorder.hover]
 background = "#573f4c"
-foreground = "#232333"
+foreground = "#d1d1d1"
 
 [light.widgets.recorder.active]
 background = "#785050"
-foreground = "#d1d1d1"
+foreground = "#ffffff"
 
 [light.widgets.screenshot]
-background = "#897089"
-foreground = "#232333"
+background = "#704370"
+foreground = "#d1d1d1"
 
 [light.widgets.screenshot.hover]
 background = "#573f4c"
-foreground = "#232333"
+foreground = "#d1d1d1"
 
 [light.widgets.screenshot.active]
 background = "#785050"
-foreground = "#d1d1d1"
+foreground = "#ffffff"
 
 [light.widgets.spacing]
-background = "#8d7777"
-foreground = "#232333"
+background = "#785050"
+foreground = "#ffffff"
 
 [light.widgets.spacing.hover]
 background = "#573f4c"
-foreground = "#232333"
+foreground = "#d1d1d1"
 
 [light.widgets.spacing.active]
 background = "#785050"
-foreground = "#d1d1d1"
+foreground = "#ffffff"
 
 [light.widgets.stopwatch]
-background = "#4b77d7"
-foreground = "#232333"
+background = "#0050ff"
+foreground = "#ffffff"
 
 [light.widgets.stopwatch.hover]
 background = "#573f4c"
-foreground = "#232333"
+foreground = "#d1d1d1"
 
 [light.widgets.stopwatch.active]
 background = "#785050"
-foreground = "#d1d1d1"
+foreground = "#ffffff"
 
 [light.widgets.storage]
-background = "#80928a"
-foreground = "#232333"
+background = "#608072"
+foreground = "#000000"
 
 [light.widgets.storage.hover]
 background = "#573f4c"
-foreground = "#232333"
+foreground = "#d1d1d1"
 
 [light.widgets.storage.active]
 background = "#785050"
-foreground = "#d1d1d1"
+foreground = "#ffffff"
 
 [light.widgets.submap]
-background = "#617777"
-foreground = "#232333"
+background = "#285050"
+foreground = "#d1d1d1"
 
 [light.widgets.submap.hover]
 background = "#573f4c"
-foreground = "#232333"
+foreground = "#d1d1d1"
 
 [light.widgets.submap.active]
 background = "#785050"
-foreground = "#d1d1d1"
+foreground = "#ffffff"
 
 [light.widgets.system_tray]
-background = "#8d7777"
-foreground = "#232333"
+background = "#785050"
+foreground = "#ffffff"
 
 [light.widgets.system_tray.hover]
 background = "#573f4c"
-foreground = "#232333"
+foreground = "#d1d1d1"
 
 [light.widgets.system_tray.active]
 background = "#785050"
-foreground = "#d1d1d1"
+foreground = "#ffffff"
 
 [light.widgets.taskbar]
-background = "#8d7777"
-foreground = "#232333"
+background = "#785050"
+foreground = "#ffffff"
 
 [light.widgets.taskbar.hover]
 background = "#573f4c"
-foreground = "#232333"
+foreground = "#d1d1d1"
 
 [light.widgets.taskbar.active]
 background = "#785050"
-foreground = "#d1d1d1"
+foreground = "#ffffff"
 
 [light.widgets.theme]
-background = "#80928a"
-foreground = "#232333"
+background = "#608072"
+foreground = "#000000"
 
 [light.widgets.theme.hover]
 background = "#573f4c"
-foreground = "#232333"
+foreground = "#d1d1d1"
 
 [light.widgets.theme.active]
 background = "#785050"
-foreground = "#d1d1d1"
+foreground = "#ffffff"
 
 [light.widgets.volume]
-background = "#8d7777"
-foreground = "#232333"
+background = "#785050"
+foreground = "#ffffff"
 
 [light.widgets.volume.hover]
 background = "#573f4c"
-foreground = "#232333"
+foreground = "#d1d1d1"
 
 [light.widgets.volume.active]
 background = "#785050"
-foreground = "#d1d1d1"
+foreground = "#ffffff"
 
 [light.widgets.weather]
 background = "#b1b1b1"
@@ -1275,52 +1323,100 @@ foreground = "#232333"
 
 [light.widgets.weather.active]
 background = "#b1b1b1"
-foreground = "#d1d1d1"
+foreground = "#232333"
 
 [light.widgets.window_count]
-background = "#80928a"
-foreground = "#232333"
+background = "#608072"
+foreground = "#000000"
 
 [light.widgets.window_count.hover]
 background = "#573f4c"
-foreground = "#232333"
+foreground = "#d1d1d1"
 
 [light.widgets.window_count.active]
 background = "#785050"
-foreground = "#d1d1d1"
+foreground = "#ffffff"
 
 [light.widgets.window_title]
-background = "#80928a"
-foreground = "#232333"
+background = "#608072"
+foreground = "#000000"
 
 [light.widgets.window_title.hover]
 background = "#573f4c"
-foreground = "#232333"
+foreground = "#d1d1d1"
 
 [light.widgets.window_title.active]
 background = "#785050"
-foreground = "#d1d1d1"
+foreground = "#ffffff"
 
 [light.widgets.workspaces]
-background = "#8d7777"
-foreground = "#232333"
+background = "#785050"
+foreground = "#ffffff"
 
 [light.widgets.workspaces.hover]
 background = "#573f4c"
-foreground = "#232333"
+foreground = "#d1d1d1"
 
 [light.widgets.workspaces.active]
 background = "#785050"
-foreground = "#d1d1d1"
+foreground = "#ffffff"
 
 [light.widgets.world_clock]
-background = "#897089"
-foreground = "#232333"
+background = "#704370"
+foreground = "#d1d1d1"
 
 [light.widgets.world_clock.hover]
 background = "#573f4c"
-foreground = "#232333"
+foreground = "#d1d1d1"
 
 [light.widgets.world_clock.active]
 background = "#785050"
+foreground = "#ffffff"
+
+[light.widgets.breathe]
+background = "#785050"
+foreground = "#ffffff"
+
+[light.widgets.breathe.hover]
+background = "#573f4c"
 foreground = "#d1d1d1"
+
+[light.widgets.breathe.active]
+background = "#785050"
+foreground = "#ffffff"
+
+[light.widgets.gpu]
+background = "#a080a0"
+foreground = "#000000"
+
+[light.widgets.gpu.hover]
+background = "#573f4c"
+foreground = "#d1d1d1"
+
+[light.widgets.gpu.active]
+background = "#785050"
+foreground = "#ffffff"
+
+[light.widgets.settings]
+background = "#608072"
+foreground = "#000000"
+
+[light.widgets.settings.hover]
+background = "#573f4c"
+foreground = "#d1d1d1"
+
+[light.widgets.settings.active]
+background = "#785050"
+foreground = "#ffffff"
+
+[light.widgets.wallpaper]
+background = "#0f0f0f"
+foreground = "#d1d1d1"
+
+[light.widgets.wallpaper.hover]
+background = "#573f4c"
+foreground = "#d1d1d1"
+
+[light.widgets.wallpaper.active]
+background = "#785050"
+foreground = "#ffffff"
