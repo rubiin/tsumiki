@@ -23,7 +23,9 @@ class CustomNotificationsTest(unittest.TestCase):
             # Avoid owning the real DBus name in tests.
             mock.patch("gi.repository.Gio.bus_own_name", return_value=1),
             # Drain pooled history writes inline so the test's temp dir survives.
-            mock.patch("services.custom_notification.thread", side_effect=run_inline),
+            mock.patch(
+                "services.custom_notification.blocking_thread", side_effect=run_inline
+            ),
         ]
         for patcher in patchers:
             patcher.start()
@@ -170,7 +172,9 @@ class CustomNotificationsTest(unittest.TestCase):
             submitted.append(target)
             return mock.Mock()
 
-        with mock.patch("services.custom_notification.thread", side_effect=fake_thread):
+        with mock.patch(
+            "services.custom_notification.blocking_thread", side_effect=fake_thread
+        ):
             for summary in ("a", "b", "c"):
                 self.service.cache_notification(
                     {}, make_notification(summary=summary), 100
@@ -199,7 +203,9 @@ class CustomNotificationsTest(unittest.TestCase):
                 "services.custom_notification.write_json_file",
                 side_effect=ValueError("bad"),
             ),
-            mock.patch("services.custom_notification.thread", side_effect=capture),
+            mock.patch(
+                "services.custom_notification.blocking_thread", side_effect=capture
+            ),
         ):
             self.service.cache_notification({}, make_notification(summary="a"), 100)
             # Call the worker as the pool would: an escaping error wedges the flag.
@@ -207,7 +213,9 @@ class CustomNotificationsTest(unittest.TestCase):
 
         self.assertFalse(self.service._persist_running)
 
-        with mock.patch("services.custom_notification.thread", side_effect=run_inline):
+        with mock.patch(
+            "services.custom_notification.blocking_thread", side_effect=run_inline
+        ):
             self.service.cache_notification({}, make_notification(summary="b"), 100)
 
         with open(self._cache_file, encoding="utf-8") as handle:

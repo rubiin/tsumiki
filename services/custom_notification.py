@@ -9,7 +9,7 @@ from utils.constants import (
     NOTIFICATION_CACHE_FILE,
     NOTIFICATION_IMAGE_SIZE,
 )
-from utils.decorators import thread
+from utils.decorators import blocking_thread
 from utils.functions import read_json_file, write_json_file
 from utils.widget_utils import get_notification_image_pixbuf
 
@@ -397,7 +397,7 @@ class CustomNotifications(Notifications):
                 return
             self._persist_running = True
         try:
-            thread(self._persist_loop)
+            blocking_thread(self._persist_loop)
         except Exception as e:
             # Submission fails once the pool shuts down; the flag reset matters.
             with self._persist_lock:

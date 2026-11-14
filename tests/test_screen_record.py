@@ -114,9 +114,12 @@ class AnnotatedScreenshotTest(unittest.TestCase):
         self.exec_async = patcher.start()
         self.addCleanup(patcher.stop)
 
-        # Run the worker inline instead of handing it to the thread pool.
+        # Run the worker inline instead of handing it to the blocking pool.
         patcher = mock.patch.object(
-            screen_record_module, "thread", side_effect=lambda fn: fn(), autospec=False
+            screen_record_module,
+            "blocking_thread",
+            side_effect=lambda fn: fn(),
+            autospec=False,
         )
         patcher.start()
         self.addCleanup(patcher.stop)
@@ -291,6 +294,26 @@ class NotificationActionMappingTest(unittest.TestCase):
         self.Subprocess.new.assert_called_once()
         argv = self.Subprocess.new.call_args.args[0]
         self.assertEqual(["notify-send", "Screenshot Sent to Clipboard"], argv)
+
+
+class WorkerPoolRoutingTest(unittest.TestCase):
+    """Blocking shell-outs belong on the blocking pool, not the quick one."""
+
+    def test_region_capture_runs_slurp_on_the_blocking_pool(self):
+        service = make_service()
+        service._current_screencast_path = ""
+        service._start_recording = mock.Mock()
+
+        with (
+            mock.patch.object(
+                screen_record_module.helpers, "is_app_running", return_value=False
+            ),
+            mock.patch.object(screen_record_module, "blocking_thread") as blocking,
+        ):
+            service.screenrecord_start({"path": "Videos"})
+
+        blocking.assert_called_once()
+        self.assertTrue(callable(blocking.call_args.args[0]))
 
 
 if __name__ == "__main__":

@@ -15,7 +15,7 @@ from fabric.utils import (
 
 import utils.functions as helpers
 from utils.constants import APPLICATION_NAME, ASSETS_DIR
-from utils.decorators import thread
+from utils.decorators import blocking_thread
 from utils.icons import symbolic_icons
 
 from .base import SingletonService
@@ -76,7 +76,7 @@ class ScreenRecorderService(SingletonService):
             geometry = exec_shell_command("slurp")
             idle_add(self._on_slurp, geometry, audio, file_path, delayed, timeout)
 
-        thread(_slurp_worker)
+        blocking_thread(_slurp_worker)
 
     def _on_slurp(self, geometry, audio, file_path, delayed, timeout):
         area = f"-g '{geometry}'" if geometry else ""
@@ -258,7 +258,7 @@ class ScreenRecorderService(SingletonService):
             try:
                 if annotate:
                     # Off the main thread; satty blocks the GTK loop while open.
-                    thread(_annotate_and_notify)
+                    blocking_thread(_annotate_and_notify)
                     return
 
                 if config.get("capture_sound", False):

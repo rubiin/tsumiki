@@ -24,7 +24,7 @@ from fabric.widgets.scrolledwindow import ScrolledWindow
 
 from shared.popup import PopupWindow
 from utils.app import AppUtils
-from utils.decorators import thread
+from utils.decorators import blocking_thread
 from utils.functions import ttl_lru_cache
 from utils.icon_resolver import IconResolver
 from utils.plugin_manager import (
@@ -671,7 +671,8 @@ class Launcher(PopupWindow):
         def _fire() -> bool:
             plugin._reset_cancel()
             self._active_plugin = plugin
-            thread(self._plugin_worker, plugin, args, gen)
+            # Plugin queries shell out; keep them off the quick pool.
+            blocking_thread(self._plugin_worker, plugin, args, gen)
             return False
 
         delay = (
