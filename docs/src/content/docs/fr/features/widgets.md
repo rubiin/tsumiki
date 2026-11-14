@@ -138,7 +138,7 @@ enable_pinning = true
 
 [widgets.usb_manager]
 label_format = ""
-auto_refresh = true
+tooltip = true
 ```
 
 ## Widgets d'Interface et d'Applications

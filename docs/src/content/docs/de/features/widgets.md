@@ -105,7 +105,7 @@ show_images = true
 
 [widgets.usb_manager]
 label_format = ""
-auto_refresh = true
+tooltip = true
 ```
 
 ## UI- und Anwendungswidgets
