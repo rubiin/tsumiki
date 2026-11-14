@@ -1,5 +1,110 @@
 # Changelog
 
+## [4.8.5](https://github.com/rubiin/tsumiki/compare/v4.8.4...v4.8.5) (2026-11-14)
+
+### 🚀 New Features
+
+- add exec_if and hide_empty_text options to custom widgets ([bf4896b](https://github.com/rubiin/tsumiki/commit/bf4896b75835ae476f68154901946d53dadc9417))
+- add hide_when_stopped option to control media section visibility ([00a307b](https://github.com/rubiin/tsumiki/commit/00a307b4468a17cdf8bde6518335b80a03363892))
+- add hover_reveal and reveal_duration options for widgets and update configuration ([4d9958a](https://github.com/rubiin/tsumiki/commit/4d9958a4d7c328b6db3c4de7bfb07885dc7366e8))
+- add ignored option to launcher configuration to exclude specified apps from search results ([1012d52](https://github.com/rubiin/tsumiki/commit/1012d52bf8b33c7ac13f527ce86452fac2131cc3))
+- add is_special_workspace function to detect special workspaces and update filtering logic ([6b10e53](https://github.com/rubiin/tsumiki/commit/6b10e53aaf589c188dda537b4b85b8fe2862d1dc))
+- add settings configuration for label format and tooltip in schema and widgets ([ff48c01](https://github.com/rubiin/tsumiki/commit/ff48c012e987ba878499d9725574bcf7df593926))
+- add tests for special workspace handling and enhance workspace event logic ([95936e4](https://github.com/rubiin/tsumiki/commit/95936e42dddf0a0abd5b4750635093995099296b))
+- Add widget color management and testing framework ([3de824e](https://github.com/rubiin/tsumiki/commit/3de824e0a930e9f29975711890e53ff59a147bdc))
+- **currency:** implement cooldown to prevent duplicate cold-cache requests ([0b5c4aa](https://github.com/rubiin/tsumiki/commit/0b5c4aa3c7b6b184f7fba73bd941e1eab437c30e))
+- **osd:** add modules.osd.style structural presets ([8d5350c](https://github.com/rubiin/tsumiki/commit/8d5350cf2216ab7185d5f6a8f91c36e3448d2fa2))
+- **styling:** add bar monochrome setting ([c4b14ca](https://github.com/rubiin/tsumiki/commit/c4b14ca5c64b936d86bec3d3e8598577da2ecb45))
+- **styling:** add color configurations for updates widget ([fd0385c](https://github.com/rubiin/tsumiki/commit/fd0385c55987ec5ae4bab8fa2e6091b1d0dc27af))
+- **theme:** add color configurations for various widgets ([7236acc](https://github.com/rubiin/tsumiki/commit/7236acc84186e381cdbf8a02f429c11de354712b))
+- widget styles for dark and light themes in zenburn.toml ([630dbdd](https://github.com/rubiin/tsumiki/commit/630dbdde854566b098e6d5014383bf6d66ede338))
+- **widget_colors:** add _clean_colors_only function for valid color field extraction ([db0d33d](https://github.com/rubiin/tsumiki/commit/db0d33d000074e9dc402991c6452904dd9412734))
+- **widgets:** add compact mode for network usage ([ae7ab2f](https://github.com/rubiin/tsumiki/commit/ae7ab2f392b8dd4fd2fcf15bef4f0e1a6162f3bf))
+
+### 🐛 Bug Fixes
+
+- **deps:** update all non-major dependencies ([9c41546](https://github.com/rubiin/tsumiki/commit/9c41546c5dac9ffbe02ec54c11921584b020e1a1))
+- **deps:** update all non-major dependencies ([20502d1](https://github.com/rubiin/tsumiki/commit/20502d12323bd909cf58a3cb11680cc91264794c))
+- **deps:** update all non-major dependencies ([64be73f](https://github.com/rubiin/tsumiki/commit/64be73fa74f25f22345f06e95ddb4392fcaba7a4))
+- **deps:** update all non-major dependencies ([6ccc8e8](https://github.com/rubiin/tsumiki/commit/6ccc8e812d0445620b89d2511a2b729a8a3ac10b))
+- **deps:** update all non-major dependencies ([1b1f990](https://github.com/rubiin/tsumiki/commit/1b1f99048e429a8afa25cc134392a6ce07c6c7b1))
+- **deps:** update all non-major dependencies ([e59c6eb](https://github.com/rubiin/tsumiki/commit/e59c6ebf65eadd5d043e5f8a73b9aa99a1e33d7e))
+- **deps:** update all non-major dependencies ([8f7d7b3](https://github.com/rubiin/tsumiki/commit/8f7d7b36199c56cdabbc6b60a19a5381bd390387))
+- **deps:** update all non-major dependencies ([3930f36](https://github.com/rubiin/tsumiki/commit/3930f362c1a5c2c2b9bada37883b67fde1e5d7f1))
+- **deps:** update all non-major npm dependencies ([6942ca6](https://github.com/rubiin/tsumiki/commit/6942ca6596e8e7245d9d209f612d30c08919ca21))
+- **deps:** update all non-major npm dependencies ([ffe37aa](https://github.com/rubiin/tsumiki/commit/ffe37aa7b242887df451c6103ef3b2ff3a2ea56c))
+- **deps:** update all non-major npm dependencies ([6889864](https://github.com/rubiin/tsumiki/commit/688986401d7ae4c34790cae542aa5306ee00b25d))
+- **deps:** update all non-major npm dependencies ([468e76c](https://github.com/rubiin/tsumiki/commit/468e76cfd7b8f087fcdd296c1a11760e42c29b47))
+- **deps:** update all non-major npm dependencies ([ec2ca76](https://github.com/rubiin/tsumiki/commit/ec2ca767cc4b4752678cadda6363510bc02b25de))
+- **deps:** update all non-major npm dependencies ([002afd3](https://github.com/rubiin/tsumiki/commit/002afd3efff81b217b684d1febed3101307dda5a))
+- **deps:** update all non-major npm dependencies ([9a8abe1](https://github.com/rubiin/tsumiki/commit/9a8abe19b06569309892f8c28eec2aaf9986eb02))
+- **deps:** update all non-major npm dependencies ([ac2b923](https://github.com/rubiin/tsumiki/commit/ac2b92343f5c91b118c34039c00e34f60c6bddf4))
+- **dock:** use global tooltips switch instead of config.get('tooltip') ([334381f](https://github.com/rubiin/tsumiki/commit/334381fa6afad226319fe2f6e0d2a9c52d7b45a8))
+- docs ([c5863ae](https://github.com/rubiin/tsumiki/commit/c5863ae525f70a4729ca68a45ddef8ddbe0c0d90))
+- docs deps ([114b40e](https://github.com/rubiin/tsumiki/commit/114b40ed25b3eb87bdc40df1033084a0df2a649b))
+- Incomplete URL substring sanitization ([#494](https://github.com/rubiin/tsumiki/issues/494)) ([7005725](https://github.com/rubiin/tsumiki/commit/7005725f4b99bc42d12c37e738a02fbd433a85f9))
+- **lint:** combine nested if statements in tagentry key handler ([e0bf3b0](https://github.com/rubiin/tsumiki/commit/e0bf3b04009b2f4c6dc8dd2b0750f93af6be0119))
+- **notification:** increase expiry interval for notifications to improve visibility ([d06abf4](https://github.com/rubiin/tsumiki/commit/d06abf4d71c95ba4b1bc34917cb67509cc19e43a))
+- **runtime:** route long-lived workers to the blocking pool ([3c20c70](https://github.com/rubiin/tsumiki/commit/3c20c70b96b0ac4d0f3a982e5e3b5893ead69df0))
+- set config flags in SettingSlider constructor ([fd40f00](https://github.com/rubiin/tsumiki/commit/fd40f00700524e8766f92caebc1b48d859e51ca2))
+- **styling:** apply bar widget colors and refresh theme backgrounds ([0355938](https://github.com/rubiin/tsumiki/commit/0355938f2a6947ae9cfd0ec688fc65f10b04b937))
+- **styling:** enable monochrome setting for the bar widget ([c6c20f3](https://github.com/rubiin/tsumiki/commit/c6c20f3f371ac546a2999431d548a07508d39532))
+- **styling:** restore vivid widget fills and readable labels ([dc3e477](https://github.com/rubiin/tsumiki/commit/dc3e4777ebb785d1195e9dcd4d2b51f7c12ad7f4))
+
+### ⚡️ Performance Improvements
+
+- **widgets:** lazy-load datetime notification history on popover open ([c24e439](https://github.com/rubiin/tsumiki/commit/c24e439bc4f8ea3b3b07ed91bfad1786b8c66808))
+
+### 📚 Documentation
+
+- **usb-manager:** drop the unimplemented auto_refresh option ([2ccfc02](https://github.com/rubiin/tsumiki/commit/2ccfc022654b68c78dfd06d7ad93d8734774d4bf))
+
+### 🎨 Code Style
+
+- **tsumiki.schema:** format enum and required fields for better readability ([cace47f](https://github.com/rubiin/tsumiki/commit/cace47f468be907414c86bfc90c0d59213d0fb24))
+- **tsumiki.schema:** simplify enum formatting for improved readability ([38a0a74](https://github.com/rubiin/tsumiki/commit/38a0a74766cb27435964895693db5d44b484637a))
+
+### ⚙️ Chores
+
+- **deps:** lock file maintenance ([8ff7129](https://github.com/rubiin/tsumiki/commit/8ff71298fd898f1c06dd4becb5974ed1ac068812))
+- **deps:** lock file maintenance ([9dcb375](https://github.com/rubiin/tsumiki/commit/9dcb3753b4256e862fbf9702423c83ddc7b20193))
+- **deps:** lock file maintenance ([13bbe32](https://github.com/rubiin/tsumiki/commit/13bbe32d0b5bda25c73952725781d40992ce5ad2))
+- **deps:** lock file maintenance ([5f61d6f](https://github.com/rubiin/tsumiki/commit/5f61d6f66d25e74efec6b37648a94d17be2de182))
+- **deps:** lock file maintenance ([80a8e74](https://github.com/rubiin/tsumiki/commit/80a8e748db59ab1a0880fdff4dde4d36161e80c4))
+- **deps:** lock file maintenance ([86183d5](https://github.com/rubiin/tsumiki/commit/86183d53766fd0eca479423efb68750da7b86559))
+- **deps:** lock file maintenance ([#449](https://github.com/rubiin/tsumiki/issues/449)) ([edaed58](https://github.com/rubiin/tsumiki/commit/edaed58fca8ec23398925619391c7e57aaa214d9))
+- **deps:** lock file maintenance ([#477](https://github.com/rubiin/tsumiki/issues/477)) ([01b5d59](https://github.com/rubiin/tsumiki/commit/01b5d5995c1afb6f63291ffd0ec2f4c51173da0e))
+- **deps:** lock file maintenance ([#484](https://github.com/rubiin/tsumiki/issues/484)) ([af86df9](https://github.com/rubiin/tsumiki/commit/af86df9887060fe7e2b6bec4a4d62caf36e776ef))
+- **deps:** lock file maintenance ([#491](https://github.com/rubiin/tsumiki/issues/491)) ([1af4067](https://github.com/rubiin/tsumiki/commit/1af4067ec38c91bfcba928dc1497569234a8b582))
+- **deps:** lock file maintenance ([#503](https://github.com/rubiin/tsumiki/issues/503)) ([13d55bf](https://github.com/rubiin/tsumiki/commit/13d55bfc85e22e368de1fd9220328324542fe188))
+- **deps:** update all non-major dependencies ([9b7cb5a](https://github.com/rubiin/tsumiki/commit/9b7cb5ae7b9a5e79a7c4d129dac16703aa9abc55))
+- **deps:** update all non-major dependencies ([38b8aa0](https://github.com/rubiin/tsumiki/commit/38b8aa00a2ce5e001508c1a6da48782467c98c70))
+- **deps:** update all non-major dependencies ([47e4652](https://github.com/rubiin/tsumiki/commit/47e465278734ecdabbc4368ef85488005317bbe2))
+- **deps:** update all non-major dependencies ([8545d80](https://github.com/rubiin/tsumiki/commit/8545d80114df48ace0ccd2964a7f48b6437b7a9e))
+- **deps:** update dependency node to v24.22.0 ([3d7dde7](https://github.com/rubiin/tsumiki/commit/3d7dde7d0b04c13a2ed094014c3a6f27a2713ba1))
+- **deps:** update dependency node to v24.22.0 ([161c3a2](https://github.com/rubiin/tsumiki/commit/161c3a24429e45c4f9e0266226bbe804b5c3d7cf))
+- **deps:** update dependency node to v24.22.1 ([98f711e](https://github.com/rubiin/tsumiki/commit/98f711edc4bc5fad900178a361362bb0a1f6e3e7))
+- **deps:** update dependency node to v24.22.1 ([13626a2](https://github.com/rubiin/tsumiki/commit/13626a2f0063e133260bfe981c664df6ba21b5d5))
+- **deps:** update dependency node to v24.22.2 ([8dc3236](https://github.com/rubiin/tsumiki/commit/8dc32364596e9c05572805a20d1f9218c26d0305))
+- **deps:** update dependency node to v24.22.2 ([943fcb4](https://github.com/rubiin/tsumiki/commit/943fcb403956a207a3a426dbe5a1b969169fb2d8))
+- **deps:** update dependency node to v24.22.3 ([91e9b00](https://github.com/rubiin/tsumiki/commit/91e9b000c9bbcb4de8855e519e4a57fe9456ebee))
+- **deps:** update dependency node to v24.22.3 ([e15ef53](https://github.com/rubiin/tsumiki/commit/e15ef5346505edb9f3f17f1ae8e9bd3f8c29703f))
+- **deps:** update dependency node to v26 ([#499](https://github.com/rubiin/tsumiki/issues/499)) ([bd206ed](https://github.com/rubiin/tsumiki/commit/bd206edf5a84db91286455291ec98a39f4ecf795))
+- **deps:** update dependency pnpm to v12.18.0 ([7e5fdc1](https://github.com/rubiin/tsumiki/commit/7e5fdc1b7f9c8b072242fccb1c9cf764e037b58f))
+- **deps:** update dependency pnpm to v12.18.0 ([cb1216b](https://github.com/rubiin/tsumiki/commit/cb1216b93c4afd63d652ffc27145afb375c611ab))
+- **deps:** update dependency pnpm to v12.8.1 ([43fc7bf](https://github.com/rubiin/tsumiki/commit/43fc7bfb40e5976640751f4c7133a19508e9d427))
+- **deps:** update dependency pnpm to v12.8.1 ([43e227e](https://github.com/rubiin/tsumiki/commit/43e227e586f848ec1051d8d52bb3eba2e23008b3))
+- **deps:** update dependency ruff to &gt;=0.16.10 ([aa88178](https://github.com/rubiin/tsumiki/commit/aa881787d7701634d38d8bdb848d9c3bff2db107))
+- **deps:** update dependency ruff to &gt;=0.16.10 ([cf0d909](https://github.com/rubiin/tsumiki/commit/cf0d90994768beecf79f88083cfbeb4f0680ac84))
+- **deps:** update node.js to v26 ([#501](https://github.com/rubiin/tsumiki/issues/501)) ([da12ba5](https://github.com/rubiin/tsumiki/commit/da12ba5da72019996f24bcafe1a59773da687694))
+- release 4.8.5 ([3daa2df](https://github.com/rubiin/tsumiki/commit/3daa2df74f94e1948fa0ddcbe0112159beb12505))
+
+### ♻️ Code Refactoring
+
+- adjust notification margins and padding for improved layout ([567be5a](https://github.com/rubiin/tsumiki/commit/567be5abf1bdf82c2767cf7e6953fd2cf75775f9))
+- remove outdated bug audit documentation ([3aa5b39](https://github.com/rubiin/tsumiki/commit/3aa5b396c2fa0c63e515bbda4a2d5bb7a329e1b8))
+- **styling:** remove commented color configurations for updates widget ([ddd80ab](https://github.com/rubiin/tsumiki/commit/ddd80ab10697e09eeab4acca070d1e449a09a4d2))
+
 ## [4.8.4](https://github.com/rubiin/tsumiki/compare/v4.8.3...v4.8.4) (2026-09-28)
 
 ### 🐛 Bug Fixes
