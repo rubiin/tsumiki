@@ -16,8 +16,8 @@
     "fmt:check": "oxfmt --check"
   },
   "dependencies": {
-    "@astrojs/starlight": "^0.42.11",
-    "astro": "^7.4.11",
+    "@astrojs/starlight": "^0.43.1",
+    "astro": "^7.4.12",
     "sharp": "^0.35.5"
   },
   "devDependencies": {
@@ -27,6 +27,6 @@
     "typescript": "^7.0.2"
   },
   "engines": {
-    "node": ">=24.22.2"
+    "node": ">=24.22.3"
   }
 }
