@@ -11,7 +11,7 @@ keywords = ["widgets", "gtk", "linux", "pygobject", "bar", "statusbar", "panel",
 dependencies = [
   "click>=8.5.1",
   "fabric @ git+https://github.com/Fabric-Development/fabric.git",
-  "loguru>=0.7.3",
+  "loguru>=0.8.0",
   "pillow>=13.0.0",
   "psutil>=7.2.2",
   "pycairo>=1.29.2",
@@ -121,7 +121,7 @@ line-ending = "auto"
 "Changelog" = "https://github.com/rubiin/tsumiki/blob/master/CHANGELOG.md"
 
 [dependency-groups]
-dev = ["ruff>=0.17.4"]
+dev = ["ruff>=0.17.5"]
 
 [tool.uv]
 # Tsumiki is an application, not an importable package.
