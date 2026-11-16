@@ -13,7 +13,7 @@ from utils.functions import safe_disconnect
 from utils.hyprland import hyprland_service
 
 POPOVER_BAR_GAP = -70
-
+POPOVER_WINDOW_POOL_SIZE = 4
 
 class PopoverManager:
     """Singleton manager to handle shared resources for popovers."""
@@ -104,7 +104,7 @@ class PopoverManager:
 
         window.hide()
         # Only keep a reasonable number of windows in the pool
-        if len(self.available_windows) < 5:
+        if len(self.available_windows) <= POPOVER_WINDOW_POOL_SIZE:
             self.available_windows.append(window)
         else:
             # Let the window be garbage collected
