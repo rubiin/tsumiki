@@ -4,6 +4,7 @@ from typing import ClassVar
 from fabric import Signal
 from fabric.utils import Gdk, GLib, GObject, bulk_connect, logger
 from fabric.widgets.box import Box
+from fabric.widgets.revealer import Revealer
 from fabric.widgets.widget import Widget
 from gi.repository import GtkLayerShell
 
@@ -157,6 +158,8 @@ class Popover(Widget):
         content_factory=None,
         content=None,
         enable_boundary_checking=True,
+        transition_type: str | None = None,
+        transition_duration: int = 250,
     ):
         super().__init__()
 
@@ -164,10 +167,15 @@ class Popover(Widget):
         self._point_to = point_to
         self._content_window = None
         self._content = content
+        self._content_box = None
         self._enable_boundary_checking = enable_boundary_checking
         self._visible = False
         self._draw_handler_id = None
         self._focus_out_timeout_id = None
+        self._revealer = None
+        # None derives the slide direction from the edge the popover opens from.
+        self._transition_type = transition_type
+        self._transition_duration = transition_duration
 
         self._manager = PopoverManager()
 
@@ -208,6 +216,8 @@ class Popover(Widget):
             self._manager.activate_popover(self)
             self.set_position()
             self._content_window.show()
+            if self._revealer is not None:
+                self._revealer.set_reveal_child(True)
             self._visible = True
 
         self.emit("popover-opened")
@@ -286,30 +296,46 @@ class Popover(Widget):
         widget_x, widget_y, widget_allocation, monitor_geometry = (
             self._get_widget_monitor_coordinates()
         )
-        popover_size = self._content_window.get_size()
+        # The window tracks the reveal animation (1px tall while collapsed),
+        # so measure the content requisition instead of the live window size.
+        _, natural = self._content_box.get_preferred_size()
+        popover_width, popover_height = natural.width, natural.height
 
-        x = widget_x + (widget_allocation.width / 2) - (popover_size.width / 2)
+        x = widget_x + (widget_allocation.width / 2) - (popover_width / 2)
         y = widget_y + widget_allocation.height + POPOVER_BAR_GAP
 
-        if widget_y >= monitor_geometry.height / 2:
-            y = widget_y - popover_size.height + POPOVER_BAR_GAP * 0.2
+        opens_upward = widget_y >= monitor_geometry.height / 2
+        if opens_upward:
+            y = widget_y - popover_height + POPOVER_BAR_GAP * 0.2
 
         if self._enable_boundary_checking:
             if x <= 0:
                 x = widget_x
-            elif x + popover_size.width >= monitor_geometry.width:
-                x = widget_x - popover_size.width + widget_allocation.width
+            elif x + popover_width >= monitor_geometry.width:
+                x = widget_x - popover_width + widget_allocation.width
 
             if y <= 0:
                 y = 0
-            elif y + popover_size.height >= monitor_geometry.height:
-                y = max(monitor_geometry.height - popover_size.height, 0)
+            elif y + popover_height >= monitor_geometry.height:
+                y = max(monitor_geometry.height - popover_height, 0)
 
-        return [int(y), 0, 0, int(x)]
+        if opens_upward:
+            # Bottom-anchored: margin is the distance below the popover.
+            bottom = monitor_geometry.height - y - popover_height
+            return [0, 0, int(bottom), int(x)], True
+        return [int(y), 0, 0, int(x)], False
 
     def set_position(self, position: tuple[int, int, int, int] | None = None):
         if position is None:
-            self._content_window.set_margin(self._calculate_margins())
+            margins, opens_upward = self._calculate_margins()
+            # Anchor the edge the popover grows from, with a matching slide
+            # direction, so the content unrolls out of the bar (Ax-Shell style).
+            self._content_window.anchor = "left bottom" if opens_upward else "left top"
+            if self._transition_type is None and self._revealer is not None:
+                self._revealer.transition_type = (
+                    "slide-up" if opens_upward else "slide-down"
+                )
+            self._content_window.set_margin(margins)
             return False
 
         self._content_window.set_margin(position)
@@ -345,9 +371,12 @@ class Popover(Widget):
         )
 
     def _activate_popover(self):
-        """Register with manager, show window, mark visible."""
+        """Register with manager, position, show window, mark visible."""
         self._manager.activate_popover(self)
+        self.set_position()
         self._content_window.show()
+        if self._revealer is not None:
+            self._revealer.set_reveal_child(True)
         self._visible = True
 
     def _create_popover(self):
@@ -355,7 +384,15 @@ class Popover(Widget):
             return False
 
         self._content_window = self._manager.get_popover_window()
-        self._content_window.add(Box(name="popover-content", children=self._content))
+        self._content_box = Box(name="popover-content", children=self._content)
+        self._revealer = Revealer(
+            name="popover-revealer",
+            child=self._content_box,
+            transition_type=self._transition_type or "slide-down",
+            transition_duration=self._transition_duration,
+        )
+        self._revealer.set_size_request(-1, 1)
+        self._content_window.add(self._revealer)
         self._wire_popover_handlers()
         self._activate_popover()
         return True
@@ -379,12 +416,22 @@ class Popover(Widget):
             GLib.source_remove(self._focus_out_timeout_id)
             self._focus_out_timeout_id = None
 
-        self._content_window.hide()
-        self._manager.clear_active_popover(self)
         self._visible = False
 
-        self.emit("popover-closed")
+        if self._revealer is not None:
+            self._revealer.set_reveal_child(False)
+            GLib.timeout_add(self._transition_duration, self._finish_hide)
+        else:
+            self._finish_hide()
 
+        return False
+
+    def _finish_hide(self):
+        if self._visible:
+            return False
+        self._content_window.hide()
+        self._manager.clear_active_popover(self)
+        self.emit("popover-closed")
         return False
 
     def hide(self, *_):

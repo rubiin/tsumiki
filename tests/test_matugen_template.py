@@ -83,6 +83,7 @@ def _contrast(first, second):
 
 class MatugenTemplateTest(unittest.TestCase):
     """Generated matugen schemes must give each widget its own readable fill."""
+
     def test_every_widget_gets_an_accent(self):
         widgets = _template_widgets()
         missing = _schema_widget_names() - set(widgets)

@@ -109,16 +109,12 @@ class BluetoothStateTest(unittest.TestCase):
     def test_enabled_renders_state_on(self):
         widget = self._probe(enabled=True)
         widget.update_bluetooth_status()
-        widget.refresh_formatted_label.assert_called_once_with(
-            "on-icon", state="on"
-        )
+        widget.refresh_formatted_label.assert_called_once_with("on-icon", state="on")
 
     def test_disabled_renders_state_off(self):
         widget = self._probe(enabled=False)
         widget.update_bluetooth_status()
-        widget.refresh_formatted_label.assert_called_once_with(
-            "off-icon", state="off"
-        )
+        widget.refresh_formatted_label.assert_called_once_with("off-icon", state="off")
 
 
 class CloudflareWarpStateTest(unittest.TestCase):

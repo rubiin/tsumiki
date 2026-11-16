@@ -91,9 +91,7 @@ class AddFormattedLabelTest(unittest.TestCase):
 
         widget.add_formatted_label(widget.label_format, "󰅚")
 
-        self.Label_mock.return_value.set_markup.assert_called_once_with(
-            "󰅚 Bluetooth"
-        )
+        self.Label_mock.return_value.set_markup.assert_called_once_with("󰅚 Bluetooth")
 
     def test_refreshing_renders_the_current_glyph(self):
         widget = self._widget("Mic")

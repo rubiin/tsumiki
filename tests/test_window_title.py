@@ -17,6 +17,7 @@ SOURCE_PATH = "widgets/window_title.py"
 
 def build_widget(**config) -> WindowTitleWidget:
     """Run the real constructor with a stub container and no Hyprland window."""
+
     def stub_init(self, **_kwargs):
         self.config = config
 
@@ -60,7 +61,7 @@ class FallbackIconTest(unittest.TestCase):
 
         self.assertIn('self.config.get("fallback_icon"', text)
         # The literal may only survive as the default argument.
-        self.assertNotIn("return f\"\U000f08c6", text)
+        self.assertNotIn('return f"\U000f08c6', text)
 
 
 if __name__ == "__main__":

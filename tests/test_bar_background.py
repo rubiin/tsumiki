@@ -12,6 +12,7 @@ STYLES = os.path.join(ROOT, "styles")
 
 class BarBackgroundTest(unittest.TestCase):
     """Bar/dock background alpha must follow the configured opacity percentage."""
+
     def _compile(self, opacity):
         if shutil.which("sass") is None:
             self.skipTest("sass binary not available")

@@ -55,9 +55,7 @@ class WidgetInstanceColorLookupTest(unittest.TestCase):
         styling = {
             "bar": {
                 "widgets": {
-                    "cpu": {
-                        "overrides": {"cpu-a": {"colors": {"background": "#123"}}}
-                    }
+                    "cpu": {"overrides": {"cpu-a": {"colors": {"background": "#123"}}}}
                 }
             }
         }

@@ -297,9 +297,7 @@ class SpecialWorkspaceFilterTest(unittest.TestCase):
         self.assertEqual({"0x1000", "0x2000"}, self.addresses(bar))
 
     def test_special_workspace_apps_are_hidden_when_enabled(self):
-        bar = self.make_bar(
-            {"ignored": [], "hide_special_workspace_apps": True}
-        )
+        bar = self.make_bar({"ignored": [], "hide_special_workspace_apps": True})
 
         bar._process_clients([self.normal, self.special], None)
 

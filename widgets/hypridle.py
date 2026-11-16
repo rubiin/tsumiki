@@ -3,6 +3,7 @@ from shared.button_toggle import CommandSwitcher
 
 class HyprIdleWidget(CommandSwitcher):
     """A widget to control the hypridle command."""
+
     # TODO: test this
 
     def __init__(self, **kwargs):

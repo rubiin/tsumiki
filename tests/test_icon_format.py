@@ -102,9 +102,7 @@ class MicrophoneIconFormatTest(unittest.TestCase):
 
         widget._update_status()
 
-        widget.refresh_formatted_label.assert_called_once_with(
-            "mic-off", state="muted"
-        )
+        widget.refresh_formatted_label.assert_called_once_with("mic-off", state="muted")
 
     def test_an_active_microphone_renders_the_on_glyph(self):
         widget = make_microphone()

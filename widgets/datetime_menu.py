@@ -250,6 +250,9 @@ class DateNotificationMenu(Box):
                 style_classes="notification-scrollable",
                 v_scrollbar_policy="automatic",
                 h_scrollbar_policy="never",
+                # Layer-shell windows keep their initial size; leaking natural
+                # height here makes the popover revealer clip the menu top.
+                propagate_height=False,
                 child=Box(children=(self.placeholder, self.notifications_listbox)),
             )
 

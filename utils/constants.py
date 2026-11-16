@@ -646,290 +646,295 @@ DEFAULT_CONFIG = {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "14px",
                     "spacing": "0.125em",
-                    "colors": {}
+                    "colors": {},
                 },
                 "bluetooth": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "12px",
                     "spacing": "0.125em",
-                    "colors": {}
+                    "colors": {},
                 },
                 "brightness": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "12px",
                     "spacing": "0.25em",
-                    "colors": {}
+                    "colors": {},
                 },
                 "cava": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "spacing": "0.125em",
-                    "colors": {}
+                    "colors": {},
                 },
                 "cheatsheet": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "12px",
                     "spacing": "0.125em",
-                    "colors": {}
+                    "colors": {},
                 },
                 "click_counter": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "14px",
                     "spacing": "0.125em",
-                    "colors": {}
+                    "colors": {},
                 },
                 "clipboard": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "12px",
                     "spacing": "0.125em",
-                    "colors": {}
+                    "colors": {},
                 },
                 "cloudflare_warp": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "12px",
                     "spacing": "0.125em",
-                    "colors": {}
+                    "colors": {},
                 },
                 "cpu": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "12px",
                     "spacing": "0.125em",
-                    "colors": {}
+                    "colors": {},
                 },
                 "custom_widget": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "12px",
                     "spacing": "0.125em",
                     "colors": {},
-                    "overrides": {}
+                    "overrides": {},
                 },
                 "date_time": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "12px",
                     "spacing": "0.125em",
-                    "colors": {}
+                    "colors": {},
                 },
-                "divider": {"margin_x": "0", "margin_y": "1.25em", "size": " 2px", "colors": {}},
+                "divider": {
+                    "margin_x": "0",
+                    "margin_y": "1.25em",
+                    "size": " 2px",
+                    "colors": {},
+                },
                 "dns_switcher": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "12px",
                     "spacing": "0.125em",
-                    "colors": {}
+                    "colors": {},
                 },
                 "emoji_picker": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "12px",
                     "spacing": "0.125em",
-                    "colors": {}
+                    "colors": {},
                 },
                 "gap": "2px",
                 "github_tray": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "12px",
                     "spacing": "0.125em",
-                    "colors": {}
+                    "colors": {},
                 },
                 "hypridle": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "14px",
                     "spacing": "0.125em",
-                    "colors": {}
+                    "colors": {},
                 },
                 "hyprpicker": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "14px",
                     "spacing": "0.125em",
-                    "colors": {}
+                    "colors": {},
                 },
                 "hyprsunset": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "14px",
                     "spacing": "0.125em",
-                    "colors": {}
+                    "colors": {},
                 },
                 "ip_monitor": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "14px",
                     "spacing": "0.125em",
-                    "colors": {}
+                    "colors": {},
                 },
                 "kanban": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "12px",
                     "spacing": "0.125em",
-                    "colors": {}
+                    "colors": {},
                 },
                 "keyboard": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "14px",
                     "spacing": "0.125em",
-                    "colors": {}
+                    "colors": {},
                 },
                 "language": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "14px",
                     "spacing": "0.125em",
-                    "colors": {}
+                    "colors": {},
                 },
                 "launcher_button": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "12px",
                     "spacing": "0.125em",
-                    "colors": {}
+                    "colors": {},
                 },
                 "memory": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "14px",
                     "spacing": "0.125em",
-                    "colors": {}
+                    "colors": {},
                 },
                 "microphone": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "14px",
                     "spacing": "0.125em",
-                    "colors": {}
+                    "colors": {},
                 },
                 "mpris": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "14px",
                     "spacing": "0.125em",
-                    "colors": {}
+                    "colors": {},
                 },
                 "network_usage": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "14px",
                     "spacing": "0.125em",
-                    "colors": {}
+                    "colors": {},
                 },
                 "ocr": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "14px",
                     "spacing": "0.125em",
-                    "colors": {}
+                    "colors": {},
                 },
                 "overview": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "14px",
                     "spacing": "0.125em",
-                    "colors": {}
+                    "colors": {},
                 },
                 "overview_button": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "12px",
                     "spacing": "0.125em",
-                    "colors": {}
+                    "colors": {},
                 },
                 "pomodoro": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "12px",
                     "spacing": "0.125em",
-                    "colors": {}
+                    "colors": {},
                 },
                 "power": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "14px",
                     "spacing": "0.125em",
-                    "colors": {}
+                    "colors": {},
                 },
                 "quick_settings": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "17px",
                     "sliders": {"height": "7px", "knob": True, "knob_height": "8px"},
                     "spacing": "0.125em",
-                    "colors": {}
+                    "colors": {},
                 },
                 "radio_player": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "12px",
                     "spacing": "0.125em",
-                    "colors": {}
+                    "colors": {},
                 },
                 "recorder": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "14px",
                     "spacing": "0.125em",
-                    "colors": {}
+                    "colors": {},
                 },
                 "screenshot": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "14px",
                     "spacing": "0.125em",
-                    "colors": {}
+                    "colors": {},
                 },
                 "spacing": {"size": " 20px", "colors": {}},
                 "stopwatch": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "14px",
                     "spacing": "0.125em",
-                    "colors": {}
+                    "colors": {},
                 },
                 "storage": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "14px",
                     "spacing": "0.125em",
-                    "colors": {}
+                    "colors": {},
                 },
                 "submap": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "14px",
                     "spacing": "0.125em",
-                    "colors": {}
+                    "colors": {},
                 },
                 "system_tray": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "spacing": "0.3em",
-                    "colors": {}
+                    "colors": {},
                 },
                 "taskbar": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "spacing": "0.125em",
-                    "colors": {}
+                    "colors": {},
                 },
                 "theme": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "14px",
                     "spacing": "0.125em",
-                    "colors": {}
+                    "colors": {},
                 },
                 "theme_switcher": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "12px",
                     "spacing": "0.125em",
-                    "colors": {}
+                    "colors": {},
                 },
                 "updates": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "14px",
                     "spacing": "0.125em",
-                    "colors": {}
+                    "colors": {},
                 },
                 "usb_manager": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "14px",
                     "spacing": "0.125em",
-                    "colors": {}
+                    "colors": {},
                 },
                 "volume": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "12px",
                     "spacing": "0.125em",
-                    "colors": {}
+                    "colors": {},
                 },
                 "weather": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "17px",
                     "spacing": "0.125em",
-                    "colors": {}
+                    "colors": {},
                 },
                 "window_count": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "spacing": "0.125em",
-                    "colors": {}
+                    "colors": {},
                 },
                 "window_title": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "14px",
                     "spacing": "0.125em",
-                    "colors": {}
+                    "colors": {},
                 },
                 "workspaces": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
@@ -941,13 +946,13 @@ DEFAULT_CONFIG = {
                         "width": "0.5em",
                     },
                     "spacing": "0.125em",
-                    "colors": {}
+                    "colors": {},
                 },
                 "world_clock": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "12px",
                     "spacing": "0.125em",
-                    "colors": {}
+                    "colors": {},
                 },
             },
         },
@@ -1933,9 +1938,7 @@ NORMALIZE_SUFFIXES = frozenset((".bin", ".exe", ".so", "-bin", "-gtk"))
 TEMP_PATHS = set()
 
 # Pre-computed constants
-SPECIAL_WIDGET_TYPES = frozenset(
-    ("group", "collapsible", "custom_widget")
-)
+SPECIAL_WIDGET_TYPES = frozenset(("group", "collapsible", "custom_widget"))
 GROUP_TYPES = frozenset(("widget_groups", "collapsible_groups"))
 URGENCY_LEVELS = frozenset(("low", "normal", "critical"))
 BYTES_FACTORS = {"kb": 1, "mb": 2, "gb": 3, "tb": 4}

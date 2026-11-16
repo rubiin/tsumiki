@@ -666,9 +666,7 @@ class DeprecationWarningTest(unittest.TestCase):
     @mock.patch("utils.validation.logger")
     def test_dropped_cheatsheet_key_says_so(self, mock_logger):
         """``max_entries_per_group`` has no replacement, so name none."""
-        warn_deprecated_keys(
-            {"widgets": {"cheatsheet": {"max_entries_per_group": 5}}}
-        )
+        warn_deprecated_keys({"widgets": {"cheatsheet": {"max_entries_per_group": 5}}})
         msg = mock_logger.warning.call_args[0][0]
         self.assertIn("max_entries_per_group", msg)
         self.assertIn("no replacement", msg)

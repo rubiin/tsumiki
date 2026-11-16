@@ -417,9 +417,7 @@ def _clean_colors_only(
             value = _clean_field(
                 state_val.get(field),
                 theme_tokens=theme_tokens,
-                warn_context=(
-                    {**state_ctx, "field": field} if state_ctx else None
-                ),
+                warn_context=({**state_ctx, "field": field} if state_ctx else None),
             )
             if value is not None:
                 state_cleaned[field] = value

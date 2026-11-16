@@ -37,11 +37,7 @@ def _rgb(value):
 
 def _is_hex(value):
     # Accept #RRGGBB and #RRGGBBAA; alpha is ignored by the contrast maths.
-    return (
-        isinstance(value, str)
-        and value.startswith("#")
-        and len(value) in (7, 9)
-    )
+    return isinstance(value, str) and value.startswith("#") and len(value) in (7, 9)
 
 
 def _luminance(value):
@@ -136,11 +132,7 @@ class ThemeWidgetColorTest(unittest.TestCase):
         self.assertEqual(faint, [], "widget fills blend into the bar background")
 
     def test_widget_text_is_readable_on_its_fill(self):
-        cases = [
-            case
-            for case in _widget_cases(STATES)
-            if _is_hex(case[6])
-        ]
+        cases = [case for case in _widget_cases(STATES) if _is_hex(case[6])]
         self.assertTrue(cases, "no widget colours found")
 
         unreadable = [

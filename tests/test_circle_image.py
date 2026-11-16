@@ -185,9 +185,7 @@ class CircleGeometryTest(unittest.TestCase):
     """The pure helper the draw handler delegates to."""
 
     def test_returns_the_allocation_centre(self):
-        self.assertEqual(
-            (97.0, 150.0, 97.0, 2.0), circle_geometry(194, 300, 97, 97)
-        )
+        self.assertEqual((97.0, 150.0, 97.0, 2.0), circle_geometry(194, 300, 97, 97))
 
     def test_a_source_filling_the_slot_needs_no_scaling(self):
         self.assertEqual(1.0, circle_geometry(194, 300, 194, 194)[3])

@@ -167,9 +167,7 @@ class CloudflareWarpWidget(ButtonWidget, PopoverMixin):
         if not self._available:
             return
         if self._service.connected:
-            self.refresh_formatted_label(
-                self._connected_icon, state=self._state_name()
-            )
+            self.refresh_formatted_label(self._connected_icon, state=self._state_name())
             self.set_tooltip_text(_("widget.cloudflare_warp.status_connected"))
         else:
             self.refresh_formatted_label(

@@ -532,9 +532,7 @@ Updates = TypedDict(
 
 
 # Bluetooth configuration
-BlueTooth = TypedDict(
-    "BlueTooth", {**BaseConfig.__annotations__, "label_format": str}
-)
+BlueTooth = TypedDict("BlueTooth", {**BaseConfig.__annotations__, "label_format": str})
 
 # Weather configuration
 Weather = TypedDict(
@@ -553,14 +551,10 @@ Weather = TypedDict(
     },
 )
 
-Launcher_Button = TypedDict(
-    "LauncherButton", {"tooltip": bool, "label_format": str}
-)
+Launcher_Button = TypedDict("LauncherButton", {"tooltip": bool, "label_format": str})
 
 # Keyboard configuration
-Keyboard = TypedDict(
-    "Keyboard", {**BaseConfig.__annotations__, "label_format": str}
-)
+Keyboard = TypedDict("Keyboard", {**BaseConfig.__annotations__, "label_format": str})
 
 # MicroPhone configuration
 MicroPhone = TypedDict(
@@ -572,8 +566,7 @@ Cava = TypedDict("Cava", {"bars": int, "color": str})
 
 # Overview configuration
 Overview_Button = TypedDict(
-    "Overview_Button",
-    {**BaseConfig.__annotations__, "label_format": str}
+    "Overview_Button", {**BaseConfig.__annotations__, "label_format": str}
 )
 
 
@@ -588,9 +581,7 @@ ClipBoard = TypedDict(
     },
 )
 
-Kanban = TypedDict(
-    "kanban", {**BaseConfig.__annotations__, "label_format": str}
-)
+Kanban = TypedDict("kanban", {**BaseConfig.__annotations__, "label_format": str})
 
 EmojiPicker = TypedDict(
     "emoji_picker",
@@ -812,7 +803,7 @@ Language = TypedDict(
         **BaseConfig.__annotations__,
         "label_format": str,
         "truncation_size": int,
-    }
+    },
 )
 
 # Volume configuration

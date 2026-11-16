@@ -86,14 +86,10 @@ class WidgetColorResolutionTest(unittest.TestCase):
 
     def test_resolve_literal_passthrough(self):
         self.assertEqual(resolve_color_value("#fff", {}), "#fff")
-        self.assertEqual(
-            resolve_color_value("rgb(0,0,0)", {"x": "#000"}), "rgb(0,0,0)"
-        )
+        self.assertEqual(resolve_color_value("rgb(0,0,0)", {"x": "#000"}), "rgb(0,0,0)")
 
     def test_resolve_unknown_or_missing_returns_none(self):
-        self.assertIsNone(
-            resolve_color_value("missing", {"accent-blue": "#89b4fa"})
-        )
+        self.assertIsNone(resolve_color_value("missing", {"accent-blue": "#89b4fa"}))
         self.assertIsNone(resolve_color_value("missing", {}))
         self.assertIsNone(resolve_color_value("", {"accent-blue": "#89b4fa"}))
         self.assertIsNone(resolve_color_value(None, {"accent-blue": "#89b4fa"}))
@@ -148,12 +144,8 @@ class WidgetColorMergeTest(unittest.TestCase):
             "active": {"background": "has.dot", "foreground": "not a color"},
         }
         merged = merge_widget_colors(type_colors, instance_colors)
-        self.assertEqual(
-            merged["hover"], {"background": "#222", "foreground": "#ddd"}
-        )
-        self.assertEqual(
-            merged["active"], {"background": "#333", "foreground": "#ccc"}
-        )
+        self.assertEqual(merged["hover"], {"background": "#222", "foreground": "#ddd"})
+        self.assertEqual(merged["active"], {"background": "#333", "foreground": "#ccc"})
 
 
 class WidgetColorCssTest(unittest.TestCase):

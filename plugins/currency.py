@@ -183,8 +183,8 @@ def load_rates(cancelled=None) -> dict:
                 except _DownloadCancelledError:
                     raise  # superseded — propagate so handle() bails out
                 except Exception as exc:
-                    retryable = (
-                        attempt < _RETRY_ATTEMPTS - 1 and not _is_client_error(exc)
+                    retryable = attempt < _RETRY_ATTEMPTS - 1 and not _is_client_error(
+                        exc
                     )
                     if retryable:
                         if not cached:

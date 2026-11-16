@@ -162,9 +162,7 @@ class CheatSheetWindow(PopupWindow):
         modules = self._config_root.get("modules") or {}
         self.module_config = modules.get("cheatsheet") or {}
         self.columns = max(1, int(self.module_config.get("columns", 4)))
-        self.groups_per_page = max(
-            1, int(self.module_config.get("groups_per_page", 8))
-        )
+        self.groups_per_page = max(1, int(self.module_config.get("groups_per_page", 8)))
         self.column_width = max(80, int(self.module_config.get("column_width", 300)))
         self.key_width = max(0, int(self.module_config.get("key_width", 190)))
         self.accent_keys = {

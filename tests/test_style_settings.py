@@ -42,6 +42,7 @@ class FormatSettingsColorValueTest(unittest.TestCase):
 
 class StyleServiceThemeMapAndSettingsTest(unittest.TestCase):
     """Tests for theme map access and widget color settings emission."""
+
     def _make_service(self) -> StyleService:
         service = StyleService.__new__(StyleService)
         service._styles_dir = tempfile.mkdtemp()
