@@ -936,7 +936,7 @@ layer = "bottom"
 interval = 600
 
 [modules.desktop_notes]
-enabled = true
+enabled = false
 layer = "bottom"
 note_width = 200
 save_delay = 800
