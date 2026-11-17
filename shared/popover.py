@@ -15,6 +15,7 @@ from utils.hyprland import hyprland_service
 POPOVER_BAR_GAP = -70
 POPOVER_WINDOW_POOL_SIZE = 4
 
+
 class PopoverManager:
     """Singleton manager to handle shared resources for popovers."""
 

@@ -56,11 +56,24 @@ def get_style_service():
 
     return _get_service("style", StyleService)
 
+
 def get_note_service():
     """Get the note service (lazy-loaded)."""
-    from .desktop_notes import NotesService
+    from .notes import NotesService
 
     return _get_service("note", NotesService)
+
+def get_caffeine_service():
+    """Get the caffeine service (lazy-loaded)."""
+    from .caffeine import Caffeine
+
+    return _get_service("caffeine", Caffeine)
+
+def get_keyboard_service():
+    """Get the keyboard service (lazy-loaded)."""
+    from .keyboard import KeyboardService
+
+    return _get_service("keyboard", KeyboardService)
 
 
 # Backward compatibility - these now trigger lazy loading on access
@@ -95,3 +108,5 @@ power_profile_service = _LazyServiceProxy(get_power_profiles_service)
 note_service = _LazyServiceProxy(get_note_service)
 matugen_service = _LazyServiceProxy(get_matugen_service)
 style_service = _LazyServiceProxy(get_style_service)
+caffeine_service = _LazyServiceProxy(get_caffeine_service)
+keyboard_service = _LazyServiceProxy(get_keyboard_service)
