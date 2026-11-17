@@ -26,6 +26,7 @@ QUOTES_CACHE_FILE = f"{APP_DATA_DIRECTORY}/quotes.json"
 ICON_CACHE_FILE = f"{APP_DATA_DIRECTORY}/icons.json"
 PINNED_APPS_FILE = f"{APP_DATA_DIRECTORY}/pinned_apps.json"
 KANBAN_FILE = f"{APP_DATA_DIRECTORY}/kanban.json"
+DESKTOP_NOTES_FILE = f"{APP_DATA_DIRECTORY}/desktop_notes.json"
 CSS_PATH = f"{APP_DATA_DIRECTORY}/main.css"
 
 
@@ -40,6 +41,7 @@ LOG_DIR = f"{USER_STATE_DIR}/{APPLICATION_NAME}/logs"
 LOG_FILE = f"{LOG_DIR}/{APPLICATION_NAME}.log"
 LOG_FORMAT = "{time:YYYY-MM-DD HH:mm:ss} [<level>{level}</level>] {message}"
 
+NOTE_COLORS = ("yellow", "pink", "blue", "green", "purple")
 
 # Default configuration values. ``widget_groups``/``collapsible_groups`` are
 # user-supplied: the schema puts them at the top level and neither has a default.
@@ -553,6 +555,13 @@ DEFAULT_CONFIG = {
             "anchor": "bottom-right",
             "layer": "bottom",
             "interval": 600,
+        },
+        "desktop_notes": {
+            "enabled": False,
+            "layer": "bottom",
+            "note_width": 240,
+            "save_delay": 800,
+            "tooltip": True,
         },
         "activate_linux": {
             "enabled": False,

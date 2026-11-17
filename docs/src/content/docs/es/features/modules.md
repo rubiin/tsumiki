@@ -250,6 +250,21 @@ layer = "bottom"
 interval = 600 # Segundos entre rotaciones de citas
 ```
 
+## Notas de Escritorio
+
+Notas adhesivas en el escritorio. Haz clic derecho en el escritorio y elige **Nueva nota** para crear una, arrástrala por su franja superior, escribe directamente en ella y haz clic en el punto para cambiar su color. Las notas se guardan por monitor en `desktop_notes.json` dentro del directorio de datos de Tsumiki y se restauran al reiniciar.
+
+```toml
+[modules.desktop_notes]
+enabled = false
+layer = "bottom"
+note_width = 240 # Ancho de cada nota en píxeles
+save_delay = 800 # Milisegundos de espera tras una edición antes de guardar
+tooltip = true # Mostrar tooltips en los botones de la nota
+```
+
+La ventana a pantalla completa recibe los clics del escritorio, así que debe permanecer en la capa `bottom`; usa el botón (×) de una nota para eliminarla.
+
 Las citas se obtienen de una API externa.
 
 ---

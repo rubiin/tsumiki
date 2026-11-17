@@ -119,6 +119,7 @@ right_section = ["@group:1", "system_tray", "power"]
 | مشغل التطبيقات      | `modules.launcher`       | بحث وتشغيل التطبيقات            |
 | ساعة سطح المكتب     | `modules.desktop_clock`  | ساعة سطح مكتب زخرفية            |
 | اقتباسات سطح المكتب | `modules.desktop_quotes` | تراكب اقتباسات ملهمة            |
+| ملاحظات سطح المكتب   | `modules.desktop_notes`  | ملاحظات لاصقة على سطح المكتب      |
 | زوايا الشاشة        | `modules.screen_corners` | زوايا نشطة                      |
 | ورقة الغش           | `modules.cheatsheet`     | مرجع اختصارات لوحة المفاتيح     |
 | Activate Linux      | `modules.activate_linux` | مؤشر تنشيط النافذة              |

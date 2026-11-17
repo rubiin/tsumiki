@@ -106,6 +106,21 @@ enabled = false
 interval = 600
 ```
 
+## Desktop-Notizen
+
+Haftnotizen auf dem Desktop. Rechtsklick auf den Desktop und **Neue Notiz** wählen, um eine anzulegen; an der oberen Leiste ziehen, direkt hineinschreiben und auf den Punkt klicken, um die Farbe zu wechseln. Notizen werden pro Monitor in `desktop_notes.json` im Tsumiki-Datenverzeichnis gespeichert und beim Neustart wiederhergestellt.
+
+```toml
+[modules.desktop_notes]
+enabled = false
+layer = "bottom"
+note_width = 240 # Breite jeder Notiz in Pixeln
+save_delay = 800 # Millisekunden nach einer Änderung, bevor gespeichert wird
+tooltip = true # Tooltips auf Notiz-Schaltflächen anzeigen
+```
+
+Das Vollbildfenster nimmt Mausklicks für den Desktop entgegen und sollte deshalb auf der Ebene `bottom` bleiben; mit der Schaltfläche (×) auf einer Notiz wird sie gelöscht.
+
 ## Activate Linux
 
 ```toml

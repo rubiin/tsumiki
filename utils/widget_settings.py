@@ -230,6 +230,19 @@ DesktopQuotes = TypedDict(
 )
 
 
+# DesktopNotes configuration
+DesktopNotes = TypedDict(
+    "DesktopNotes",
+    {
+        "enabled": bool,
+        "layer": Layer,
+        "note_width": int,
+        "save_delay": int,
+        "tooltip": bool,
+    },
+)
+
+
 # ActivateLinux configuration
 ActivateLinux = TypedDict(
     "ActivateLinux",
@@ -360,6 +373,7 @@ Modules = TypedDict(
         "dock": Dock,
         "bar": Bar,
         "desktop_quotes": DesktopQuotes,
+        "desktop_notes": DesktopNotes,
         "osd": OSD,
         "desktop_clock": DesktopClock,
         "screen_corners": ScreenCorners,

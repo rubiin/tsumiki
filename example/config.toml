@@ -164,6 +164,13 @@ anchor = "bottom-right"
 layer = "top"
 interval = 600
 
+[modules.desktop_notes]
+enabled = false
+layer = "bottom"
+note_width = 240
+save_delay = 800
+tooltip = true
+
 [modules.activate_linux]
 enabled = false
 anchor = "bottom-right"

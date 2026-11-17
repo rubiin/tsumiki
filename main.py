@@ -55,6 +55,7 @@ def main():
         "overview": ("modules.overview", "OverViewOverlay"),
         "screen_corners": ("modules.corners", "ScreenCorners"),
         "desktop_quotes": ("modules.desktop_quotes", "DesktopQuote"),
+        "desktop_notes": ("modules.desktop_notes", "DesktopNotes"),
         "activate_linux": ("modules.activate_linux", "ActivateLinux"),
         "launcher": ("modules.launcher", "Launcher"),
         "dock": ("modules.dock", "Dock"),

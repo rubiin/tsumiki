@@ -119,6 +119,7 @@ Aktiviert und konfiguriert größere UI-Module wie:
 | Launcher           | `modules.launcher`       | Anwendungssuche und -start            |
 | Desktop-Uhr        | `modules.desktop_clock`  | Dekorative Desktop-Uhr                |
 | Desktop-Zitate     | `modules.desktop_quotes` | Inspirierende Zitate-Überlagerung     |
+| Desktop-Notizen    | `modules.desktop_notes`  | Haftnotizen auf dem Desktop           |
 | Bildschirmecken    | `modules.screen_corners` | Aktive Ecken                          |
 | Spickzettel        | `modules.cheatsheet`     | Tastenkürzel-Referenz                 |
 | Activate Linux     | `modules.activate_linux` | Fensteraktivierungs-Hinweis           |

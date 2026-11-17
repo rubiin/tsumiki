@@ -101,3 +101,18 @@ layer = "bottom"
 enabled = false
 interval = 600
 ```
+
+## 桌面便签
+
+桌面上的便签。右键点击桌面并选择 **新建便签** 即可添加，拖动顶部条移动，直接在便签中输入，点击圆点可切换颜色。便签按显示器保存在 Tsumiki 数据目录下的 `desktop_notes.json` 中，并在重启后恢复。
+
+```toml
+[modules.desktop_notes]
+enabled = false
+layer = "bottom"
+note_width = 240 # 每个便签的宽度（像素）
+save_delay = 800 # 编辑后写入磁盘前等待的毫秒数
+tooltip = true # 在便签按钮上显示提示
+```
+
+全屏窗口会接收桌面上的鼠标点击，因此应保持在 `bottom` 层；使用便签上的 (×) 按钮删除便签。

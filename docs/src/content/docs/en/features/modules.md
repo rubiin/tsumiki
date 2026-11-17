@@ -325,6 +325,29 @@ Quotes are fetched from an external API.
 
 ---
 
+## Desktop Notes
+
+Sticky notes on the desktop. Right-click the desktop and pick **New note** to
+add one, drag it by its top strip, type straight into it, and click the dot to
+cycle its colour. Notes are saved to `desktop_notes.json` in the Tsumiki data
+directory, per monitor, and restored on restart.
+
+```toml
+[modules.desktop_notes]
+enabled = false
+layer = "bottom"
+note_width = 240 # Width of each note in pixels
+save_delay = 800 # Milliseconds to wait after an edit before writing to disk
+tooltip = true # Show tooltips on note buttons
+```
+
+The full-screen window takes mouse clicks for the desktop, so it should stay on
+the `bottom` layer; use the close (×) button on a note to delete it. Set
+`tooltip = false`, or the global `general.tooltips = false`, to hide the hints
+on the note buttons.
+
+---
+
 ## Activate Linux
 
 Shows a window activation hint overlay (similar to GNOME's window overview on Alt+Tab).

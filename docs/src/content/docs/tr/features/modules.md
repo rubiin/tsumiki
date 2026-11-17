@@ -101,3 +101,18 @@ layer = "bottom"
 enabled = false
 interval = 600
 ```
+
+## Masaüstü Notları
+
+Masaüstünde yapışkan notlar. Not eklemek için masaüstüne sağ tıklayıp **Yeni not** seçin, üst şeridinden sürükleyin, doğrudan içine yazın ve rengini değiştirmek için noktaya tıklayın. Notlar monitör başına Tsumiki veri dizinindeki `desktop_notes.json` dosyasına kaydedilir ve yeniden başlatmada geri yüklenir.
+
+```toml
+[modules.desktop_notes]
+enabled = false
+layer = "bottom"
+note_width = 240 # Her notun piksel cinsinden genişliği
+save_delay = 800 # Bir düzenlemeden sonra diske yazmadan önce beklenecek milisaniye
+tooltip = true # Not düğmelerinde ipuçlarını göster
+```
+
+Tam ekran pencere masaüstü tıklamalarını aldığı için `bottom` katmanında kalmalıdır; bir notu silmek için üzerindeki (×) düğmesini kullanın.

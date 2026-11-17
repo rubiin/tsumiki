@@ -135,6 +135,21 @@ layer = "bottom"
 interval = 600
 ```
 
+## Notes de bureau
+
+Notes autocollantes sur le bureau. Faites un clic droit sur le bureau et choisissez **Nouvelle note** pour en créer une, faites-la glisser par sa bande supérieure, écrivez directement dedans et cliquez sur le point pour changer sa couleur. Les notes sont enregistrées par moniteur dans `desktop_notes.json`, dans le répertoire de données de Tsumiki, et restaurées au redémarrage.
+
+```toml
+[modules.desktop_notes]
+enabled = false
+layer = "bottom"
+note_width = 240 # Largeur de chaque note en pixels
+save_delay = 800 # Millisecondes d'attente après une modification avant l'enregistrement
+tooltip = true # Afficher les infobulles sur les boutons de la note
+```
+
+La fenêtre plein écran capture les clics du bureau ; elle doit donc rester sur la couche `bottom`. Utilisez le bouton (×) d'une note pour la supprimer.
+
 ## Activate Linux
 
 Indicateur d'activation de fenêtre.

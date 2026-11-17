@@ -119,6 +119,7 @@ Activa y configura módulos de UI más grandes como:
 | Lanzador de Apps     | `modules.launcher`       | Búsqueda y lanzamiento de aplicaciones       |
 | Reloj de Escritorio  | `modules.desktop_clock`  | Reloj decorativo del escritorio              |
 | Citas de Escritorio  | `modules.desktop_quotes` | Superposición de citas inspiradoras          |
+| Notas de Escritorio  | `modules.desktop_notes`  | Notas adhesivas en el escritorio             |
 | Esquinas de Pantalla | `modules.screen_corners` | Esquinas activas                             |
 | Cheatsheet           | `modules.cheatsheet`     | Referencia de atajos de teclado              |
 | Activate Linux       | `modules.activate_linux` | Indicador de activación de ventana           |

@@ -107,6 +107,21 @@ enabled = false
 interval = 600
 ```
 
+## Bureaubladnotities
+
+Plaknotities op het bureaublad. Klik met de rechtermuisknop op het bureaublad en kies **Nieuwe notitie** om er een toe te voegen, sleep hem aan de bovenbalk, typ er direct in en klik op de stip om de kleur te wisselen. Notities worden per monitor opgeslagen in `desktop_notes.json` in de Tsumiki-gegevensmap en bij een herstart hersteld.
+
+```toml
+[modules.desktop_notes]
+enabled = false
+layer = "bottom"
+note_width = 240 # Breedte van elke notitie in pixels
+save_delay = 800 # Milliseconden wachten na een wijziging voordat wordt opgeslagen
+tooltip = true # Tooltips tonen op notitieknoppen
+```
+
+Het volledige schermvenster ontvangt de muisklikken voor het bureaublad en moet daarom op de laag `bottom` blijven; gebruik de knop (×) op een notitie om deze te verwijderen.
+
 ## Activate Linux
 
 ```toml

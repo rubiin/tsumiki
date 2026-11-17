@@ -2960,6 +2960,39 @@
             }
           }
         },
+        "desktop_notes": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Determines whether desktop sticky notes are enabled.",
+              "default": false
+            },
+            "layer": {
+              "type": "string",
+              "enum": ["top", "overlay", "bottom", "background"],
+              "description": "Layer on which the notes are displayed.",
+              "default": "bottom"
+            },
+            "note_width": {
+              "type": "integer",
+              "description": "Width of a note in pixels.",
+              "default": 240,
+              "minimum": 120
+            },
+            "save_delay": {
+              "type": "integer",
+              "description": "Delay in milliseconds before pending note edits are written to disk.",
+              "default": 800,
+              "minimum": 100
+            },
+            "tooltip": {
+              "type": "boolean",
+              "description": "Whether note buttons show tooltips. Also requires general.tooltips to be enabled.",
+              "default": true
+            }
+          }
+        },
         "activate_linux": {
           "type": "object",
           "properties": {

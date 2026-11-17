@@ -56,6 +56,12 @@ def get_style_service():
 
     return _get_service("style", StyleService)
 
+def get_note_service():
+    """Get the note service (lazy-loaded)."""
+    from .desktop_notes import NotesService
+
+    return _get_service("note", NotesService)
+
 
 # Backward compatibility - these now trigger lazy loading on access
 class _LazyServiceProxy:
@@ -85,6 +91,7 @@ class _LazyServiceProxy:
 audio_service = _LazyServiceProxy(get_audio_service)
 notification_service = _LazyServiceProxy(get_notification_service)
 bluetooth_service = _LazyServiceProxy(get_bluetooth_service)
-power_pfl_service = _LazyServiceProxy(get_power_profiles_service)
+power_profile_service = _LazyServiceProxy(get_power_profiles_service)
+note_service = _LazyServiceProxy(get_note_service)
 matugen_service = _LazyServiceProxy(get_matugen_service)
 style_service = _LazyServiceProxy(get_style_service)

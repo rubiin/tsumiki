@@ -119,6 +119,7 @@ Active et configure les grands modules d'interface utilisateur tels que :
 | Lanceur d'applications | `modules.launcher`       | Recherche et lancement d'applications    |
 | Horloge de bureau      | `modules.desktop_clock`  | Horloge décorative du bureau             |
 | Citations de bureau    | `modules.desktop_quotes` | Superposition de citations inspirantes   |
+| Notes de bureau        | `modules.desktop_notes`  | Notes autocollantes sur le bureau        |
 | Coins d'écran          | `modules.screen_corners` | Coins actifs                             |
 | Aide-mémoire           | `modules.cheatsheet`     | Référence des raccourcis clavier         |
 | Activate Linux         | `modules.activate_linux` | Indicateur d'activation de fenêtre       |

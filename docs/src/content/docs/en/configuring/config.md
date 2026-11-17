@@ -120,6 +120,7 @@ Enables and configures larger UI modules such as:
 | Launcher       | `modules.launcher`       | Application search & launch, slash commands (`/calc`, `/translate`) |
 | Desktop Clock  | `modules.desktop_clock`  | Decorative desktop clock                                            |
 | Desktop Quotes | `modules.desktop_quotes` | Inspirational quote overlay                                         |
+| Desktop Notes  | `modules.desktop_notes`  | Sticky notes on the desktop                                         |
 | Screen Corners | `modules.screen_corners` | Hot corners                                                         |
 | Cheatsheet     | `modules.cheatsheet`     | Keybinding reference                                                |
 | Activate Linux | `modules.activate_linux` | Window activation hint                                              |

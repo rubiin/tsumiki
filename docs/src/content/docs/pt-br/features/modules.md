@@ -101,3 +101,18 @@ layer = "bottom"
 enabled = false
 interval = 600
 ```
+
+## Notas da Área de Trabalho
+
+Notas adesivas na área de trabalho. Clique com o botão direito na área de trabalho e escolha **Nova nota** para criar uma, arraste-a pela faixa superior, digite diretamente nela e clique no ponto para alternar a cor. As notas são salvas por monitor em `desktop_notes.json`, no diretório de dados do Tsumiki, e restauradas ao reiniciar.
+
+```toml
+[modules.desktop_notes]
+enabled = false
+layer = "bottom"
+note_width = 240 # Largura de cada nota em pixels
+save_delay = 800 # Milissegundos de espera após uma edição antes de salvar
+tooltip = true # Mostrar dicas nos botões da nota
+```
+
+A janela em tela cheia recebe os cliques da área de trabalho, então deve permanecer na camada `bottom`; use o botão (×) de uma nota para excluí-la.

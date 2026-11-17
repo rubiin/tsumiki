@@ -1,0 +1,125 @@
+@use "variable";
+@use "theme";
+
+// Sticky notes palette follows the theme accents, so notes recolour with the
+// rest of the desktop instead of pinning their own pastels.
+#desktop-note {
+  padding: 6px 8px 8px;
+  border: 1px solid rgba(theme.$background-dark, 0.12);
+  border-radius: variable.$radius-xs;
+  color: theme.$background-dark;
+
+  &.note-yellow {
+    background-color: theme.$accent-yellow;
+  }
+
+  &.note-pink {
+    background-color: theme.$accent-pink;
+  }
+
+  &.note-blue {
+    background-color: theme.$accent-blue;
+  }
+
+  &.note-green {
+    background-color: theme.$accent-green;
+  }
+
+  &.note-purple {
+    background-color: theme.$accent-purple;
+  }
+
+  #note-bar {
+    min-height: 24px;
+  }
+
+  button {
+    padding: 0;
+    border: none;
+    border-radius: variable.$radius-2xs;
+    background-color: transparent;
+    color: theme.$background-dark;
+  }
+
+  #note-delete {
+    min-width: 20px;
+    min-height: 20px;
+  }
+
+  #note-delete-icon {
+    color: theme.$background-dark;
+    font-size: variable.$font-size-xl;
+    font-weight: normal;
+  }
+
+  #note-handle {
+    min-height: 20px;
+    background-color: transparent;
+  }
+
+  #note-grip {
+    padding-right: 6px;
+    color: rgba(theme.$background-dark, 0.35);
+    font-size: variable.$font-size-xs;
+  }
+
+  #note-handle.locked #note-grip {
+    color: rgba(theme.$background-dark, 0.12);
+  }
+
+  #note-lock {
+    min-width: 20px;
+    min-height: 20px;
+    margin-right: 2px;
+    color: rgba(theme.$background-dark, 0.8);
+  }
+
+  #note-lock-icon {
+    font-size: variable.$font-size-sm;
+  }
+
+  #note-color {
+    min-width: 6px;
+    min-height: 6px;
+    margin: 6px;
+    border: 1.5px solid rgba(theme.$background-dark, 0.55);
+    border-radius: variable.$radius-large;
+    background-color: transparent;
+
+    &:hover {
+      background-color: rgba(theme.$background-dark, 0.25);
+    }
+  }
+
+  #note-add {
+    min-width: 20px;
+    min-height: 20px;
+  }
+
+  #note-add-icon {
+    color: theme.$background-dark;
+    font-size: variable.$font-size-lg;
+    font-weight: normal;
+  }
+
+  #note-text {
+    padding: 4px 2px 0;
+    background-color: transparent;
+    color: theme.$background-dark;
+    caret-color: theme.$background-dark;
+    font-size: variable.$font-size-xl;
+  }
+
+  #note-text text {
+    background-color: transparent;
+  }
+}
+
+#note-hint {
+  // In-window hint bubble: layer-shell windows cannot host GTK tooltips.
+  padding: 2px 7px;
+  border-radius: variable.$radius-sm;
+  background-color: theme.$background-dark;
+  color: theme.$text-main;
+  font-size: variable.$font-size-sm;
+}
