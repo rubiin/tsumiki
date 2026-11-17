@@ -3,7 +3,7 @@ from collections.abc import Callable
 from fabric.widgets.box import Box
 from fabric.widgets.label import Label
 
-from services import power_pfl_service
+from services import power_profile_service
 from shared.buttons import HoverButton, QSChevronButton
 from shared.submenu import QuickSubMenu
 from utils.i18n import _
@@ -60,7 +60,7 @@ class PowerProfileItem(HoverButton):
         self.set_active(active)
 
     def _handle_click(self, *_):
-        power_pfl_service.active_profile = self.profile
+        power_profile_service.active_profile = self.profile
         return True
 
     def set_active(self, active: str):
@@ -74,7 +74,7 @@ class PowerProfileSubMenu(QuickSubMenu):
     """A submenu to display power profile options."""
 
     def __init__(self, **kwargs):
-        self.profiles = [profile["Profile"] for profile in power_pfl_service.profiles]
+        self.profiles = [profile["Profile"] for profile in power_profile_service.profiles]
 
         self.profile_items = None
         self.scan_button = None
@@ -95,7 +95,7 @@ class PowerProfileSubMenu(QuickSubMenu):
         )
 
         # The base class already wires the revealer to ``on_child_revealed``.
-        self._profile_changed_handler = power_pfl_service.connect(
+        self._profile_changed_handler = power_profile_service.connect(
             "changed", self.on_profile_changed
         )
         self.connect("destroy", self._on_destroy)
@@ -104,7 +104,7 @@ class PowerProfileSubMenu(QuickSubMenu):
         if self._profile_changed_handler is not None:
             from utils.functions import safe_disconnect
 
-            safe_disconnect(power_pfl_service, self._profile_changed_handler)
+            safe_disconnect(power_profile_service, self._profile_changed_handler)
             self._profile_changed_handler = None
 
     def on_child_revealed(self, *_):
@@ -113,7 +113,7 @@ class PowerProfileSubMenu(QuickSubMenu):
         if self.profile_items is None:
             self.profile_items = [
                 PowerProfileItem(
-                    profile=profile, active=power_pfl_service.active_profile
+                    profile=profile, active=power_profile_service.active_profile
                 )
                 for profile in self.profiles
             ]
@@ -126,7 +126,7 @@ class PowerProfileSubMenu(QuickSubMenu):
     def on_profile_changed(self, *_):
         if self.profile_items is None:
             return
-        active = power_pfl_service.active_profile
+        active = power_profile_service.active_profile
         for item in self.profile_items:
             item.set_active(active)
 
@@ -153,7 +153,7 @@ class PowerProfileToggle(QSChevronButton):
         self.action_button.set_sensitive(False)
 
         self._register_handlers(
-            power_pfl_service,
+            power_profile_service,
             {"changed": self.update_action_button},
         )
 
@@ -161,6 +161,6 @@ class PowerProfileToggle(QSChevronButton):
         return " ".join([word.capitalize() for word in text.split("-")])
 
     def update_action_button(self, *_):
-        active = power_pfl_service.active_profile
+        active = power_profile_service.active_profile
         self.action_icon.set_label(icon_name_to_icon(active))
         self.set_action_label(self.unslug(active))
