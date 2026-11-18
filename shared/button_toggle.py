@@ -1,6 +1,7 @@
 from fabric.utils import logger
 
 import utils.functions as helpers
+from services import caffeine_service
 from utils.change_cache import ChangeCache
 from utils.i18n import _
 
@@ -100,6 +101,75 @@ class CommandSwitcher(ButtonWidget):
             else:
                 missing = _("common.not_found", default="not found")
                 tooltip = f"{self.command}: {missing}"
+            self._changes.apply("tooltip", tooltip, self.set_tooltip_text)
+
+        return True
+
+
+class CaffeineSwitcher(ButtonWidget):
+    """A two-state button backed by the caffeine idle inhibitor service."""
+
+    def __init__(
+        self,
+        enabled_icon: str,
+        disabled_icon: str,
+        name: str,
+        label=True,
+        tooltip=True,
+        style_classes="",
+        **kwargs,
+    ):
+        self.service = caffeine_service
+        self.switcher_name = name
+
+        super().__init__(
+            name=name,
+            **kwargs,
+        )
+
+        self.add_style_class(style_classes)
+
+        self.enabled_icon = enabled_icon
+        self.disabled_icon = disabled_icon
+        self.label = label
+        self.tooltip = tooltip
+
+        self.label_format = self.config.get("label_format", "{state}")
+        self.add_formatted_label(self.label_format, enabled_icon, state="")
+
+        self.connect("clicked", self.on_click)
+
+        self._changes = ChangeCache()
+        self._register_handlers(self.service, {"notify::active": self._update_ui})
+        self.connect("map", self._update_ui)
+        self._update_ui()
+
+    def on_click(self, *_args):
+        self.service.active = not self.service.active
+        # Re-read instead of assuming the click worked: taking the lock can fail.
+        self._update_ui()
+        return True
+
+    def _update_ui(self, *_args):
+        if not self.get_mapped():
+            return True
+
+        active = bool(self.service.active)
+
+        self._changes.apply(
+            "active", active, lambda value: self.toggle_css_class("active", value)
+        )
+
+        label = _("common.enabled") if active else _("common.disabled")
+        icon = self.enabled_icon if active else self.disabled_icon
+        self._changes.apply(
+            "panel",
+            (icon, label if self.label else ""),
+            lambda value: self.refresh_formatted_label(value[0], state=value[1]),
+        )
+
+        if self.tooltip and self.tooltips_enabled:
+            tooltip = f"{self.switcher_name} {label.lower()}"
             self._changes.apply("tooltip", tooltip, self.set_tooltip_text)
 
         return True

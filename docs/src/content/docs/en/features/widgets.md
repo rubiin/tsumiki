@@ -278,7 +278,9 @@ logout = "loginctl terminate-user $USER"
 
 ### Hypridle
 
-Toggle Hyprland's idle management daemon.
+Hold a logind idle inhibitor so the screen stays awake; hypridle honours it.
+The hypridle daemon must already be running. The same toggle is available in
+quick settings.
 
 ```toml
 [widgets.hypridle]

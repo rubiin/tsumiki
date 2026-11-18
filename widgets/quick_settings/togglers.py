@@ -4,7 +4,7 @@ from fabric.utils import invoke_repeater
 
 from services import bluetooth_service, notification_service, style_service
 from services.network import NetworkService
-from shared.button_toggle import CommandSwitcher
+from shared.button_toggle import CaffeineSwitcher
 from shared.buttons import HoverButton
 from utils.i18n import _
 from utils.icons import get_text_icon
@@ -21,41 +21,17 @@ def _toggle_row(icon: str, label: str) -> QuickSettingsIconLabelRow:
     )
 
 
-class QuickSettingToggler(CommandSwitcher):
-    """A button widget to toggle a command."""
-
-    def __init__(
-        self,
-        command: str,
-        name: str,
-        enabled_icon: str,
-        disabled_icon: str,
-        args="",
-        **kwargs,
-    ):
-        super().__init__(
-            command,
-            enabled_icon,
-            disabled_icon,
-            name,
-            args=args,
-            label=True,
-            tooltip=False,
-            interval=1000,
-            style_classes="quicksettings-toggler",
-            **kwargs,
-        )
-
-
-class HyprIdleQuickSetting(QuickSettingToggler):
-    """A button to toggle the hyper idle mode."""
+class HyprIdleQuickSetting(CaffeineSwitcher):
+    """A button to keep the screen awake through the caffeine idle inhibitor."""
 
     def __init__(self, popup, **kwargs):
         super().__init__(
-            command="hypridle",
             enabled_icon=get_text_icon("idle.enabled", ""),
             disabled_icon=get_text_icon("idle.disabled", ""),
             name="quicksettings-togglebutton",
+            label=True,
+            tooltip=False,
+            style_classes="quicksettings-toggler",
             **kwargs,
         )
         self.connect(

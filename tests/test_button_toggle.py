@@ -1,13 +1,13 @@
-"""Tests for the 1 Hz ``CommandSwitcher`` tick.
+"""Tests for the state-driven command and caffeine switchers.
 
-Every apply on this widget invalidates style or re-renders a label, so an
-unchanged tick has to be free.
+Every apply on these widgets invalidates style or re-renders a label, so an
+unchanged refresh has to be free.
 """
 
 import unittest
 from unittest import mock
 
-from shared.button_toggle import CommandSwitcher
+from shared.button_toggle import CaffeineSwitcher, CommandSwitcher
 from utils.change_cache import ChangeCache
 from utils.i18n import _
 
@@ -110,6 +110,114 @@ class SwitcherPollTest(unittest.TestCase):
         self._tick(widget, running=True, times=3)
 
         widget.refresh_formatted_label.assert_called_once()
+        _, kwargs = widget.refresh_formatted_label.call_args
+        self.assertEqual("", kwargs["state"])
+
+
+class _FakeCaffeine:
+    """The slice of ``Caffeine`` the widget touches."""
+
+    def __init__(self, active: bool = False, can_activate: bool = True):
+        self._active = active
+        self.can_activate = can_activate
+
+    @property
+    def active(self) -> bool:
+        return self._active
+
+    @active.setter
+    def active(self, value: bool):
+        if value and not self.can_activate:
+            return
+        self._active = value
+
+
+def _make_caffeine_switcher(
+    *,
+    active: bool = False,
+    can_activate: bool = True,
+    label: bool = True,
+    enabled_icon: str = "on",
+    disabled_icon: str = "off",
+) -> CaffeineSwitcher:
+    """Build a CaffeineSwitcher without touching GTK widget init."""
+    widget = CaffeineSwitcher.__new__(CaffeineSwitcher)
+    widget.service = _FakeCaffeine(active, can_activate)
+    widget.switcher_name = "hypridle"
+    widget.label = label
+    widget.tooltip = True
+    widget.tooltips_enabled = True
+    widget.enabled_icon = enabled_icon
+    widget.disabled_icon = disabled_icon
+    widget.label_format = "{state}"
+    widget.refresh_formatted_label = mock.Mock()
+    widget.get_mapped = mock.Mock(return_value=True)
+    widget.toggle_css_class = mock.Mock()
+    widget.set_tooltip_text = mock.Mock()
+    widget._changes = ChangeCache()
+    return widget
+
+
+class CaffeineSwitcherTest(unittest.TestCase):
+    """The widget must follow the service, including a failed lock."""
+
+    def test_unchanged_refreshes_apply_once(self):
+        widget = _make_caffeine_switcher()
+
+        for _tick in range(10):
+            widget._update_ui()
+
+        widget.toggle_css_class.assert_called_once_with("active", False)
+        widget.refresh_formatted_label.assert_called_once()
+        args, kwargs = widget.refresh_formatted_label.call_args
+        self.assertEqual(("off",), args)
+        self.assertEqual(_("common.disabled"), kwargs["state"])
+        widget.set_tooltip_text.assert_called_once()
+
+    def test_a_state_flip_reapplies(self):
+        widget = _make_caffeine_switcher(active=True)
+
+        widget._update_ui()
+        widget._update_ui()
+        widget.service.active = False
+        widget._update_ui()
+
+        widget.toggle_css_class.assert_called_with("active", False)
+        self.assertEqual(2, widget.refresh_formatted_label.call_count)
+        self.assertEqual(2, widget.set_tooltip_text.call_count)
+
+    def test_a_click_toggles_the_service(self):
+        widget = _make_caffeine_switcher()
+
+        widget.on_click()
+
+        self.assertTrue(widget.service.active)
+        widget.toggle_css_class.assert_called_with("active", True)
+        args, kwargs = widget.refresh_formatted_label.call_args
+        self.assertEqual(("on",), args)
+        self.assertEqual(_("common.enabled"), kwargs["state"])
+
+    def test_a_failed_activation_stays_inactive(self):
+        widget = _make_caffeine_switcher(can_activate=False)
+
+        widget.on_click()
+
+        self.assertFalse(widget.service.active)
+        widget.toggle_css_class.assert_called_with("active", False)
+
+    def test_an_unmapped_widget_is_not_updated(self):
+        widget = _make_caffeine_switcher()
+        widget.get_mapped = mock.Mock(return_value=False)
+
+        widget._update_ui()
+
+        widget.toggle_css_class.assert_not_called()
+
+    def test_a_widget_without_a_label_sends_an_empty_state(self):
+        widget = _make_caffeine_switcher(active=True, label=False)
+
+        widget._update_ui()
+
         _, kwargs = widget.refresh_formatted_label.call_args
         self.assertEqual("", kwargs["state"])
 
