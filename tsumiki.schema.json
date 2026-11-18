@@ -1560,6 +1560,17 @@
               "type": "string",
               "default": "󰌌 {layout}",
               "description": "Format string for the panel label. Available Fields: {layout}."
+            },
+            "language_name_map": {
+              "type": "object",
+              "description": "Override displayed names for keyboard layouts, keyed by the raw layout name reported by Hyprland.",
+              "patternProperties": {
+                "^.*$": {
+                  "type": "string",
+                  "description": "Display name for this layout."
+                }
+              },
+              "default": {}
             }
           },
           "required": ["tooltip", "label_format"]

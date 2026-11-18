@@ -5,6 +5,13 @@ from utils.constants import get_kblayout_map
 from utils.hyprland import hyprland_service
 
 
+def layout_display_name(layout: str, name_map: dict[str, str] | None = None) -> str:
+    """Resolve a layout to its label, letting user names win over the built-in map."""
+    if name_map and layout in name_map:
+        return name_map[layout]
+    return get_kblayout_map().get(layout, layout)
+
+
 class KeyboardLayoutWidget(ButtonWidget):
     """A widget to display the current keyboard layout."""
 
@@ -12,6 +19,7 @@ class KeyboardLayoutWidget(ButtonWidget):
         super().__init__(name="keyboard", **kwargs)
 
         self.label_format = self.config.get("label_format", "{layout}")
+        self.name_map = self.config.get("language_name_map", {})
         self.add_formatted_label(self.label_format)
 
         # all aboard...
@@ -39,7 +47,7 @@ class KeyboardLayoutWidget(ButtonWidget):
 
             layout = main_kb["active_keymap"]
 
-            label = get_kblayout_map().get(layout, layout)
+            label = layout_display_name(layout, self.name_map)
 
             if self.config.get("tooltip", False) and self.tooltips_enabled:
                 caps = "On" if main_kb["capsLock"] else "Off"

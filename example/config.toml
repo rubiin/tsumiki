@@ -655,6 +655,7 @@ tooltip = true
 [widgets.keyboard]
 tooltip = true
 label_format = "󰌌 {layout}"
+language_name_map = {}            # e.g. { "English (US)" = "EN" }
 
 # --- Window Count ---
 [widgets.window_count]

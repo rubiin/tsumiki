@@ -571,7 +571,14 @@ Weather = TypedDict(
 Launcher_Button = TypedDict("LauncherButton", {"tooltip": bool, "label_format": str})
 
 # Keyboard configuration
-Keyboard = TypedDict("Keyboard", {**BaseConfig.__annotations__, "label_format": str})
+Keyboard = TypedDict(
+    "Keyboard",
+    {
+        **BaseConfig.__annotations__,
+        "label_format": str,
+        "language_name_map": dict[str, str],
+    },
+)
 
 # MicroPhone configuration
 MicroPhone = TypedDict(

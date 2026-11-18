@@ -560,7 +560,10 @@ Displays the current keyboard layout.
 [widgets.keyboard]
 tooltip = true
 label_format = "󰌌 {layout}"
+language_name_map = { "English (US)" = "EN", "Czech (QWERTY)" = "Czech" }
 ```
+
+- **`language_name_map`**: Overrides the displayed name for a layout, keyed by the raw name Hyprland reports. Unmapped layouts keep the built-in short name.
 
 ### Language
 
