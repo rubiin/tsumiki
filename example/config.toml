@@ -646,6 +646,7 @@ tooltip = true
 # --- Hyprsunset ---
 [widgets.hyprsunset]
 temperature = "2800k"
+gamma = 100                                      # display gamma percentage, 100 = unchanged
 enabled_icon = "󱩌"
 label_format = "{state}"
 disabled_icon = "󰛨"

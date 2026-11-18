@@ -297,6 +297,7 @@ Toggle blue-light filter (night mode) via Hyprsunset.
 ```toml
 [widgets.hyprsunset]
 temperature = "2800k"
+gamma = 100
 enabled_icon = "󱩌"
 label_format = "{state}"
 disabled_icon = "󰛨"

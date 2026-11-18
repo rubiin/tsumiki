@@ -73,6 +73,7 @@ HyprSunset = TypedDict(
         **BaseConfig.__annotations__,
         "label_format": str,
         "temperature": str,
+        "gamma": int,
         "enabled_icon": str,
         "disabled_icon": str,
     },

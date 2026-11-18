@@ -1525,6 +1525,13 @@
               "default": "2800k",
               "description": "Color temperature for sunset mode."
             },
+            "gamma": {
+              "type": "integer",
+              "default": 100,
+              "minimum": 0,
+              "maximum": 200,
+              "description": "Display gamma percentage applied while sunset mode is active. 100 leaves it unchanged."
+            },
             "enabled_icon": {
               "type": "string",
               "default": "󱩌",
@@ -1546,7 +1553,7 @@
               "description": "Show tooltip with sunset mode details."
             }
           },
-          "required": ["temperature", "enabled_icon", "disabled_icon", "label_format", "tooltip"]
+          "required": ["temperature", "gamma", "enabled_icon", "disabled_icon", "label_format", "tooltip"]
         },
         "keyboard": {
           "type": "object",
