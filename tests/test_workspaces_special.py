@@ -10,6 +10,7 @@ import unittest
 from unittest import mock
 
 from fabric.hyprland.service import HyprlandEvent
+from fabric.hyprland.widgets import HyprlandWorkspaces
 
 from widgets.workspaces import _HyprlandWorkspaces
 
@@ -24,12 +25,8 @@ def _event(*data: str) -> HyprlandEvent:
     return HyprlandEvent(name="createworkspacev2", data=list(data), raw_data=b"")
 
 
-class _Probe:
-    """Fabric's workspace handlers, driven without GTK or a Hyprland socket."""
-
-    on_ready = _HyprlandWorkspaces.on_ready
-    on_create_workspace = _HyprlandWorkspaces.on_create_workspace
-    on_destroy_workspace = _HyprlandWorkspaces.on_destroy_workspace
+class _Probe(_HyprlandWorkspaces):
+    """The workspace handlers, driven without GTK or a Hyprland socket."""
 
     def __init__(self, workspaces: list[dict], active: dict):
         replies = {
@@ -104,6 +101,31 @@ class WorkspaceEventTest(unittest.TestCase):
         probe.on_destroy_workspace(None, _event("3", "3"))
 
         self.assertEqual([3], probe.destroyed)
+
+
+class UrgentSignalTest(unittest.TestCase):
+    """``show_urgent`` only gates Fabric's urgent signal, not the event."""
+
+    def test_fabric_handles_urgent_events(self):
+        self.assertIs(_HyprlandWorkspaces.on_urgent, HyprlandWorkspaces.on_urgent)
+
+    def test_the_urgent_signal_reaches_fabric_when_enabled(self):
+        probe = _HyprlandWorkspaces.__new__(_HyprlandWorkspaces)
+        probe._show_urgent = True
+
+        with mock.patch.object(HyprlandWorkspaces, "urgent") as base:
+            probe.urgent(3)
+
+        base.assert_called_once_with(3)
+
+    def test_the_urgent_signal_is_dropped_when_disabled(self):
+        probe = _HyprlandWorkspaces.__new__(_HyprlandWorkspaces)
+        probe._show_urgent = False
+
+        with mock.patch.object(HyprlandWorkspaces, "urgent") as base:
+            probe.urgent(3)
+
+        base.assert_not_called()
 
 
 if __name__ == "__main__":

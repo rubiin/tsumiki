@@ -1,5 +1,3 @@
-import json
-
 from fabric.core.widgets import WorkspaceButton
 from fabric.hyprland.service import HyprlandEvent
 from fabric.hyprland.widgets import HyprlandWorkspaces
@@ -93,40 +91,13 @@ class WorkSpacesWidget(BoxWidget):
 
 
 class _HyprlandWorkspaces(HyprlandWorkspaces):
-    """Gates urgent handling on config; tolerates id-less special workspaces."""
+    """Gates urgent signals on config; tolerates id-less special workspaces."""
 
     def __init__(self, show_urgent: bool = False, **kwargs):
         self._show_urgent = show_urgent
         super().__init__(**kwargs)
 
-    def on_ready(self, *_):
-        # Fabric indexes workspace["id"], which Hyprland 0.57 drops for scratchpads.
-        workspaces = json.loads(
-            self.connection.send_command("j/workspaces").reply.decode()
-        )
-        active_id = json.loads(
-            self.connection.send_command("j/activeworkspace").reply.decode()
-        ).get("id")
-
-        for workspace in workspaces:
-            ws_id = workspace.get("id")
-            if ws_id is None:
-                continue
-            self.workspace_created(ws_id)
-            if ws_id == active_id:
-                self.workspace_activated(ws_id)
-
-    def on_create_workspace(self, _, event: HyprlandEvent):
-        if len(event.data) != 2 or (ws_id := _event_workspace_id(event)) is None:
-            return
-        return self.workspace_created(ws_id)
-
-    def on_destroy_workspace(self, _, event: HyprlandEvent):
-        if len(event.data) != 2 or (ws_id := _event_workspace_id(event)) is None:
-            return
-        return self.workspace_destroyed(ws_id)
-
-    def on_urgent(self, _, event: HyprlandEvent):
+    def urgent(self, workspace_id: int):
         if not self._show_urgent:
             return
-        return super().on_urgent(_, event)
+        return super().urgent(workspace_id)

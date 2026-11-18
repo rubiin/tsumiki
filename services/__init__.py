@@ -63,11 +63,13 @@ def get_note_service():
 
     return _get_service("note", NotesService)
 
+
 def get_caffeine_service():
     """Get the caffeine service (lazy-loaded)."""
     from .caffeine import Caffeine
 
     return _get_service("caffeine", Caffeine)
+
 
 def get_keyboard_service():
     """Get the keyboard service (lazy-loaded)."""
