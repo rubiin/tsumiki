@@ -21,11 +21,13 @@ layer = "top" # "top" | "overlay" | "bottom" | "background"
 auto_hide = false
 auto_hide_timeout = 3000 # milliseconds
 location = "top" # "top" | "bottom"
+exclusive = true
 ```
 
 - **`layer`**: Hyprland layer — `top` renders above windows, `background` renders below.
 - **`auto_hide`**: Hides the bar after the timeout when not hovered.
 - **`location`**: Bar position on screen.
+- **`exclusive`**: Reserves screen space for the bar. Set `false` to let windows overlap it, useful with `auto_hide`.
 
 ---
 

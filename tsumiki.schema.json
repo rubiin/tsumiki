@@ -2529,6 +2529,11 @@
               "description": "Specifies the location of the bar.",
               "default": "top"
             },
+            "exclusive": {
+              "type": "boolean",
+              "description": "Reserve screen space for the bar. When false, windows may overlap the bar and the bar draws over them.",
+              "default": true
+            },
             "auto_hide": {
               "type": "boolean",
               "description": "Determines whether the bar should auto-hide after inactivity.",

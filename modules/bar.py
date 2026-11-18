@@ -12,6 +12,11 @@ from utils.constants import ASSETS_DIR
 from utils.widget_settings import BarConfig
 
 
+def bar_exclusivity(bar_config: dict) -> str:
+    """Map the ``exclusive`` option to a layer-shell exclusivity mode."""
+    return "auto" if bar_config.get("exclusive", True) else "none"
+
+
 class LazyWidgetDict(dict):
     """A dict that lazily imports widget classes on first access (faster startup)."""
 
@@ -196,7 +201,7 @@ class Bar(BaseWindow):
             layer=bar_config.get("layer", "top"),
             anchor=anchor,
             pass_through=False,
-            exclusivity="auto",
+            exclusivity=bar_exclusivity(bar_config),
             visible=True,
             all_visible=False,
             child=child,

@@ -508,6 +508,7 @@ layer = "background"
 auto_hide = false
 auto_hide_timeout = 3_000
 location = "top"
+exclusive = true
 
 [modules.overview]
 enabled = false

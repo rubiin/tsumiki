@@ -360,6 +360,7 @@ Bar = TypedDict(
     {
         "location": Bar_Location,
         "layer": Layer,
+        "exclusive": bool,
         "auto_hide": bool,
         "auto_hide_timeout": int,
     },

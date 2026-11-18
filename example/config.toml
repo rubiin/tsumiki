@@ -52,6 +52,7 @@ style_classes = ["utility-tools"]
 [modules.bar]
 layer = "top"                     # "top" | "overlay" | "bottom" | "background"
 location = "top"                  # "top" | "bottom"
+exclusive = true                  # false: windows may overlap the bar
 auto_hide = false
 auto_hide_timeout = 3000
 
