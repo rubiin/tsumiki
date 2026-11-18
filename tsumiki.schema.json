@@ -1553,7 +1553,14 @@
               "description": "Show tooltip with sunset mode details."
             }
           },
-          "required": ["temperature", "gamma", "enabled_icon", "disabled_icon", "label_format", "tooltip"]
+          "required": [
+            "temperature",
+            "gamma",
+            "enabled_icon",
+            "disabled_icon",
+            "label_format",
+            "tooltip"
+          ]
         },
         "keyboard": {
           "type": "object",
@@ -1835,6 +1842,14 @@
               },
               "default": [],
               "description": "List of MPRIS players to ignore."
+            },
+            "player_priority": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": [],
+              "description": "Ordered glob patterns for MPRIS player selection; the first match wins and unmatched players come last."
             }
           },
           "required": [
@@ -1842,7 +1857,8 @@
             "tooltip",
             "label_format",
             "hide_when_no_player",
-            "ignore"
+            "ignore",
+            "player_priority"
           ]
         },
         "world_clock": {

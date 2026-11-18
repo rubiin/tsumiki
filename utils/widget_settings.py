@@ -427,6 +427,7 @@ Mpris = TypedDict(
         "label_format": str,
         "hide_when_no_player": bool,
         "ignore": list[str],
+        "player_priority": list[str],
     },
 )
 

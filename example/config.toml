@@ -444,6 +444,7 @@ compact_mode = false              # Whole numbers, no bytes, promote before four
 truncation_size = 20
 tooltip = true
 ignore = []                       # Player names to skip
+player_priority = []              # Glob order for picking among players
 label_format = "{title} - {artist}"
 hide_when_no_player = true
 

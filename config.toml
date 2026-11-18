@@ -291,6 +291,7 @@ tooltip = false
 hide_when_no_player = true
 label_format = "{title} - {artist}"
 ignore = []
+player_priority = []
 
 [widgets.ocr]
 tooltip = true

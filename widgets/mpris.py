@@ -1,3 +1,4 @@
+import fnmatch
 import os
 import tempfile
 import urllib.parse
@@ -92,10 +93,9 @@ class MprisWidget(ButtonWidget, PopoverMixin):
                 f"{Colors.INFO}[PLAYER MANAGER] player found: "
                 f"{player.get_property('player-name')}",
             )
-            if player.props.player_name in self.config.get("ignore", []):
-                continue
+        player = self._pick_player(self.mpris_manager.players)
+        if player is not None:
             self._set_player(player)
-            break
 
         self.setup_popover(
             lambda: PlayerBoxStack(self.mpris_manager, config=self.config),
@@ -223,11 +223,33 @@ class MprisWidget(ButtonWidget, PopoverMixin):
         self._bind_player_updates()
         self.get_current()
 
+    def _priority_rank(self, player_name: str) -> int:
+        """Position of the first matching glob; unmatched players rank last."""
+        patterns = self.config.get("player_priority", [])
+        for index, pattern in enumerate(patterns):
+            if fnmatch.fnmatch(player_name or "", pattern):
+                return index
+        return len(patterns)
+
+    def _pick_player(self, players):
+        """Pick the highest-priority player, keeping discovery order on ties."""
+        ignored = self.config.get("ignore", [])
+        candidates = [
+            player for player in players if player.props.player_name not in ignored
+        ]
+        if not candidates:
+            return None
+        # min() is stable, so equally ranked players keep their order.
+        return min(candidates, key=lambda p: self._priority_rank(p.props.player_name))
+
     def on_player_appeared(self, manager, raw_player):
         if raw_player.props.player_name in self.config.get("ignore", []):
             return
-        if self.player is None or self.player.playback_status != "playing":
-            self._set_player(raw_player)
+        if self.player is not None and self.player.playback_status == "playing":
+            return
+        chosen = self._pick_player(self.mpris_manager.players)
+        if chosen is not None:
+            self._set_player(chosen)
 
     def on_player_vanished(self, manager, player_name):
         if self.player is None or self.player.player_name != player_name:
@@ -236,10 +258,9 @@ class MprisWidget(ButtonWidget, PopoverMixin):
         self.player = None
         # get_current() below re-syncs the progress tick to whatever it finds.
 
-        for raw_player in self.mpris_manager.players:
-            if raw_player.props.player_name in self.config.get("ignore", []):
-                continue
-            self._set_player(raw_player)
+        fallback = self._pick_player(self.mpris_manager.players)
+        if fallback is not None:
+            self._set_player(fallback)
             return
         self.get_current()
 

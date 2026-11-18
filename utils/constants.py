@@ -290,6 +290,7 @@ DEFAULT_CONFIG = {
             "label_format": "{title} - {artist}",
             "hide_when_no_player": True,
             "ignore": [],
+            "player_priority": [],
         },
         "ocr": {
             "tooltip": True,

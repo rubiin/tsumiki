@@ -74,7 +74,9 @@ class PowerProfileSubMenu(QuickSubMenu):
     """A submenu to display power profile options."""
 
     def __init__(self, **kwargs):
-        self.profiles = [profile["Profile"] for profile in power_profile_service.profiles]
+        self.profiles = [
+            profile["Profile"] for profile in power_profile_service.profiles
+        ]
 
         self.profile_items = None
         self.scan_button = None

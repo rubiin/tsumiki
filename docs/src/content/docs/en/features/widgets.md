@@ -451,9 +451,12 @@ tooltip = true
 label_format = "{title} - {artist}"
 hide_when_no_player = true
 ignore = []
+player_priority = ["spotify", "firefox*"]
 ```
 
 Variables available in `label_format`: `{title}`, `{artist}`, `{album}`, `{name}`.
+
+`player_priority` is an ordered list of glob patterns matched against player names; the first match wins, and players matching no pattern come last.
 
 Requires `playerctl`. Automatically hides when no media player is running.
 

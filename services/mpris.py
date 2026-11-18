@@ -1,4 +1,6 @@
 # Standard library imports
+import fnmatch
+
 import gi
 
 # Fabric imports
@@ -318,6 +320,7 @@ class MprisPlayerManager(Service):
         **kwargs,
     ):
         self._manager = Playerctl.PlayerManager.new()
+        self._priority: list[str] = []
         bulk_connect(
             self._manager,
             {
@@ -327,6 +330,35 @@ class MprisPlayerManager(Service):
         )
         self.add_players()
         super().__init__(**kwargs)
+
+    def set_priority(self, patterns: list[str]):
+        """Set the player priority order (glob patterns, first match wins)."""
+        self._priority = list(patterns)
+
+    def _player_name(self, player) -> str:
+        return player.get_property("player-name") or ""
+
+    def best_player(self, ignore: list[str] | None = None) -> Playerctl.Player | None:
+        """Return the highest-priority visible player.
+
+        Patterns in ``_priority`` are matched in order against each player's
+        bus name; the first hit wins. Players in ``ignore`` are skipped, and
+        anything left over falls back to the first non-ignored player.
+        """
+        ignore = ignore or []
+        players = self.players
+        for pattern in self._priority:
+            for player in players:
+                name = self._player_name(player)
+                if name in ignore:
+                    continue
+                if fnmatch.fnmatchcase(name, pattern):
+                    return player
+        for player in players:
+            name = self._player_name(player)
+            if name not in ignore:
+                return player
+        return None
 
     def on_name_appeared(self, manager, player_name: Playerctl.PlayerName):
         logger.info(f"[MprisPlayer] {player_name.name} appeared")

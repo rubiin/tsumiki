@@ -192,6 +192,75 @@ class MprisCoalescingTest(unittest.TestCase):
 
 
 @unittest.skipUnless(HAS_MPRIS_WIDGET, "mpris widget unavailable")
+class MprisPlayerPriorityTest(unittest.TestCase):
+    """Selection must follow the configured glob priority order."""
+
+    class _FakePlayer:
+        def __init__(self, name: str):
+            self.props = mock.Mock()
+            self.props.player_name = name
+
+    def _widget(self, priority=(), ignored=()):
+        widget = MprisWidget.__new__(MprisWidget)
+        widget.config = {
+            "player_priority": list(priority),
+            "ignore": list(ignored),
+        }
+        return widget
+
+    def test_first_matching_pattern_wins(self):
+        widget = self._widget(["spotify", "firefox*"])
+
+        self.assertLess(
+            widget._priority_rank("spotify"), widget._priority_rank("firefox-dev")
+        )
+
+    def test_unmatched_players_rank_after_matched_ones(self):
+        widget = self._widget(["spotify"])
+
+        self.assertGreater(
+            widget._priority_rank("mpd"), widget._priority_rank("spotify")
+        )
+
+    def test_pick_player_returns_the_highest_priority_candidate(self):
+        widget = self._widget(["spotify", "mpd"])
+        players = [
+            self._FakePlayer("mpd"),
+            self._FakePlayer("vlc"),
+            self._FakePlayer("spotify"),
+        ]
+
+        self.assertIs(widget._pick_player(players), players[2])
+
+    def test_pick_player_skips_ignored_players(self):
+        widget = self._widget(["spotify", "mpd"], ignored=["spotify"])
+        players = [self._FakePlayer("spotify"), self._FakePlayer("mpd")]
+
+        self.assertIs(widget._pick_player(players), players[1])
+
+    def test_equal_rank_keeps_discovery_order(self):
+        widget = self._widget(["spotify"])
+        players = [self._FakePlayer("mpd"), self._FakePlayer("vlc")]
+
+        self.assertIs(widget._pick_player(players), players[0])
+
+    def test_no_candidates_returns_none(self):
+        widget = self._widget(ignored=["spotify"])
+
+        self.assertIsNone(widget._pick_player([self._FakePlayer("spotify")]))
+
+    def test_appearing_player_does_not_steal_playback(self):
+        widget = self._widget(["new"])
+        widget.player = mock.Mock(playback_status="playing")
+        widget._set_player = mock.Mock()
+        widget.mpris_manager = mock.Mock(players=[self._FakePlayer("new")])
+
+        widget.on_player_appeared(None, self._FakePlayer("new"))
+
+        widget._set_player.assert_not_called()
+
+
+@unittest.skipUnless(HAS_MPRIS_WIDGET, "mpris widget unavailable")
 class MprisProgressFillTest(unittest.TestCase):
     """The fill must be sized through the geometry API, never recompiled CSS."""
 
