@@ -3059,7 +3059,7 @@
             },
             "ignored": {
               "type": "array",
-              "description": "List of notification IDs to ignore",
+              "description": "App names or regular expressions whose notifications are never shown, e.g. [\"spotify\", \"discord.*\"]. Matching is case-insensitive.",
               "items": {
                 "type": "string"
               },

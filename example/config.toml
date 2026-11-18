@@ -63,7 +63,7 @@ layer = "overlay"                 # "top" | "overlay" | "bottom" | "background"
 auto_dismiss = true
 transition_type = "slide-left"
 transition_duration = 350
-ignored = []                      # Notification IDs to drop
+ignored = []                      # App names or regexes to drop, e.g. ["spotify", "discord.*"]
 respect_expire = true             # Honour the expire timeout sent by the app
 per_app_limits = {}               # Per-app caps, e.g. { "Spotify" = 3 }
 max_lines = 4                     # Collapsed lines in a notification

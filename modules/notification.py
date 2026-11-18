@@ -1,4 +1,5 @@
 import os
+import re
 from typing import ClassVar
 
 from fabric.notifications import (
@@ -65,6 +66,7 @@ class NotificationPopup(BaseWindow):
         self.config = widget_config.get("modules", {}).get("notification", {})
 
         self.ignored_apps = helpers.unique_list(self.config.get("ignored", []))
+        self._ignored_patterns = self._compile_ignored_patterns()
 
         self.persist = self.config.get("persist", {})
 
@@ -99,13 +101,33 @@ class NotificationPopup(BaseWindow):
         if self._active_notifications.get(notification_id) is revealer:
             self._active_notifications.pop(notification_id, None)
 
+    def _compile_ignored_patterns(self) -> list[re.Pattern]:
+        """Compile ``ignored`` entries as regexes, falling back to literals."""
+        patterns = []
+        for entry in self.ignored_apps:
+            try:
+                patterns.append(re.compile(entry, re.IGNORECASE))
+            except re.error:
+                logger.warning(
+                    f"[Notification] Invalid regex in ignored: {entry!r}, "
+                    "matching it literally"
+                )
+                patterns.append(re.compile(re.escape(entry), re.IGNORECASE))
+        return patterns
+
+    def _is_ignored(self, app_name: str) -> bool:
+        """Match an app name against the ignore list, case-insensitively."""
+        if not app_name:
+            return False
+        return any(pattern.search(app_name) for pattern in self._ignored_patterns)
+
     def on_new_notification(self, fabric_notification: Notifications, id):
         notification = fabric_notification.get_notification_from_id(id)
 
         replaces_id = getattr(notification, "replaces_id", 0) or 0
 
         # SwayNC parity: a hidden replacement still drops the stale revealer.
-        if self._server.dont_disturb or notification.app_name in self.ignored_apps:
+        if self._server.dont_disturb or self._is_ignored(notification.app_name):
             if replaces_id:
                 self._server.drop_registry_entry(replaces_id)
                 old_box = self._active_notifications.pop(replaces_id, None)
