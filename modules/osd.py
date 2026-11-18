@@ -141,7 +141,7 @@ class OSDContainer(BaseWindow):
         )
 
         super().__init__(
-            layer="overlay",
+            layer=self.config.get("layer", "overlay"),
             anchor=self.config.get("anchor", "center"),
             child=self.revealer,
             visible=False,

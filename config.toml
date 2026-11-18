@@ -828,6 +828,7 @@ description = "Todo do Todo"
 enabled = true
 timeout = 3_000
 anchor = "bottom-center"
+layer = "overlay"
 orientation = "horizontal"
 style = "default"
 percentage = true
@@ -865,6 +866,7 @@ plugins = [
 [modules.notification]
 enabled = true
 anchor = "top-right"
+layer = "overlay"
 auto_dismiss = true
 respect_expire = true
 ignored = []

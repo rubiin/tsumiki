@@ -59,6 +59,7 @@ auto_hide_timeout = 3000
 [modules.notification]
 enabled = true
 anchor = "top-right"
+layer = "overlay"                 # "top" | "overlay" | "bottom" | "background"
 auto_dismiss = true
 transition_type = "slide-left"
 transition_duration = 350
@@ -112,6 +113,7 @@ transition_duration = 350
 enabled = false
 timeout = 1500
 anchor = "bottom-center"
+layer = "overlay"                 # "top" | "overlay" | "bottom" | "background"
 orientation = "horizontal"
 style = "default"
 osds = ["brightness", "volume"]

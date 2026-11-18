@@ -82,7 +82,7 @@ class NotificationPopup(BaseWindow):
 
         super().__init__(
             anchor=self.config.get("anchor", "center"),
-            layer="overlay",
+            layer=self.config.get("layer", "overlay"),
             all_visible=True,
             visible=True,
             exclusive=False,

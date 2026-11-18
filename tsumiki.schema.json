@@ -3076,6 +3076,12 @@
               "description": "Specifies the anchor position of the widget.",
               "default": "top-right"
             },
+            "layer": {
+              "type": "string",
+              "enum": ["top", "overlay", "bottom", "background"],
+              "description": "Layer on which the notification popup is displayed.",
+              "default": "overlay"
+            },
             "auto_dismiss": {
               "type": "boolean",
               "description": "Determines whether notifications are automatically dismissed",
@@ -3220,6 +3226,12 @@
               ],
               "description": "Specifies the anchor position of the OSD",
               "default": "bottom-center"
+            },
+            "layer": {
+              "type": "string",
+              "enum": ["top", "overlay", "bottom", "background"],
+              "description": "Layer on which the OSD is displayed.",
+              "default": "overlay"
             },
             "transition_duration": {
               "type": "integer",

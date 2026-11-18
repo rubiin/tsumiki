@@ -39,6 +39,7 @@ Displays desktop notifications as they arrive, with stacking, grouping, and Do N
 [modules.notification]
 enabled = true
 anchor = "top-right"
+layer = "overlay" # "top" | "overlay" | "bottom" | "background"
 auto_dismiss = true
 respect_expire = true
 dnd_on_screencast = true
@@ -69,6 +70,7 @@ max_count = 200
 ```
 
 - **`anchor`**: Screen position for the notification window.
+- **`layer`**: Hyprland layer for the notification popup.
 - **`auto_dismiss`**: Automatically dismiss notifications after their timeout.
 - **`respect_expire`**: Whether to respect the expire timeout from the notification sender.
 - **`dnd_on_screencast`**: Enables Do Not Disturb mode during screen recording.
@@ -267,6 +269,7 @@ Transient overlays for volume, brightness, and other adjustments.
 enabled = false
 timeout = 1500
 anchor = "bottom-center"
+layer = "overlay" # "top" | "overlay" | "bottom" | "background"
 orientation = "horizontal"
 style = "default" # "default" | "compact" | "bar" | "minimal"
 percentage = true
@@ -277,6 +280,7 @@ osds = ["brightness", "volume"]
 ```
 
 - **`osds`**: Which OSD types to show. Available: `brightness`, `volume`, `microphone`, `lockkeys`.
+- **`layer`**: Hyprland layer for the OSD window.
 - **`percentage`**: Shows a percentage indicator alongside the icon.
 - **`style`**: Structural style of the OSD: `default` shows icon, slider and percentage, `compact` drops the slider, `bar` drops the icon, `minimal` removes the box background.
 
