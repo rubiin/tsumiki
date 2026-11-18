@@ -115,6 +115,7 @@ class PlayerBoxStackLostPlayerTest(unittest.TestCase):
         for name in player_names:
             box = mock.Mock()
             box.player_name = name
+            box.player.playback_status = "playing"
             # GTK's destroy() drops the widget from its parent.
             box.destroy.side_effect = lambda box=box: player_stack.discard(box)
             player_stack.children = [*player_stack.children, box]
@@ -177,6 +178,27 @@ class PlayerBoxStackLostPlayerTest(unittest.TestCase):
         mpd.destroy.assert_not_called()
         self.assertIs(stack.player_stack.visible_child, mpd)
 
+    def test_last_player_vanishing_then_a_new_player_shows_the_section_again(self):
+        section = mock.Mock()
+        stack = self._make_stack(["vlc"], section=section)
+
+        stack.on_lost_player(mock.Mock(), "vlc")
+        section.set_visible.assert_called_once_with(False)
+        stack.set_visible.assert_called_once_with(False)
+
+        raw_player = mock.Mock()
+        raw_player.props.player_name = "mpd"
+        raw_player.get_property.return_value = "mpd"
+        new_box = mock.Mock()
+        new_box.player_name = "mpd"
+        new_box.player.playback_status = "playing"
+
+        with mock.patch.object(media_module, "PlayerBox", return_value=new_box):
+            stack.on_new_player(mock.Mock(), raw_player)
+
+        section.set_visible.assert_called_with(True)
+        stack.set_visible.assert_called_with(True)
+
     def test_new_player_shows_stack_and_section_again(self):
         section = mock.Mock()
         stack = self._make_stack([], section=section)
@@ -185,6 +207,7 @@ class PlayerBoxStackLostPlayerTest(unittest.TestCase):
         raw_player.get_property.return_value = "mpd"
         new_box = mock.Mock()
         new_box.player_name = "mpd"
+        new_box.player.playback_status = "playing"
 
         with mock.patch.object(media_module, "PlayerBox", return_value=new_box):
             stack.on_new_player(mock.Mock(), raw_player)
@@ -240,9 +263,9 @@ class PlayerBoxStackHideWhenStoppedTest(unittest.TestCase):
         stack.set_visible.assert_called_once_with(True)
         self.assertIs(stack.player_stack.visible_child.player_name, "mpd")
 
-    def test_default_off_keeps_stopped_players_visible(self):
+    def test_explicit_off_keeps_stopped_players_visible(self):
         stack = self._make_stack([("vlc", "stopped")])
-        stack.config = {"ignore": []}
+        stack.config = {"ignore": [], "hide_when_stopped": False}
 
         stack._refresh_media_state()
 

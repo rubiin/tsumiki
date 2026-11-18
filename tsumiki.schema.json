@@ -759,7 +759,7 @@
                 },
                 "hide_when_stopped": {
                   "type": "boolean",
-                  "default": false,
+                  "default": true,
                   "description": "Hide the media section when no player is playing or paused, mirroring the bar mpris widget's hide_when_no_player."
                 }
               },

@@ -199,7 +199,7 @@ class PlayerBoxStack(Box):
         playing) counts as absent, mirroring the bar mpris widget.
         """
         players = self.player_stack.get_children()
-        if not self.config.get("hide_when_stopped", False):
+        if not self.config.get("hide_when_stopped", True):
             return players
         return [
             box
