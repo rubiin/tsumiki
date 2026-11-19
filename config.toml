@@ -975,9 +975,7 @@ layer = "bottom"
 left_section = ["@group:workspaces-group"]
 middle_section = [
     "date_time",
-    "weather",
-    "mpris",
-    "cava"
+    "weather"
 ]
 right_section = ["@group:sys-group", "@group:utils-group", "system_tray", "power"]
 
