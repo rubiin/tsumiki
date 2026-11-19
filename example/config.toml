@@ -632,6 +632,14 @@ graph_length = 4
 [widgets.cava]
 bars = 10
 color = "#89b4fa"
+framerate = 60
+noise_reduction = 77
+bar_width = 2
+bar_gap = 1
+low_cutoff = 50
+high_cutoff = 10000
+input = "auto"
+monstercat = 0
 
 # --- Click Counter ---
 [widgets.click_counter]

@@ -86,9 +86,9 @@ class VolumeWidget(ScrollableProgressWidget):
             ) if current_stream.muted else self.update_volume()
 
     def _icon_for_volume(self, volume: int, muted: bool) -> str:
-        return get_audio_icon_name(
-            volume, muted, self.level_icons, self.icon_muted
-        )["icon_text"]
+        return get_audio_icon_name(volume, muted, self.level_icons, self.icon_muted)[
+            "icon_text"
+        ]
 
     def update_volume(self, *_):
         speaker = self.audio.speaker

@@ -1391,9 +1391,68 @@
               "type": "string",
               "default": "#89b4fa",
               "description": "Color of the CAVA visualizer bars."
+            },
+            "framerate": {
+              "type": "number",
+              "default": 30,
+              "minimum": 1,
+              "description": "Frames per second CAVA renders."
+            },
+            "noise_reduction": {
+              "type": "number",
+              "default": 77,
+              "minimum": 0,
+              "maximum": 100,
+              "description": "CAVA smoothing strength; higher is smoother."
+            },
+            "bar_width": {
+              "type": "number",
+              "default": 2,
+              "minimum": 1,
+              "description": "Width of each bar in characters."
+            },
+            "bar_gap": {
+              "type": "number",
+              "default": 1,
+              "minimum": 0,
+              "description": "Space between bars in characters."
+            },
+            "low_cutoff": {
+              "type": "number",
+              "default": 50,
+              "minimum": 0,
+              "description": "Lower cutoff frequency in Hz."
+            },
+            "high_cutoff": {
+              "type": "number",
+              "default": 10000,
+              "minimum": 0,
+              "description": "Higher cutoff frequency in Hz."
+            },
+            "input": {
+              "type": "string",
+              "default": "auto",
+              "description": "Audio source CAVA listens to; 'auto' picks the default."
+            },
+            "monstercat": {
+              "type": "number",
+              "enum": [0, 1],
+              "default": 0,
+              "description": "Enable the monstercat smoothing filter."
             }
           },
-          "required": ["bars", "color"]
+          "required": [
+            "bars",
+            "color",
+            "framerate",
+            "noise_reduction",
+            "bar_width",
+            "bar_gap",
+            "low_cutoff",
+            "high_cutoff",
+            "input",
+            "monstercat"
+          ]
         },
         "click_counter": {
           "type": "object",

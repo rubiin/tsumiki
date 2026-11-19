@@ -43,6 +43,11 @@ LOG_FORMAT = "{time:YYYY-MM-DD HH:mm:ss} [<level>{level}</level>] {message}"
 
 NOTE_COLORS = ("yellow", "pink", "blue", "green", "purple")
 
+
+CAVA_CONFIG = f"{APP_DATA_DIRECTORY}/cava.conf"
+BAR_GLYPHS = "▁▂▃▄▅▆▇█"
+
+
 # Default configuration values. ``widget_groups``/``collapsible_groups`` are
 # user-supplied: the schema puts them at the top level and neither has a default.
 DEFAULT_CONFIG = {
@@ -141,7 +146,18 @@ DEFAULT_CONFIG = {
             "level_icons": ["󰃞", "󰃝", "󰃟", "󰃠"],
         },
         "wallpaper": {"label_format": "󰸉", "tooltip": True},
-        "cava": {"bars": 10, "color": "#89b4fa"},
+        "cava": {
+            "bars": 10,
+            "color": "#89b4fa",
+            "framerate": 60,
+            "noise_reduction": 77,
+            "bar_width": 2,
+            "bar_gap": 1,
+            "low_cutoff": 50,
+            "high_cutoff": 10000,
+            "input": "auto",
+            "monstercat": 0,
+        },
         "overview_button": {"tooltip": True, "label_format": "󰡃"},
         "click_counter": {"count": 0},
         "dns_switcher": {

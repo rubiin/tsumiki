@@ -38,8 +38,9 @@ class BrightnessWidget(ScrollableProgressWidget):
         self.connect("scroll-event", self.on_scroll)
 
     def _icon_for_level(self, brightness: int) -> str:
-        return get_level_icon(brightness, self.level_icons) or (
-            get_brightness_icon_name(brightness)["icon_text"]
+        return (
+            get_level_icon(brightness, self.level_icons)
+            or (get_brightness_icon_name(brightness)["icon_text"])
         )
 
     @cooldown(1)

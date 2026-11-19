@@ -605,7 +605,21 @@ MicroPhone = TypedDict(
 )
 
 # Cava configuration
-Cava = TypedDict("Cava", {"bars": int, "color": str})
+Cava = TypedDict(
+    "Cava",
+    {
+        "bars": int,
+        "color": str,
+        "framerate": int,
+        "noise_reduction": int,
+        "bar_width": int,
+        "bar_gap": int,
+        "low_cutoff": int,
+        "high_cutoff": int,
+        "input": str,
+        "monstercat": int,
+    },
+)
 
 # Overview configuration
 Overview_Button = TypedDict(

@@ -59,7 +59,7 @@ def get_style_service():
 
 def get_note_service():
     """Get the note service (lazy-loaded)."""
-    from .notes import NotesService
+    from .desktop_notes import NotesService
 
     return _get_service("note", NotesService)
 
@@ -69,6 +69,13 @@ def get_caffeine_service():
     from .caffeine import Caffeine
 
     return _get_service("caffeine", Caffeine)
+
+
+def get_cava_service():
+    """Get the cava service (lazy-loaded)."""
+    from .cava import CavaService
+
+    return _get_service("cava", CavaService)
 
 
 def get_keyboard_service():
@@ -112,3 +119,4 @@ matugen_service = _LazyServiceProxy(get_matugen_service)
 style_service = _LazyServiceProxy(get_style_service)
 caffeine_service = _LazyServiceProxy(get_caffeine_service)
 keyboard_service = _LazyServiceProxy(get_keyboard_service)
+cava_service = _LazyServiceProxy(get_cava_service)
