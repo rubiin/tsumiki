@@ -11,6 +11,7 @@ from utils.functions import (
     convert_bytes,
     convert_seconds_to_milliseconds,
     convert_to_12hr_format,
+    convert_to_24hr_format,
     convert_to_percent,
     copy_to_clipboard,
     deep_merge,
@@ -21,6 +22,7 @@ from utils.functions import (
     flatten_dict,
     format_relative_timestamp,
     format_seconds_to_hours_minutes,
+    format_time,
     is_valid_gjs_color,
     parse_markup,
     read_json_file,
@@ -171,6 +173,20 @@ class DeepMergeAliasingTest(unittest.TestCase):
         self.assertEqual(convert_to_12hr_format("300"), "3:00 AM")
         self.assertEqual(convert_to_12hr_format("1200"), "12:00 PM")
         self.assertEqual(convert_to_12hr_format("2100"), "9:00 PM")
+
+    def test_convert_to_24hr_format(self):
+        self.assertEqual(convert_to_24hr_format("0"), "00:00")
+        self.assertEqual(convert_to_24hr_format("300"), "03:00")
+        self.assertEqual(convert_to_24hr_format("1200"), "12:00")
+        self.assertEqual(convert_to_24hr_format("2100"), "21:00")
+        self.assertEqual(convert_to_24hr_format("06:30"), "06:30")
+        self.assertEqual(convert_to_24hr_format(""), "")
+
+    def test_format_time_honours_the_requested_format(self):
+        self.assertEqual(format_time("2100", "12h"), "9:00 PM")
+        self.assertEqual(format_time("2100", "24h"), "21:00")
+        # An unknown value keeps the historical 12-hour rendering.
+        self.assertEqual(format_time("2100"), "9:00 PM")
 
     def test_unique_list(self):
         lst = [1, 2, 2, 3, 4, 4, 5]

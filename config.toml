@@ -392,6 +392,7 @@ tooltip = true
 expanded = true
 temperature_unit = "celsius"
 wind_speed_unit = "kmh"
+time_format = "12h"
 interval = 86400
 hover_reveal = true
 reveal_duration = 500

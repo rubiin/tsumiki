@@ -1131,6 +1131,12 @@
               "default": "kmh",
               "description": "The unit of wind speed to display."
             },
+            "time_format": {
+              "type": "string",
+              "enum": ["12h", "24h"],
+              "default": "12h",
+              "description": "The clock format used for forecast hours."
+            },
             "hover_reveal": {
               "type": "boolean",
               "default": false,
@@ -1164,6 +1170,7 @@
             "temperature_unit",
             "label_format",
             "wind_speed_unit",
+            "time_format",
             "hover_reveal",
             "reveal_duration",
             "expanded",

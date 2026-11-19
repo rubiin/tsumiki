@@ -423,6 +423,7 @@ label_format = "{temperature} {condition}"
 tooltip = true
 temperature_unit = "celsius"
 wind_speed_unit = "kmh"
+time_format = "12h"               # "12h" | "24h"
 interval = 86400
 provider = "open-meteo"           # "open-meteo" | "wttr"
 

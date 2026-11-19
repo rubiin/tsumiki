@@ -505,6 +505,31 @@ def convert_to_12hr_format(time: str) -> str:
     return f"{hour}:{minute:02d} {period}"
 
 
+# Same input shapes as `convert_to_12hr_format`, rendered as zero-padded "HH:MM".
+def convert_to_24hr_format(time: str) -> str:
+    if not time:
+        return time or ""
+
+    if ":" in str(time):
+        try:
+            hour, minute = map(int, str(time).split(":"))
+        except (ValueError, IndexError):
+            return str(time)
+    else:
+        time_int = int(time)
+        hour = time_int // 100
+        minute = time_int % 100
+
+    return f"{hour:02d}:{minute:02d}"
+
+
+def format_time(time: str, time_format: str = "12h") -> str:
+    """Render an ``HHMM``/``HH:MM`` clock value in the requested format."""
+    if time_format == "24h":
+        return convert_to_24hr_format(time)
+    return convert_to_12hr_format(time)
+
+
 def unique_list(lst: list[Any]) -> list[Any]:
     """Return a list with unique elements."""
     return list(set(lst))

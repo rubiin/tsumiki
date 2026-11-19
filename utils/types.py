@@ -24,6 +24,8 @@ Wind_Speed_Unit = Literal["mph", "kmh"]
 
 Weather_Provider = Literal["open-meteo", "wttr"]
 
+Time_Format = Literal["12h", "24h"]
+
 Keyboard_Mode = Literal["none", "exclusive", "on-demand"]
 
 

@@ -391,6 +391,7 @@ DEFAULT_CONFIG = {
             "expanded": True,
             "temperature_unit": "celsius",
             "wind_speed_unit": "kmh",
+            "time_format": "12h",
             "interval": HIGH_POLL_INTERVAL,
             "hover_reveal": False,
             "reveal_duration": 500,

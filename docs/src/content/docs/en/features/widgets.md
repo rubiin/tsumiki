@@ -894,6 +894,7 @@ tooltip = true
 expanded = true
 temperature_unit = "celsius" # "celsius" | "fahrenheit"
 wind_speed_unit = "kmh" # "kmh" | "mph" | "ms" | "beaufort"
+time_format = "12h" # "12h" | "24h"
 interval = 86400
 hover_reveal = true
 reveal_duration = 500

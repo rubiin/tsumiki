@@ -11,7 +11,7 @@ from services.weather import WeatherService
 from shared.mixins import PopoverMixin
 from shared.widget_container import BoxWidget, ButtonWidget
 from utils.constants import ASSETS_DIR
-from utils.functions import check_if_day, convert_to_12hr_format
+from utils.functions import check_if_day, convert_to_12hr_format, format_time
 from utils.i18n import _
 from utils.weather_icons import WEATHER_ICONS
 from utils.widget_utils import nerd_font_icon
@@ -294,10 +294,11 @@ class WeatherMenu(BoxWidget, BaseWeatherWidget):
         # show next 4 hours forecast, run this once on boot and after 1200
 
         if forced or current_time > 1200:
+            time_format = self.config.get("time_format", "12h")
             for col, value in enumerate(self.next_values):
                 hour = Label(
                     style_classes="weather-forecast-time",
-                    label=f"{convert_to_12hr_format(value['time'])}",
+                    label=format_time(value["time"], time_format),
                     h_align="center",
                 )
                 icon = Svg(
