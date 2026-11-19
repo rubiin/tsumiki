@@ -371,21 +371,36 @@ def create_scale(
 
 
 def get_audio_icon_name(
-    volume: int, is_muted: bool
+    volume: int,
+    is_muted: bool,
+    level_icons: list[str] | None = None,
+    muted_icon: str | None = None,
 ) -> dict[Literal["icon_text", "icon"], str]:
+    icons = level_icons or []
+
+    def pick(index: int, fallback_level: str) -> str:
+        if icons:
+            return icons[min(index, len(icons) - 1)]
+        return get_text_icon(f"volume.{fallback_level}")
+
     if is_muted or volume == 0:
         level = "muted"
+        icon_text = muted_icon or get_text_icon("volume.muted")
     elif volume <= 32:
         level = "low"
+        icon_text = pick(0, "low")
     elif volume <= 66:
         level = "medium"
+        icon_text = pick(1, "medium")
     elif volume <= 100:
         level = "high"
+        icon_text = pick(2, "high")
     else:
         level = "overamplified"
+        icon_text = pick(3, "overamplified")
 
     return {
-        "icon_text": get_text_icon(f"volume.{level}"),
+        "icon_text": icon_text,
         "icon": symbolic_icons["audio"]["volume"][level],
     }
 

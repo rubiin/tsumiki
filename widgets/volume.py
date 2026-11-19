@@ -24,6 +24,11 @@ class VolumeWidget(ScrollableProgressWidget):
         self._speaker = None
         self._speaker_volume_handler_id = None
 
+        self.level_icons = self.config.get("level_icons") or []
+        self.icon_muted = self.config.get("icon_muted") or get_text_icon(
+            "volume.muted", "󰝟"
+        )
+
         # Initialize the audio service
         self.audio = audio_service
 
@@ -77,8 +82,13 @@ class VolumeWidget(ScrollableProgressWidget):
         if current_stream:
             current_stream.muted = not current_stream.muted
             self.icon.set_text(
-                get_text_icon("volume.muted", "󰝟")
+                self.icon_muted
             ) if current_stream.muted else self.update_volume()
+
+    def _icon_for_volume(self, volume: int, muted: bool) -> str:
+        return get_audio_icon_name(
+            volume, muted, self.level_icons, self.icon_muted
+        )["icon_text"]
 
     def update_volume(self, *_):
         speaker = self.audio.speaker
@@ -86,7 +96,7 @@ class VolumeWidget(ScrollableProgressWidget):
             return
 
         volume = round(speaker.volume)
-        icon_text = get_audio_icon_name(volume, speaker.muted)["icon_text"]
+        icon_text = self._icon_for_volume(volume, speaker.muted)
         self.update_progress(volume / 100, icon_text)
 
     def _on_destroy(self, *_):

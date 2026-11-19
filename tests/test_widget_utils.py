@@ -159,6 +159,21 @@ class GetAudioIconNameTest(unittest.TestCase):
             self.assertIsInstance(result["icon"], str)
             self.assertTrue(len(result["icon_text"]) > 0)
 
+    def test_custom_level_icons_follow_the_thresholds(self):
+        icons = ["a", "b", "c", "d"]
+
+        self.assertEqual("a", wu.get_audio_icon_name(20, False, icons)["icon_text"])
+        self.assertEqual("b", wu.get_audio_icon_name(50, False, icons)["icon_text"])
+        self.assertEqual("c", wu.get_audio_icon_name(80, False, icons)["icon_text"])
+        self.assertEqual("d", wu.get_audio_icon_name(120, False, icons)["icon_text"])
+
+    def test_custom_level_icons_clamp_to_the_last_entry(self):
+        self.assertEqual("a", wu.get_audio_icon_name(80, False, ["a"])["icon_text"])
+
+    def test_custom_muted_icon_wins(self):
+        result = wu.get_audio_icon_name(0, True, ["a"], muted_icon="silent")
+        self.assertEqual("silent", result["icon_text"])
+
 
 class UptimeTest(unittest.TestCase):
     """Test the uptime formatter returns HH:MM format."""

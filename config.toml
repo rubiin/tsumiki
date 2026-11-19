@@ -390,6 +390,8 @@ brew = false
 [widgets.volume]
 tooltip = true
 step_size = 5
+icon_muted = "󰝟"
+level_icons = ["󰕿", "󰖀", "󰕾", "󱄠"]
 
 [widgets.weather]
 location = "kathmandu"

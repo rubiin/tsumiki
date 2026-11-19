@@ -389,6 +389,8 @@ DEFAULT_CONFIG = {
         "volume": {
             "tooltip": True,
             "step_size": 5,
+            "icon_muted": "󰝟",
+            "level_icons": ["󰕿", "󰖀", "󰕾", "󱄠"],
         },
         "weather": {
             "location": "kathmandu",

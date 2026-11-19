@@ -200,9 +200,11 @@ Controls system audio output volume.
 [widgets.volume]
 tooltip = true
 step_size = 5
+icon_muted = "󰝟"
+level_icons = ["󰕿", "󰖀", "󰕾", "󱄠"]
 ```
 
-Click to toggle mute, scroll to adjust volume.
+Click to toggle mute, scroll to adjust volume. `level_icons` maps low to maximum output volume.
 
 ### Brightness
 

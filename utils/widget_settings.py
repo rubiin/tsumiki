@@ -850,7 +850,15 @@ Language = TypedDict(
 )
 
 # Volume configuration
-Volume = TypedDict("Volume", {**BaseConfig.__annotations__, "step_size": int})
+Volume = TypedDict(
+    "Volume",
+    {
+        **BaseConfig.__annotations__,
+        "step_size": int,
+        "icon_muted": str,
+        "level_icons": list[str],
+    },
+)
 
 # Brightness configuration
 Brightness = TypedDict(

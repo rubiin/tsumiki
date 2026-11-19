@@ -1089,9 +1089,22 @@
               "type": "number",
               "default": 5,
               "description": "The step size for volume adjustments."
+            },
+            "icon_muted": {
+              "type": "string",
+              "default": "󰝟",
+              "description": "Nerd Font icon when the output is muted."
+            },
+            "level_icons": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": ["󰕿", "󰖀", "󰕾", "󱄠"],
+              "description": "Nerd Font icons for volume levels from low to maximum."
             }
           },
-          "required": ["tooltip", "step_size"]
+          "required": ["tooltip", "step_size", "icon_muted", "level_icons"]
         },
         "hyprpicker": {
           "type": "object",

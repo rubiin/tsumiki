@@ -272,6 +272,8 @@ notification_grouping = true   # Group notification history by app in the date m
 [widgets.volume]
 tooltip = true
 step_size = 5
+icon_muted = "󰝟"
+level_icons = ["󰕿", "󰖀", "󰕾", "󱄠"]
 
 # --- Battery ---
 [widgets.battery]

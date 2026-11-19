@@ -16,6 +16,7 @@ from shared.mixins import StatDisplayMixin
 from shared.widget_container import format_panel_label
 from widgets.brightness import BrightnessWidget
 from widgets.microphone import MicrophoneIndicatorWidget
+from widgets.volume import VolumeWidget
 
 
 class _StatProbe(StatDisplayMixin):
@@ -159,6 +160,34 @@ class BrightnessIconConfigTest(unittest.TestCase):
         widget = self._probe([])
 
         self.assertTrue(widget._icon_for_level(50))
+
+
+class VolumeIconConfigTest(unittest.TestCase):
+    """``level_icons`` and ``icon_muted`` replace the built-in volume glyphs."""
+
+    def _probe(self, icons, muted_icon="silent"):
+        widget = VolumeWidget.__new__(VolumeWidget)
+        widget.level_icons = icons
+        widget.icon_muted = muted_icon
+        return widget
+
+    def test_level_icons_map_low_to_high(self):
+        widget = self._probe(["a", "b", "c", "d"])
+
+        self.assertEqual("a", widget._icon_for_volume(20, False))
+        self.assertEqual("c", widget._icon_for_volume(80, False))
+        self.assertEqual("d", widget._icon_for_volume(120, False))
+
+    def test_muted_volume_uses_the_configured_icon(self):
+        widget = self._probe(["a", "b"])
+
+        self.assertEqual("silent", widget._icon_for_volume(50, True))
+        self.assertEqual("silent", widget._icon_for_volume(0, False))
+
+    def test_empty_level_icons_fall_back_to_the_builtin_set(self):
+        widget = self._probe([])
+
+        self.assertTrue(widget._icon_for_volume(50, False))
 
 
 # ``add_formatted_label``'s own definition, and github_tray re-parenting the
