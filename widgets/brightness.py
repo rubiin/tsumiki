@@ -3,7 +3,7 @@ from fabric.utils import cooldown
 import utils.functions as helpers
 from services.brightness import BrightnessService
 from shared.scrollable_progress import ScrollableProgressWidget
-from utils.widget_utils import get_brightness_icon_name
+from utils.widget_utils import get_brightness_icon_name, get_level_icon
 
 
 class BrightnessWidget(ScrollableProgressWidget):
@@ -25,6 +25,9 @@ class BrightnessWidget(ScrollableProgressWidget):
             **kwargs,
         )
 
+        self.level_icons = self.config.get("level_icons") or []
+        self.icon.set_text(self._icon_for_level(normalized_brightness))
+
         # Connect the brightness service to update the progress bar
         self._register_handlers(
             self._brightness_service,
@@ -33,6 +36,11 @@ class BrightnessWidget(ScrollableProgressWidget):
 
         # Connect the event box to handle scroll events
         self.connect("scroll-event", self.on_scroll)
+
+    def _icon_for_level(self, brightness: int) -> str:
+        return get_level_icon(brightness, self.level_icons) or (
+            get_brightness_icon_name(brightness)["icon_text"]
+        )
 
     @cooldown(1)
     def on_scroll(self, _, event):
@@ -55,7 +63,7 @@ class BrightnessWidget(ScrollableProgressWidget):
 
         self.update_progress(
             brightness / 100,
-            get_brightness_icon_name(brightness)["icon_text"],
+            self._icon_for_level(brightness),
         )
 
         self.set_tooltip_if_enabled(f"{brightness}%")

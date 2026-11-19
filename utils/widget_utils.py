@@ -300,6 +300,16 @@ def get_bar_graph(usage: Number | str) -> str:
     return "█"
 
 
+def get_level_icon(level: Number, icons: list[str]) -> str | None:
+    """Pick an icon from a low-to-high list for a 0-100 level."""
+    if not icons:
+        return None
+
+    clamped = max(0.0, min(100.0, float(level)))
+    index = min(len(icons) - 1, int(clamped / 100 * len(icons)))
+    return icons[index]
+
+
 def get_brightness_icon_name(level: int) -> dict[Literal["icon_text", "icon"], str]:
     if level <= 0:
         return {

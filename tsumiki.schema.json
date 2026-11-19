@@ -1328,9 +1328,19 @@
               "type": "boolean",
               "default": true,
               "description": "Show a tooltip with Bluetooth connection details."
+            },
+            "enabled_icon": {
+              "type": "string",
+              "default": "󰂱",
+              "description": "Nerd Font icon when Bluetooth is enabled."
+            },
+            "disabled_icon": {
+              "type": "string",
+              "default": "󰂲",
+              "description": "Nerd Font icon when Bluetooth is disabled."
             }
           },
-          "required": ["label_format", "tooltip"]
+          "required": ["label_format", "tooltip", "enabled_icon", "disabled_icon"]
         },
         "brightness": {
           "type": "object",
@@ -1344,9 +1354,17 @@
               "type": "number",
               "default": 5,
               "description": "Step size percentage for brightness adjustments."
+            },
+            "level_icons": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": ["󰃞", "󰃝", "󰃟", "󰃠"],
+              "description": "Nerd Font icons for brightness levels from low to maximum."
             }
           },
-          "required": ["tooltip", "step_size"]
+          "required": ["tooltip", "step_size", "level_icons"]
         },
         "cava": {
           "type": "object",
@@ -1805,9 +1823,19 @@
               "type": "string",
               "default": "",
               "description": "Format string for the panel label. Available Fields: {state}."
+            },
+            "icon_active": {
+              "type": "string",
+              "default": "",
+              "description": "Nerd Font icon when the microphone is active."
+            },
+            "icon_muted": {
+              "type": "string",
+              "default": "",
+              "description": "Nerd Font icon when the microphone is muted."
             }
           },
-          "required": ["tooltip", "label_format"]
+          "required": ["tooltip", "label_format", "icon_active", "icon_muted"]
         },
         "ocr": {
           "type": "object",

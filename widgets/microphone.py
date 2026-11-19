@@ -10,8 +10,7 @@ class MicrophoneIndicatorWidget(ButtonWidget):
     def __init__(self, **kwargs):
         super().__init__(name="microphone", **kwargs)
 
-        self.mic_on_icon = get_text_icon("microphone.high", "")
-        self.mic_off_icon = get_text_icon("microphone.muted", "")
+        self._resolve_icons()
 
         # Initialize the audio service
         self.audio_service = audio_service
@@ -24,6 +23,15 @@ class MicrophoneIndicatorWidget(ButtonWidget):
             {"microphone_changed": self._update_status},
         )
         self._update_status()
+
+    def _resolve_icons(self):
+        """Resolve the on/off glyphs, preferring configured overrides."""
+        self.mic_on_icon = self.config.get("icon_active") or get_text_icon(
+            "microphone.high", ""
+        )
+        self.mic_off_icon = self.config.get("icon_muted") or get_text_icon(
+            "microphone.muted", ""
+        )
 
     def _update_status(self, *_):
         current_microphone = self.audio_service.microphone

@@ -457,17 +457,22 @@ hide_when_no_player = true
 # {state} -> "on" / "off"
 label_format = ""
 tooltip = true
+enabled_icon = "󰂱"
+disabled_icon = "󰂲"
 
 # --- Brightness ---
 [widgets.brightness]
 tooltip = true
 step_size = 5
+level_icons = ["󰃞", "󰃝", "󰃟", "󰃠"]
 
 # --- Microphone ---
 [widgets.microphone]
 tooltip = true
 # {state} -> "muted" / "on"
 label_format = ""
+icon_active = ""
+icon_muted = ""
 
 # --- Clipboard ---
 [widgets.clipboard]

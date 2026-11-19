@@ -116,6 +116,16 @@ class BluetoothStateTest(unittest.TestCase):
         widget.update_bluetooth_status()
         widget.refresh_formatted_label.assert_called_once_with("off-icon", state="off")
 
+    def test_config_icons_override_the_default_glyphs(self):
+        widget = BlueToothWidget.__new__(BlueToothWidget)
+        widget.config = {"enabled_icon": "custom-on", "disabled_icon": "custom-off"}
+
+        widget._resolve_icons()
+
+        self.assertEqual(
+            {"enabled": "custom-on", "disabled": "custom-off"}, widget.icons
+        )
+
 
 class CloudflareWarpStateTest(unittest.TestCase):
     """``{state}`` tracks the WARP connection."""

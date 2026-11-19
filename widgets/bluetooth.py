@@ -11,7 +11,7 @@ class BlueToothWidget(ButtonWidget):
     def __init__(self, **kwargs):
         super().__init__(name="bluetooth", **kwargs)
 
-        self.icons = get_text_icon("bluetooth", "")
+        self._resolve_icons()
 
         self.label_format = self.config.get("label_format", "")
         self.add_formatted_label(self.label_format, self.icons["enabled"], state="on")
@@ -23,6 +23,15 @@ class BlueToothWidget(ButtonWidget):
         )
 
         self.update_bluetooth_status()
+
+    def _resolve_icons(self):
+        """Resolve the on/off glyphs, preferring configured overrides."""
+        self.icons = {
+            "enabled": self.config.get("enabled_icon")
+            or get_text_icon("bluetooth.enabled", "󰂱"),
+            "disabled": self.config.get("disabled_icon")
+            or get_text_icon("bluetooth.disabled", "󰂲"),
+        }
 
     def update_bluetooth_status(self, *_args):
         bt_status = "on" if self.bluetooth_client.enabled else "off"

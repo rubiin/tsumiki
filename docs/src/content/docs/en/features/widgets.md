@@ -212,9 +212,10 @@ Controls screen and keyboard brightness.
 [widgets.brightness]
 tooltip = true
 step_size = 5
+level_icons = ["󰃞", "󰃝", "󰃟", "󰃠"]
 ```
 
-Requires `brightnessctl`. Click to toggle, scroll to adjust.
+Requires `brightnessctl`. Click to toggle, scroll to adjust. `level_icons` maps low to maximum brightness.
 
 ### Bluetooth
 
@@ -224,9 +225,11 @@ Manages Bluetooth connections and visibility.
 [widgets.bluetooth]
 label_format = ""
 tooltip = true
+enabled_icon = "󰂱"
+disabled_icon = "󰂲"
 ```
 
-Supports the `{state}` field (`"on"` / `"off"`); the live Bluetooth glyph leads the label.
+Supports the `{state}` field (`"on"` / `"off"`); `enabled_icon` and `disabled_icon` set the glyph.
 
 Opens a popover to manage paired devices and toggle Bluetooth.
 
@@ -238,9 +241,11 @@ Shows microphone status and muting.
 [widgets.microphone]
 tooltip = true
 label_format = ""
+icon_active = ""
+icon_muted = ""
 ```
 
-Supports the `{state}` field (`"muted"` / `"on"`); the live microphone glyph leads the label.
+Supports the `{state}` field (`"muted"` / `"on"`); `icon_active` and `icon_muted` set the glyph.
 
 Click to toggle microphone mute.
 

@@ -88,6 +88,34 @@ class GetBrightnessIconNameTest(unittest.TestCase):
             self.assertTrue(len(result["icon"]) > 0)
 
 
+class GetLevelIconTest(unittest.TestCase):
+    """Test picking an icon from a low-to-high list for a percentage."""
+
+    ICONS = ("low", "mid", "high", "max")
+
+    def test_empty_list_returns_none(self):
+        self.assertIsNone(wu.get_level_icon(50, []))
+
+    def test_zero_uses_first_icon(self):
+        self.assertEqual(wu.get_level_icon(0, self.ICONS), "low")
+
+    def test_negative_clamps_to_first(self):
+        self.assertEqual(wu.get_level_icon(-10, self.ICONS), "low")
+
+    def test_100_uses_last_icon(self):
+        self.assertEqual(wu.get_level_icon(100, self.ICONS), "max")
+
+    def test_above_100_clamps_to_last(self):
+        self.assertEqual(wu.get_level_icon(150, self.ICONS), "max")
+
+    def test_midrange_selects_proportional_icon(self):
+        self.assertEqual(wu.get_level_icon(50, self.ICONS), "high")
+
+    def test_single_icon_is_used_for_every_level(self):
+        for level in (0, 50, 100):
+            self.assertEqual(wu.get_level_icon(level, ["only"]), "only")
+
+
 class GetAudioIconNameTest(unittest.TestCase):
     """Test audio icon selection based on volume and mute state."""
 

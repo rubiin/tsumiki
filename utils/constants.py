@@ -132,10 +132,13 @@ DEFAULT_CONFIG = {
         "bluetooth": {
             "tooltip": True,
             "label_format": "",
+            "enabled_icon": "󰂱",
+            "disabled_icon": "󰂲",
         },
         "brightness": {
             "tooltip": True,
             "step_size": 5,
+            "level_icons": ["󰃞", "󰃝", "󰃟", "󰃠"],
         },
         "wallpaper": {"label_format": "󰸉", "tooltip": True},
         "cava": {"bars": 10, "color": "#89b4fa"},
@@ -283,6 +286,8 @@ DEFAULT_CONFIG = {
         "microphone": {
             "tooltip": True,
             "label_format": "",
+            "icon_active": "",
+            "icon_muted": "",
         },
         "mpris": {
             "truncation_size": 20,

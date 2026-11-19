@@ -553,7 +553,15 @@ Updates = TypedDict(
 
 
 # Bluetooth configuration
-BlueTooth = TypedDict("BlueTooth", {**BaseConfig.__annotations__, "label_format": str})
+BlueTooth = TypedDict(
+    "BlueTooth",
+    {
+        **BaseConfig.__annotations__,
+        "label_format": str,
+        "enabled_icon": str,
+        "disabled_icon": str,
+    },
+)
 
 # Weather configuration
 Weather = TypedDict(
@@ -587,7 +595,13 @@ Keyboard = TypedDict(
 
 # MicroPhone configuration
 MicroPhone = TypedDict(
-    "MicroPhone", {**BaseConfig.__annotations__, "label_format": str}
+    "MicroPhone",
+    {
+        **BaseConfig.__annotations__,
+        "label_format": str,
+        "icon_active": str,
+        "icon_muted": str,
+    },
 )
 
 # Cava configuration
@@ -839,7 +853,14 @@ Language = TypedDict(
 Volume = TypedDict("Volume", {**BaseConfig.__annotations__, "step_size": int})
 
 # Brightness configuration
-Brightness = TypedDict("Brightness", {**BaseConfig.__annotations__, "step_size": int})
+Brightness = TypedDict(
+    "Brightness",
+    {
+        **BaseConfig.__annotations__,
+        "step_size": int,
+        "level_icons": list[str],
+    },
+)
 
 
 # Recording configuration

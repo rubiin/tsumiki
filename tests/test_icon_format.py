@@ -14,6 +14,7 @@ from fabric.widgets.label import Label
 
 from shared.mixins import StatDisplayMixin
 from shared.widget_container import format_panel_label
+from widgets.brightness import BrightnessWidget
 from widgets.microphone import MicrophoneIndicatorWidget
 
 
@@ -128,6 +129,36 @@ class MicrophoneIconFormatTest(unittest.TestCase):
         widget._update_status()
 
         widget.panel_label.set_visible.assert_called_with(True)
+
+    def test_config_icons_override_the_default_glyphs(self):
+        widget = MicrophoneIndicatorWidget.__new__(MicrophoneIndicatorWidget)
+        widget.config = {"icon_active": "custom-on", "icon_muted": "custom-off"}
+
+        widget._resolve_icons()
+
+        self.assertEqual("custom-on", widget.mic_on_icon)
+        self.assertEqual("custom-off", widget.mic_off_icon)
+
+
+class BrightnessIconConfigTest(unittest.TestCase):
+    """``level_icons`` replaces the built-in brightness glyphs."""
+
+    def _probe(self, icons):
+        widget = BrightnessWidget.__new__(BrightnessWidget)
+        widget.level_icons = icons
+        return widget
+
+    def test_level_icons_map_low_to_high(self):
+        widget = self._probe(["a", "b", "c", "d"])
+
+        self.assertEqual("a", widget._icon_for_level(0))
+        self.assertEqual("c", widget._icon_for_level(50))
+        self.assertEqual("d", widget._icon_for_level(100))
+
+    def test_empty_level_icons_fall_back_to_the_builtin_set(self):
+        widget = self._probe([])
+
+        self.assertTrue(widget._icon_for_level(50))
 
 
 # ``add_formatted_label``'s own definition, and github_tray re-parenting the

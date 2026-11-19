@@ -157,10 +157,13 @@ icon_size = 18
 # {state} -> "on" / "off"
 label_format = ""
 tooltip = true
+enabled_icon = "󰂱"
+disabled_icon = "󰂲"
 
 [widgets.brightness]
 tooltip = true
 step_size = 5
+level_icons = ["󰃞", "󰃝", "󰃟", "󰃠"]
 
 [widgets.wallpaper]
 label_format = "󰸉"
@@ -284,6 +287,8 @@ compact_mode = false
 [widgets.microphone]
 tooltip = true
 label_format = "{state}"
+icon_active = ""
+icon_muted = ""
 
 [widgets.mpris]
 truncation_size = 15
