@@ -2,7 +2,7 @@ from typing import ClassVar
 
 from fabric.utils import GObject, cooldown
 
-from services.brightness import BrightnessService
+from services import brightness_service
 from utils.widget_utils import (
     get_brightness_icon_name,
 )
@@ -22,7 +22,7 @@ class BrightnessOSDContainer(GenericOSDContainer):
             config=config,
             **kwargs,
         )
-        self.brightness_service = BrightnessService()
+        self.brightness_service = brightness_service
         self.config = config
 
         self.update_brightness()

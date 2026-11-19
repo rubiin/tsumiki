@@ -9,8 +9,8 @@ from fabric.widgets.label import Label
 import utils.functions as helpers
 from services import (
     audio_service,
+    brightness_service,
 )
-from services.brightness import BrightnessService
 from services.network import NetworkService, Wifi
 from shared.buttons import HoverButton, QSChevronButton
 from shared.circle_image import CircularImage
@@ -459,7 +459,7 @@ class QuickSettingsButtonWidget(ButtonWidget, PopoverMixin):
 
         self.network_service = NetworkService()
 
-        self.brightness_service = BrightnessService()
+        self.brightness_service = brightness_service
 
         self._register_handlers(
             self.brightness_service,

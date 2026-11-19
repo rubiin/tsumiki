@@ -3,7 +3,7 @@ from fabric.widgets.box import Box
 from fabric.widgets.button import Button
 from fabric.widgets.label import Label
 
-from services.cloudflare_warp import cloudflare_warp_service
+from services import cloudflare_warp_service
 from shared.mixins import PopoverMixin
 from shared.widget_container import ButtonWidget
 from utils.exceptions import ExecutableNotFoundError

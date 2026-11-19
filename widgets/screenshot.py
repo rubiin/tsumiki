@@ -1,4 +1,4 @@
-from services.screen_record import ScreenRecorderService
+from services import recorder_service
 from shared.widget_container import ButtonWidget
 from utils.i18n import _
 
@@ -22,7 +22,7 @@ class ScreenShotWidget(ButtonWidget):
 
     def lazy_init(self, *_):
         if not self.initialized:
-            self.recorder_service = ScreenRecorderService()
+            self.recorder_service = recorder_service
             self.initialized = True
 
     def on_click(self, *_):

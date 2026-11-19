@@ -7,7 +7,7 @@ from fabric.widgets.label import Label
 from fabric.widgets.revealer import Revealer
 from fabric.widgets.svg import Svg
 
-from services.weather import WeatherService
+from services import weather_service
 from shared.mixins import PopoverMixin
 from shared.widget_container import BoxWidget, ButtonWidget
 from utils.constants import ASSETS_DIR
@@ -15,8 +15,6 @@ from utils.functions import check_if_day, convert_to_12hr_format, format_time
 from utils.i18n import _
 from utils.weather_icons import WEATHER_ICONS
 from utils.widget_utils import nerd_font_icon
-
-weather_service = WeatherService()
 
 
 class BaseWeatherWidget:

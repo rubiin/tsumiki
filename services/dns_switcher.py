@@ -5,6 +5,7 @@ import gi
 from fabric.core.service import Property, Signal
 from fabric.utils import GLib, exec_shell_command, exec_shell_command_async, logger
 
+from utils.constants import DEFAULT_PROVIDERS
 from utils.decorators import run_worker_with_idle
 
 from .base import IGNORED, PolledCommandService
@@ -28,16 +29,6 @@ _POLL_INTERVAL_MS = 30_000
 def _is_valid_dns_value(value: str) -> bool:
     """Return True if *value* looks like an IP address or hostname."""
     return bool(_DNS_VALUE_RE.match(value))
-
-
-# Pre-configured DNS providers with label, primary, secondary
-DEFAULT_PROVIDERS = [
-    {"label": "Cloudflare", "primary": "1.1.1.1", "secondary": "1.0.0.1"},
-    {"label": "Google", "primary": "8.8.8.8", "secondary": "8.8.4.4"},
-    {"label": "OpenDNS", "primary": "208.67.222.222", "secondary": "208.67.220.220"},
-    {"label": "AdGuard", "primary": "94.140.14.14", "secondary": "94.140.15.15"},
-    {"label": "Quad9", "primary": "9.9.9.9", "secondary": "149.112.112.112"},
-]
 
 
 def _label_for(dns: str | None) -> str:

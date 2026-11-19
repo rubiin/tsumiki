@@ -5,7 +5,7 @@ from fabric.utils import exec_shell_command, exec_shell_command_async, idle_add,
 from fabric.widgets.label import Label
 
 import utils.functions as helpers
-from services.networkspeed import NetworkSpeed
+from services import networkspeed_service
 from shared.mixins import StatDisplayMixin
 from shared.widget_container import ButtonWidget
 from utils.icons import get_text_icon
@@ -320,7 +320,7 @@ class NetworkUsageWidget(FabricatorBoundWidget):
 
         self.container_box.children = [self.network_label]
 
-        self.client = NetworkSpeed()
+        self.client = networkspeed_service
 
         # Cache and interval for network stats (interval in milliseconds)
         self._last_network_poll = 0.0

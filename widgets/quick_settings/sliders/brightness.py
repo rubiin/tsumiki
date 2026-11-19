@@ -1,6 +1,6 @@
 from fabric.utils import cooldown
 
-from services.brightness import BrightnessService
+from services import brightness_service
 from shared.setting_scale import SettingSlider
 from utils.icons import get_text_icon
 from utils.widget_utils import get_brightness_icon_name
@@ -10,7 +10,7 @@ class BrightnessSlider(SettingSlider):
     """A widget to display a scale for brightness settings."""
 
     def __init__(self):
-        self.client = BrightnessService()
+        self.client = brightness_service
         super().__init__(
             pixel_size=20,
             icon_name=get_text_icon("brightness.medium", "󰃟"),
@@ -48,7 +48,7 @@ class BrightnessSlider(SettingSlider):
         raw_value = int((moved_pos / 100) * self.client.max_screen)
         self.client.screen_brightness = raw_value
 
-    def on_brightness_change(self, service: BrightnessService, *_):
+    def on_brightness_change(self, service, *_):
         if self._destroyed:
             return
         brightness_percent = service.screen_brightness_percentage

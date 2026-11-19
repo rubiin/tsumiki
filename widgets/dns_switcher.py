@@ -5,10 +5,11 @@ from fabric.widgets.entry import Entry
 from fabric.widgets.label import Label
 from fabric.widgets.scrolledwindow import ScrolledWindow
 
-from services.dns_switcher import DEFAULT_PROVIDERS, dns_switcher_service
+from services import dns_switcher_service
 from shared.list import ListBox
 from shared.mixins import PopoverMixin
 from shared.widget_container import ButtonWidget
+from utils.constants import DEFAULT_PROVIDERS
 from utils.i18n import _
 from utils.widget_utils import nerd_font_icon
 

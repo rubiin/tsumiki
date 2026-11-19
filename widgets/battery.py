@@ -2,7 +2,7 @@ import colorsys
 
 from fabric.utils import bulk_connect
 
-from services.battery import BatteryService
+from services import battery_service
 from shared.widget_container import ButtonWidget, format_panel_label
 from utils.functions import format_seconds_to_hours_minutes, send_notification
 from utils.i18n import _
@@ -63,7 +63,7 @@ class BatteryWidget(ButtonWidget):
         )
         self.container_box.add(self.battery_icon)
 
-        self.client = BatteryService()
+        self.client = battery_service
 
         self._battery_color: str | None = None
         self._hover_color = "#080808"

@@ -29,6 +29,13 @@ def get_notification_service():
     return _get_service("notification", CustomNotifications)
 
 
+def get_dns_switcher_service():
+    """Get the DNS switcher service (lazy-loaded)."""
+    from .dns_switcher import DnsSwitcherService
+
+    return _get_service("dns_switcher", DnsSwitcherService)
+
+
 def get_bluetooth_service():
     """Get the bluetooth service (lazy-loaded)."""
     from fabric.bluetooth import BluetoothClient
@@ -43,11 +50,41 @@ def get_power_profiles_service():
     return _get_service("power_profiles", PowerProfiles)
 
 
+def get_quotes_service():
+    """Get the quotes service (lazy-loaded)."""
+    from .quotes import QuotesService
+
+    return _get_service("quotes", QuotesService)
+
+
+def get_network_service():
+    """Get the network service (lazy-loaded)."""
+    from .network import NetworkService
+
+    return _get_service("network", NetworkService)
+
+
+def get_cloudflare_warp_service():
+    """Get the cloudflare warp service (lazy-loaded)."""
+    from .cloudflare_warp import CloudflareWarpService
+
+    return _get_service("cloudflare_warp", CloudflareWarpService)
+
+
 def get_matugen_service():
     """Get the matugen service (lazy-loaded)."""
     from .matugen import MatugenService
 
     return _get_service("matugen", MatugenService)
+
+
+def get_networkspeed_service():
+    """Get the network speed service (lazy-loaded)."""
+    from services.networkspeed import NetworkSpeed
+
+    # NetworkSpeed is a SingletonMixin, not a fabric.Service, so each call
+    # returns the shared singleton. Kept here for import visibility.
+    return NetworkSpeed()
 
 
 def get_style_service():
@@ -85,6 +122,34 @@ def get_keyboard_service():
     return _get_service("keyboard", KeyboardService)
 
 
+def get_brightness_service():
+    """Get the brightness service (lazy-loaded)."""
+    from .brightness import BrightnessService
+
+    return _get_service("brightness", BrightnessService)
+
+
+def get_battery_service():
+    """Get the battery service (lazy-loaded)."""
+    from .battery import BatteryService
+
+    return _get_service("battery", BatteryService)
+
+
+def get_recorder_service():
+    """Get the recorder service (lazy-loaded)."""
+    from .screen_record import ScreenRecorderService
+
+    return _get_service("recorder", ScreenRecorderService)
+
+
+def get_weather_service():
+    """Get the weather service (lazy-loaded)."""
+    from .weather import WeatherService
+
+    return _get_service("weather", WeatherService)
+
+
 # Backward compatibility - these now trigger lazy loading on access
 class _LazyServiceProxy:
     """Proxy that lazily loads a service on first attribute access (thread-safe)."""
@@ -109,14 +174,25 @@ class _LazyServiceProxy:
         setattr(self._ensure_loaded(), name, value)
 
 
-# Backward-compatible lazy proxies
 audio_service = _LazyServiceProxy(get_audio_service)
-notification_service = _LazyServiceProxy(get_notification_service)
+battery_service = _LazyServiceProxy(get_battery_service)
 bluetooth_service = _LazyServiceProxy(get_bluetooth_service)
-power_profile_service = _LazyServiceProxy(get_power_profiles_service)
-note_service = _LazyServiceProxy(get_note_service)
-matugen_service = _LazyServiceProxy(get_matugen_service)
-style_service = _LazyServiceProxy(get_style_service)
+brightness_service = _LazyServiceProxy(get_brightness_service)
+cava_service = _LazyServiceProxy(get_cava_service)
 caffeine_service = _LazyServiceProxy(get_caffeine_service)
 keyboard_service = _LazyServiceProxy(get_keyboard_service)
-cava_service = _LazyServiceProxy(get_cava_service)
+note_service = _LazyServiceProxy(get_note_service)
+matugen_service = _LazyServiceProxy(get_matugen_service)
+notification_service = _LazyServiceProxy(get_notification_service)
+power_profile_service = _LazyServiceProxy(get_power_profiles_service)
+recorder_service = _LazyServiceProxy(get_recorder_service)
+style_service = _LazyServiceProxy(get_style_service)
+weather_service = _LazyServiceProxy(get_weather_service)
+
+# Additional services that are not yet exposed as top-level lazy proxies
+# (import from the submodule instead; see examples above).
+dns_switcher_service = _LazyServiceProxy(get_dns_switcher_service)
+quotes_service = _LazyServiceProxy(get_quotes_service)
+network_service = _LazyServiceProxy(get_network_service)
+cloudflare_warp_service = _LazyServiceProxy(get_cloudflare_warp_service)
+networkspeed_service = _LazyServiceProxy(get_networkspeed_service)

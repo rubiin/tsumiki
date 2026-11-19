@@ -12,7 +12,6 @@ from fabric.widgets.eventbox import EventBox
 from fabric.widgets.label import Label
 
 from services import note_service
-from services.desktop_notes import NotesService
 from shared.widget_container import BaseWindow, tooltips_enabled
 from utils.constants import NOTE_COLORS
 from utils.icons import get_text_icon
@@ -54,7 +53,7 @@ class NoteWidget(Box):
     def __init__(
         self,
         note: dict,
-        store: NotesService,
+        store,
         note_width: int,
         on_move: Callable[["NoteWidget", int, int], None],
         on_delete: Callable[["NoteWidget"], None],
@@ -221,7 +220,7 @@ class NotesLayer:
 
     def __init__(
         self,
-        store: NotesService,
+        store,
         monitor: str,
         overlay: Gtk.Overlay,
         note_width: int,

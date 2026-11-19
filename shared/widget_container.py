@@ -11,6 +11,7 @@ from fabric.widgets.wayland import WaylandWindow as Window
 from fabric.widgets.widget import Widget
 from loguru import logger
 
+from services import style_service
 from utils.functions import safe_disconnect
 from utils.widget_colors import (
     build_widget_colors_css,
@@ -341,8 +342,6 @@ class BaseWidget(Widget, TeardownMixin):
         self._refresh_instance_color_overrides()
 
         try:
-            from services.style import style_service
-
             for signal_name in ("theme_changed", "css_recompiled"):
                 try:
                     handler_id = self._register_handler(

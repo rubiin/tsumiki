@@ -1,7 +1,7 @@
 from fabric.utils import cooldown
 
 import utils.functions as helpers
-from services.brightness import BrightnessService
+from services import brightness_service
 from shared.scrollable_progress import ScrollableProgressWidget
 from utils.widget_utils import get_brightness_icon_name, get_level_icon
 
@@ -10,7 +10,7 @@ class BrightnessWidget(ScrollableProgressWidget):
     """A widget that displays and controls the brightness."""
 
     def __init__(self, **kwargs):
-        self._brightness_service = BrightnessService()
+        self._brightness_service = brightness_service
 
         normalized_brightness = helpers.convert_to_percent(
             self._brightness_service.screen_brightness,
