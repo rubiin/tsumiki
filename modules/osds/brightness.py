@@ -14,7 +14,7 @@ class BrightnessOSDContainer(GenericOSDContainer):
     """A widget to display the OSD for brightness."""
 
     __gsignals__: ClassVar = {
-        "brightness-changed": (GObject.SignalFlags.RUN_FIRST, None, (int,))
+        "screen-brightness-changed": (GObject.SignalFlags.RUN_FIRST, None, ())
     }
 
     def __init__(self, config: dict, **kwargs):
@@ -32,7 +32,7 @@ class BrightnessOSDContainer(GenericOSDContainer):
         """Tracked so a rebuilt bar drops the handler with the widget."""
         self._register_handlers(
             self.brightness_service,
-            {"brightness_changed": self.on_brightness_changed},
+            {"screen_brightness_changed": self.on_brightness_changed},
         )
 
     @cooldown(0.1)
@@ -47,4 +47,4 @@ class BrightnessOSDContainer(GenericOSDContainer):
 
     def on_brightness_changed(self, *_):
         self.update_brightness()
-        self.emit("brightness-changed", 0)
+        self.emit("screen-brightness-changed")

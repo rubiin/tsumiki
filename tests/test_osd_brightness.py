@@ -65,7 +65,8 @@ class BrightnessOSDHandlerTest(unittest.TestCase):
         probe = _BrightnessOSDProbe(self.service)
 
         self.assertEqual(
-            [("brightness_changed", probe.on_brightness_changed)], self.service.calls
+            [("screen_brightness_changed", probe.on_brightness_changed)],
+            self.service.calls,
         )
         self.assertEqual({1}, self.service.live)
 

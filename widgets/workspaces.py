@@ -91,6 +91,7 @@ class WorkSpacesWidget(BoxWidget):
                 if ws_id not in self.ignored_ws
             ]
 
+
 # TODO: remove this override once Hyprland 0.57+ is fully supported on fabric
 class _HyprlandWorkspaces(HyprlandWorkspaces):
     """Gates urgent handling on config; tolerates id-less special workspaces."""

@@ -118,7 +118,7 @@ class OSDContainer(BaseWindow):
 
             self.brightness_container = BrightnessOSDContainer(config=self.config)
             self.brightness_container.connect(
-                "brightness-changed", self.show_brightness
+                "screen_brightness_changed", self.show_brightness
             )
         if "microphone" in osds:
             from .osds.microphone import MicrophoneOSDContainer

@@ -9,9 +9,7 @@ from utils.widget_utils import get_brightness_icon_name
 class BrightnessSlider(SettingSlider):
     """A widget to display a scale for brightness settings."""
 
-    def __init__(
-        self,
-    ):
+    def __init__(self):
         self.client = BrightnessService()
         super().__init__(
             pixel_size=20,
@@ -28,7 +26,7 @@ class BrightnessSlider(SettingSlider):
         if self.scale:
             self.scale.connect("change-value", self.on_scale_move)
             self._brightness_handler_id = self.client.connect(
-                "brightness_changed", self.on_brightness_change
+                "screen_brightness_changed", self.on_brightness_change
             )
 
         self.icon_button.connect("clicked", self.reset)
@@ -50,7 +48,7 @@ class BrightnessSlider(SettingSlider):
         raw_value = int((moved_pos / 100) * self.client.max_screen)
         self.client.screen_brightness = raw_value
 
-    def on_brightness_change(self, service: BrightnessService, _):
+    def on_brightness_change(self, service: BrightnessService, *_):
         if self._destroyed:
             return
         brightness_percent = service.screen_brightness_percentage

@@ -31,7 +31,7 @@ class BrightnessWidget(ScrollableProgressWidget):
         # Connect the brightness service to update the progress bar
         self._register_handlers(
             self._brightness_service,
-            {"brightness_changed": self.on_brightness_changed},
+            {"screen_brightness_changed": self.on_brightness_changed},
         )
 
         # Connect the event box to handle scroll events

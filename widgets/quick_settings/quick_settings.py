@@ -463,7 +463,7 @@ class QuickSettingsButtonWidget(ButtonWidget, PopoverMixin):
 
         self._register_handlers(
             self.brightness_service,
-            {"brightness_changed": self.update_brightness},
+            {"screen_brightness_changed": self.update_brightness},
         )
 
         self._register_handlers(

@@ -1,87 +1,90 @@
-from fabric.core.service import Property, Signal
-from fabric.utils import GLib, exec_shell_command_async, logger, monitor_file, os
+"""Service that manages screen and keyboard backlight brightness via brightnessctl."""
 
-import utils.functions as helpers
-from utils.colors import Colors
+import os
 
-from .base import SingletonService
-
-
-def exec_brightnessctl_async(*args: str) -> None:
-    """Run brightnessctl with argv, so no argument needs shell quoting."""
-    exec_shell_command_async(["brightnessctl", *args])
+from fabric.core.service import Property, Service, Signal
+from fabric.utils import exec_shell_command_async, monitor_file
+from gi.repository import GLib
+from loguru import logger
 
 
-class BrightnessService(SingletonService):
-    """Service to manage screen brightness levels."""
+def exec_brightnessctl_async(args: str) -> None:
+    exec_shell_command_async(f"brightnessctl {args}", lambda _: None)
+
+
+SCREEN = next(iter(os.listdir("/sys/class/backlight")), "")
+
+_kbd_leds = os.listdir("/sys/class/leds")
+KBD = "tpacpi::kbd_backlight" if "tpacpi::kbd_backlight" in _kbd_leds else ""
+
+
+class BrightnessService(Service):
+    """Wrap ``brightnessctl`` with inotify-driven ``brightness_changed`` signals.
+
+    **Throttle:** slider dragging can set the screen value many times a second;
+    only the latest value is applied, at most once per 50 ms window.
+    """
 
     @Signal
-    def brightness_changed(self, percentage: int) -> None:
-        """Signal emitted with the new screen brightness, as a percentage."""
+    def screen_brightness_changed(self) -> None:
+        """Emitted with the new screen brightness as a percentage (0-100)."""
+
+    @Signal
+    def keyboard_brightness_changed(self) -> None:
+        """Emitted with the new keyboard brightness as a percentage (0-100)."""
 
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-        helpers.check_executable_exists("brightnessctl")
+        self.screen_backlight_path = f"/sys/class/backlight/{SCREEN}"
+        self.kbd_backlight_path = f"/sys/class/leds/{KBD}"
+        self.max_kbd = -1
+        self.max_screen = -1
         self._screen_brightness_cache = -1
 
-        # Discover screen backlight device
-        try:
-            screen_device_list = os.listdir("/sys/class/backlight")
-            self.screen_device = screen_device_list[0] if screen_device_list else ""
-        except FileNotFoundError:
-            logger.exception(f"{Colors.ERROR}No backlight devices found")
-            self.screen_device = ""
+        self._pending_screen_value: int | None = None
+        self._screen_throttle_id: int | None = None
 
-        if self.screen_device == "":
-            logger.warning(f"{Colors.WARNING}No screen backlight device detected.")
-            self.screen_backlight_path = ""
-            self.max_screen = 0
-            self.screen_monitor = None
-        else:
-            self.screen_backlight_path = f"/sys/class/backlight/{self.screen_device}"
-            self.max_screen = self._read_max_brightness(self.screen_backlight_path)
-
+        if os.path.exists(self.screen_backlight_path + "/max_brightness"):
+            with open(self.screen_backlight_path + "/max_brightness") as f:
+                self.max_screen = int(f.read())
             self.screen_monitor = monitor_file(
-                f"{self.screen_backlight_path}/brightness"
+                self.screen_backlight_path + "/brightness"
             )
-
             self.screen_monitor.connect(
                 "changed",
-                self._on_screen_brightness_file_changed,
-            )
-            # Prime the cache so a no-op first event stays silent.
-            _ = self.screen_brightness
-
-            logger.info(
-                f"{Colors.INFO}Brightness service initialized for device: "
-                f"{self.screen_device}"
+                self._on_screen_file_changed,
             )
 
-        # Discover keyboard backlight device
-        try:
-            kbd_list = os.listdir("/sys/class/leds")
-            kbd_filtered = [x for x in kbd_list if "kbd_backlight" in x]
-            self.kbd = kbd_filtered[0] if kbd_filtered else ""
-        except FileNotFoundError:
-            logger.exception(f"{Colors.ERROR}No keyboard backlight devices found")
-            self.kbd = ""
+        if os.path.exists(self.kbd_backlight_path + "/max_brightness"):
+            with open(self.kbd_backlight_path + "/max_brightness") as f:
+                self.max_kbd = int(f.read())
+            hw_changed = self.kbd_backlight_path + "/brightness_hw_changed"
+            self.kbd_monitor = monitor_file(
+                hw_changed
+                if os.path.exists(hw_changed)
+                else self.kbd_backlight_path + "/brightness"
+            )
+            self.kbd_monitor.connect(
+                "changed",
+                self._on_kbd_file_changed,
+            )
 
-        self.kbd_backlight_path = f"/sys/class/leds/{self.kbd}" if self.kbd else ""
-        self.max_kbd = self._read_max_brightness(self.kbd_backlight_path)
+        super().__init__(**kwargs)
 
-    def _on_screen_brightness_file_changed(self, _, file, *args):
+    def _on_screen_file_changed(self, _monitor, file, *_args) -> None:
         try:
             brightness = int(file.load_bytes()[0].get_data())
         except (ValueError, OSError, TypeError) as e:
-            logger.warning(f"{Colors.WARNING}Failed to read brightness update: {e}")
+            logger.warning(f"Failed to read brightness update: {e}")
             return
 
         if brightness == self._screen_brightness_cache:
             return
 
         self._screen_brightness_cache = brightness
-        self.emit("brightness_changed", self._as_percentage(brightness))
+        self.emit("screen_brightness_changed")
+
+    def _on_kbd_file_changed(self, *_args) -> None:
+        self.emit("keyboard_brightness_changed")
 
     def _as_percentage(self, raw: int) -> int:
         """Convert a raw sysfs brightness to a 0-100 percentage.
@@ -93,17 +96,10 @@ class BrightnessService(SingletonService):
             return 0
         return int((raw / self.max_screen) * 100)
 
-    def _read_max_brightness(self, path: str) -> int:
-        max_brightness_path = os.path.join(path, "max_brightness")
-        if os.path.exists(max_brightness_path):
-            with open(max_brightness_path, "r") as f:
-                return int(f.readline())
-        return -1
-
     @Property(int, "read-write")
     def screen_brightness(self) -> int:
         if not self.screen_backlight_path:
-            logger.warning(f"{Colors.WARNING}Cannot get brightness: no screen device.")
+            logger.warning("Cannot get brightness: no screen device.")
             return -1
 
         if self._screen_brightness_cache >= 0:
@@ -115,61 +111,61 @@ class BrightnessService(SingletonService):
                 brightness = int(f.readline())
                 self._screen_brightness_cache = brightness
                 return brightness
-        logger.warning(
-            f"{Colors.WARNING}Brightness file does not exist: {brightness_path}"
-        )
+        logger.warning("Brightness file does not exist: %s", brightness_path)
         return -1
 
     @screen_brightness.setter
-    def screen_brightness(self, value: int):
+    def screen_brightness(self, value: int) -> None:
         if not self.screen_backlight_path:
-            logger.warning(f"{Colors.WARNING}Cannot set brightness: no screen device.")
+            logger.warning("Cannot set brightness: no screen device.")
             return
         if not (0 <= value <= self.max_screen):
             value = max(0, min(value, self.max_screen))
         try:
-            exec_brightnessctl_async("--device", self.screen_device, "set", str(value))
+            exec_brightnessctl_async(f"--device {SCREEN} set {value}")
             self._screen_brightness_cache = value
-            self.emit("brightness_changed", self._as_percentage(value))
             logger.info(
-                f"{Colors.INFO}Set screen brightness to {value} "
-                f"(out of {self.max_screen})"
+                "Set screen brightness to %d (out of %d)",
+                value,
+                self.max_screen,
             )
         except GLib.Error as e:
-            logger.exception(
-                f"{Colors.ERROR}Error setting screen brightness: {e.message}"
-            )
+            logger.exception("Error setting screen brightness: %s", e.message)
         except Exception as e:
-            logger.exception(f"Unexpected error setting screen brightness: {e}")
+            logger.exception("Unexpected error setting screen brightness: %s", e)
+        finally:
+            self.emit("screen_brightness_changed")
 
     @Property(int, "read-write")
-    def keyboard_brightness(self) -> int:  # type: ignore
+    def keyboard_brightness(self) -> int:
         if not self.kbd_backlight_path:
-            logger.warning(f"{Colors.WARNING}No keyboard backlight device detected.")
+            logger.warning("No keyboard backlight device detected.")
             return -1
         try:
             with open(self.kbd_backlight_path + "/brightness", "r") as f:
                 return int(f.readline())
         except (FileNotFoundError, ValueError, OSError, TypeError) as e:
-            logger.exception(f"{Colors.ERROR}Failed to read keyboard brightness: {e}")
+            logger.exception("Failed to read keyboard brightness: %s", e)
             return -1
 
     @keyboard_brightness.setter
-    def keyboard_brightness(self, value: int):
+    def keyboard_brightness(self, value: int) -> None:
         if not self.kbd_backlight_path:
-            logger.warning(f"{Colors.WARNING}No keyboard backlight device detected.")
+            logger.warning("No keyboard backlight device detected.")
             return
         if value < 0 or value > self.max_kbd:
             return
         try:
-            exec_brightnessctl_async("--device", self.kbd, "set", str(value))
+            exec_brightnessctl_async(f"--device {KBD} set {value}")
         except GLib.Error as e:
             logger.exception(e.message)
         except Exception as e:
-            logger.exception(f"{Colors.ERROR}Failed to set keyboard brightness: {e}")
+            logger.exception("Failed to set keyboard brightness: %s", e)
+        finally:
+            self.emit("keyboard_brightness_changed")
 
     @Property(int, "readable")
-    def screen_brightness_percentage(self):
+    def screen_brightness_percentage(self) -> int:
         if not self.screen_backlight_path:
             return 0
         return self._as_percentage(self.screen_brightness)

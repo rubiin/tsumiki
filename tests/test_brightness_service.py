@@ -29,7 +29,6 @@ def _make_service(cache: int, max_screen: int = 400) -> BrightnessService:
     service.max_screen = max_screen
     service.screen_device = "intel_backlight"
     service.screen_backlight_path = "/sys/class/backlight/intel_backlight"
-    service.emit = mock.Mock()
     return service
 
 
@@ -39,25 +38,25 @@ class ScreenBrightnessHandlerTest(unittest.TestCase):
     def test_changed_value_emits_and_updates_cache(self):
         service = _make_service(cache=100)
 
-        service._on_screen_brightness_file_changed(None, _StubFile(b"150"))
+        service._on_screen_file_changed(None, _StubFile(b"150"))
 
-        service.emit.assert_called_once_with("brightness_changed", 37)
+        service.screen_brightness_changed.emit.assert_called_once_with()
         self.assertEqual(service._screen_brightness_cache, 150)
 
     def test_same_value_is_silent(self):
         service = _make_service(cache=150)
 
-        service._on_screen_brightness_file_changed(None, _StubFile(b"150"))
+        service._on_screen_file_changed(None, _StubFile(b"150"))
 
-        service.emit.assert_not_called()
+        service.screen_brightness_changed.assert_not_called()
         self.assertEqual(service._screen_brightness_cache, 150)
 
     def test_unreadable_value_is_silent(self):
         service = _make_service(cache=100)
 
-        service._on_screen_brightness_file_changed(None, _StubFile(b"not-a-number"))
+        service._on_screen_file_changed(None, _StubFile(b"not-a-number"))
 
-        service.emit.assert_not_called()
+        service.screen_brightness_changed.assert_not_called()
         self.assertEqual(service._screen_brightness_cache, 100)
 
 
@@ -78,7 +77,7 @@ class BrightnessUnitTest(unittest.TestCase):
             emitted_by_setter = setter.emit.call_args[0][1]
 
             monitor = _make_service(cache=0)
-            monitor._on_screen_brightness_file_changed(None, _StubFile(b"150"))
+            monitor._on_screen_file_changed(None, _StubFile(b"150"))
             emitted_by_monitor = monitor.emit.call_args[0][1]
 
         run.assert_called_once()
@@ -94,6 +93,16 @@ class BrightnessUnitTest(unittest.TestCase):
         service = _make_service(cache=150, max_screen=0)
 
         self.assertEqual(service._as_percentage(150), 0)
+
+    def test_the_setter_emits_on_threshold(self):
+        """The percentage property must use the same rounding as the signal."""
+        setter = _make_service(cache=0)
+        set_brightness = BrightnessService.screen_brightness.fset
+        with mock.patch("services.brightness.exec_brightnessctl_async"):
+            set_brightness(setter, 150)
+
+        self.assertEqual(setter._screen_brightness_cache, 150)
+        self.assertEqual(setter.screen_brightness_percentage, 37)
 
 
 if __name__ == "__main__":
