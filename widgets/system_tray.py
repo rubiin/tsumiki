@@ -1,3 +1,5 @@
+import fnmatch
+
 from fabric.system_tray.service import SystemTray as SystemTrayService
 from fabric.system_tray.service import SystemTrayItem as SystemTrayItemService
 from fabric.utils import (
@@ -41,6 +43,14 @@ class BaseSystemTray:
         pixmap = item.icon_pixmap
 
         try:
+            override = self._override_icon_name(item)
+            if override:
+                if path_exists_ttl(override, ttl=60):
+                    pixbuf = load_file_pixbuf(override, icon_size, icon_size)
+                    if pixbuf is not None:
+                        return pixbuf
+                return self._load_default_theme_icon(icon_size, override)
+
             if pixmap is not None:
                 return pixmap.as_pixbuf(icon_size, "bilinear")
 
@@ -82,6 +92,28 @@ class BaseSystemTray:
         return resolver.get_icon_theme_icon(
             icon_name or symbolic_icons["missing"], icon_size
         )
+
+    def _override_icon_name(self, item: SystemTrayItemService) -> str | None:
+        """Return the icon configured for the first matching glob, if any."""
+        overrides = self.config.get("overrides", {})
+        if not isinstance(overrides, dict) or not overrides:
+            return None
+
+        candidates = (
+            item.get_property("title") or "",
+            getattr(item, "id", None) or "",
+            getattr(item, "identifier", None) or "",
+            getattr(item, "icon_name", None) or "",
+        )
+        for pattern, icon in overrides.items():
+            if not icon:
+                continue
+            for candidate in candidates:
+                if candidate and fnmatch.fnmatchcase(
+                    candidate.lower(), pattern.lower()
+                ):
+                    return icon
+        return None
 
     def _bake_item_button(self, item: SystemTrayItemService) -> HoverButton:
         button = HoverButton(style_classes="flat")

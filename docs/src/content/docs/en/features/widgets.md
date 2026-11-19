@@ -661,6 +661,7 @@ System tray for background applications (NetworkManager, Bluetooth, etc.).
 icon_size = 16
 ignored = []
 hidden = []
+overrides = {} # glob pattern -> icon name or file path, first match wins
 hide_when_empty = false
 ```
 

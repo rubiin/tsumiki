@@ -309,6 +309,9 @@ icon_size = 16
 hide_when_empty = false
 ignored = []
 hidden = []
+# Glob pattern -> icon name or file path, first match wins:
+# "*discord*" = "discord"
+overrides = {}
 tooltip = true
 
 # --- Power Menu ---

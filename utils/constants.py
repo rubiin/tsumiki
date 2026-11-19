@@ -347,6 +347,7 @@ DEFAULT_CONFIG = {
             "icon_size": 16,
             "ignored": [],
             "hidden": [],
+            "overrides": {},
             "hide_when_empty": False,
             "tooltip": True,
         },

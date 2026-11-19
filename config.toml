@@ -352,6 +352,7 @@ hide_on_default = false
 icon_size = 16
 ignored = []
 hidden = []
+overrides = {}
 hide_when_empty = false
 tooltip = true
 

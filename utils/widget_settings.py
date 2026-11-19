@@ -98,6 +98,7 @@ SystemTray = TypedDict(
         "icon_size": int,
         "ignored": list[str],
         "hidden": list[str],
+        "overrides": dict[str, str],
         "hide_when_empty": bool,
         "tooltip": bool,
     },

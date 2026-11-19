@@ -920,6 +920,17 @@
               "default": [],
               "description": "A list of applications to hide in the system tray."
             },
+            "overrides": {
+              "type": "object",
+              "default": {},
+              "description": "Map glob patterns to icon names or file paths for tray items. Patterns match the item title, id or icon name; the first match wins.",
+              "patternProperties": {
+                "^.*$": {
+                  "type": "string",
+                  "description": "Icon name or file path to use for matching tray items."
+                }
+              }
+            },
             "hide_when_empty": {
               "type": "boolean",
               "default": false,
@@ -931,7 +942,7 @@
               "description": "Determines whether to show the tooltip for the system tray icons."
             }
           },
-          "required": ["icon_size", "ignored", "hidden", "hide_when_empty"]
+          "required": ["icon_size", "ignored", "hidden", "overrides", "hide_when_empty"]
         },
         "taskbar": {
           "type": "object",
