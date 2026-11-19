@@ -1,9 +1,11 @@
 import unittest
 from unittest import mock
 
-from services.cava import CAVA_BARS, CavaService
+from services.cava import CavaService
 from utils.constants import BAR_GLYPHS
 from widgets.cava import bars_to_glyphs
+
+BARS = 64
 
 
 def _make_service() -> CavaService:
@@ -12,7 +14,7 @@ def _make_service() -> CavaService:
     service._wanted_by = set()
     service._process = None
     service._config = {}
-    service._bar_count = CAVA_BARS
+    service._bar_count = BARS
     service.start = mock.Mock()
     service.stop = mock.Mock()
     return service
@@ -89,7 +91,8 @@ class MakeConfigTest(unittest.TestCase):
             bar_gap=1,
             high_cutoff=10000,
             low_cutoff=50,
-            input="auto",
+            source="auto",
+            input="pipewire",
             monstercat=0,
         )
 
@@ -99,6 +102,7 @@ class MakeConfigTest(unittest.TestCase):
         self.assertIn("lower_cutoff_freq = 50", text)
         self.assertIn("higher_cutoff_freq = 10000", text)
         self.assertIn("source = auto", text)
+        self.assertIn("method = pipewire", text)
         self.assertIn("noise_reduction = 77", text)
         self.assertIn("monstercat = 0", text)
 
@@ -108,11 +112,11 @@ class ParseLineTest(unittest.TestCase):
 
     def test_line_is_normalised_to_zero_one(self):
         service = _make_service()
-        line = ";".join(["0"] + ["500"] * (CAVA_BARS - 2) + ["1000"])
+        line = ";".join(["0"] + ["500"] * (BARS - 2) + ["1000"])
 
         bars = service._parse_line(line)
 
-        self.assertEqual(len(bars), CAVA_BARS)
+        self.assertEqual(len(bars), BARS)
         self.assertEqual(bars[0], 0.0)
         self.assertEqual(bars[1], 0.5)
         self.assertEqual(bars[-1], 1.0)
@@ -125,7 +129,7 @@ class ParseLineTest(unittest.TestCase):
     def test_non_numeric_line_is_ignored(self):
         service = _make_service()
 
-        self.assertIsNone(service._parse_line("x;" * CAVA_BARS))
+        self.assertIsNone(service._parse_line("x;" * BARS))
 
 
 if __name__ == "__main__":

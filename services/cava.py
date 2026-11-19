@@ -32,8 +32,9 @@ class CavaService(SingletonService):
         bar_gap,
         high_cutoff,
         low_cutoff,
-        input,
+        source,
         monstercat,
+        input,
     ) -> str:
         return f"""[general]
 bars = {bars}
@@ -45,8 +46,8 @@ higher_cutoff_freq = {high_cutoff}
 lower_cutoff_freq = {low_cutoff}
 
 [input]
-method = pulse
-source = {input}
+method = {input}
+source = {source}
 
 [output]
 method = raw
@@ -105,8 +106,9 @@ monstercat = {monstercat}
                     bar_gap=config.get("bar_gap", 1),
                     high_cutoff=config.get("high_cutoff", 10000),
                     low_cutoff=config.get("low_cutoff", 50),
-                    input=config.get("input", "auto"),
+                    source=config.get("source", "auto"),
                     monstercat=config.get("monstercat", 0),
+                    input=config.get("input", "pipewire"),
                 )
             )
 

@@ -1429,10 +1429,27 @@
               "minimum": 0,
               "description": "Higher cutoff frequency in Hz."
             },
-            "input": {
+            "source": {
               "type": "string",
               "default": "auto",
               "description": "Audio source CAVA listens to; 'auto' picks the default."
+            },
+            "input": {
+              "type": "string",
+              "enum": [
+                "fifo",
+                "portaudio",
+                "coreaudio",
+                "pipewire",
+                "alsa",
+                "pulse",
+                "sndio",
+                "oss",
+                "jack",
+                "shmem"
+              ],
+              "default": "pipewire",
+              "description": "Audio backend CAVA captures from (cava's [input] method)."
             },
             "monstercat": {
               "type": "number",
@@ -1450,6 +1467,7 @@
             "bar_gap",
             "low_cutoff",
             "high_cutoff",
+            "source",
             "input",
             "monstercat"
           ]

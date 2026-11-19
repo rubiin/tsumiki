@@ -178,7 +178,8 @@ bar_width = 2
 bar_gap = 1
 low_cutoff = 50
 high_cutoff = 10000
-input = "auto"
+source = "auto"
+input = "pipewire"
 monstercat = 0
 
 [widgets.overview_button]

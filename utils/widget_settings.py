@@ -616,6 +616,7 @@ Cava = TypedDict(
         "bar_gap": int,
         "low_cutoff": int,
         "high_cutoff": int,
+        "source": str,
         "input": str,
         "monstercat": int,
     },
