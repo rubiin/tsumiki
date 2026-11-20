@@ -400,7 +400,7 @@ _VALID_LABEL_FORMATS = {
     },
     # Widgets whose label also carries live state the widget feeds back in.
     "keyboard": {
-        "label_format": set(["layout"]),
+        "label_format": set(["layout", "caps_state", "num_state"]),
     },
     "language": {
         "label_format": set(["language"]),

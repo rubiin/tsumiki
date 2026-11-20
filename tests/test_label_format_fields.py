@@ -39,6 +39,7 @@ _EXPECTED_FIELDS = {
     "cloudflare_warp": {"state"},
     "dns_switcher": {"current_dns"},
     "ocr": {"lang"},
+    "keyboard": {"layout", "caps_state", "num_state"},
 }
 
 

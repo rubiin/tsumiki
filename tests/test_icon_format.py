@@ -200,7 +200,7 @@ _LABEL_FORMAT_EXEMPT = {
 # The widgets that used to append a sibling text label next to the formatted one.
 _SIBLING_LABEL_WIDGETS = {
     "shared/button_toggle.py": ("label_text", "{state}"),
-    "widgets/keyboard_layout.py": ("kb_label", "{layout}"),
+    "widgets/keyboard_widget.py": ("kb_label", "{layout}"),
     "widgets/submap.py": ("submap_label", "{submap}"),
     "widgets/language.py": ("self.container_box.add", "{language}"),
 }

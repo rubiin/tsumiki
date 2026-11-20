@@ -1699,7 +1699,7 @@
             "label_format": {
               "type": "string",
               "default": "󰌌 {layout}",
-              "description": "Format string for the panel label. Available Fields: {layout}."
+              "description": "Format string for the panel label. Available Fields: {layout}, {caps_state}, {num_state}."
             },
             "language_name_map": {
               "type": "object",

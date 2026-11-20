@@ -24,7 +24,7 @@ label_format = "" # nothing at all
 
 This replaced the old per-widget `show_icon` boolean and the `label` / `label_text` keys, none of which are read any more — a config that still sets `show_icon` logs a warning at startup and falls back to the default.
 
-No widget substitutes an `{icon}` field any more: the glyph is a literal character in `label_format`, and a widget whose glyph changes with state supplies it ahead of the text. Widgets that print live values declare fields for them: `mpris` (`{title}`, `{artist}`, `{album}`, `{name}`), `weather` (`{location}`, `{temperature}`, `{condition}`, `{humidity}`, `{wind_speed}`, `{sunrise}`, `{sunset}`), `network_usage` (`{upload}`, `{download}`), `window_count` (`{count}`), `workspaces` (`{id}`), `updates` (`{total}`), `hypridle`, `hyprsunset`, `bluetooth`, `microphone` and `cloudflare_warp` (`{state}`), `dns_switcher` (`{current_dns}`), `ocr` (`{lang}`), `keyboard` (`{layout}`), `language` (`{language}`), `submap` (`{submap}`), `theme_switcher` (`{theme}`), `usb_manager` (`{count}`), `github_tray` (`{unread}`) and `battery` (`{percent}`, `{time_remaining}`, `{capacity}`, `{temperature}`, `{state}`).
+No widget substitutes an `{icon}` field any more: the glyph is a literal character in `label_format`, and a widget whose glyph changes with state supplies it ahead of the text. Widgets that print live values declare fields for them: `mpris` (`{title}`, `{artist}`, `{album}`, `{name}`), `weather` (`{location}`, `{temperature}`, `{condition}`, `{humidity}`, `{wind_speed}`, `{sunrise}`, `{sunset}`), `network_usage` (`{upload}`, `{download}`), `window_count` (`{count}`), `workspaces` (`{id}`), `updates` (`{total}`), `hypridle`, `hyprsunset`, `bluetooth`, `microphone` and `cloudflare_warp` (`{state}`), `dns_switcher` (`{current_dns}`), `ocr` (`{lang}`), `keyboard` (`{layout}`, `{caps_state}`, `{num_state}`), `language` (`{language}`), `submap` (`{submap}`), `theme_switcher` (`{theme}`), `usb_manager` (`{count}`), `github_tray` (`{unread}`) and `battery` (`{percent}`, `{time_remaining}`, `{capacity}`, `{temperature}`, `{state}`).
 
 Indexed entries follow the same rule: a `[[collapsible_groups]]` toggle button labels itself with `label_format`, with its glyph written straight into the string.
 
@@ -575,6 +575,8 @@ language_name_map = { "English (US)" = "EN", "Czech (QWERTY)" = "Czech" }
 ```
 
 - **`language_name_map`**: Overrides the displayed name for a layout, keyed by the raw name Hyprland reports. Unmapped layouts keep the built-in short name.
+- **`{layout}`**: The active layout name.
+- **`{caps_state}`**, **`{num_state}`**: Caps Lock and Num Lock state as `on` or `off`.
 
 ### Language
 

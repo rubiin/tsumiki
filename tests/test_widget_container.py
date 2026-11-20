@@ -272,7 +272,7 @@ class LabelToggleIsGoneTest(unittest.TestCase):
 
     WIDGETS: ClassVar = {
         "hyprpicker": "widgets/hyprpicker.py",
-        "keyboard": "widgets/keyboard_layout.py",
+        "keyboard": "widgets/keyboard_widget.py",
         "microphone": "widgets/microphone.py",
         "ocr": "widgets/ocr.py",
         "power": "widgets/power_button.py",

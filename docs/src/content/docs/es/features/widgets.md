@@ -494,6 +494,8 @@ tooltip = true
 label_format = "󰌌 {layout}"
 ```
 
+`{caps_state}` y `{num_state}` muestran el estado de Bloq Mayús y Bloq Num como `on` u `off`.
+
 ### Idioma
 
 Muestra el idioma de entrada actual.

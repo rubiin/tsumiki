@@ -676,6 +676,7 @@ tooltip = true
 # --- Keyboard Layout ---
 [widgets.keyboard]
 tooltip = true
+# Fields: {layout}, {caps_state}, {num_state}
 label_format = "󰌌 {layout}"
 language_name_map = {}            # e.g. { "English (US)" = "EN" }
 
