@@ -4,12 +4,12 @@ from fabric.utils import invoke_repeater
 
 from services import (
     bluetooth_service,
+    caffeine_service,
     notification_service,
     recorder_service,
     style_service,
 )
 from services.network import NetworkService
-from shared.button_toggle import CaffeineSwitcher
 from shared.buttons import HoverButton
 from utils.config import tsumiki_config
 from utils.i18n import _
@@ -17,31 +17,71 @@ from utils.icons import get_text_icon
 from widgets.quick_settings.components import QuickSettingsIconLabelRow
 
 
-def _toggle_row(icon: str, label: str) -> QuickSettingsIconLabelRow:
-    """Build the icon+label row for a quick settings toggle card."""
+def _toggle_row(
+    icon: str, label: str, subtitle: str | None = None
+) -> QuickSettingsIconLabelRow:
+    """Build the icon + title + status row for a quick settings toggle card."""
     return QuickSettingsIconLabelRow(
         icon=icon,
         label=label,
+        subtitle=subtitle,
+        icon_size=20,
         row_classes=["quicksettings-toggle-row"],
         h_align="fill",
     )
 
 
-class HyprIdleQuickSetting(CaffeineSwitcher):
+class HyprIdleQuickSetting(HoverButton):
     """A button to keep the screen awake through the caffeine idle inhibitor."""
 
     def __init__(self, popup, **kwargs):
         super().__init__(
-            enabled_icon=get_text_icon("idle.enabled", ""),
-            disabled_icon=get_text_icon("idle.disabled", ""),
             name="quicksettings-togglebutton",
-            label=True,
-            tooltip=False,
             style_classes="quicksettings-toggler",
             **kwargs,
         )
-        self.connect(
-            "clicked", lambda *_: popup.hide_popover() if popup is not None else None
+
+        self.popup = popup
+        self.service = caffeine_service
+
+        self.row = _toggle_row(
+            get_text_icon("idle.enabled", ""),
+            _("widget.quick_settings.caffeine.title"),
+            _("common.off"),
+        )
+
+        self.caffeine_icon = self.row.icon
+        self.caffeine_status = self.row.subtitle
+
+        self.children = self.row
+
+        self._register_handlers(
+            caffeine_service,
+            {"notify::active": self.update_state},
+        )
+
+        self.connect("clicked", self.on_click)
+        self.connect("map", self.update_state)
+        self.update_state()
+
+    def on_click(self, *_):
+        """Toggle the caffeine idle inhibitor."""
+        caffeine_service.active = not caffeine_service.active
+        # Taking the lock can fail, so show what actually happened.
+        self.update_state()
+        if self.popup is not None:
+            self.popup.hide_popover()
+
+    def update_state(self, *_args):
+        active = bool(caffeine_service.active)
+        self.toggle_css_class("active", active)
+        self.caffeine_icon.set_label(
+            get_text_icon("idle.enabled" if active else "idle.disabled")
+        )
+        self.caffeine_status.set_label(
+            _("widget.quick_settings.caffeine.awake")
+            if active
+            else _("common.off")
         )
 
 
@@ -59,11 +99,12 @@ class NotificationQuickSetting(HoverButton):
 
         self.row = _toggle_row(
             get_text_icon("notifications.noisy", "󰂜"),
-            _("widget.quick_settings.notifications.noisy"),
+            _("widget.quick_settings.notifications.title"),
+            _("common.off"),
         )
 
         self.notification_icon = self.row.icon
-        self.notification_label = self.row.label
+        self.notification_status = self.row.subtitle
 
         self.children = self.row
 
@@ -91,15 +132,10 @@ class NotificationQuickSetting(HoverButton):
         )
 
         if value:
-            self.notification_label.set_label(
-                _("widget.quick_settings.notifications.quiet")
-            )
+            self.notification_status.set_label(_("common.on"))
             self.notification_icon.set_label(get_text_icon("notifications.silent", "󰪑"))
-
         else:
-            self.notification_label.set_label(
-                _("widget.quick_settings.notifications.noisy")
-            )
+            self.notification_status.set_label(_("common.off"))
             self.notification_icon.set_label(get_text_icon("notifications.noisy", "󰂜"))
 
 
@@ -136,11 +172,12 @@ class FlightModeToggle(HoverButton):
 
         self.row = _toggle_row(
             get_text_icon("flight.disabled", "󰗔"),
-            _("common.disabled"),
+            _("widget.quick_settings.flightmode.title"),
+            _("common.off"),
         )
 
         self.flight_icon = self.row.icon
-        self.flight_label = self.row.label
+        self.flight_status = self.row.subtitle
 
         self.children = self.row
 
@@ -175,10 +212,7 @@ class FlightModeToggle(HoverButton):
         self.flight_icon.set_label(
             get_text_icon("flight.enabled" if enabled else "flight.disabled")
         )
-        if enabled:
-            self.flight_label.set_label(_("common.enabled"))
-        else:
-            self.flight_label.set_label(_("common.disabled"))
+        self.flight_status.set_label(_("common.on") if enabled else _("common.off"))
         return True
 
 
@@ -202,10 +236,11 @@ class ScreenshotQuickSetting(HoverButton):
         self.row = _toggle_row(
             get_text_icon("screenshot", "󰆈"),
             _("widget.quick_settings.screenshot.label"),
+            _("widget.quick_settings.screenshot.hint"),
         )
 
         self.screenshot_icon = self.row.icon
-        self.screenshot_label = self.row.label
+        self.screenshot_status = self.row.subtitle
 
         self.children = self.row
 
@@ -236,11 +271,12 @@ class RecorderQuickSetting(HoverButton):
 
         self.row = _toggle_row(
             get_text_icon("recorder", "󰻂"),
-            _("widget.quick_settings.recording.stopped"),
+            _("widget.quick_settings.recording.title"),
+            _("widget.quick_settings.recording.idle"),
         )
 
         self.recorder_icon = self.row.icon
-        self.recorder_label = self.row.label
+        self.recorder_status = self.row.subtitle
 
         self.children = self.row
 
@@ -269,13 +305,11 @@ class RecorderQuickSetting(HoverButton):
             get_text_icon("recorder", "󰻂")
         )
         if recording:
-            self.recorder_label.set_label(
+            self.recorder_status.set_label(
                 _("widget.quick_settings.recording.recording")
             )
         else:
-            self.recorder_label.set_label(
-                _("widget.quick_settings.recording.stopped")
-            )
+            self.recorder_status.set_label(_("widget.quick_settings.recording.idle"))
 
 
 class DarkModeToggle(HoverButton):
@@ -291,11 +325,13 @@ class DarkModeToggle(HoverButton):
         self.popup = popup
 
         self.row = _toggle_row(
-            get_text_icon("color.dark", "󰖔"), _("widget.quick_settings.dark_mode.dark")
+            get_text_icon("color.dark", "󰖔"),
+            _("widget.quick_settings.dark_mode.title"),
+            _("common.off"),
         )
 
         self.mode_icon = self.row.icon
-        self.mode_label = self.row.label
+        self.mode_status = self.row.subtitle
 
         self.children = self.row
 
@@ -316,10 +352,9 @@ class DarkModeToggle(HoverButton):
             self.popup.hide_popover()
 
     def update_state(self, *_args):
-        dark = style_service.mode == "dark"
-        self.toggle_css_class("active", dark)
-        self.mode_icon.set_label(get_text_icon("color.dark" if dark else "color.light"))
-        if dark:
-            self.mode_label.set_label(_("widget.quick_settings.dark_mode.dark"))
-        else:
-            self.mode_label.set_label(_("widget.quick_settings.dark_mode.light"))
+        light = style_service.mode != "dark"
+        self.toggle_css_class("active", light)
+        self.mode_icon.set_label(
+            get_text_icon("color.light" if light else "color.dark")
+        )
+        self.mode_status.set_label(_("common.on") if light else _("common.off"))

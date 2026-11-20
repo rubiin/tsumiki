@@ -109,17 +109,20 @@
       "wifi": {
         "disabled": "Wifi 已禁用",
         "password_prompt": "请输入 {ssid} 的密码",
-        "connect_to": "连接到 {ssid}"
+        "connect_to": "连接到 {ssid}",
+        "title": "Wi-Fi"
       },
-      "bluetooth": { "paired": "已配对设备", "available": "可用设备", "enabled": "已启用" },
+      "bluetooth": { "paired": "已配对设备", "available": "可用设备", "enabled": "已启用", "title": "Bluetooth" },
       "power_profiles": { "title": "电源配置", "saver": "节能模式" },
-      "notifications": { "noisy": "有声", "quiet": "静音" },
-      "screenshot": { "label": "截屏" },
-      "recording": { "stopped": "录制", "recording": "录制中" },
-      "dark_mode": { "dark": "深色", "light": "浅色" },
-      "hyprsunset": { "title": "HyprSunset", "enabled": "已启用" },
+      "notifications": { "noisy": "有声", "quiet": "静音", "title": "勿扰模式" },
+      "screenshot": { "label": "截屏", "hint": "点击：截取区域" },
+      "recording": { "stopped": "录制", "recording": "录制中", "title": "录制", "idle": "空闲" },
+      "dark_mode": { "dark": "深色", "light": "浅色", "title": "浅色模式" },
+      "nightlight": { "title": "夜间模式", "enabled": "已启用" },
       "audio": { "title": "应用音频" },
-      "network": { "title": "网络" }
+      "network": { "title": "网络" },
+      "caffeine": { "title": "咖啡因", "awake": "屏幕保持常亮" },
+      "flightmode": { "title": "飞行模式" }
     },
     "recorder": { "started": "录制已开始", "stopped": "录制已停止" },
     "screenshot": { "tooltip": "截屏", "label": "截屏" },

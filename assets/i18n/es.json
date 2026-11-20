@@ -154,12 +154,14 @@
       "wifi": {
         "disabled": "Wifi deshabilitado",
         "password_prompt": "Ingrese la contraseña para {ssid}",
-        "connect_to": "Conectar a {ssid}"
+        "connect_to": "Conectar a {ssid}",
+        "title": "Wi-Fi"
       },
       "bluetooth": {
         "paired": "Dispositivos emparejados",
         "available": "Dispositivos disponibles",
-        "enabled": "Habilitado"
+        "enabled": "Habilitado",
+        "title": "Bluetooth"
       },
       "power_profiles": {
         "title": "Perfiles de energia",
@@ -167,21 +169,26 @@
       },
       "notifications": {
         "noisy": "Sonoro",
-        "quiet": "Silencioso"
+        "quiet": "Silencioso",
+        "title": "No molestar"
       },
       "screenshot": {
-        "label": "Captura"
+        "label": "Captura",
+        "hint": "Clic: capturar región"
       },
       "recording": {
         "stopped": "Grabar",
-        "recording": "Grabando"
+        "recording": "Grabando",
+        "title": "Grabar",
+        "idle": "Inactivo"
       },
       "dark_mode": {
         "dark": "Oscuro",
-        "light": "Claro"
+        "light": "Claro",
+        "title": "Modo claro"
       },
-      "hyprsunset": {
-        "title": "HyprSunset",
+      "nightlight": {
+        "title": "Luz nocturna",
         "enabled": "Habilitado"
       },
       "audio": {
@@ -189,6 +196,13 @@
       },
       "network": {
         "title": "Red"
+      },
+      "caffeine": {
+        "title": "Cafeína",
+        "awake": "La pantalla permanece activa"
+      },
+      "flightmode": {
+        "title": "Modo avión"
       }
     },
     "recorder": {

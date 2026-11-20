@@ -223,7 +223,8 @@ class BluetoothToggle(QSChevronButton):
         **kwargs,
     ):
         super().__init__(
-            action_label=_("common.enabled"),
+            action_title=_("widget.quick_settings.bluetooth.title"),
+            action_label=_("common.off"),
             action_icon=get_text_icon("bluetooth.enabled", "󰂱"),
             submenu_factory=submenu_factory,
             **kwargs,
@@ -253,11 +254,10 @@ class BluetoothToggle(QSChevronButton):
         if client.enabled:
             self.set_active_style(True)
             self.action_icon.set_label(get_text_icon("bluetooth.enabled", "󰂱"))
-            self.action_label.set_label(_("common.enabled"))
         else:
             self.set_active_style(False)
             self.action_icon.set_label(get_text_icon("bluetooth.disabled", "󰂲"))
-            self.action_label.set_label(_("common.disabled"))
+        self._refresh_label()
 
     def new_device(self, client: BluetoothClient, address: str):
         device: BluetoothDevice = client.get_device(address)
@@ -266,12 +266,23 @@ class BluetoothToggle(QSChevronButton):
         self._bound_devices.add(address)
         device.connect("changed", self.device_connected)
 
+    def _connected_label(self) -> str:
+        """Status line for the first connected device, with its battery if known."""
+        connected = self.client.connected_devices
+        if not connected:
+            return _("common.on")
+
+        device = connected[0]
+        percentage = round(device.battery_percentage or 0)
+        if percentage > 0:
+            return f"{device.name} · {percentage}%"
+        return device.name
+
+    def _refresh_label(self):
+        self.action_label.set_label(
+            self._connected_label() if self.client.enabled else _("common.off")
+        )
+
     def device_connected(self, device: BluetoothDevice):
-        if device.connected:
-            self.action_label.set_label(device.name)
-        elif self.action_label.get_label() == device.name:
-            self.action_label.set_label(
-                self.client.connected_devices[0].name
-                if self.client.connected_devices
-                else _("common.enabled")
-            )
+        # Recompute from connected devices: battery changes emit "changed" too.
+        self._refresh_label()

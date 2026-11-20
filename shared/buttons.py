@@ -73,7 +73,8 @@ class QSToggleButton(Box, BaseWidget):
         self,
         action_label: str = "My Label",
         action_icon: str = get_text_icon("ui.package", ""),
-        pixel_size: int = 18,
+        action_title: str | None = None,
+        pixel_size: int = 20,
         **kwargs,
     ):
         self.pixel_size = pixel_size
@@ -87,9 +88,18 @@ class QSToggleButton(Box, BaseWidget):
             },
         )
 
+        # With a title the action label becomes the status line beneath it.
+        self.action_title = Label(
+            style_classes=["panel-text", "quicksettings-tile-title"],
+            label=action_title if action_title is not None else action_label,
+            ellipsization="end",
+            h_align="start",
+            h_expand=True,
+        )
+
         self.action_label = Label(
-            style_classes="panel-text",
-            label=action_label,
+            style_classes=["panel-text", "quicksettings-tile-status"],
+            label=action_label if action_title is not None else "",
             ellipsization="end",
             h_align="start",
             h_expand=True,
@@ -98,8 +108,17 @@ class QSToggleButton(Box, BaseWidget):
         self._action_content = Box(
             h_align="start",
             v_align="center",
+            spacing=10,
             style_classes="quicksettings-toggle-action-box",
-            children=[self.action_icon, self.action_label],
+            children=[
+                self.action_icon,
+                Box(
+                    orientation="v",
+                    v_align="center",
+                    h_expand=True,
+                    children=[self.action_title, self.action_label],
+                ),
+            ],
         )
 
         self.action_button = HoverButton(
@@ -127,6 +146,9 @@ class QSToggleButton(Box, BaseWidget):
     def set_action_label(self, label: str):
         self.action_label.set_label(label.strip())
 
+    def set_action_title(self, title: str):
+        self.action_title.set_label(title.strip())
+
     def set_action_icon(self, icon: str):
         self.action_icon.set_label(icon)
 
@@ -141,7 +163,8 @@ class QSChevronButton(QSToggleButton):
         self,
         action_label: str = "My Label",
         action_icon: str = symbolic_icons["fallback"]["package"],
-        pixel_size: int = 18,
+        action_title: str | None = None,
+        pixel_size: int = 20,
         submenu: QuickSubMenu | None = None,
         submenu_factory: Callable[[], QuickSubMenu] | None = None,
         **kwargs,
@@ -162,6 +185,7 @@ class QSChevronButton(QSToggleButton):
         super().__init__(
             action_label,
             action_icon,
+            action_title,
             pixel_size,
             **kwargs,
         )

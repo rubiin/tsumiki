@@ -144,6 +144,7 @@ class PowerProfileToggle(QSChevronButton):
     ):
         super().__init__(
             action_icon=get_text_icon("powerprofiles.power-saver", "󰌪"),
+            action_title=_("widget.quick_settings.power_profiles.title"),
             action_label=_("widget.quick_settings.power_profiles.saver"),
             submenu_factory=submenu_factory,
             **kwargs,

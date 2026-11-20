@@ -127,21 +127,25 @@
       "wifi": {
         "disabled": "Wifi desativado",
         "password_prompt": "Digite a senha para {ssid}",
-        "connect_to": "Conectar a {ssid}"
+        "connect_to": "Conectar a {ssid}",
+        "title": "Wi-Fi"
       },
       "bluetooth": {
         "paired": "Dispositivos pareados",
         "available": "Dispositivos disponiveis",
-        "enabled": "Ativado"
+        "enabled": "Ativado",
+        "title": "Bluetooth"
       },
       "power_profiles": { "title": "Perfis de energia", "saver": "Economia de energia" },
-      "notifications": { "noisy": "Sonoro", "quiet": "Silencioso" },
-      "screenshot": { "label": "Captura" },
-      "recording": { "stopped": "Gravar", "recording": "Gravando" },
-      "dark_mode": { "dark": "Escuro", "light": "Claro" },
-      "hyprsunset": { "title": "HyprSunset", "enabled": "Ativado" },
+      "notifications": { "noisy": "Sonoro", "quiet": "Silencioso", "title": "Não perturbe" },
+      "screenshot": { "label": "Captura", "hint": "Clique: capturar área" },
+      "recording": { "stopped": "Gravar", "recording": "Gravando", "title": "Gravar", "idle": "Inativo" },
+      "dark_mode": { "dark": "Escuro", "light": "Claro", "title": "Modo claro" },
+      "nightlight": { "title": "Luz noturna", "enabled": "Ativado" },
       "audio": { "title": "Audio do aplicativo" },
-      "network": { "title": "Rede" }
+      "network": { "title": "Rede" },
+      "caffeine": { "title": "Cafeína", "awake": "Ecrã permanece ativo" },
+      "flightmode": { "title": "Modo avião" }
     },
     "recorder": { "started": "Gravacao iniciada", "stopped": "Gravacao parada" },
     "screenshot": { "tooltip": "Captura de tela", "label": "captura" },

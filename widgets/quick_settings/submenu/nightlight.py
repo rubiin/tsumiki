@@ -20,8 +20,8 @@ from utils.widget_utils import (
 )
 
 
-class HyprSunsetSubMenu(QuickSubMenu):
-    """A submenu to display application-specific audio controls."""
+class NightLightSubMenu(QuickSubMenu):
+    """A submenu to control the night light color temperature."""
 
     def __init__(self, **kwargs):
         self.scan_button = None
@@ -29,7 +29,7 @@ class HyprSunsetSubMenu(QuickSubMenu):
         self._hyprland_connection = get_hyprland_connection()
 
         self.scale = create_scale(
-            name="hyprsunset-scale",
+            name="nightlight-scale",
             increments=(100, 100),
             max_value=10000,
             min_value=1000,
@@ -37,9 +37,9 @@ class HyprSunsetSubMenu(QuickSubMenu):
         )
 
         super().__init__(
-            title=_("widget.quick_settings.hyprsunset.title"),
+            title=_("widget.quick_settings.nightlight.title"),
             title_icon=get_text_icon("nightlight.enabled", "󱩌"),
-            name="hyprsunset-sub-menu",
+            name="nightlight-sub-menu",
             scan_button=self.scan_button,
             child=self.scale,
             **kwargs,
@@ -94,8 +94,8 @@ class HyprSunsetSubMenu(QuickSubMenu):
             self.scale.set_tooltip_text(f"{sanitized_value}K")
 
 
-class HyprSunsetToggle(QSChevronButton):
-    """A widget to display a toggle button for Wifi."""
+class NightLightToggle(QSChevronButton):
+    """A widget to display a toggle button for the night light."""
 
     def __init__(
         self,
@@ -106,7 +106,8 @@ class HyprSunsetToggle(QSChevronButton):
         super().__init__(
             action_icon=get_text_icon("nightlight.disabled", "󰛨"),
             pixel_size=20,
-            action_label=_("widget.quick_settings.hyprsunset.enabled"),
+            action_title=_("widget.quick_settings.nightlight.title"),
+            action_label=_("common.off"),
             submenu_factory=submenu_factory,
             **kwargs,
         )
@@ -140,10 +141,10 @@ class HyprSunsetToggle(QSChevronButton):
 
         if self.is_running:
             self.action_icon.set_label(get_text_icon("nightlight.enabled", "󱩌"))
-            self.action_label.set_label(_("widget.quick_settings.hyprsunset.enabled"))
+            self.action_label.set_label(_("common.on"))
             self.set_active_style(True)
         else:
             self.action_icon.set_label(get_text_icon("nightlight.disabled", "󰛨"))
-            self.action_label.set_label(_("common.disabled"))
+            self.action_label.set_label(_("common.off"))
             self.set_active_style(False)
         return True

@@ -154,12 +154,14 @@
       "wifi": {
         "disabled": "Wifi deaktiviert",
         "password_prompt": "Passwort fuer {ssid} eingeben",
-        "connect_to": "Verbinden mit {ssid}"
+        "connect_to": "Verbinden mit {ssid}",
+        "title": "Wi-Fi"
       },
       "bluetooth": {
         "paired": "Gepaarte Geraete",
         "available": "Verfuegbare Geraete",
-        "enabled": "Aktiviert"
+        "enabled": "Aktiviert",
+        "title": "Bluetooth"
       },
       "power_profiles": {
         "title": "Energieprofile",
@@ -167,21 +169,26 @@
       },
       "notifications": {
         "noisy": "Laust",
-        "quiet": "Leise"
+        "quiet": "Leise",
+        "title": "Nicht stören"
       },
       "screenshot": {
-        "label": "Screenshot"
+        "label": "Screenshot",
+        "hint": "Klicken: Bereich aufnehmen"
       },
       "recording": {
         "stopped": "Aufnahme",
-        "recording": "Aufnahme läuft"
+        "recording": "Aufnahme läuft",
+        "title": "Aufnehmen",
+        "idle": "Inaktiv"
       },
       "dark_mode": {
         "dark": "Dunkel",
-        "light": "Hell"
+        "light": "Hell",
+        "title": "Heller Modus"
       },
-      "hyprsunset": {
-        "title": "HyprSunset",
+      "nightlight": {
+        "title": "Nachtlicht",
         "enabled": "Aktiviert"
       },
       "audio": {
@@ -189,6 +196,13 @@
       },
       "network": {
         "title": "Netzwerk"
+      },
+      "caffeine": {
+        "title": "Koffein",
+        "awake": "Bildschirm bleibt wach"
+      },
+      "flightmode": {
+        "title": "Flugmodus"
       }
     },
     "recorder": {

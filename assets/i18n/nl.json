@@ -121,21 +121,25 @@
       "wifi": {
         "disabled": "Wifi uitgeschakeld",
         "password_prompt": "Voer wachtwoord in voor {ssid}",
-        "connect_to": "Verbinden met {ssid}"
+        "connect_to": "Verbinden met {ssid}",
+        "title": "Wi-Fi"
       },
       "bluetooth": {
         "paired": "Gekoppelde apparaten",
         "available": "Beschikbare apparaten",
-        "enabled": "Ingeschakeld"
+        "enabled": "Ingeschakeld",
+        "title": "Bluetooth"
       },
       "power_profiles": { "title": "Energieprofielen", "saver": "Energiebesparing" },
-      "notifications": { "noisy": "Luid", "quiet": "Stil" },
-      "screenshot": { "label": "Schermafbeelding" },
-      "recording": { "stopped": "Opnemen", "recording": "Opname" },
-      "dark_mode": { "dark": "Donker", "light": "Licht" },
-      "hyprsunset": { "title": "HyprSunset", "enabled": "Ingeschakeld" },
+      "notifications": { "noisy": "Luid", "quiet": "Stil", "title": "Niet storen" },
+      "screenshot": { "label": "Schermafbeelding", "hint": "Klik: gebied vastleggen" },
+      "recording": { "stopped": "Opnemen", "recording": "Opname", "title": "Opnemen", "idle": "Inactief" },
+      "dark_mode": { "dark": "Donker", "light": "Licht", "title": "Lichte modus" },
+      "nightlight": { "title": "Nachtlamp", "enabled": "Ingeschakeld" },
       "audio": { "title": "Applicatie audio" },
-      "network": { "title": "Netwerk" }
+      "network": { "title": "Netwerk" },
+      "caffeine": { "title": "Cafeïne", "awake": "Scherm blijft aan" },
+      "flightmode": { "title": "Vliegtuigmodus" }
     },
     "recorder": { "started": "Opname gestart", "stopped": "Opname gestopt" },
     "screenshot": { "tooltip": "Schermafbeelding", "label": "screenshot" },

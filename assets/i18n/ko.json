@@ -125,21 +125,25 @@
       "wifi": {
         "disabled": "Wifi 비활성화",
         "password_prompt": "{ssid} 비밀번호 입력",
-        "connect_to": "{ssid}에 연결"
+        "connect_to": "{ssid}에 연결",
+        "title": "Wi-Fi"
       },
       "bluetooth": {
         "paired": "페어링된 장치",
         "available": "사용 가능한 장치",
-        "enabled": "활성화"
+        "enabled": "활성화",
+        "title": "Bluetooth"
       },
       "power_profiles": { "title": "전원 프로필", "saver": "절전 모드" },
-      "notifications": { "noisy": "소리", "quiet": "무음" },
-      "screenshot": { "label": "스크린샷" },
-      "recording": { "stopped": "녹화", "recording": "녹화 중" },
-      "dark_mode": { "dark": "다크", "light": "라이트" },
-      "hyprsunset": { "title": "HyprSunset", "enabled": "활성화" },
+      "notifications": { "noisy": "소리", "quiet": "무음", "title": "방해 금지" },
+      "screenshot": { "label": "스크린샷", "hint": "클릭: 영역 캡처" },
+      "recording": { "stopped": "녹화", "recording": "녹화 중", "title": "녹화", "idle": "대기 중" },
+      "dark_mode": { "dark": "다크", "light": "라이트", "title": "라이트 모드" },
+      "nightlight": { "title": "야간 모드", "enabled": "활성화" },
       "audio": { "title": "앱 오디오" },
-      "network": { "title": "네트워크" }
+      "network": { "title": "네트워크" },
+      "caffeine": { "title": "카페인", "awake": "화면이 켜진 상태 유지" },
+      "flightmode": { "title": "비행기 모드" }
     },
     "recorder": { "started": "녹화 시작", "stopped": "녹화 중지" },
     "screenshot": { "tooltip": "스크린샷", "label": "스크린샷" },

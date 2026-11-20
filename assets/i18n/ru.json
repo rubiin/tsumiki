@@ -125,21 +125,25 @@
       "wifi": {
         "disabled": "Wifi отключен",
         "password_prompt": "Введите пароль для {ssid}",
-        "connect_to": "Подключиться к {ssid}"
+        "connect_to": "Подключиться к {ssid}",
+        "title": "Wi-Fi"
       },
       "bluetooth": {
         "paired": "Сопряженные устройства",
         "available": "Доступные устройства",
-        "enabled": "Включено"
+        "enabled": "Включено",
+        "title": "Bluetooth"
       },
       "power_profiles": { "title": "Профили питания", "saver": "Энергосбережение" },
-      "notifications": { "noisy": "Звуковые", "quiet": "Тихие" },
-      "screenshot": { "label": "Скриншот" },
-      "recording": { "stopped": "Запись", "recording": "Запись" },
-      "dark_mode": { "dark": "Темная", "light": "Светлая" },
-      "hyprsunset": { "title": "HyprSunset", "enabled": "Включено" },
+      "notifications": { "noisy": "Звуковые", "quiet": "Тихие", "title": "Не беспокоить" },
+      "screenshot": { "label": "Скриншот", "hint": "Клик: снимок области" },
+      "recording": { "stopped": "Запись", "recording": "Запись", "title": "Запись", "idle": "Неактивно" },
+      "dark_mode": { "dark": "Темная", "light": "Светлая", "title": "Светлый режим" },
+      "nightlight": { "title": "Ночной режим", "enabled": "Включено" },
       "audio": { "title": "Аудио приложения" },
-      "network": { "title": "Сеть" }
+      "network": { "title": "Сеть" },
+      "caffeine": { "title": "Кофеин", "awake": "Экран не выключается" },
+      "flightmode": { "title": "Режим полёта" }
     },
     "recorder": { "started": "Запись начата", "stopped": "Запись остановлена" },
     "screenshot": { "tooltip": "Скриншот", "label": "скриншот" },

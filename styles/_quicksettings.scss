@@ -97,7 +97,7 @@ $qs-press-bg: color.adjust(theme.$surface-neutral, $alpha: -0.85);
     .quicksettings-toggle-action {
       border-radius: $toggler-radius 0 0 $toggler-radius;
 
-      min-height: 35px;
+      min-height: 44px;
 
       &:hover {
         background-color: $qs-hover-bg;
@@ -107,7 +107,19 @@ $qs-press-bg: color.adjust(theme.$surface-neutral, $alpha: -0.85);
         margin: 0 common.toEm(5);
 
         .panel-text {
+          background-color: transparent;
+        }
+
+        .quicksettings-tile-title {
           @extend %caption_heading;
+          margin-left: 0;
+        }
+
+        .quicksettings-tile-status {
+          margin-left: 0;
+          font-size: variable.$font-size-sm;
+          font-weight: 500;
+          opacity: 0.72;
         }
       }
     }
@@ -309,7 +321,7 @@ $qs-press-bg: color.adjust(theme.$surface-neutral, $alpha: -0.85);
         background-color: theme.$background-main;
         border-radius: $toggler-radius;
         @extend %caption_heading;
-        padding: common.toEm(3) 0;
+        padding: common.toEm(5) 0;
         padding-left: common.toEm(10);
 
         .panel-font-icon {
@@ -323,6 +335,13 @@ $qs-press-bg: color.adjust(theme.$surface-neutral, $alpha: -0.85);
 
         .quicksettings-row-label {
           margin-left: 0;
+        }
+
+        .quicksettings-row-subtitle {
+          margin-left: 0;
+          font-size: variable.$font-size-sm;
+          font-weight: 500;
+          opacity: 0.72;
         }
 
         /* .active needs no restatement here: every element carrying this
@@ -394,7 +413,7 @@ $qs-press-bg: color.adjust(theme.$surface-neutral, $alpha: -0.85);
   }
 }
 
-#hyprsunset-sub-menu {
+#nightlight-sub-menu {
   @include common.slider(
     $highlight-color: theme.$accent-blue,
     $knob: variable.$bar-widgets-quick_settings-sliders-knob,

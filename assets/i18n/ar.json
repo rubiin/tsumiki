@@ -154,12 +154,14 @@
       "wifi": {
         "disabled": "Wifi معطّل",
         "password_prompt": "أدخل كلمة مرور {ssid}",
-        "connect_to": "الاتصال بـ {ssid}"
+        "connect_to": "الاتصال بـ {ssid}",
+        "title": "Wi-Fi"
       },
       "bluetooth": {
         "paired": "أجهزة مقترنة",
         "available": "أجهزة متاحة",
-        "enabled": "مفعّل"
+        "enabled": "مفعّل",
+        "title": "Bluetooth"
       },
       "power_profiles": {
         "title": "ملفات الطاقة",
@@ -167,21 +169,26 @@
       },
       "notifications": {
         "noisy": "مزعج",
-        "quiet": "هادئ"
+        "quiet": "هادئ",
+        "title": "عدم الإزعاج"
       },
       "screenshot": {
-        "label": "لقطة شاشة"
+        "label": "لقطة شاشة",
+        "hint": "انقر: التقاط منطقة"
       },
       "recording": {
         "stopped": "تسجيل",
-        "recording": "جاري التسجيل"
+        "recording": "جاري التسجيل",
+        "title": "تسجيل",
+        "idle": "خامل"
       },
       "dark_mode": {
         "dark": "داكن",
-        "light": "فاتح"
+        "light": "فاتح",
+        "title": "الوضع الفاتح"
       },
-      "hyprsunset": {
-        "title": "HyprSunset",
+      "nightlight": {
+        "title": "إضاءة ليلية",
         "enabled": "مفعّل"
       },
       "audio": {
@@ -189,6 +196,13 @@
       },
       "network": {
         "title": "الشبكة"
+      },
+      "caffeine": {
+        "title": "الكافيين",
+        "awake": "الشاشة تبقى مضاءة"
+      },
+      "flightmode": {
+        "title": "وضع الطيران"
       }
     },
     "recorder": {

@@ -154,12 +154,14 @@
       "wifi": {
         "disabled": "Wifi desactive",
         "password_prompt": "Entrez le mot de passe pour {ssid}",
-        "connect_to": "Connecter a {ssid}"
+        "connect_to": "Connecter a {ssid}",
+        "title": "Wi-Fi"
       },
       "bluetooth": {
         "paired": "Appareils apparies",
         "available": "Appareils disponibles",
-        "enabled": "Active"
+        "enabled": "Active",
+        "title": "Bluetooth"
       },
       "power_profiles": {
         "title": "Profils d'alimentation",
@@ -167,21 +169,26 @@
       },
       "notifications": {
         "noisy": "Sonore",
-        "quiet": "Silencieux"
+        "quiet": "Silencieux",
+        "title": "Ne pas déranger"
       },
       "screenshot": {
-        "label": "Capture"
+        "label": "Capture",
+        "hint": "Clic : capturer une zone"
       },
       "recording": {
         "stopped": "Enregistrer",
-        "recording": "Enregistrement"
+        "recording": "Enregistrement",
+        "title": "Enregistrer",
+        "idle": "Inactif"
       },
       "dark_mode": {
         "dark": "Sombre",
-        "light": "Clair"
+        "light": "Clair",
+        "title": "Mode clair"
       },
-      "hyprsunset": {
-        "title": "HyprSunset",
+      "nightlight": {
+        "title": "Éclairage nocturne",
         "enabled": "Active"
       },
       "audio": {
@@ -189,6 +196,13 @@
       },
       "network": {
         "title": "Reseau"
+      },
+      "caffeine": {
+        "title": "Caféine",
+        "awake": "L'écran reste allumé"
+      },
+      "flightmode": {
+        "title": "Mode avion"
       }
     },
     "recorder": {

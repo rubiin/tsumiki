@@ -269,7 +269,8 @@ class WifiToggle(QSChevronButton):
     ):
         super().__init__(
             action_icon=get_text_icon("wifi.generic", "󰤬"),
-            action_label=_("widget.quick_settings.wifi.disabled"),
+            action_title=_("widget.quick_settings.wifi.title"),
+            action_label=_("common.off"),
             submenu_factory=submenu_factory,
             **kwargs,
         )

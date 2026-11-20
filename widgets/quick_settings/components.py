@@ -14,6 +14,7 @@ class QuickSettingsIconLabelRow(Box):
         self,
         icon: str,
         label: str,
+        subtitle: str | None = None,
         icon_classes: list[str] | None = None,
         label_classes: list[str] | None = None,
         row_classes: list[str] | None = None,
@@ -39,13 +40,33 @@ class QuickSettingsIconLabelRow(Box):
             + (label_classes or []),
         )
 
+        self.subtitle: Label | None = None
+        text_children = (self.label,)
+        if subtitle is not None:
+            self.subtitle = Label(
+                label=subtitle,
+                h_align="start",
+                h_expand=True,
+                ellipsization="end",
+                style_classes=["panel-text", "quicksettings-row-subtitle"]
+                + (label_classes or []),
+            )
+            text_children = (
+                Box(
+                    orientation="v",
+                    v_align="center",
+                    h_expand=True,
+                    children=(self.label, self.subtitle),
+                ),
+            )
+
         super().__init__(
             orientation="h",
             spacing=10,
             h_align=h_align,
             v_align="center",
             style_classes=["quicksettings-row"] + (row_classes or []),
-            children=(self.icon, self.label),
+            children=(self.icon, *text_children),
             **kwargs,
         )
 

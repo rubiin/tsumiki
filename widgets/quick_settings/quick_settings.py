@@ -64,7 +64,7 @@ _DEFAULT_TOGGLES = [
     "wifi",
     "bluetooth",
     "power_profiles",
-    "hyprsunset",
+    "nightlight",
     "hypridle",
     "notification",
     "recorder",
@@ -107,11 +107,11 @@ class QuickSettingsButtonBox(Box):
                 "PowerProfileToggle",
                 popup=self.popup,
             )
-        if name == "hyprsunset":
+        if name == "nightlight":
             return self._build_toggle(
-                "widgets.quick_settings.submenu.hyprsunset",
-                "HyprSunsetSubMenu",
-                "HyprSunsetToggle",
+                "widgets.quick_settings.submenu.nightlight",
+                "NightLightSubMenu",
+                "NightLightToggle",
                 popup=self.popup,
             )
         if name == "hypridle":

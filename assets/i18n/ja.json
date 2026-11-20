@@ -125,21 +125,25 @@
       "wifi": {
         "disabled": "Wifi無効",
         "password_prompt": "{ssid}のパスワードを入力",
-        "connect_to": "{ssid}に接続"
+        "connect_to": "{ssid}に接続",
+        "title": "Wi-Fi"
       },
       "bluetooth": {
         "paired": "ペアリング済みデバイス",
         "available": "利用可能なデバイス",
-        "enabled": "有効"
+        "enabled": "有効",
+        "title": "Bluetooth"
       },
       "power_profiles": { "title": "電源プロファイル", "saver": "省電力" },
-      "notifications": { "noisy": "音あり", "quiet": "サイレント" },
-      "screenshot": { "label": "スクリーンショット" },
-      "recording": { "stopped": "録画", "recording": "録画中" },
-      "dark_mode": { "dark": "ダーク", "light": "ライト" },
-      "hyprsunset": { "title": "HyprSunset", "enabled": "有効" },
+      "notifications": { "noisy": "音あり", "quiet": "サイレント", "title": "おやすみモード" },
+      "screenshot": { "label": "スクリーンショット", "hint": "クリック: 範囲を撮影" },
+      "recording": { "stopped": "録画", "recording": "録画中", "title": "録画", "idle": "待機中" },
+      "dark_mode": { "dark": "ダーク", "light": "ライト", "title": "ライトモード" },
+      "nightlight": { "title": "ナイトライト", "enabled": "有効" },
       "audio": { "title": "アプリケーション音声" },
-      "network": { "title": "ネットワーク" }
+      "network": { "title": "ネットワーク" },
+      "caffeine": { "title": "カフェイン", "awake": "画面をスリープさせない" },
+      "flightmode": { "title": "機内モード" }
     },
     "recorder": { "started": "録画開始", "stopped": "録画停止" },
     "screenshot": { "tooltip": "スクリーンショット", "label": "スクリーンショット" },
