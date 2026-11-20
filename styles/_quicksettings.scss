@@ -305,9 +305,6 @@ $qs-press-bg: color.adjust(theme.$surface-neutral, $alpha: -0.85);
       &.active {
         background-color: $qs-active-bg;
 
-        &:hover {
-          background-color: $qs-active-bg-hover;
-        }
 
         label,
         image,

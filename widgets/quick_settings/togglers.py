@@ -79,9 +79,7 @@ class HyprIdleQuickSetting(HoverButton):
             get_text_icon("idle.enabled" if active else "idle.disabled")
         )
         self.caffeine_status.set_label(
-            _("widget.quick_settings.caffeine.awake")
-            if active
-            else _("common.off")
+            _("widget.quick_settings.caffeine.awake") if active else _("common.off")
         )
 
 
@@ -230,7 +228,6 @@ class ScreenshotQuickSetting(HoverButton):
         self.popup = popup
         self.config = tsumiki_config.get("widgets", {}).get("screenshot", {})
 
-
         print("screenshot config", self.config)
 
         self.row = _toggle_row(
@@ -256,7 +253,7 @@ class ScreenshotQuickSetting(HoverButton):
 class RecorderQuickSetting(HoverButton):
     """A button to toggle screen recording."""
 
-    def __init__(self, popup,**kwargs):
+    def __init__(self, popup, **kwargs):
 
         super().__init__(
             name="quicksettings-togglebutton",
@@ -266,8 +263,6 @@ class RecorderQuickSetting(HoverButton):
 
         self.config = tsumiki_config.get("widgets", {}).get("recorder", {})
         self.popup = popup
-
-
 
         self.row = _toggle_row(
             get_text_icon("recorder", "󰻂"),
@@ -301,9 +296,7 @@ class RecorderQuickSetting(HoverButton):
     def update_state(self, *_args):
         recording = recorder_service.is_recording
         self.toggle_css_class("active", recording)
-        self.recorder_icon.set_label(
-            get_text_icon("recorder", "󰻂")
-        )
+        self.recorder_icon.set_label(get_text_icon("recorder", "󰻂"))
         if recording:
             self.recorder_status.set_label(
                 _("widget.quick_settings.recording.recording")
