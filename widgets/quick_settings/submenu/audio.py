@@ -96,6 +96,8 @@ class AudioSubMenu(QuickSubMenu):
 
             # Create audio slider for this app
             slider = AudioSlider(app)
+            # The shared slider centres its scale; rows want the row's full length.
+            slider.scale.set_halign(Gtk.Align.FILL)
             audio_box.pack_start(slider, True, True, 0)
 
             box.add(audio_box)

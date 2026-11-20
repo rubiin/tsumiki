@@ -387,51 +387,39 @@ class QuickSettingsMenu(Box, TeardownMixin):
             sliders_box.audio_submenu = self.audio_submenu
             sliders_box.add(self.audio_submenu)
 
-        # Determine slider box class and main grid based on shortcuts
+        sliders_box.add_style_class("slider-box-long")
+
+        # Sliders and shortcuts each get their own full-width section.
+        main_box = Box(
+            orientation="v",
+            spacing=10,
+            h_expand=True,
+            v_expand=True,
+            style_classes="section-box",
+        )
+        main_box.add(sliders_box)
+
         shortcuts_enabled = shortcuts_config.get("enabled", False)
         shortcuts_items = shortcuts_config.get("items", [])
         if shortcuts_enabled:
-            num_shortcuts = len(shortcuts_items)
-            if 2 < num_shortcuts <= 4:
-                slider_class = "slider-box-shorter"
-            elif 0 < num_shortcuts <= 2:
-                slider_class = "slider-box-short"
-            else:
-                slider_class = "slider-box-long"
-            sliders_box.v_expand = True
-        else:
-            slider_class = "slider-box-long"
-
-        sliders_box.add_style_class(slider_class)
-
-        # Create main grid with sliders and shortcuts if configured
-        main_grid = Grid(
-            column_spacing=10,
-            h_expand=True,
-            style_classes="section-box",
-        )
-
-        if shortcuts_enabled:
-            shortcuts_box = Box(
-                orientation="v",
-                spacing=10,
-                style_classes=["section-box", "shortcuts-box"],
-                children=(
-                    ShortcutsContainer(
-                        shortcuts_config=shortcuts_items,
-                        style_classes="shortcuts-grid",
-                        v_align="start",
-                        h_align="fill",
+            main_box.add(
+                Box(
+                    orientation="v",
+                    spacing=10,
+                    style_classes="shortcuts-box",
+                    children=(
+                        ShortcutsContainer(
+                            shortcuts_config=shortcuts_items,
+                            style_classes="shortcuts-grid",
+                            v_align="start",
+                            h_align="fill",
+                        ),
                     ),
-                ),
-                h_expand=False,
-                v_expand=True,
+                    h_expand=True,
+                    v_expand=False,
+                )
             )
 
-            main_grid.attach(sliders_box, 0, 0, 2, 1)
-            main_grid.attach(shortcuts_box, 2, 0, 1, 1)
-        else:
-            main_grid.attach(sliders_box, 0, 0, 3, 1)
         toggles = self.config.get("toggles", _DEFAULT_TOGGLES)
 
         # An empty toggles list hides the toggle section entirely.
@@ -449,7 +437,7 @@ class QuickSettingsMenu(Box, TeardownMixin):
                 style_classes="section-box",
                 children=start_children,
             ),
-            center_children=main_grid,
+            center_children=main_box,
         )
 
         if self.config.get("media", {}).get("enabled", False):

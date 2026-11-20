@@ -127,12 +127,13 @@ $qs-press-bg: color.adjust(theme.$surface-neutral, $alpha: -0.85);
     .shortcuts-box {
       border-radius: variable.$radius;
       margin: 0;
-      padding: 0;
+      padding: common.toEm(15);
+      background-color: theme.$background-main;
 
       button {
         padding: common.toEm(5);
         border-radius: variable.$radius;
-        background-color: theme.$background-main;
+        background-color: theme.$surface-neutral;
         color: theme.$text-main;
         min-height: 32px;
 
@@ -183,14 +184,6 @@ $qs-press-bg: color.adjust(theme.$surface-neutral, $alpha: -0.85);
 
     .slider-box-long {
       @include slider-box(variable.$slider-long);
-    }
-
-    .slider-box-short {
-      @include slider-box(variable.$slider-medium);
-    }
-
-    .slider-box-shorter {
-      @include slider-box(variable.$slider-short, $padding: common.toEm(10));
     }
 
     #submenu {
@@ -304,7 +297,6 @@ $qs-press-bg: color.adjust(theme.$surface-neutral, $alpha: -0.85);
 
       &.active {
         background-color: $qs-active-bg;
-
 
         label,
         image,
