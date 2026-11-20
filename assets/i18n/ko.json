@@ -134,6 +134,8 @@
       },
       "power_profiles": { "title": "전원 프로필", "saver": "절전 모드" },
       "notifications": { "noisy": "소리", "quiet": "무음" },
+      "screenshot": { "label": "스크린샷" },
+      "recording": { "stopped": "녹화", "recording": "녹화 중" },
       "dark_mode": { "dark": "다크", "light": "라이트" },
       "hyprsunset": { "title": "HyprSunset", "enabled": "활성화" },
       "audio": { "title": "앱 오디오" },

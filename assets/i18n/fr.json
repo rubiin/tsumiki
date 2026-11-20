@@ -169,6 +169,13 @@
         "noisy": "Sonore",
         "quiet": "Silencieux"
       },
+      "screenshot": {
+        "label": "Capture"
+      },
+      "recording": {
+        "stopped": "Enregistrer",
+        "recording": "Enregistrement"
+      },
       "dark_mode": {
         "dark": "Sombre",
         "light": "Clair"

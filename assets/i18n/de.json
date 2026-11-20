@@ -169,6 +169,13 @@
         "noisy": "Laust",
         "quiet": "Leise"
       },
+      "screenshot": {
+        "label": "Screenshot"
+      },
+      "recording": {
+        "stopped": "Aufnahme",
+        "recording": "Aufnahme läuft"
+      },
       "dark_mode": {
         "dark": "Dunkel",
         "light": "Hell"

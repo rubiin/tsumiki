@@ -134,6 +134,8 @@
       },
       "power_profiles": { "title": "Профили питания", "saver": "Энергосбережение" },
       "notifications": { "noisy": "Звуковые", "quiet": "Тихие" },
+      "screenshot": { "label": "Скриншот" },
+      "recording": { "stopped": "Запись", "recording": "Запись" },
       "dark_mode": { "dark": "Темная", "light": "Светлая" },
       "hyprsunset": { "title": "HyprSunset", "enabled": "Включено" },
       "audio": { "title": "Аудио приложения" },

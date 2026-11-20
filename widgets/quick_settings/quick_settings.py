@@ -31,12 +31,27 @@ from utils.widget_utils import (
 from .components import LazyWidgetContainer
 from .shortcuts import ShortcutsContainer
 from .submenu.audio import AudioSubMenu
-from .togglers import (
-    DarkModeToggle,
-    FlightModeToggle,
-    HyprIdleQuickSetting,
-    NotificationQuickSetting,
-)
+
+# Default config values for the screenshot and recorder toggles are wired from
+# the standalone widget defaults so the quick settings use the same paths/flags.
+
+SCREENSHOT_DEFAULT_CONFIG = {
+    "path": "Pictures/Screenshots",
+    "label_format": "󰄀",
+    "tooltip": True,
+    "annotation": True,
+    "delayed": False,
+    "delayed_timeout": 5000,
+    "capture_sound": False,
+}
+
+RECORDER_DEFAULT_CONFIG = {
+    "path": "Videos/Screencasting",
+    "tooltip": True,
+    "audio": True,
+    "delayed": False,
+    "delayed_timeout": 5000,
+}
 
 _WIFI_GENERIC_ICON = get_text_icon("wifi.generic", "󰤬")
 _ETHERNET_ICON = get_text_icon("ethernet", "󰈀")
@@ -52,6 +67,8 @@ _DEFAULT_TOGGLES = [
     "hyprsunset",
     "hypridle",
     "notification",
+    "recorder",
+    "screenshot",
 ]
 
 
@@ -98,13 +115,47 @@ class QuickSettingsButtonBox(Box):
                 popup=self.popup,
             )
         if name == "hypridle":
-            return HyprIdleQuickSetting(popup=self.popup)
+            return lazy_load_class(
+                "widgets.quick_settings.togglers",
+                "HyprIdleQuickSetting",
+            )(
+                popup=self.popup,
+            )
         if name == "notification":
-            return NotificationQuickSetting(popup=self.popup)
+            return lazy_load_class(
+                "widgets.quick_settings.togglers",
+                "NotificationQuickSetting",
+            )(
+                popup=self.popup,
+            )
         if name == "darkmode":
-            return DarkModeToggle(popup=self.popup)
+            return lazy_load_class(
+                "widgets.quick_settings.togglers",
+                "DarkModeToggle",
+            )(
+                popup=self.popup,
+            )
         if name == "flightmode":
-            return FlightModeToggle(popup=self.popup)
+            return lazy_load_class(
+                "widgets.quick_settings.togglers",
+                "FlightModeToggle",
+            )(
+                popup=self.popup,
+            )
+        if name == "screenshot":
+            return lazy_load_class(
+                "widgets.quick_settings.togglers",
+                "ScreenshotQuickSetting",
+            )(
+                popup=self.popup,
+            )
+        if name == "recorder":
+            return lazy_load_class(
+                "widgets.quick_settings.togglers",
+                "RecorderQuickSetting",
+            )(
+                popup=self.popup,
+            )
         logger.warning(f"Unknown quick settings toggle: {name}")
         return None
 

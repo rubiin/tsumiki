@@ -134,6 +134,8 @@
       },
       "power_profiles": { "title": "電源プロファイル", "saver": "省電力" },
       "notifications": { "noisy": "音あり", "quiet": "サイレント" },
+      "screenshot": { "label": "スクリーンショット" },
+      "recording": { "stopped": "録画", "recording": "録画中" },
       "dark_mode": { "dark": "ダーク", "light": "ライト" },
       "hyprsunset": { "title": "HyprSunset", "enabled": "有効" },
       "audio": { "title": "アプリケーション音声" },

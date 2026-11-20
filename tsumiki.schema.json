@@ -665,7 +665,9 @@
                   "hypridle",
                   "notification",
                   "darkmode",
-                  "flightmode"
+                  "flightmode",
+                  "screenshot",
+                  "recorder"
                 ]
               },
               "default": [
@@ -674,9 +676,11 @@
                 "power_profiles",
                 "hyprsunset",
                 "hypridle",
-                "notification"
+                "notification",
+                "recorder",
+                "screenshot"
               ],
-              "description": "The list of toggles to display in the quick settings. Toggles flow two per row; an empty list hides the toggle section entirely."
+              "description": "The list of toggles to display in the quick settings. Toggles flow two per row; an empty list hides the toggle section entirely. screenshot and recorder match the standalone Screenshot and Screen Recording widgets."
             },
             "user": {
               "type": "object",

@@ -100,7 +100,7 @@ enabled = false
 message = ""
 [widgets.quick_settings]
 hover_reveal = false
-toggles = ["wifi", "bluetooth", "power_profiles", "hyprsunset", "hypridle", "notification"]
+toggles = ["wifi", "bluetooth", "power_profiles", "hyprsunset", "hypridle", "notification", "recorder", "screenshot"]
 
 [widgets.quick_settings.user]
 avatar = "~/.face"
@@ -348,7 +348,7 @@ delayed_timeout = 5000
 path = "Pictures/Screenshots"
 label_format = "󰄀"
 tooltip = true
-annotation = false
+annotation = true
 delayed = false
 delayed_timeout = 5000
 capture_sound = false

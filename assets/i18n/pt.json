@@ -136,6 +136,8 @@
       },
       "power_profiles": { "title": "Perfis de energia", "saver": "Economia de energia" },
       "notifications": { "noisy": "Sonoro", "quiet": "Silencioso" },
+      "screenshot": { "label": "Captura" },
+      "recording": { "stopped": "Gravar", "recording": "Gravando" },
       "dark_mode": { "dark": "Escuro", "light": "Claro" },
       "hyprsunset": { "title": "HyprSunset", "enabled": "Ativado" },
       "audio": { "title": "Audio do aplicativo" },

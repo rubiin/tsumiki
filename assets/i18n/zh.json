@@ -114,6 +114,8 @@
       "bluetooth": { "paired": "已配对设备", "available": "可用设备", "enabled": "已启用" },
       "power_profiles": { "title": "电源配置", "saver": "节能模式" },
       "notifications": { "noisy": "有声", "quiet": "静音" },
+      "screenshot": { "label": "截屏" },
+      "recording": { "stopped": "录制", "recording": "录制中" },
       "dark_mode": { "dark": "深色", "light": "浅色" },
       "hyprsunset": { "title": "HyprSunset", "enabled": "已启用" },
       "audio": { "title": "应用音频" },

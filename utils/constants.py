@@ -40,11 +40,23 @@ USER_STATE_DIR = GLib.get_user_state_dir()
 LOG_DIR = f"{USER_STATE_DIR}/{APPLICATION_NAME}/logs"
 LOG_FILE = f"{LOG_DIR}/{APPLICATION_NAME}.log"
 LOG_FORMAT = "{time:YYYY-MM-DD HH:mm:ss} [<level>{level}</level>] {message}"
+CAVA_CONFIG = f"{APP_DATA_DIRECTORY}/cava.conf"
 
 NOTE_COLORS = ("yellow", "pink", "blue", "green", "purple")
 
 
-CAVA_CONFIG = f"{APP_DATA_DIRECTORY}/cava.conf"
+_DEFAULT_TOGGLES = [
+    "wifi",
+    "bluetooth",
+    "power_profiles",
+    "hyprsunset",
+    "hypridle",
+    "notification",
+    "recorder",
+    "screenshot",
+]
+
+
 BAR_GLYPHS = "▁▂▃▄▅▆▇█"
 
 # Pre-configured DNS providers with label, primary, secondary
@@ -122,6 +134,8 @@ DEFAULT_CONFIG = {
                 "hyprsunset",
                 "hypridle",
                 "notification",
+                "recorder",
+                "screenshot",
             ],
             "user": {"avatar": "~/.face", "name": "system", "distro_icon": True},
             "controls": {
@@ -137,12 +151,13 @@ DEFAULT_CONFIG = {
                 "show_time": True,
                 "show_time_tooltip": True,
                 "hide_when_stopped": True,
-            },
-            "shortcuts": {
+            },            "shortcuts": {
                 "enabled": True,
                 "items": [],
             },
         },
+
+
         "bluetooth": {
             "tooltip": True,
             "label_format": "",

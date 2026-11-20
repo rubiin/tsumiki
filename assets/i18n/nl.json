@@ -130,6 +130,8 @@
       },
       "power_profiles": { "title": "Energieprofielen", "saver": "Energiebesparing" },
       "notifications": { "noisy": "Luid", "quiet": "Stil" },
+      "screenshot": { "label": "Schermafbeelding" },
+      "recording": { "stopped": "Opnemen", "recording": "Opname" },
       "dark_mode": { "dark": "Donker", "light": "Licht" },
       "hyprsunset": { "title": "HyprSunset", "enabled": "Ingeschakeld" },
       "audio": { "title": "Applicatie audio" },

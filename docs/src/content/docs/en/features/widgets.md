@@ -622,13 +622,16 @@ A comprehensive quick settings panel with user info, controls, media, and shortc
 
 The `toggles` array selects which quick settings buttons appear. Available
 toggles: wifi, bluetooth, power_profiles, hyprsunset, hypridle, notification,
-darkmode, flightmode. They flow two per row; an empty array hides the toggle
+darkmode, flightmode, screenshot, recorder. They flow two per row; an empty array hides the toggle
 section entirely. darkmode and flightmode are opt-in and not enabled by default.
+Screenshot and recorder are enabled by default and match the standalone
+[Screenshot](/en/features/widgets#screenshot) and [Screen
+Recording](/en/features/widgets#screen-recording) widgets.
 
 ```toml
 [widgets.quick_settings]
 hover_reveal = false
-toggles = ["wifi", "bluetooth", "power_profiles", "hyprsunset", "hypridle", "notification"]
+toggles = ["wifi", "bluetooth", "power_profiles", "hyprsunset", "hypridle", "notification", "recorder", "screenshot"]
 
 [widgets.quick_settings.user]
 avatar = "~/.face"

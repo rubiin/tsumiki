@@ -134,6 +134,8 @@
       },
       "power_profiles": { "title": "Guc profilleri", "saver": "Enerji tasarrufu" },
       "notifications": { "noisy": "Sessiz", "quiet": "Sessiz" },
+      "screenshot": { "label": "Ekran goruntusu" },
+      "recording": { "stopped": "Kaydet", "recording": "Kaydediliyor" },
       "dark_mode": { "dark": "Karanlik", "light": "Acik" },
       "hyprsunset": { "title": "HyprSunset", "enabled": "Etkin" },
       "audio": { "title": "Uygulama sesi" },

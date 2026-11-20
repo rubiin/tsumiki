@@ -83,6 +83,7 @@ text_nerd_icons = {
     "updates": "󱧘",
     "thermometer": "",
     "recorder": "󰻂",
+    "screenshot": "󰄀",
     "fallback": "",
     "battery": {
         "charging": "󰠠",

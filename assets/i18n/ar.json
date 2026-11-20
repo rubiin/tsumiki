@@ -169,6 +169,13 @@
         "noisy": "مزعج",
         "quiet": "هادئ"
       },
+      "screenshot": {
+        "label": "لقطة شاشة"
+      },
+      "recording": {
+        "stopped": "تسجيل",
+        "recording": "جاري التسجيل"
+      },
       "dark_mode": {
         "dark": "داكن",
         "light": "فاتح"
