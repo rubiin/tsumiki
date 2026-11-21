@@ -141,6 +141,7 @@ class MyWidget(ButtonWidget, PopoverMixin):
 | Service             | File                              | Source                 | Description                     |
 | ------------------- | --------------------------------- | ---------------------- | ------------------------------- |
 | Battery             | `services/battery.py`             | UPower D-Bus           | Battery level, charging state   |
+| Disks               | `services/disks.py`               | UDisks2 D-Bus          | Filesystem discovery, mount     |
 | Network             | `services/network.py`             | NetworkManager D-Bus   | WiFi, Ethernet, signal strength |
 | Brightness          | `services/brightness.py`          | brightnessctl          | Screen/keyboard brightness      |
 | Weather             | `services/weather.py`             | Open-Meteo / wttr.in   | Weather conditions, forecast    |

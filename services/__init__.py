@@ -122,6 +122,13 @@ def get_keyboard_service():
     return _get_service("keyboard", KeyboardService)
 
 
+def get_disks_service():
+    """Get the UDisks2 filesystem service (lazy-loaded)."""
+    from .disks import DisksService
+
+    return _get_service("disks", DisksService)
+
+
 def get_brightness_service():
     """Get the brightness service (lazy-loaded)."""
     from .brightness import BrightnessService
@@ -181,6 +188,7 @@ brightness_service = _LazyServiceProxy(get_brightness_service)
 cava_service = _LazyServiceProxy(get_cava_service)
 caffeine_service = _LazyServiceProxy(get_caffeine_service)
 keyboard_service = _LazyServiceProxy(get_keyboard_service)
+disks_service = _LazyServiceProxy(get_disks_service)
 note_service = _LazyServiceProxy(get_note_service)
 matugen_service = _LazyServiceProxy(get_matugen_service)
 notification_service = _LazyServiceProxy(get_notification_service)
