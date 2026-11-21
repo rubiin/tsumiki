@@ -20,6 +20,7 @@ text_nerd_icons = {
         "plus": "",
         "drag": "󰇜",
         "refresh": "",
+        "monitor": "󰍹",
     },
     "ethernet": "󰈀",
     "wifi": {

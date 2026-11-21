@@ -81,6 +81,10 @@ class DispatchCommandTest(unittest.TestCase):
             self.sent(),
         )
 
+    def test_focus_monitor(self):
+        self.service.focus_monitor("DP-1")
+        self.assertEqual('dispatch hl.dsp.focus({monitor="DP-1"})', self.sent())
+
     def test_no_command_uses_the_removed_legacy_syntax(self):
         """Guard the whole class of bug, not just today's call sites."""
         for call in (
@@ -92,6 +96,7 @@ class DispatchCommandTest(unittest.TestCase):
             lambda: self.service.set_fullscreen(True),
             lambda: self.service.set_fullscreen(False),
             lambda: self.service.close_windows_by_class("x"),
+            lambda: self.service.focus_monitor("DP-1"),
         ):
             self.connection.send_command_async.reset_mock()
             call()

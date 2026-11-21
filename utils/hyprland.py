@@ -8,6 +8,8 @@ from utils.singleton import SingletonMixin
 
 # /dispatch is Lua in 0.55+: a bare window address matches nothing, so use a selector.
 _ADDRESS_RE = re.compile(r"\A0x[0-9a-fA-F]+\Z")
+# Monitor connector names (DP-1, HDMI-A-1, eDP-1) also land inside a Lua string.
+_MONITOR_RE = re.compile(r"\A[\w.-]+\Z")
 
 
 def _window_selector(address: str) -> str | None:
@@ -184,6 +186,13 @@ class HyprlandService(SingletonMixin):
         self._dispatch(
             f'hl.dsp.window.fullscreen({{mode="fullscreen", action="{action}"}})'
         )
+
+    def focus_monitor(self, name: str) -> None:
+        """Move focus to the monitor with connector *name*."""
+        if not name or not _MONITOR_RE.match(name):
+            logger.error(f"[HyprlandService] Refusing to focus bad monitor {name!r}")
+            return
+        self._dispatch(f'hl.dsp.focus({{monitor="{name}"}})')
 
 
 # Module-level singleton for convenient imports

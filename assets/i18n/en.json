@@ -167,6 +167,11 @@
         "title": "Power profiles",
         "saver": "Power Saver"
       },
+      "displays": {
+        "title": "Displays",
+        "unknown": "Unknown",
+        "none": "No outputs found"
+      },
       "notifications": {
         "noisy": "Noisy",
         "quiet": "Quiet",

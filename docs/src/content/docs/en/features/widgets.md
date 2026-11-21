@@ -628,6 +628,9 @@ Screenshot and recorder are enabled by default and match the standalone
 [Screenshot](/en/features/widgets#screenshot) and [Screen
 Recording](/en/features/widgets#screen-recording) widgets.
 
+A separate **Displays** row always appears below the sliders; it lists
+connected outputs and focuses the one you click.
+
 ```toml
 [widgets.quick_settings]
 hover_reveal = false
@@ -635,6 +638,7 @@ toggles = [
   "wifi",
   "bluetooth",
   "power_profiles",
+  "displays",
   "hyprsunset",
   "hypridle",
   "notification",

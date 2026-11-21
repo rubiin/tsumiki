@@ -228,8 +228,6 @@ class ScreenshotQuickSetting(HoverButton):
         self.popup = popup
         self.config = tsumiki_config.get("widgets", {}).get("screenshot", {})
 
-        print("screenshot config", self.config)
-
         self.row = _toggle_row(
             get_text_icon("screenshot", "󰆈"),
             _("widget.quick_settings.screenshot.label"),

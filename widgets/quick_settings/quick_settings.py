@@ -31,27 +31,11 @@ from utils.widget_utils import (
 from .components import LazyWidgetContainer
 from .shortcuts import ShortcutsContainer
 from .submenu.audio import AudioSubMenu
+from .submenu.displays import DisplaysSubMenu, DisplaysToggle
 
 # Default config values for the screenshot and recorder toggles are wired from
 # the standalone widget defaults so the quick settings use the same paths/flags.
 
-SCREENSHOT_DEFAULT_CONFIG = {
-    "path": "Pictures/Screenshots",
-    "label_format": "󰄀",
-    "tooltip": True,
-    "annotation": True,
-    "delayed": False,
-    "delayed_timeout": 5000,
-    "capture_sound": False,
-}
-
-RECORDER_DEFAULT_CONFIG = {
-    "path": "Videos/Screencasting",
-    "tooltip": True,
-    "audio": True,
-    "delayed": False,
-    "delayed_timeout": 5000,
-}
 
 _WIFI_GENERIC_ICON = get_text_icon("wifi.generic", "󰤬")
 _ETHERNET_ICON = get_text_icon("ethernet", "󰈀")
@@ -426,6 +410,16 @@ class QuickSettingsMenu(Box, TeardownMixin):
         start_children = [self.user_box]
         if toggles:
             start_children.append(QuickSettingsButtonBox(popup=popup, toggles=toggles))
+
+        # Displays section — independent row below the toggles grid.
+        displays_box = Box(
+            orientation="v",
+            spacing=10,
+            h_expand=True,
+        )
+        display_toggle = DisplaysToggle(submenu_factory=DisplaysSubMenu)
+        displays_box.add(display_toggle)
+        start_children.append(displays_box)
 
         box = CenterBox(
             orientation="v",
