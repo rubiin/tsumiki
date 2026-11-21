@@ -137,7 +137,12 @@
       "power_profiles": { "title": "Guc profilleri", "saver": "Enerji tasarrufu" },
       "notifications": { "noisy": "Sessiz", "quiet": "Sessiz", "title": "Rahatsız Etme" },
       "screenshot": { "label": "Ekran goruntusu", "hint": "Tıkla: alanı yakala" },
-      "recording": { "stopped": "Kaydet", "recording": "Kaydediliyor", "title": "Kayıt", "idle": "Boşta" },
+      "recording": {
+        "stopped": "Kaydet",
+        "recording": "Kaydediliyor",
+        "title": "Kayıt",
+        "idle": "Boşta"
+      },
       "dark_mode": { "dark": "Karanlik", "light": "Acik", "title": "Açık Mod" },
       "nightlight": { "title": "Gece Işığı", "enabled": "Etkin" },
       "audio": { "title": "Uygulama sesi" },

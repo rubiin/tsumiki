@@ -112,7 +112,12 @@
         "connect_to": "连接到 {ssid}",
         "title": "Wi-Fi"
       },
-      "bluetooth": { "paired": "已配对设备", "available": "可用设备", "enabled": "已启用", "title": "Bluetooth" },
+      "bluetooth": {
+        "paired": "已配对设备",
+        "available": "可用设备",
+        "enabled": "已启用",
+        "title": "Bluetooth"
+      },
       "power_profiles": { "title": "电源配置", "saver": "节能模式" },
       "notifications": { "noisy": "有声", "quiet": "静音", "title": "勿扰模式" },
       "screenshot": { "label": "截屏", "hint": "点击：截取区域" },
