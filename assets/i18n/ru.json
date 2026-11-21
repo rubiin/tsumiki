@@ -137,7 +137,12 @@
       "power_profiles": { "title": "Профили питания", "saver": "Энергосбережение" },
       "notifications": { "noisy": "Звуковые", "quiet": "Тихие", "title": "Не беспокоить" },
       "screenshot": { "label": "Скриншот", "hint": "Клик: снимок области" },
-      "recording": { "stopped": "Запись", "recording": "Запись", "title": "Запись", "idle": "Неактивно" },
+      "recording": {
+        "stopped": "Запись",
+        "recording": "Запись",
+        "title": "Запись",
+        "idle": "Неактивно"
+      },
       "dark_mode": { "dark": "Темная", "light": "Светлая", "title": "Светлый режим" },
       "nightlight": { "title": "Ночной режим", "enabled": "Включено" },
       "audio": { "title": "Аудио приложения" },

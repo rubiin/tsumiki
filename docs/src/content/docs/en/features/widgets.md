@@ -631,7 +631,16 @@ Recording](/en/features/widgets#screen-recording) widgets.
 ```toml
 [widgets.quick_settings]
 hover_reveal = false
-toggles = ["wifi", "bluetooth", "power_profiles", "hyprsunset", "hypridle", "notification", "recorder", "screenshot"]
+toggles = [
+  "wifi",
+  "bluetooth",
+  "power_profiles",
+  "hyprsunset",
+  "hypridle",
+  "notification",
+  "recorder",
+  "screenshot",
+]
 
 [widgets.quick_settings.user]
 avatar = "~/.face"
