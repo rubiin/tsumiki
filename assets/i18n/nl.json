@@ -133,7 +133,12 @@
       "power_profiles": { "title": "Energieprofielen", "saver": "Energiebesparing" },
       "notifications": { "noisy": "Luid", "quiet": "Stil", "title": "Niet storen" },
       "screenshot": { "label": "Schermafbeelding", "hint": "Klik: gebied vastleggen" },
-      "recording": { "stopped": "Opnemen", "recording": "Opname", "title": "Opnemen", "idle": "Inactief" },
+      "recording": {
+        "stopped": "Opnemen",
+        "recording": "Opname",
+        "title": "Opnemen",
+        "idle": "Inactief"
+      },
       "dark_mode": { "dark": "Donker", "light": "Licht", "title": "Lichte modus" },
       "nightlight": { "title": "Nachtlamp", "enabled": "Ingeschakeld" },
       "audio": { "title": "Applicatie audio" },
