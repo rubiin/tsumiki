@@ -638,7 +638,6 @@ toggles = [
   "wifi",
   "bluetooth",
   "power_profiles",
-  "displays",
   "hyprsunset",
   "hypridle",
   "notification",

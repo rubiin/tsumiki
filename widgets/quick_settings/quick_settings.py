@@ -148,7 +148,7 @@ class QuickSettingsButtonBox(Box):
             self.active_submenu._reveal(False)
             self.active_submenu = None
 
-    def __init__(self, popup, toggles=None, **kwargs):
+    def __init__(self, popup, toggles=None, footer_toggles=None, **kwargs):
         super().__init__(
             orientation="v",
             name="quick-settings-button-box",
@@ -160,6 +160,7 @@ class QuickSettingsButtonBox(Box):
 
         self.popup = popup
         self.toggles = _DEFAULT_TOGGLES if toggles is None else toggles
+        self.footer_toggles = list(footer_toggles or ())
 
         self.grid = Grid(
             row_spacing=10,
@@ -183,11 +184,16 @@ class QuickSettingsButtonBox(Box):
             else:
                 self.grid.attach(toggle, i % 2, i // 2, 1, 1)
 
-        for toggle in built_toggles:
+        for toggle in (*built_toggles, *self.footer_toggles):
             if hasattr(toggle, "ensure_submenu"):
                 toggle.connect("reveal-clicked", self.set_active_submenu)
 
-        self.children = (self.grid,) if built_toggles else ()
+        children = [self.grid] if built_toggles else []
+        children.extend(
+            Box(orientation="v", spacing=10, h_expand=True, children=[toggle])
+            for toggle in self.footer_toggles
+        )
+        self.children = tuple(children)
 
         self.connect("unmap", self.close_all_submenus)
 
@@ -406,20 +412,15 @@ class QuickSettingsMenu(Box, TeardownMixin):
 
         toggles = self.config.get("toggles", _DEFAULT_TOGGLES)
 
-        # An empty toggles list hides the toggle section entirely.
-        start_children = [self.user_box]
-        if toggles:
-            start_children.append(QuickSettingsButtonBox(popup=popup, toggles=toggles))
-
-        # Displays section — independent row below the toggles grid.
-        displays_box = Box(
-            orientation="v",
-            spacing=10,
-            h_expand=True,
-        )
-        display_toggle = DisplaysToggle(submenu_factory=DisplaysSubMenu)
-        displays_box.add(display_toggle)
-        start_children.append(displays_box)
+        # The displays row always shows; an empty toggles list only hides the grid.
+        start_children = [
+            self.user_box,
+            QuickSettingsButtonBox(
+                popup=popup,
+                toggles=toggles,
+                footer_toggles=(DisplaysToggle(submenu_factory=DisplaysSubMenu),),
+            ),
+        ]
 
         box = CenterBox(
             orientation="v",
