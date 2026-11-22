@@ -153,10 +153,6 @@ DEFAULT_CONFIG = {
                 "show_time_tooltip": True,
                 "hide_when_stopped": True,
             },
-            "shortcuts": {
-                "enabled": True,
-                "items": [],
-            },
         },
         "bluetooth": {
             "tooltip": True,

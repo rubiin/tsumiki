@@ -618,7 +618,7 @@ tooltip = true
 
 ### Quick Settings
 
-A comprehensive quick settings panel with user info, controls, media, and shortcuts.
+A comprehensive quick settings panel with user info, controls, and media.
 
 The `toggles` array selects which quick settings buttons appear. Available
 toggles: wifi, bluetooth, power_profiles, hyprsunset, hypridle, notification,
@@ -664,16 +664,6 @@ show_time = true
 show_time_tooltip = true
 # Hide the media section when no player is playing or paused
 hide_when_stopped = true
-
-[widgets.quick_settings.shortcuts]
-enabled = true
-
-[[widgets.quick_settings.shortcuts.items]]
-icon = ""
-label = "Terminal"
-command = "kitty"
-tooltip = "Open terminal"
-icon_size = 18
 ```
 
 ### System Tray

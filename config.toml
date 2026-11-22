@@ -122,37 +122,6 @@ show_time_tooltip = true
 # Hide the media section when no player is playing or paused
 hide_when_stopped = true
 
-[widgets.quick_settings.shortcuts]
-enabled = true
-
-[[widgets.quick_settings.shortcuts.items]]
-icon = ""
-label = "Terminal"
-command = "kitty"
-tooltip = "Open terminal"
-icon_size = 18
-
-[[widgets.quick_settings.shortcuts.items]]
-icon = ""
-label = "Browser"
-command = "firefox"
-tooltip = "Launch Firefox"
-icon_size = 18
-
-[[widgets.quick_settings.shortcuts.items]]
-icon = ""
-label = "Spotify"
-command = "spotify"
-tooltip = "Launch Spotify"
-icon_size = 18
-
-[[widgets.quick_settings.shortcuts.items]]
-icon = ""
-label = "Code"
-command = "code"
-tooltip = "Launch Code"
-icon_size = 18
-
 [widgets.bluetooth]
 # {state} -> "on" / "off"
 label_format = ""

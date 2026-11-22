@@ -29,7 +29,6 @@ from utils.widget_utils import (
 )
 
 from .components import LazyWidgetContainer
-from .shortcuts import ShortcutsContainer
 from .submenu.audio import AudioSubMenu
 from .submenu.displays import DisplaysSubMenu, DisplaysToggle
 
@@ -238,7 +237,6 @@ class QuickSettingsMenu(Box, TeardownMixin):
         self.popup = popup
 
         user_config = self.config.get("user", {})
-        shortcuts_config = self.config.get("shortcuts", {})
         controls_config = self.config.get("controls", {})
 
         raw_avatar_path = user_config.get("avatar", "$HOME/.face")
@@ -379,7 +377,6 @@ class QuickSettingsMenu(Box, TeardownMixin):
 
         sliders_box.add_style_class("slider-box-long")
 
-        # Sliders and shortcuts each get their own full-width section.
         main_box = Box(
             orientation="v",
             spacing=10,
@@ -388,27 +385,6 @@ class QuickSettingsMenu(Box, TeardownMixin):
             style_classes="section-box",
         )
         main_box.add(sliders_box)
-
-        shortcuts_enabled = shortcuts_config.get("enabled", False)
-        shortcuts_items = shortcuts_config.get("items", [])
-        if shortcuts_enabled:
-            main_box.add(
-                Box(
-                    orientation="v",
-                    spacing=10,
-                    style_classes="shortcuts-box",
-                    children=(
-                        ShortcutsContainer(
-                            shortcuts_config=shortcuts_items,
-                            style_classes="shortcuts-grid",
-                            v_align="start",
-                            h_align="fill",
-                        ),
-                    ),
-                    h_expand=True,
-                    v_expand=False,
-                )
-            )
 
         toggles = self.config.get("toggles", _DEFAULT_TOGGLES)
 

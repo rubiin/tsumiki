@@ -536,7 +536,7 @@ tooltip = true
 
 ### Ajustes Rápidos
 
-Un panel completo de ajustes rápidos con información de usuario, controles, medios y atajos.
+Un panel completo de ajustes rápidos con información de usuario, controles y medios.
 
 ```toml
 [widgets.quick_settings]
@@ -558,16 +558,6 @@ show_album = true
 show_artist = true
 show_time = true
 show_time_tooltip = true
-
-[widgets.quick_settings.shortcuts]
-enabled = true
-
-[[widgets.quick_settings.shortcuts.items]]
-icon = ""
-label = "Terminal"
-command = "kitty"
-tooltip = "Abrir terminal"
-icon_size = 18
 ```
 
 ### Bandeja del Sistema

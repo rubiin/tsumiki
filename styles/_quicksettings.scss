@@ -165,33 +165,6 @@ $qs-press-bg: color.adjust(theme.$surface-neutral, $alpha: -0.85);
       }
     }
 
-    .shortcuts-box {
-      border-radius: variable.$radius;
-      margin: 0;
-      padding: common.toEm(15);
-      background-color: theme.$background-main;
-
-      button {
-        padding: common.toEm(5);
-        border-radius: variable.$radius;
-        background-color: theme.$surface-neutral;
-        color: theme.$text-main;
-        min-height: 32px;
-
-        .shortcut-icon {
-          font-weight: bold;
-        }
-
-        &:hover {
-          @include common.widget-hover(true);
-        }
-
-        &:active {
-          background-color: $qs-press-bg;
-        }
-      }
-    }
-
     #power-menu-box {
       .panel-font-icon {
         font-size: variable.$font-size-2xl;

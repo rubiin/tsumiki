@@ -777,79 +777,9 @@
                 "show_time",
                 "show_time_tooltip"
               ]
-            },
-            "shortcuts": {
-              "type": "object",
-              "properties": {
-                "enabled": {
-                  "type": "boolean",
-                  "default": true,
-                  "description": "Determines whether shortcuts are enabled."
-                },
-                "items": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "icon": {
-                        "type": "string",
-                        "description": "The icon to display for the shortcut."
-                      },
-                      "label": {
-                        "type": "string",
-                        "description": "The label for the shortcut."
-                      },
-                      "command": {
-                        "type": "string",
-                        "description": "The command to execute when the shortcut is activated."
-                      },
-                      "tooltip": {
-                        "type": "string",
-                        "description": "The tooltip to display for the shortcut."
-                      },
-                      "icon_size": {
-                        "type": "number",
-                        "description": "The size of the icon for the shortcut."
-                      }
-                    },
-                    "required": ["icon", "label", "command", "tooltip", "icon_size"]
-                  },
-                  "default": [
-                    {
-                      "icon": "",
-                      "label": "Terminal",
-                      "command": "kitty",
-                      "tooltip": "Open terminal",
-                      "icon_size": 18
-                    },
-                    {
-                      "icon": "",
-                      "label": "Browser",
-                      "command": "firefox",
-                      "tooltip": "Launch Firefox",
-                      "icon_size": 18
-                    },
-                    {
-                      "icon": "",
-                      "label": "Spotify",
-                      "command": "spotify",
-                      "tooltip": "Launch Spotify",
-                      "icon_size": 18
-                    },
-                    {
-                      "icon": "",
-                      "label": "Code",
-                      "command": "code",
-                      "tooltip": "Launch Code",
-                      "icon_size": 18
-                    }
-                  ]
-                }
-              },
-              "required": ["enabled", "items"]
             }
           },
-          "required": ["hover_reveal", "toggles", "user", "controls", "media", "shortcuts"]
+          "required": ["hover_reveal", "toggles", "user", "controls", "media"]
         },
         "stopwatch": {
           "type": "object",

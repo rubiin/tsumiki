@@ -796,14 +796,6 @@ UserConfig = TypedDict(
 )
 
 
-ShortCutItem = TypedDict(
-    "ShortCutItem",
-    {"icon": str, "label": str, "command": str, "tooltip": str, "icon_size": int},
-)
-
-
-ShortcutsConfig = TypedDict("Shortcuts", {"enabled": bool, "items": list[ShortCutItem]})
-
 ControlsConfig = TypedDict(
     "Controls",
     {
@@ -817,7 +809,6 @@ QuickSettings = TypedDict(
     {
         "media": Media,
         "hover_reveal": bool,
-        "shortcuts": ShortcutsConfig,
         "user": UserConfig,
         "controls": ControlsConfig,
         "toggles": list[str],

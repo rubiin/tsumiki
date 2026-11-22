@@ -190,7 +190,7 @@ class WidgetSchemaCoverageTest(TypedDictCoverageMixin, unittest.TestCase):
     def test_quick_settings_keeps_its_own_keys(self):
         """The regression: its properties were merged into ``network_usage``."""
         quick_settings = self.widgets["quick_settings"]["properties"]
-        keys = ("hover_reveal", "toggles", "user", "controls", "media", "shortcuts")
+        keys = ("hover_reveal", "toggles", "user", "controls", "media")
 
         for key in keys:
             with self.subTest(key=key):
