@@ -362,7 +362,14 @@ $qs-press-bg: color.adjust(theme.$surface-neutral, $alpha: -0.85);
 
       &:disabled {
         background-color: color.adjust(theme.$surface-disabled, $alpha: -0.6);
-        opacity: 0.6;
+        /* Keep the card legible: the disabled fill plus a heavy opacity cut
+           made tiles disappear next to active ones. */
+        opacity: 0.72;
+
+        .quicksettings-tile-status,
+        .quicksettings-row-subtitle {
+          opacity: 0.55;
+        }
       }
 
       &.active {
@@ -374,6 +381,26 @@ $qs-press-bg: color.adjust(theme.$surface-neutral, $alpha: -0.85);
         .panel-font-icon,
         .panel-text {
           color: $qs-active-fg;
+        }
+      }
+
+      /* An open submenu accents the tile edge and chevron instead of reusing
+         the filled "on" look, so an active tile keeps its own state. */
+      &.submenu-open {
+        border-color: $qs-active-fg;
+
+        .toggle-revealer image {
+          color: $qs-active-fg;
+          -gtk-icon-transform: rotate(90deg);
+        }
+      }
+
+      &.active,
+      &.submenu-open {
+        /* Muted status copy needs more weight on tinted fills to be readable. */
+        .quicksettings-tile-status,
+        .quicksettings-row-subtitle {
+          opacity: 0.85;
         }
       }
 
@@ -411,8 +438,16 @@ $qs-press-bg: color.adjust(theme.$surface-neutral, $alpha: -0.85);
 
       .toggle-revealer {
         border-radius: 0 $toggler-radius $toggler-radius 0;
-        padding: common.toEm(10) common.toEm(5);
+        /* Wider than the icon so the chevron is easy to hit without aiming. */
+        padding: common.toEm(10) common.toEm(8);
+        min-width: common.toEm(20);
         transition: background-color variable.$duration-normal variable.$ease-standard;
+
+        image {
+          transition:
+            -gtk-icon-transform variable.$duration-normal variable.$ease-standard,
+            color variable.$duration-normal variable.$ease-standard;
+        }
 
         &:hover {
           background-color: $qs-hover-bg;
@@ -420,6 +455,14 @@ $qs-press-bg: color.adjust(theme.$surface-neutral, $alpha: -0.85);
 
         &:active {
           background-color: $qs-press-bg;
+        }
+
+        /* The chevron is a button, so the global focus ring would sit inside
+           the tile border and read as one thicker outline. Fill the button
+           instead so the card keeps a single border. */
+        &:focus {
+          background-color: $qs-hover-bg;
+          box-shadow: none;
         }
       }
 

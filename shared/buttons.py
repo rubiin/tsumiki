@@ -204,7 +204,7 @@ class QSChevronButton(QSToggleButton):
         if self.submenu is not None:
             self.submenu.revealer.connect(
                 "notify::reveal-child",
-                self.set_chevron_icon,
+                self.update_reveal_state,
             )
 
     def ensure_submenu(self) -> QuickSubMenu | None:
@@ -214,19 +214,20 @@ class QSChevronButton(QSToggleButton):
             if self.submenu is not None:
                 self.submenu.revealer.connect(
                     "notify::reveal-child",
-                    self.set_chevron_icon,
+                    self.update_reveal_state,
                 )
         return self.submenu
 
-    def set_chevron_icon(self, *_):
+    def update_reveal_state(self, *_):
+        """Mirror the submenu's reveal state onto the tile.
+
+        The chevron keeps one icon; CSS rotates it, so no icon swap is needed.
+        """
         if self.submenu is None:
             return
-        icon_name = (
-            get_symbolic_icon("ui.arrow.down")
-            if self.submenu.revealer.get_reveal_child()
-            else get_symbolic_icon("ui.arrow.right")
+        self.toggle_css_class(
+            "submenu-open", self.submenu.revealer.get_reveal_child()
         )
-        self.button_image.set_from_icon_name(icon_name, 20)
 
     def _reveal_toggle(self, *_):
         if self.ensure_submenu() is None:
