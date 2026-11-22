@@ -69,13 +69,9 @@ class WifiSubMenu(QuickSubMenu):
                 self.child.get_vadjustment().disconnect(self._adjustment_handler)
             self._adjustment_handler = None
 
-    def on_child_revealed(self, revealer, *_):
-        # The base class hides the submenu once the hide animation finishes.
-        super().on_child_revealed(revealer)
-
-        # Only start a scan when the submenu is being revealed, not hidden.
-        if not revealer.get_reveal_child():
-            return
+    def prepare_content(self):
+        """Show cached networks and start a scan before expanding."""
+        self.refresh_wifi_list()
 
         self.scan_button.set_sensitive(False)
         self.start_new_scan()

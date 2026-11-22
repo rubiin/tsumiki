@@ -96,7 +96,6 @@ class PowerProfileSubMenu(QuickSubMenu):
             **kwargs,
         )
 
-        # The base class already wires the revealer to ``on_child_revealed``.
         self._profile_changed_handler = power_profile_service.connect(
             "changed", self.on_profile_changed
         )
@@ -109,9 +108,8 @@ class PowerProfileSubMenu(QuickSubMenu):
             safe_disconnect(power_profile_service, self._profile_changed_handler)
             self._profile_changed_handler = None
 
-    def on_child_revealed(self, *_):
-        """Callback when the submenu is revealed."""
-
+    def prepare_content(self):
+        """Build the rows before expanding so the reveal animates to full height."""
         if self.profile_items is None:
             self.profile_items = [
                 PowerProfileItem(

@@ -140,10 +140,9 @@ class DisplaysSubMenu(QuickSubMenu):
                 safe_disconnect(hyprland_service, handler_id)
             self._handler_ids = []
 
-    def on_child_revealed(self, revealer, *args):
-        super().on_child_revealed(revealer, *args)
-        if revealer.get_reveal_child():
-            self.refresh()
+    def prepare_content(self):
+        """Fetch outputs before expanding so the list has its real height."""
+        self.refresh()
 
     def refresh(self):
         """Re-query the outputs; a request already in flight wins."""

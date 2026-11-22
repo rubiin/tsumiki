@@ -111,11 +111,22 @@ class QuickSubMenu(Box):
 
         return submenu_box
 
-    def _reveal(self, visible: bool):
+    def prepare_content(self) -> None:
+        """Populate lazy content before expanding.
+
+        Content built after the reveal (e.g. in ``on_child_revealed``) grows the
+        popover only once the animation has finished, which reads as a jump.
+        """
+
+    def _set_reveal(self, visible: bool) -> None:
+        if visible:
+            self.prepare_content()
         self.set_visible(True)
         self.revealer.set_reveal_child(visible)
 
+    def _reveal(self, visible: bool):
+        self._set_reveal(visible)
+
     def toggle_reveal(self) -> bool:
-        self.set_visible(True)
-        self.revealer.set_reveal_child(not self.revealer.get_reveal_child())
+        self._set_reveal(not self.revealer.get_reveal_child())
         return self.revealer.get_reveal_child()
