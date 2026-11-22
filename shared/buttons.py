@@ -26,6 +26,8 @@ class HoverButton(Button, BaseWidget):
         )
 
         setup_cursor_hover(self)
+        # Panel buttons must stay keyboard-focusable (GNOME HIG / GTK a11y).
+        self.set_can_focus(True)
 
 
 class ScanButton(HoverButton):
@@ -79,13 +81,18 @@ class QSToggleButton(Box, BaseWidget):
     ):
         self.pixel_size = pixel_size
 
+        # The default size lives in SCSS (.quicksettings-toggle-icon); a
+        # non-default size falls back to an inline override only when needed.
+        icon_props: dict = {
+            "style_classes": ["panel-font-icon", "quicksettings-toggle-icon"],
+        }
+        if self.pixel_size != 20:
+            icon_props["style"] = f"font-size: {self.pixel_size}px;padding-left: 6px;"
+
         # Action button can hold an icon and a label NOTHING MORE
         self.action_icon = nerd_font_icon(
             icon=action_icon,
-            props={
-                "style_classes": ["panel-font-icon"],
-                "style": f"font-size: {self.pixel_size}px;padding-left: 6px;",
-            },
+            props=icon_props,
         )
 
         # With a title the action label becomes the status line beneath it.
@@ -129,6 +136,8 @@ class QSToggleButton(Box, BaseWidget):
         )
 
         self.action_button.set_size_request(170, 20)
+        if self.action_title:
+            self.action_button.set_tooltip_text(self.action_title.get_label())
 
         # h_expand fills the cell; the button absorbs it so the chevron pins right.
         self.box = Box(children=[self.action_button], h_expand=True)

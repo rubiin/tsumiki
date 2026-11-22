@@ -291,7 +291,8 @@ class BaseWidget(Widget, TeardownMixin):
             self.revealer.set_reveal_child(not self.revealer.get_reveal_child())
 
     def set_active_style(self, action: bool, *_) -> None:
-        self.set_style_classes("") if not action else self.set_style_classes("active")
+        """Toggle the ``active`` class without dropping the widget's other classes."""
+        self.toggle_css_class("active", bool(action))
 
     def _sync_hover_cursor(self, *_):
         """Point at a hand while prelit, and back to the default after.

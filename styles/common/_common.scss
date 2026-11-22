@@ -515,3 +515,66 @@ scrolledwindow {
     @include mixins.widget-hover;
   }
 }
+
+/* ── Interactive element polish ──────────────────────────────────
+   The global `* { all: unset }` reset strips GTK's native focus and
+   motion, so interactive controls opt back in here. */
+
+button {
+  transition:
+    background-color 200ms cubic-bezier(0.4, 0, 0.2, 1),
+    color 200ms cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 200ms cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+button:focus,
+entry:focus,
+check:focus,
+radio:focus,
+switch:focus,
+menuitem:focus,
+row:focus {
+  @include mixins.focus-ring;
+}
+
+button:disabled {
+  opacity: variable.$opacity-muted;
+}
+
+/* `all: unset` also removed hover/focus feedback from non-button controls,
+   so form and list widgets get the same motion as buttons. */
+entry,
+switch,
+check,
+radio,
+menuitem,
+row,
+scrolledwindow scrollbar slider {
+  transition:
+    background-color variable.$duration-normal variable.$ease-standard,
+    border-color variable.$duration-normal variable.$ease-standard,
+    box-shadow variable.$duration-normal variable.$ease-standard,
+    color variable.$duration-normal variable.$ease-standard,
+    opacity variable.$duration-fast variable.$ease-standard;
+}
+
+row:hover,
+menuitem:hover {
+  background-color: color.adjust(theme.$surface-neutral, $alpha: -0.75);
+}
+
+/* Presses land faster than releases so taps feel immediate. */
+button:active,
+row:active,
+menuitem:active {
+  transition-duration: variable.$duration-fast;
+}
+
+scrolledwindow scrollbar slider:hover {
+  background-color: theme.$surface-neutral;
+}
+
+scrolledwindow scrollbar slider:active {
+  background-color: theme.$surface-highlight;
+}

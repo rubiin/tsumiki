@@ -388,6 +388,16 @@
   }
 }
 
+/// Keyboard focus ring for interactive widgets. The `* { all: unset }` reset
+/// removes GTK's native focus visuals, so every focusable control opts in.
+/// Inset keeps the ring inside the widget's rounded border box.
+/// @param {Color} $color - Ring color
+/// @param {Length} $width - Ring thickness
+@mixin focus-ring($color: theme.$accent-purple, $width: 2px) {
+  outline: none;
+  box-shadow: inset 0 0 0 $width $color;
+}
+
 /// Standard widget hover state: accent-purple background + dark text,
 /// @param {Boolean} $icon - Also set `.panel-font-icon` color to the dark text color
 @mixin widget-hover($icon: false) {

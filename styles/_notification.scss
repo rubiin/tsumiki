@@ -130,6 +130,10 @@ $hover-transition: background 0.15s ease-in-out;
       &:hover {
         background-color: theme.$background-main;
       }
+
+      &:active {
+        background-color: theme.$surface-neutral;
+      }
     }
   }
 

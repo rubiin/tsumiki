@@ -41,8 +41,22 @@ $qs-press-bg: color.adjust(theme.$surface-neutral, $alpha: -0.85);
     }
 
     .power-profile-button {
+      border-radius: variable.$radius;
+      transition:
+        background-color variable.$duration-normal variable.$ease-standard,
+        color variable.$duration-normal variable.$ease-standard;
+
       &:hover {
         color: theme.$accent-purple;
+        background-color: $qs-hover-bg;
+      }
+
+      &:active {
+        background-color: $qs-press-bg;
+      }
+
+      &:focus {
+        box-shadow: inset 0 0 0 2px $qs-active-fg;
       }
     }
   }
@@ -61,9 +75,20 @@ $qs-press-bg: color.adjust(theme.$surface-neutral, $alpha: -0.85);
           border-radius: $toggler-radius;
           padding: common.toEm(4) common.toEm(8);
           font-weight: 600;
+          transition:
+            background-color variable.$duration-normal variable.$ease-standard,
+            color variable.$duration-normal variable.$ease-standard;
 
           &:hover {
             @include common.widget-hover(true);
+          }
+
+          &:focus {
+            box-shadow: inset 0 0 0 2px theme.$accent-purple;
+          }
+
+          &:active {
+            background-color: $qs-press-bg;
           }
 
           &:last-child {
@@ -78,6 +103,8 @@ $qs-press-bg: color.adjust(theme.$surface-neutral, $alpha: -0.85);
 
       .uptime {
         font-size: 0.92rem;
+        color: theme.$text-main;
+        background-color: color.adjust(theme.$surface-neutral, $alpha: -0.65);
         border: variable.$border-width solid color.mix(theme.$surface-disabled, white, 10%);
         padding: common.toEm(3) common.toEm(10);
         font-weight: 600;
@@ -98,9 +125,23 @@ $qs-press-bg: color.adjust(theme.$surface-neutral, $alpha: -0.85);
       border-radius: $toggler-radius 0 0 $toggler-radius;
 
       min-height: 44px;
+      transition: background-color variable.$duration-normal variable.$ease-standard;
+
+      .quicksettings-toggle-icon {
+        font-size: 20px;
+        padding-left: 6px;
+      }
 
       &:hover {
         background-color: $qs-hover-bg;
+      }
+
+      &:active {
+        background-color: $qs-press-bg;
+      }
+
+      &:focus {
+        box-shadow: inset 0 0 0 2px $qs-active-fg;
       }
 
       &-box {
@@ -143,6 +184,10 @@ $qs-press-bg: color.adjust(theme.$surface-neutral, $alpha: -0.85);
 
         &:hover {
           @include common.widget-hover(true);
+        }
+
+        &:active {
+          background-color: $qs-press-bg;
         }
       }
     }
@@ -223,6 +268,9 @@ $qs-press-bg: color.adjust(theme.$surface-neutral, $alpha: -0.85);
         margin: 0 common.toEm(2);
         padding: 0.35em common.toEm(5);
         border-radius: variable.$radius;
+        transition:
+          background-color variable.$duration-normal variable.$ease-standard,
+          color variable.$duration-normal variable.$ease-standard;
 
         &.activated {
           background-color: color.adjust(theme.$text-main, $alpha: -0.85);
@@ -248,9 +296,17 @@ $qs-press-bg: color.adjust(theme.$surface-neutral, $alpha: -0.85);
       .wifi-ap-button {
         padding: common.toEm(7) common.toEm(20) common.toEm(7) common.toEm(5);
         border-radius: variable.$radius;
+        transition:
+          background-color variable.$duration-normal variable.$ease-standard,
+          color variable.$duration-normal variable.$ease-standard;
 
         &:hover {
           @include common.widget-hover;
+        }
+
+        &:active {
+          background-color: $qs-press-bg;
+          color: theme.$text-main;
         }
       }
 
@@ -277,26 +333,41 @@ $qs-press-bg: color.adjust(theme.$surface-neutral, $alpha: -0.85);
       }
     }
 
-    // this is for buttons like hypridle
+    // Simple toggle tiles (hypridle, notification, dark mode, recorder, ...).
 
     #quicksettings-togglebutton {
       border-radius: $toggler-radius;
       background-color: theme.$background-main;
+      border: variable.$border-width solid color.adjust(theme.$surface-neutral, $alpha: -0.75);
       margin: common.toEm(2) 0;
       transition:
         background-color variable.$duration-normal variable.$ease-standard,
-        color variable.$duration-normal variable.$ease-standard;
+        border-color variable.$duration-normal variable.$ease-standard,
+        color variable.$duration-normal variable.$ease-standard,
+        box-shadow variable.$duration-normal variable.$ease-standard;
 
       &:hover {
         background-color: theme.$background-alt;
+        border-color: color.adjust(theme.$surface-neutral, $alpha: -0.4);
+      }
+
+      &:active {
+        background-color: $qs-press-bg;
+        border-color: color.adjust($qs-active-fg, $alpha: -0.5);
+      }
+
+      &:focus {
+        box-shadow: inset 0 0 0 2px $qs-active-fg;
       }
 
       &:disabled {
         background-color: color.adjust(theme.$surface-disabled, $alpha: -0.6);
+        opacity: 0.6;
       }
 
       &.active {
         background-color: $qs-active-bg;
+        border-color: color.adjust($qs-active-fg, $alpha: -0.35);
 
         label,
         image,
@@ -307,7 +378,6 @@ $qs-press-bg: color.adjust(theme.$surface-neutral, $alpha: -0.85);
       }
 
       &.quicksettings-toggler {
-        background-color: theme.$background-main;
         border-radius: $toggler-radius;
         @extend %caption_heading;
         padding: common.toEm(5) 0;
@@ -342,9 +412,14 @@ $qs-press-bg: color.adjust(theme.$surface-neutral, $alpha: -0.85);
       .toggle-revealer {
         border-radius: 0 $toggler-radius $toggler-radius 0;
         padding: common.toEm(10) common.toEm(5);
+        transition: background-color variable.$duration-normal variable.$ease-standard;
 
         &:hover {
           background-color: $qs-hover-bg;
+        }
+
+        &:active {
+          background-color: $qs-press-bg;
         }
       }
 
@@ -416,6 +491,16 @@ $qs-press-bg: color.adjust(theme.$surface-neutral, $alpha: -0.85);
 
   row {
     padding: 2px 0;
+    border-radius: variable.$radius-sm;
+    transition: background-color variable.$duration-normal variable.$ease-standard;
+
+    &:hover {
+      background-color: $qs-hover-bg;
+    }
+
+    &:active {
+      background-color: $qs-press-bg;
+    }
 
     .submenu-item-label {
       font-size: variable.$font-size-sm;
