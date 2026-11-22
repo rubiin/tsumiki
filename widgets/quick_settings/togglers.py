@@ -244,7 +244,8 @@ class DarkModeToggle(QuickSettingToggle):
     def update_state(self, *_args):
         light = style_service.mode != "dark"
         self.toggle_css_class("active", light)
-        self.icon_label.set_label(get_text_icon("color.light" if light else "color.dark"))
+        icon_name = "color.light" if light else "color.dark"
+        self.icon_label.set_label(get_text_icon(icon_name))
         self.status_label.set_label(_("common.on") if light else _("common.off"))
 
 

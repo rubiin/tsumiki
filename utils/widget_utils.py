@@ -17,7 +17,7 @@ from fabric.widgets.widget import Widget
 from .config import tsumiki_config
 from .constants import NOTIFICATION_IMAGE_SIZE
 from .icon_resolver import IconResolver
-from .icons import get_text_icon, symbolic_icons
+from .icons import get_symbolic_icon, get_text_icon
 from .pixbuf import load_file_pixbuf
 
 storage_config = tsumiki_config.get("widgets", {}).get("storage", {})
@@ -221,7 +221,7 @@ def get_notification_image_pixbuf(
 def resolve_notification_icon(
     notification,
     size: int = 25,
-    default_icon: str = symbolic_icons["fallback"]["notification"],
+    default_icon: str = get_symbolic_icon("fallback.notification"),
 ):
     """Resolve a notification's app icon, falling back to the app id."""
     if notification is None:
@@ -314,22 +314,22 @@ def get_brightness_icon_name(level: int) -> dict[Literal["icon_text", "icon"], s
     if level <= 0:
         return {
             "icon_text": get_text_icon("brightness.off", "󰃞"),
-            "icon": symbolic_icons["brightness"]["off"],
+            "icon": get_symbolic_icon("brightness.off"),
         }
 
     if level <= 32:
         return {
             "icon_text": get_text_icon("brightness.low", "󰃝"),
-            "icon": symbolic_icons["brightness"]["low"],
+            "icon": get_symbolic_icon("brightness.low"),
         }
     if level <= 66:
         return {
             "icon_text": get_text_icon("brightness.medium", "󰃟"),
-            "icon": symbolic_icons["brightness"]["medium"],
+            "icon": get_symbolic_icon("brightness.medium"),
         }
     return {
         "icon_text": get_text_icon("brightness.high", "󰃠"),
-        "icon": symbolic_icons["brightness"]["high"],
+        "icon": get_symbolic_icon("brightness.high"),
     }
 
 
@@ -401,7 +401,7 @@ def get_audio_icon_name(
 
     return {
         "icon_text": icon_text,
-        "icon": symbolic_icons["audio"]["volume"][level],
+        "icon": get_symbolic_icon(f"audio.volume.{level}"),
     }
 
 

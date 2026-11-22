@@ -377,7 +377,8 @@ class IconSizeTest(unittest.TestCase):
         self._resolver.get_text_icon_pixbuf_by_name("wezterm", 16)
 
         self.assertEqual(
-            "pixbuf:wezterm:71", self._resolver.get_text_icon_pixbuf_by_name("wezterm", 71)
+            "pixbuf:wezterm:71",
+            self._resolver.get_text_icon_pixbuf_by_name("wezterm", 71),
         )
 
     def test_by_name_returns_none_for_an_empty_name(self):
@@ -407,7 +408,9 @@ class IconSizeTest(unittest.TestCase):
             pixbuf = self._resolver.resolve_icon_pixbuf("org.wezfurlong.wezterm", 71)
 
         self.assertEqual("pixbuf:wezterm:71", pixbuf)
-        self.assertEqual("sticky:16", desktop_app.get_text_icon_pixbuf(16), "cache unused")
+        self.assertEqual(
+            "sticky:16", desktop_app.get_text_icon_pixbuf(16), "cache unused"
+        )
 
     def test_resolve_uses_the_app_icon_name_rather_than_the_cached_pixbuf(self):
         desktop_app = mock.Mock(icon_name="wezterm")

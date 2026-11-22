@@ -3,7 +3,7 @@ from typing import ClassVar
 from fabric.utils import GObject, logger
 
 from utils.hyprland import hyprland_service
-from utils.icons import symbolic_icons
+from utils.icons import get_symbolic_icon
 
 from ..osd import GenericOSDContainer, styled_children
 
@@ -89,9 +89,7 @@ class LockkeysOSDContainer(GenericOSDContainer):
         """Update icon and label based on lock state."""
         # Update icon
         if caps or num:
-            icon_name = symbolic_icons.get("keyboard", {}).get(
-                "locks", "input-keyboard-symbolic"
-            )
+            icon_name = get_symbolic_icon("keyboard.locks", "input-keyboard-symbolic")
         else:
             icon_name = "input-keyboard-symbolic"
 

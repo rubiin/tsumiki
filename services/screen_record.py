@@ -16,7 +16,7 @@ from fabric.utils import (
 import utils.functions as helpers
 from utils.constants import APPLICATION_NAME, ASSETS_DIR
 from utils.decorators import blocking_thread
-from utils.icons import symbolic_icons
+from utils.icons import get_symbolic_icon
 
 from .base import SingletonService
 
@@ -170,7 +170,7 @@ class ScreenRecorderService(SingletonService):
             log_tag="SCREENSHOT",
             summary="Screenshot Saved",
             body=f"Saved Screenshot at {file_path}",
-            icon=symbolic_icons["ui"]["camera"],
+            icon=get_symbolic_icon("ui.camera"),
             utility="Screenshot Utility",
             icon_hint=f"STRING:image-path:{file_path}",
             actions=(
@@ -292,7 +292,7 @@ class ScreenRecorderService(SingletonService):
             log_tag="SCREENRECORD",
             summary="Screenrecord Saved",
             body=f"Saved Screencast at {file_path}",
-            icon=symbolic_icons["ui"]["camera-video"],
+            icon=get_symbolic_icon("ui.camera-video"),
             utility="Recording Utility",
             icon_hint=f"STRING:image-path:{file_path}",
             actions=(

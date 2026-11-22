@@ -18,7 +18,7 @@ from shared.mixins import PopoverMixin
 from shared.widget_container import ButtonWidget
 from utils.functions import path_exists_ttl
 from utils.icon_resolver import IconResolver
-from utils.icons import get_text_icon, symbolic_icons
+from utils.icons import get_symbolic_icon, get_text_icon
 from utils.pixbuf import load_file_pixbuf
 from utils.widget_utils import nerd_font_icon
 
@@ -90,7 +90,7 @@ class BaseSystemTray:
         """Resolve an icon from the default theme, or the missing glyph."""
         resolver = IconResolver()
         return resolver.get_text_icon_theme_icon(
-            icon_name or symbolic_icons["missing"], icon_size
+            icon_name or get_symbolic_icon("missing"), icon_size
         )
 
     def _override_icon_name(self, item: SystemTrayItemService) -> str | None:

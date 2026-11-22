@@ -8,7 +8,7 @@ from utils.functions import read_json_file, ttl_lru_cache, write_json_file
 from utils.singleton import SingletonMixin
 
 from .constants import ICON_CACHE_FILE
-from .icons import symbolic_icons
+from .icons import get_symbolic_icon, symbolic_icons
 
 # Debounce delay for batching icon cache writes (ms)
 _CACHE_WRITE_DELAY_MS = 2000
@@ -18,11 +18,11 @@ _CACHE_WRITE_DELAY_MS = 2000
 _MISS_TTL_SECONDS = 60.0
 
 # Single source of truth for the fallback glyph, so a miss renders alike everywhere.
-_FALLBACK_MISSING = symbolic_icons["missing"]
+_FALLBACK_MISSING = get_symbolic_icon("missing")
 
 # A cached value here means discovery failed, not that the app has that icon.
 _PLACEHOLDER_ICONS = frozenset(
-    {symbolic_icons["missing"], *symbolic_icons["fallback"].values()}
+    {_FALLBACK_MISSING, *symbolic_icons["fallback"].values()}
 )
 
 
@@ -145,7 +145,9 @@ class IconResolver(SingletonMixin):
                 pixbuf = None
 
         if not pixbuf:
-            pixbuf = self.get_text_icon_pixbuf(app_id, icon_size, default_icon=default_icon)
+            pixbuf = self.get_text_icon_pixbuf(
+                app_id, icon_size, default_icon=default_icon
+            )
 
         return pixbuf
 

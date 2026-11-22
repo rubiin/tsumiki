@@ -107,7 +107,9 @@ class NoteWidget(Box):
         )
         delete = Button(
             name="note-delete",
-            child=Label(name="note-delete-icon", label=get_text_icon("ui.window_close")),
+            child=Label(
+                name="note-delete-icon", label=get_text_icon("ui.window_close")
+            ),
             on_clicked=lambda *_: on_delete(self),
         )
 

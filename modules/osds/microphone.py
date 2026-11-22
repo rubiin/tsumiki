@@ -2,7 +2,7 @@ from typing import ClassVar
 
 from fabric.utils import GObject
 
-from utils.icons import symbolic_icons
+from utils.icons import get_symbolic_icon
 
 from .audio_device import AudioDeviceOSDContainer
 
@@ -19,7 +19,7 @@ class MicrophoneOSDContainer(AudioDeviceOSDContainer):
 
     def _icon_for(self, volume: int, muted: bool) -> str:
         return (
-            symbolic_icons["audio"]["mic"]["muted"]
+            get_symbolic_icon("audio.mic.muted")
             if volume == 0 or muted
-            else symbolic_icons["audio"]["mic"]["high"]
+            else get_symbolic_icon("audio.mic.high")
         )

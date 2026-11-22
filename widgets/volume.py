@@ -25,7 +25,9 @@ class VolumeWidget(ScrollableProgressWidget):
         self._speaker_volume_handler_id = None
 
         self.level_icons = self.config.get("level_icons") or []
-        self.icon_muted = self.config.get("icon_muted") or get_text_icon("volume.muted", "󰝟")
+        self.icon_muted = self.config.get("icon_muted") or get_text_icon(
+            "volume.muted", "󰝟"
+        )
 
         # Initialize the audio service
         self.audio = audio_service

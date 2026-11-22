@@ -7,7 +7,7 @@ from fabric.widgets.label import Label
 from fabric.widgets.revealer import Revealer
 
 from shared.widget_container import BaseWidget, BaseWindow
-from utils.icons import symbolic_icons
+from utils.icons import get_symbolic_icon
 from utils.types import Keyboard_Mode
 from utils.widget_settings import BarConfig
 from utils.widget_utils import (
@@ -54,7 +54,7 @@ class GenericOSDContainer(Box, BaseWidget):
         self.icon_size = config.get("icon_size", 28)
 
         self.icon = Image(
-            icon_name=symbolic_icons["brightness"]["screen"],
+            icon_name=get_symbolic_icon("brightness.screen"),
             icon_size=self.icon_size,
         )
 

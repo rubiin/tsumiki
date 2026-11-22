@@ -326,4 +326,3 @@ network_icon_to_text_icons = {
     "network-wireless-signal-weak-symbolic": get_text_icon("wifi.strength_1", "󰤟"),
     "network-wireless-signal-none-symbolic": get_text_icon("wifi.strength_0", "󰤯"),
 }
-

@@ -8,7 +8,7 @@ from fabric.widgets.image import Image
 from fabric.widgets.label import Label
 
 from utils.constants import ASSETS_DIR
-from utils.icons import get_text_icon, symbolic_icons
+from utils.icons import get_symbolic_icon, get_text_icon
 from utils.widget_utils import nerd_font_icon, setup_cursor_hover
 
 from .animator import cubic_bezier
@@ -171,7 +171,7 @@ class QSChevronButton(QSToggleButton):
     def __init__(
         self,
         action_label: str = "My Label",
-        action_icon: str = symbolic_icons["fallback"]["package"],
+        action_icon: str = get_symbolic_icon("fallback.package"),
         action_title: str | None = None,
         pixel_size: int = 20,
         submenu: QuickSubMenu | None = None,
@@ -182,7 +182,7 @@ class QSChevronButton(QSToggleButton):
         self._submenu_factory = submenu_factory
 
         self.button_image = Image(
-            icon_name=symbolic_icons["ui"]["arrow"]["right"], icon_size=20
+            icon_name=get_symbolic_icon("ui.arrow.right"), icon_size=20
         )
 
         self.reveal_button = HoverButton(
@@ -222,9 +222,9 @@ class QSChevronButton(QSToggleButton):
         if self.submenu is None:
             return
         icon_name = (
-            symbolic_icons["ui"]["arrow"]["down"]
+            get_symbolic_icon("ui.arrow.down")
             if self.submenu.revealer.get_reveal_child()
-            else symbolic_icons["ui"]["arrow"]["right"]
+            else get_symbolic_icon("ui.arrow.right")
         )
         self.button_image.set_from_icon_name(icon_name, 20)
 

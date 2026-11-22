@@ -7,7 +7,7 @@ from services import audio_service
 from shared.list import ListBox
 from shared.submenu import QuickSubMenu, scrolled_list_content
 from utils.i18n import _
-from utils.icons import get_text_icon, symbolic_icons
+from utils.icons import get_symbolic_icon, get_text_icon
 from widgets.quick_settings.sliders.audio import AudioSlider
 
 
@@ -70,7 +70,7 @@ class AudioSubMenu(QuickSubMenu):
 
             # App icon
             icon = Image(
-                icon_name=app.icon_name or symbolic_icons["audio"]["volume"]["high"],
+                icon_name=app.icon_name or get_symbolic_icon("audio.volume.high"),
                 icon_size=18,
             )
             name_box.pack_start(icon, False, True, 0)
