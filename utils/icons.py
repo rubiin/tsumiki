@@ -1,6 +1,3 @@
-from typing_extensions import Literal
-
-
 symbolic_icons = {
     "missing": "image-missing-symbolic",
     "nix": {
@@ -317,6 +314,9 @@ def get_path(d, path, sep=".", fallback=""):
 def get_text_icon(name: str, fallback: str = "") -> str:
     return get_path(text_nerd_icons, name, fallback=fallback)
 
+
+def get_symbolic_icon(name: str, fallback: str = "") -> str:
+    return get_path(symbolic_icons, name, fallback=fallback)
 
 
 network_icon_to_text_icons = {

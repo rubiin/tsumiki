@@ -2,7 +2,13 @@
 
 import unittest
 
-from utils.icons import get_path, get_text_icon, text_nerd_icons
+from utils.icons import (
+    get_path,
+    get_symbolic_icon,
+    get_text_icon,
+    symbolic_icons,
+    text_nerd_icons,
+)
 
 
 class GetTextIconTest(unittest.TestCase):
@@ -26,6 +32,28 @@ class GetTextIconTest(unittest.TestCase):
 
     def test_missing_fallback_is_empty(self):
         self.assertEqual(get_text_icon("distro.arch.x"), "")
+
+
+class GetSymbolicIconTest(unittest.TestCase):
+    """The symbolic tree is looked up the same way as the nerd-font tree."""
+
+    def test_resolves_a_nested_icon(self):
+        self.assertEqual(
+            get_symbolic_icon("audio.mic.muted"),
+            symbolic_icons["audio"]["mic"]["muted"],
+        )
+
+    def test_resolves_a_top_level_icon(self):
+        self.assertEqual(get_symbolic_icon("missing"), "image-missing-symbolic")
+
+    def test_unknown_leaf_falls_back(self):
+        self.assertEqual(get_symbolic_icon("nope", "FB"), "FB")
+
+    def test_past_a_leaf_falls_back(self):
+        self.assertEqual(get_symbolic_icon("battery.charging.extra", "FB"), "FB")
+
+    def test_missing_fallback_is_empty(self):
+        self.assertEqual(get_symbolic_icon("nope"), "")
 
 
 class GetPathTest(unittest.TestCase):
