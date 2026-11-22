@@ -20,7 +20,7 @@ from shared.widget_container import ButtonWidget, TeardownMixin
 from utils.constants import ASSETS_DIR
 from utils.functions import expand_env, lazy_load_class, safe_disconnect
 from utils.i18n import _
-from utils.icons import get_icon, network_icon_to_text_icons
+from utils.icons import get_text_icon, network_icon_to_text_icons
 from utils.widget_utils import (
     get_audio_icon_name,
     get_brightness_icon_name,
@@ -37,10 +37,10 @@ from .submenu.displays import DisplaysSubMenu, DisplaysToggle
 # the standalone widget defaults so the quick settings use the same paths/flags.
 
 
-_WIFI_GENERIC_ICON = get_icon("wifi.generic", "󰤬")
-_ETHERNET_ICON = get_icon("ethernet", "󰈀")
-_BRIGHTNESS_MEDIUM_ICON = get_icon("brightness.medium", "󰃟")
-_HOURGLASS_ICON = get_icon("hourglass", "")
+_WIFI_GENERIC_ICON = get_text_icon("wifi.generic", "󰤬")
+_ETHERNET_ICON = get_text_icon("ethernet", "󰈀")
+_BRIGHTNESS_MEDIUM_ICON = get_text_icon("brightness.medium", "󰃟")
+_HOURGLASS_ICON = get_text_icon("hourglass", "")
 
 _UPTIME_TIMER = "uptime"
 
@@ -218,7 +218,7 @@ class QuickSettingsMenu(Box, TeardownMixin):
     def _create_power_button(self, icon_name: str, title: str, body: str, command: str):
         return HoverButton(
             child=nerd_font_icon(
-                icon=get_icon(icon_name),
+                icon=get_text_icon(icon_name),
                 props={"style_classes": ["panel-font-icon"]},
             ),
             v_align="center",
@@ -508,7 +508,7 @@ class QuickSettingsButtonWidget(ButtonWidget, PopoverMixin):
         self.popup = None
 
         self.audio_icon = nerd_font_icon(
-            icon=get_icon("volume.medium", "󰖀"),
+            icon=get_text_icon("volume.medium", "󰖀"),
             props={"style_classes": ["panel-font-icon"]},
         )
 

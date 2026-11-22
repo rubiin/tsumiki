@@ -12,7 +12,7 @@ from fabric.widgets.button import Button
 from fabric.widgets.image import Image
 from fabric.widgets.label import Label
 
-from utils.icons import get_icon
+from utils.icons import get_text_icon
 from utils.widget_utils import nerd_font_icon, resolve_notification_icon
 
 #: Header icon edge length, shared by every card so rows line up.
@@ -73,7 +73,7 @@ def close_button(
         style_classes=list(style_classes),
         tooltip_text=tooltip_text,
         child=nerd_font_icon(
-            icon=get_icon("ui.window_close", ""),
+            icon=get_text_icon("ui.window_close", ""),
             props={"style_classes": ["panel-font-icon", "close-icon"]},
         ),
         on_clicked=on_clicked,

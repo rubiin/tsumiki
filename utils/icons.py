@@ -1,5 +1,6 @@
 from typing_extensions import Literal
 
+
 symbolic_icons = {
     "missing": "image-missing-symbolic",
     "nix": {
@@ -313,22 +314,16 @@ def get_path(d, path, sep=".", fallback=""):
     return d or fallback
 
 
-def get_icon(
-    name: str, type: Literal["nerd", "symbolic"] = "nerd", fallback: str = ""
-) -> str:
-    if type == "nerd":
-        return get_path(text_nerd_icons, name, fallback=fallback)
-    elif type == "symbolic":
-        return get_path(symbolic_icons, name, fallback=fallback)
-    return fallback
+def get_text_icon(name: str, fallback: str = "") -> str:
+    return get_path(text_nerd_icons, name, fallback=fallback)
+
 
 
 network_icon_to_text_icons = {
-    "network-wireless-signal-excellent-symbolic": get_icon(
-        "wifi.strength_4", fallback="󰤨"
-    ),
-    "network-wireless-signal-good-symbolic": get_icon("wifi.strength_3", fallback="󰤥"),
-    "network-wireless-signal-ok-symbolic": get_icon("wifi.strength_2", fallback="󰤢"),
-    "network-wireless-signal-weak-symbolic": get_icon("wifi.strength_1", fallback="󰤟"),
-    "network-wireless-signal-none-symbolic": get_icon("wifi.strength_0", fallback="󰤯"),
+    "network-wireless-signal-excellent-symbolic": get_text_icon("wifi.strength_4", "󰤨"),
+    "network-wireless-signal-good-symbolic": get_text_icon("wifi.strength_3", "󰤥"),
+    "network-wireless-signal-ok-symbolic": get_text_icon("wifi.strength_2", "󰤢"),
+    "network-wireless-signal-weak-symbolic": get_text_icon("wifi.strength_1", "󰤟"),
+    "network-wireless-signal-none-symbolic": get_text_icon("wifi.strength_0", "󰤯"),
 }
+

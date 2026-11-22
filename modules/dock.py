@@ -408,7 +408,7 @@ class AppBar(BoxWidget):
             name="pinned_app",
             tooltip_markup=app.display_name,
             image=Image(
-                pixbuf=self._icon_resolver.get_icon_pixbuf_by_name(
+                pixbuf=self._icon_resolver.get_text_icon_pixbuf_by_name(
                     app.icon_name, self.icon_size
                 ),
                 size=self.icon_size,

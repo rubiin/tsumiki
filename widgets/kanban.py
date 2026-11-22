@@ -15,7 +15,7 @@ from shared.widget_container import ButtonWidget
 from utils.constants import KANBAN_FILE
 from utils.functions import read_json_file, write_json_file
 from utils.i18n import _
-from utils.icons import get_icon
+from utils.icons import get_text_icon
 from utils.widget_utils import create_surface_from_widget
 
 
@@ -39,7 +39,7 @@ class InlineEditor(Box):
 
         confirm_btn = Button(
             name="kanban-btn",
-            child=Label(name="kanban-btn-label", markup=get_icon("ui.tick", "")),
+            child=Label(name="kanban-btn-label", markup=get_text_icon("ui.tick", "")),
             on_clicked=self.on_confirm,
             style_classes="flat",
         )
@@ -48,7 +48,7 @@ class InlineEditor(Box):
             name="kanban-btn",
             child=Label(
                 name="kanban-btn-neg",
-                markup=get_icon("ui.window_close", ""),
+                markup=get_text_icon("ui.window_close", ""),
             ),
             style_classes="flat",
             on_clicked=self.on_cancel,

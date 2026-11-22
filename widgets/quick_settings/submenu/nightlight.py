@@ -14,7 +14,7 @@ from shared.submenu import QuickSubMenu
 from shared.widget_container import tooltips_enabled
 from utils.functions import is_app_running, toggle_command
 from utils.i18n import _
-from utils.icons import get_icon
+from utils.icons import get_text_icon
 from utils.widget_utils import (
     create_scale,
 )
@@ -38,7 +38,7 @@ class NightLightSubMenu(QuickSubMenu):
 
         super().__init__(
             title=_("widget.quick_settings.nightlight.title"),
-            title_icon=get_icon("nightlight.enabled", "󱩌"),
+            title_icon=get_text_icon("nightlight.enabled", "󱩌"),
             name="nightlight-sub-menu",
             scan_button=self.scan_button,
             child=self.scale,
@@ -104,7 +104,7 @@ class NightLightToggle(QSChevronButton):
         **kwargs,
     ):
         super().__init__(
-            action_icon=get_icon("nightlight.disabled", "󰛨"),
+            action_icon=get_text_icon("nightlight.disabled", "󰛨"),
             pixel_size=20,
             action_title=_("widget.quick_settings.nightlight.title"),
             action_label=_("common.off"),
@@ -140,11 +140,11 @@ class NightLightToggle(QSChevronButton):
         self.is_running = is_app_running("hyprsunset")
 
         if self.is_running:
-            self.action_icon.set_label(get_icon("nightlight.enabled", "󱩌"))
+            self.action_icon.set_label(get_text_icon("nightlight.enabled", "󱩌"))
             self.action_label.set_label(_("common.on"))
             self.set_active_style(True)
         else:
-            self.action_icon.set_label(get_icon("nightlight.disabled", "󰛨"))
+            self.action_icon.set_label(get_text_icon("nightlight.disabled", "󰛨"))
             self.action_label.set_label(_("common.off"))
             self.set_active_style(False)
         return True

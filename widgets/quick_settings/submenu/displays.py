@@ -9,11 +9,11 @@ from shared.submenu import QuickSubMenu, scrolled_list_content
 from utils.functions import safe_disconnect
 from utils.hyprland import hyprland_service
 from utils.i18n import _
-from utils.icons import get_icon
+from utils.icons import get_text_icon
 from utils.widget_utils import nerd_font_icon
 
-_MONITOR_ICON = get_icon("ui.monitor", "󰍹")
-_FOCUSED_ICON = get_icon("ui.tick", "")
+_MONITOR_ICON = get_text_icon("ui.monitor", "󰍹")
+_FOCUSED_ICON = get_text_icon("ui.tick", "")
 
 
 def monitor_summary(monitor: dict) -> str:

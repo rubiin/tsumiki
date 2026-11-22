@@ -6,7 +6,7 @@ from services import battery_service
 from shared.widget_container import ButtonWidget, format_panel_label
 from utils.functions import format_seconds_to_hours_minutes, send_notification
 from utils.i18n import _
-from utils.icons import get_icon
+from utils.icons import get_text_icon
 from utils.widget_utils import nerd_font_icon
 
 
@@ -58,7 +58,7 @@ class BatteryWidget(ButtonWidget):
         ]
 
         self.battery_icon = nerd_font_icon(
-            icon=get_icon("battery.charging", "󰠠"),
+            icon=get_text_icon("battery.charging", "󰠠"),
             props={"style_classes": ["panel-font-icon", "battery-icon"]},
         )
         self.container_box.add(self.battery_icon)
@@ -102,7 +102,7 @@ class BatteryWidget(ButtonWidget):
             if self.config.get("hide_when_missing", True):
                 self.set_visible(False)
             self._last_state = None
-            icon = get_icon("battery.low", "󰂎")
+            icon = get_text_icon("battery.low", "󰂎")
             self.set_tooltip_if_enabled(
                 f"{icon} {_('widget.battery.no_battery')}", default=True
             )

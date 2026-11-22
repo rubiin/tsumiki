@@ -132,10 +132,10 @@ class IconSelectionTest(unittest.TestCase):
 
         with mock.patch(
             "modules.osds.audio.get_audio_icon_name", return_value={"icon": "vol-40"}
-        ) as get_icon:
+        ) as get_text_icon:
             container.update_icon(40)
 
-        get_icon.assert_called_once_with(40, False)
+        get_text_icon.assert_called_once_with(40, False)
         container.icon.set_from_icon_name.assert_called_once_with("vol-40", 24)
 
     def test_microphone_picks_high_or_muted(self):

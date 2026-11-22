@@ -27,7 +27,7 @@ from shared.notification_card import (
 )
 from shared.widget_container import ButtonWidget
 from utils.i18n import _
-from utils.icons import get_icon
+from utils.icons import get_text_icon
 from utils.widget_utils import (
     get_notification_image_pixbuf,
     nerd_font_icon,
@@ -198,7 +198,7 @@ class DateNotificationMenu(Box):
                 visible=True,
                 children=(
                     nerd_font_icon(
-                        icon=get_icon("notifications.checked", "󱇥"),
+                        icon=get_text_icon("notifications.checked", "󱇥"),
                         props={
                             "style_classes": ["panel-font-icon", "placeholder-icon"],
                         },
@@ -228,7 +228,7 @@ class DateNotificationMenu(Box):
 
             self.clear_icon = nerd_font_icon(
                 name="clear-icon",
-                icon=get_icon("trash.empty", ""),
+                icon=get_text_icon("trash.empty", ""),
                 props={"style_classes": ["panel-font-icon"]},
             )
 
@@ -340,7 +340,7 @@ class DateNotificationMenu(Box):
         notification_service.clear_all_notifications()
         self.placeholder.set_visible(True)
         self.notifications_listbox.set_visible(False)
-        self.clear_icon.set_label(get_icon("trash.empty", ""))
+        self.clear_icon.set_label(get_text_icon("trash.empty", ""))
 
     def _notification_id(self, notification: Notification) -> int | None:
         """Get notification ID for both serialized and deserialized objects."""
@@ -448,9 +448,9 @@ class DateNotificationMenu(Box):
         self.placeholder.set_visible(not has_notifications)
         self.notifications_listbox.set_visible(has_notifications)
         self.clear_icon.set_label(
-            get_icon("trash.full", "")
+            get_text_icon("trash.full", "")
             if has_notifications
-            else get_icon("trash.empty", "")
+            else get_text_icon("trash.empty", "")
         )
 
     def _bake_group_deck(
@@ -497,7 +497,7 @@ class DateNotificationMenu(Box):
             name="notification-group-collapse-button",
             v_align="center",
             child=nerd_font_icon(
-                icon=get_icon("ui.fold", ""),
+                icon=get_text_icon("ui.fold", ""),
                 props={"style_classes": ["panel-font-icon"]},
             ),
             on_clicked=_toggle_group,
@@ -667,7 +667,7 @@ class DateNotificationMenu(Box):
         self._app_expand_state.clear()
         self.loaded_count = 0
         self._last_synced_count = 0
-        self.clear_icon.set_label(get_icon("trash.empty", ""))
+        self.clear_icon.set_label(get_text_icon("trash.empty", ""))
         self.placeholder.set_visible(True)
         self.notifications_listbox.set_visible(False)
         self.notifications_listbox.remove_all()
@@ -755,7 +755,7 @@ class DateTimeWidget(ButtonWidget, PopoverMixin):
 
         if notification_config.get("enabled", True):
             self.notification_indicator = nerd_font_icon(
-                icon=get_icon("notifications.noisy", "󰂜"),
+                icon=get_text_icon("notifications.noisy", "󰂜"),
                 name="notification-indicator",
                 props={
                     "style_classes": ["panel-font-icon"],
@@ -834,10 +834,10 @@ class DateTimeWidget(ButtonWidget, PopoverMixin):
     def on_dnd_switch(self, _, value, *args):
         if value:
             self.notification_indicator.set_label(
-                get_icon("notifications.silent", "󰪑"),
+                get_text_icon("notifications.silent", "󰪑"),
             )
 
         else:
             self.notification_indicator.set_label(
-                get_icon("notifications.noisy", "󰂜"),
+                get_text_icon("notifications.noisy", "󰂜"),
             )

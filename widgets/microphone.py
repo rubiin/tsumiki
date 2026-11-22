@@ -1,6 +1,6 @@
 from services import audio_service
 from shared.widget_container import ButtonWidget
-from utils.icons import get_icon
+from utils.icons import get_text_icon
 
 
 # TODO: review this widget
@@ -26,10 +26,10 @@ class MicrophoneIndicatorWidget(ButtonWidget):
 
     def _resolve_icons(self):
         """Resolve the on/off glyphs, preferring configured overrides."""
-        self.mic_on_icon = self.config.get("icon_active") or get_icon(
+        self.mic_on_icon = self.config.get("icon_active") or get_text_icon(
             "microphone.high", ""
         )
-        self.mic_off_icon = self.config.get("icon_muted") or get_icon(
+        self.mic_off_icon = self.config.get("icon_muted") or get_text_icon(
             "microphone.muted", ""
         )
 

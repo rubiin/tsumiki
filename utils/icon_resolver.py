@@ -51,7 +51,7 @@ class IconResolver(SingletonMixin):
         self._miss_cache: dict[str, float] = {}
         self._icon_theme = Gtk.IconTheme.get_default()
 
-    def get_icon_theme_icon(self, icon_name: str, icon_size: int = 16):
+    def get_text_icon_theme_icon(self, icon_name: str, icon_size: int = 16):
         """Load an icon from the default theme, or ``None`` when it has none.
 
         The single theme-lookup entry point, so a missing icon degrades the
@@ -95,7 +95,7 @@ class IconResolver(SingletonMixin):
                 self._cache_dirty = True
                 self._schedule_cache_write()
 
-    def get_icon_name(self, app_id: str) -> str | None:
+    def get_text_icon_name(self, app_id: str) -> str | None:
         """Return the cached icon name for app_id, resolving on miss.
 
         ``None`` when no real icon exists: what to show instead belongs to the
@@ -136,7 +136,7 @@ class IconResolver(SingletonMixin):
         default_icon: str = _FALLBACK_MISSING,
     ):
         """Build a pixbuf from a tray pixmap, falling back to the theme."""
-        pixbuf = self.get_icon_theme_icon(icon_name, icon_size)
+        pixbuf = self.get_text_icon_theme_icon(icon_name, icon_size)
 
         if not pixbuf and pixmap:
             try:
@@ -145,32 +145,32 @@ class IconResolver(SingletonMixin):
                 pixbuf = None
 
         if not pixbuf:
-            pixbuf = self.get_icon_pixbuf(app_id, icon_size, default_icon=default_icon)
+            pixbuf = self.get_text_icon_pixbuf(app_id, icon_size, default_icon=default_icon)
 
         return pixbuf
 
     @ttl_lru_cache(seconds_to_live=3600, maxsize=256)
-    def get_icon_pixbuf(
+    def get_text_icon_pixbuf(
         self, app_id: str, size: int = 16, default_icon: str = _FALLBACK_MISSING
     ):
         """Load the app icon as a pixbuf, falling back to the missing glyph."""
-        icon_name = self.get_icon_name(app_id) or default_icon
+        icon_name = self.get_text_icon_name(app_id) or default_icon
 
-        pixbuf = self.get_icon_theme_icon(icon_name, size)
+        pixbuf = self.get_text_icon_theme_icon(icon_name, size)
         if not pixbuf:
-            pixbuf = self.get_icon_theme_icon(default_icon, size)
+            pixbuf = self.get_text_icon_theme_icon(default_icon, size)
         return pixbuf
 
     @ttl_lru_cache(seconds_to_live=3600, maxsize=512)
-    def get_icon_pixbuf_by_name(self, icon_name: str, size: int = 16):
+    def get_text_icon_pixbuf_by_name(self, icon_name: str, size: int = 16):
         """Load *icon_name* from the theme at exactly *size*.
 
-        ``get_icon_pixbuf`` cannot be reused: it caches the first size asked
+        ``get_text_icon_pixbuf`` cannot be reused: it caches the first size asked
         for on the shared instance, so the panel's size would win.
         """
         if not icon_name:
             return None
-        return self.get_icon_theme_icon(icon_name, size)
+        return self.get_text_icon_theme_icon(icon_name, size)
 
     def _store_new_icon(self, app_id: str, icon: str):
         """Record an icon in the cache and schedule a debounced write."""
@@ -197,7 +197,7 @@ class IconResolver(SingletonMixin):
             logger.info("[ICONS] Flushed icon cache to disk")
         return False  # Don't repeat
 
-    def _get_icon_from_desktop_file(self, desktop_file_path: str) -> str | None:
+    def _get_text_icon_from_desktop_file(self, desktop_file_path: str) -> str | None:
         """Extract the Icon= value from a .desktop file, or None if it has none."""
         with open(desktop_file_path, "r") as f:
             for line in f.readlines():
@@ -261,7 +261,7 @@ class IconResolver(SingletonMixin):
             return app_id + "-desktop"
         desktop_file = self._get_desktop_file(app_id)
         if desktop_file:
-            return self._get_icon_from_desktop_file(desktop_file)
+            return self._get_text_icon_from_desktop_file(desktop_file)
         return None
 
     def scale_pixbuf_to_size(
@@ -285,7 +285,7 @@ class IconResolver(SingletonMixin):
         """Resolve an application icon pixbuf; the cache is keyed on *app_id* alone.
 
         A ``DesktopApp`` is looked up, not passed in (dataclasses are
-        unhashable); its own ``get_icon_pixbuf`` pins the first size requested.
+        unhashable); its own ``get_text_icon_pixbuf`` pins the first size requested.
         """
         from .app import AppUtils
 
@@ -294,9 +294,9 @@ class IconResolver(SingletonMixin):
         with contextlib.suppress(Exception):
             desktop_app = AppUtils().find_app(app_id)
             if desktop_app and desktop_app.icon_name:
-                pixbuf = self.get_icon_pixbuf_by_name(desktop_app.icon_name, size)
+                pixbuf = self.get_text_icon_pixbuf_by_name(desktop_app.icon_name, size)
 
         if not pixbuf:
-            pixbuf = self.get_icon_pixbuf(app_id, size)
+            pixbuf = self.get_text_icon_pixbuf(app_id, size)
 
         return self.scale_pixbuf_to_size(pixbuf, size) if pixbuf else None

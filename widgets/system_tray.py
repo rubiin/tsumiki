@@ -18,7 +18,7 @@ from shared.mixins import PopoverMixin
 from shared.widget_container import ButtonWidget
 from utils.functions import path_exists_ttl
 from utils.icon_resolver import IconResolver
-from utils.icons import get_icon, symbolic_icons
+from utils.icons import get_text_icon, symbolic_icons
 from utils.pixbuf import load_file_pixbuf
 from utils.widget_utils import nerd_font_icon
 
@@ -89,7 +89,7 @@ class BaseSystemTray:
     def _load_default_theme_icon(icon_size: int, icon_name: str | None = None):
         """Resolve an icon from the default theme, or the missing glyph."""
         resolver = IconResolver()
-        return resolver.get_icon_theme_icon(
+        return resolver.get_text_icon_theme_icon(
             icon_name or symbolic_icons["missing"], icon_size
         )
 
@@ -198,7 +198,7 @@ class SystemTrayWidget(ButtonWidget, PopoverMixin, BaseSystemTray):
         self.hidden_list = self.config.get("hidden", [])
 
         self.chevron_icon = nerd_font_icon(
-            icon=get_icon("chevron.down", ""),
+            icon=get_text_icon("chevron.down", ""),
             props={
                 "style_classes": ["panel-font-icon", "chevron-icon"],
             },
@@ -242,7 +242,7 @@ class SystemTrayWidget(ButtonWidget, PopoverMixin, BaseSystemTray):
 
     def _on_popover_closed(self, *_):
         self.remove_style_class("active")
-        self.chevron_icon.set_label(get_icon("chevron.down", ""))
+        self.chevron_icon.set_label(get_text_icon("chevron.down", ""))
 
     # show or hide the popup menu
     def on_click(self, *_):
@@ -252,10 +252,10 @@ class SystemTrayWidget(ButtonWidget, PopoverMixin, BaseSystemTray):
 
         if visible:
             self.hide_popover()
-            self.chevron_icon.set_label(get_icon("chevron.down", ""))
+            self.chevron_icon.set_label(get_text_icon("chevron.down", ""))
         else:
             self.show_popover()
-            self.chevron_icon.set_label(get_icon("chevron.up", ""))
+            self.chevron_icon.set_label(get_text_icon("chevron.up", ""))
 
     def update_visibility(self):
         """Update widget visibility based on configuration and item count."""

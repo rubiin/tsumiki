@@ -2,7 +2,7 @@
 
 import unittest
 
-from utils.icons import get_icon, get_path, text_nerd_icons
+from utils.icons import get_path, get_text_icon, text_nerd_icons
 
 
 class GetTextIconTest(unittest.TestCase):
@@ -10,22 +10,22 @@ class GetTextIconTest(unittest.TestCase):
 
     def test_resolves_a_nested_icon(self):
         self.assertEqual(
-            get_icon("wifi.strength_4"), text_nerd_icons["wifi"]["strength_4"]
+            get_text_icon("wifi.strength_4"), text_nerd_icons["wifi"]["strength_4"]
         )
 
     def test_resolves_a_top_level_icon(self):
-        self.assertTrue(get_icon("battery"))
+        self.assertTrue(get_text_icon("battery"))
 
     def test_unknown_leaf_falls_back(self):
-        self.assertEqual(get_icon("nope", "FB"), "FB")
+        self.assertEqual(get_text_icon("nope", "FB"), "FB")
 
     def test_past_a_leaf_falls_back(self):
         # An icon name with one segment too many must not raise.
-        self.assertEqual(get_icon("distro.arch.x", "FB"), "FB")
-        self.assertEqual(get_icon("battery.charging.extra"), "")
+        self.assertEqual(get_text_icon("distro.arch.x", "FB"), "FB")
+        self.assertEqual(get_text_icon("battery.charging.extra"), "")
 
     def test_missing_fallback_is_empty(self):
-        self.assertEqual(get_icon("distro.arch.x"), "")
+        self.assertEqual(get_text_icon("distro.arch.x"), "")
 
 
 class GetPathTest(unittest.TestCase):

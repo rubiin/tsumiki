@@ -43,7 +43,7 @@ from .constants import (
 )
 from .decorators import run_in_thread, thread
 from .exceptions import ExecutableNotFoundError
-from .icons import get_icon
+from .icons import get_text_icon
 from .ttl_cache import TTLCache
 
 gi.require_version("Pango", "1.0")
@@ -621,7 +621,7 @@ def play_sound(file: str):
 def get_distro_icon() -> str:
     distro_id = GLib.get_os_info("ID")
 
-    return get_icon(f"distro.{distro_id}", "") or ""
+    return get_text_icon(f"distro.{distro_id}", "") or ""
 
 
 def check_executable_exists(executable_name):

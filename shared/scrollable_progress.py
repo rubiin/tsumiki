@@ -1,7 +1,7 @@
 """Shared base for circular-progress widgets that respond to scroll."""
 
 from shared.widget_container import EventBoxWidget
-from utils.icons import get_icon
+from utils.icons import get_text_icon
 from utils.widget_utils import create_progress, nerd_font_icon
 
 
@@ -23,7 +23,7 @@ class ScrollableProgressWidget(EventBoxWidget):
         )
 
         self.icon = nerd_font_icon(
-            icon=get_icon(icon_name, ""),
+            icon=get_text_icon(icon_name, ""),
             props={"style_classes": icon_style_classes},
         )
 

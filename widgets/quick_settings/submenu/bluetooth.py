@@ -12,7 +12,7 @@ from shared.buttons import HoverButton, QSChevronButton, ScanButton
 from shared.list import ListBox
 from shared.submenu import QuickSubMenu, scrolled_list_content
 from utils.i18n import _
-from utils.icons import get_icon
+from utils.icons import get_text_icon
 from utils.widget_utils import nerd_font_icon
 
 
@@ -30,17 +30,17 @@ class BluetoothDeviceBox(CenterBox):
         self.device: BluetoothDevice = device
 
         self.icon_to_text_icon = {
-            "audio-headset": get_icon("ui.headset", "󰋎"),
-            "phone": get_icon("ui.phone", "󰏲"),
-            "audio-headphones": get_icon("ui.headphones", "󰋋"),
-            "keyboard": get_icon("ui.keyboard", ""),
-            "mouse": get_icon("ui.mouse", ""),
-            "audio-speakers": get_icon("ui.speakers", "󰓃"),
-            "camera": get_icon("ui.camera", ""),
-            "printer": get_icon("ui.printer", "󰐪"),
-            "tv": get_icon("ui.tv", ""),
-            "watch": get_icon("ui.watch", ""),
-            "bluetooth": get_icon("bluetooth.enabled", "󰂱"),
+            "audio-headset": get_text_icon("ui.headset", "󰋎"),
+            "phone": get_text_icon("ui.phone", "󰏲"),
+            "audio-headphones": get_text_icon("ui.headphones", "󰋋"),
+            "keyboard": get_text_icon("ui.keyboard", ""),
+            "mouse": get_text_icon("ui.mouse", ""),
+            "audio-speakers": get_text_icon("ui.speakers", "󰓃"),
+            "camera": get_text_icon("ui.camera", ""),
+            "printer": get_text_icon("ui.printer", "󰐪"),
+            "tv": get_text_icon("ui.tv", ""),
+            "watch": get_text_icon("ui.watch", ""),
+            "bluetooth": get_text_icon("bluetooth.enabled", "󰂱"),
         }
 
         self.connect_button = HoverButton(style_classes="submenu-button")
@@ -63,7 +63,7 @@ class BluetoothDeviceBox(CenterBox):
         self.add_start(
             nerd_font_icon(
                 icon=self.icon_to_text_icon.get(
-                    device.icon_name, get_icon("bluetooth.enabled", "󰂱")
+                    device.icon_name, get_text_icon("bluetooth.enabled", "󰂱")
                 ),
                 props={"style_classes": ["panel-font-icon"]},
             ),
@@ -160,7 +160,7 @@ class BluetoothSubMenu(QuickSubMenu):
 
         super().__init__(
             title=_("widget.bluetooth.tooltip"),
-            title_icon=get_icon("bluetooth.enabled", "󰂱"),
+            title_icon=get_text_icon("bluetooth.enabled", "󰂱"),
             scan_button=self.scan_button,
             child=self.child,
             **kwargs,
@@ -225,7 +225,7 @@ class BluetoothToggle(QSChevronButton):
         super().__init__(
             action_title=_("widget.quick_settings.bluetooth.title"),
             action_label=_("common.off"),
-            action_icon=get_icon("bluetooth.enabled", "󰂱"),
+            action_icon=get_text_icon("bluetooth.enabled", "󰂱"),
             submenu_factory=submenu_factory,
             **kwargs,
         )
@@ -253,10 +253,10 @@ class BluetoothToggle(QSChevronButton):
     def toggle_bluetooth(self, client: BluetoothClient, *_args):
         if client.enabled:
             self.set_active_style(True)
-            self.action_icon.set_label(get_icon("bluetooth.enabled", "󰂱"))
+            self.action_icon.set_label(get_text_icon("bluetooth.enabled", "󰂱"))
         else:
             self.set_active_style(False)
-            self.action_icon.set_label(get_icon("bluetooth.disabled", "󰂲"))
+            self.action_icon.set_label(get_text_icon("bluetooth.disabled", "󰂲"))
         self._refresh_label()
 
     def new_device(self, client: BluetoothClient, address: str):

@@ -64,14 +64,14 @@ class IconResolverCacheTest(unittest.TestCase):
     def test_resolved_icon_is_cached(self):
         resolver = self._resolver(["firefox"])
 
-        self.assertEqual("firefox", resolver.get_icon_name("firefox"))
+        self.assertEqual("firefox", resolver.get_text_icon_name("firefox"))
         self.assertEqual({"firefox": "firefox"}, resolver._icon_dict)
 
     def test_placeholder_is_never_cached(self):
         """The reported bug: a failed lookup stored the caller's fallback."""
         resolver = self._resolver()
 
-        self.assertIsNone(resolver.get_icon_name("HyDE Power"))
+        self.assertIsNone(resolver.get_text_icon_name("HyDE Power"))
         self.assertEqual({}, resolver._icon_dict)
 
     def test_placeholder_entry_from_an_older_run_is_dropped_and_re_resolved(self):
@@ -91,7 +91,7 @@ class IconResolverCacheTest(unittest.TestCase):
                 mock.mock_open(read_data="[Desktop Entry]\nIcon=hyde-power\n"),
             ),
         ):
-            self.assertEqual("hyde-power", resolver.get_icon_name("HyDE Power"))
+            self.assertEqual("hyde-power", resolver.get_text_icon_name("HyDE Power"))
 
         self.assertEqual(
             {"HyDE Power": "hyde-power", "firefox": "firefox"}, resolver._icon_dict
@@ -111,7 +111,7 @@ class IconResolverCacheTest(unittest.TestCase):
     def test_flushed_cache_carries_no_placeholders(self):
         cached = {"HyDE Power": _FALLBACK_MISSING, "firefox": "firefox"}
         resolver = self._resolver(cache=cached)
-        resolver.get_icon_name("firefox")  # triggers the load
+        resolver.get_text_icon_name("firefox")  # triggers the load
 
         with mock.patch.object(icon_resolver_module, "write_json_file") as write:
             resolver._flush_cache()
@@ -127,7 +127,7 @@ class IconResolverCacheTest(unittest.TestCase):
             ),
             mock.patch("builtins.open", mock.mock_open(read_data="[Desktop Entry]\n")),
         ):
-            self.assertIsNone(resolver.get_icon_name("noicon"))
+            self.assertIsNone(resolver.get_text_icon_name("noicon"))
 
         self.assertEqual({}, resolver._icon_dict)
 
@@ -141,7 +141,7 @@ class IconResolverCacheTest(unittest.TestCase):
                 "builtins.open", mock.mock_open(read_data="[Desktop Entry]\nIcon=f\n")
             ),
         ):
-            self.assertEqual("f", resolver.get_icon_name("myapp"))
+            self.assertEqual("f", resolver.get_text_icon_name("myapp"))
 
         self.assertEqual({"myapp": "f"}, resolver._icon_dict)
 
@@ -149,7 +149,7 @@ class IconResolverCacheTest(unittest.TestCase):
         """A miss must still render, using the caller's fallback glyph."""
         resolver = self._resolver([_FALLBACK_MISSING])
 
-        pixbuf = resolver.get_icon_pixbuf("HyDE Power", 25)
+        pixbuf = resolver.get_text_icon_pixbuf("HyDE Power", 25)
 
         self.assertEqual(f"pixbuf:{_FALLBACK_MISSING}:25", pixbuf)
         self.assertEqual({}, resolver._icon_dict)
@@ -158,7 +158,7 @@ class IconResolverCacheTest(unittest.TestCase):
         resolver = self._resolver(["nm-signal-75", _FALLBACK_MISSING])
 
         self.assertEqual(
-            "pixbuf:nm-signal-75:25", resolver.get_icon_pixbuf("nm-signal-75", 25)
+            "pixbuf:nm-signal-75:25", resolver.get_text_icon_pixbuf("nm-signal-75", 25)
         )
         self.assertEqual({"nm-signal-75": "nm-signal-75"}, resolver._icon_dict)
 
@@ -184,15 +184,15 @@ class IconLookupMissCacheTest(unittest.TestCase):
         with mock.patch.object(
             IconResolver, "_compositor_find_icon", return_value=None
         ) as find_icon:
-            self.assertIsNone(self.resolver.get_icon_name("HyDE Power"))
-            self.assertIsNone(self.resolver.get_icon_name("HyDE Power"))
+            self.assertIsNone(self.resolver.get_text_icon_name("HyDE Power"))
+            self.assertIsNone(self.resolver.get_text_icon_name("HyDE Power"))
 
         find_icon.assert_called_once_with("HyDE Power")
 
     def test_a_miss_is_logged_once(self):
         with mock.patch.object(icon_resolver_module, "logger") as logger:
             for _ in range(5):
-                self.resolver.get_icon_name("HyDE Power")
+                self.resolver.get_text_icon_name("HyDE Power")
 
         misses = [
             call
@@ -204,7 +204,7 @@ class IconLookupMissCacheTest(unittest.TestCase):
     def test_the_miss_expires_and_a_later_hit_is_cached(self):
         with mock.patch.object(icon_resolver_module, "time") as clock:
             clock.monotonic.return_value = 1000.0
-            self.resolver.get_icon_name("HyDE Power")
+            self.resolver.get_text_icon_name("HyDE Power")
             clock.monotonic.return_value = (
                 1000.0 + icon_resolver_module._MISS_TTL_SECONDS + 1
             )
@@ -212,7 +212,7 @@ class IconLookupMissCacheTest(unittest.TestCase):
                 IconResolver, "_compositor_find_icon", return_value="hyde-power"
             ) as find_icon:
                 self.assertEqual(
-                    "hyde-power", self.resolver.get_icon_name("HyDE Power")
+                    "hyde-power", self.resolver.get_text_icon_name("HyDE Power")
                 )
 
         find_icon.assert_called_once()
@@ -223,7 +223,7 @@ class IconLookupMissCacheTest(unittest.TestCase):
         with mock.patch.object(
             IconResolver, "_compositor_find_icon", return_value=None
         ):
-            self.resolver.get_icon_name("HyDE Power")
+            self.resolver.get_text_icon_name("HyDE Power")
 
         self.assertEqual({}, self.resolver._icon_dict)
 
@@ -327,10 +327,10 @@ class ResolveIconPixbufCacheKeyTest(unittest.TestCase):
         with (
             mock.patch(
                 "utils.app.AppUtils.find_app",
-                return_value=mock.Mock(icon_name="wezterm", get_icon_pixbuf=None),
+                return_value=mock.Mock(icon_name="wezterm", get_text_icon_pixbuf=None),
             ),
             mock.patch.object(
-                IconResolver, "get_icon_pixbuf_by_name", return_value=pixbuf
+                IconResolver, "get_text_icon_pixbuf_by_name", return_value=pixbuf
             ),
         ):
             self.assertIs(pixbuf, self._resolver.resolve_icon_pixbuf("wezterm", 24))
@@ -369,20 +369,20 @@ class IconSizeTest(unittest.TestCase):
     def test_each_size_is_rendered_at_that_size(self):
         for size in (16, 24, 32, 71):
             with self.subTest(size=size):
-                pixbuf = self._resolver.get_icon_pixbuf_by_name("wezterm", size)
+                pixbuf = self._resolver.get_text_icon_pixbuf_by_name("wezterm", size)
                 self.assertEqual(f"pixbuf:wezterm:{size}", pixbuf)
 
     def test_a_small_request_does_not_degrade_a_later_large_one(self):
         """The panel resolving at 16px must not poison the overview's 71px."""
-        self._resolver.get_icon_pixbuf_by_name("wezterm", 16)
+        self._resolver.get_text_icon_pixbuf_by_name("wezterm", 16)
 
         self.assertEqual(
-            "pixbuf:wezterm:71", self._resolver.get_icon_pixbuf_by_name("wezterm", 71)
+            "pixbuf:wezterm:71", self._resolver.get_text_icon_pixbuf_by_name("wezterm", 71)
         )
 
     def test_by_name_returns_none_for_an_empty_name(self):
-        self.assertIsNone(self._resolver.get_icon_pixbuf_by_name("", 32))
-        self.assertIsNone(self._resolver.get_icon_pixbuf_by_name(None, 32))
+        self.assertIsNone(self._resolver.get_text_icon_pixbuf_by_name("", 32))
+        self.assertIsNone(self._resolver.get_text_icon_pixbuf_by_name(None, 32))
 
     def test_large_request_ignores_a_sticky_small_desktop_app_cache(self):
         """Reproduce the blurry-icon bug through the resolver's public API."""
@@ -395,24 +395,24 @@ class IconSizeTest(unittest.TestCase):
             def __init__(self):
                 self._pixbuf = None
 
-            def get_icon_pixbuf(self, size=48, **kwargs):
+            def get_text_icon_pixbuf(self, size=48, **kwargs):
                 if self._pixbuf is None:
                     self._pixbuf = f"sticky:{size}"
                 return self._pixbuf
 
         desktop_app = StickyDesktopApp()
-        self.assertEqual("sticky:16", desktop_app.get_icon_pixbuf(16))
+        self.assertEqual("sticky:16", desktop_app.get_text_icon_pixbuf(16))
 
         with mock.patch("utils.app.AppUtils.find_app", return_value=desktop_app):
             pixbuf = self._resolver.resolve_icon_pixbuf("org.wezfurlong.wezterm", 71)
 
         self.assertEqual("pixbuf:wezterm:71", pixbuf)
-        self.assertEqual("sticky:16", desktop_app.get_icon_pixbuf(16), "cache unused")
+        self.assertEqual("sticky:16", desktop_app.get_text_icon_pixbuf(16), "cache unused")
 
     def test_resolve_uses_the_app_icon_name_rather_than_the_cached_pixbuf(self):
         desktop_app = mock.Mock(icon_name="wezterm")
         # Any use of the shared DesktopApp pixbuf cache is the bug.
-        desktop_app.get_icon_pixbuf = mock.Mock(
+        desktop_app.get_text_icon_pixbuf = mock.Mock(
             side_effect=AssertionError("must not use the shared DesktopApp pixbuf")
         )
         pixbuf = mock.Mock()
@@ -422,7 +422,7 @@ class IconSizeTest(unittest.TestCase):
         with (
             mock.patch("utils.app.AppUtils.find_app", return_value=desktop_app),
             mock.patch.object(
-                IconResolver, "get_icon_pixbuf_by_name", return_value=pixbuf
+                IconResolver, "get_text_icon_pixbuf_by_name", return_value=pixbuf
             ) as by_name,
         ):
             self.assertIs(
@@ -430,7 +430,7 @@ class IconSizeTest(unittest.TestCase):
             )
 
         by_name.assert_called_once_with("wezterm", 71)
-        desktop_app.get_icon_pixbuf.assert_not_called()
+        desktop_app.get_text_icon_pixbuf.assert_not_called()
 
 
 class ScalePixbufTest(unittest.TestCase):

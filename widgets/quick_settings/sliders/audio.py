@@ -3,7 +3,7 @@ from fabric.utils import cooldown
 from services import audio_service
 from shared.buttons import HoverButton
 from shared.setting_scale import SettingSlider
-from utils.icons import get_icon
+from utils.icons import get_text_icon
 from utils.widget_utils import get_audio_icon_name, nerd_font_icon
 
 
@@ -25,14 +25,14 @@ class AudioSlider(SettingSlider):
 
         # Initialize with default values first
         super().__init__(
-            icon_name=get_icon("volume.high", "󰕾"),
+            icon_name=get_text_icon("volume.high", "󰕾"),
             start_value=0,
             pixel_size=20,
         )
 
         if show_chevron:
             self.chevron_icon = nerd_font_icon(
-                icon=get_icon("chevron.right", ""),
+                icon=get_text_icon("chevron.right", ""),
                 props={"style_classes": ["chevron-icon"]},
             )
 
@@ -113,9 +113,9 @@ class AudioSlider(SettingSlider):
             is_visible = parent.audio_submenu.toggle_reveal()
 
             self.chevron_icon.set_label(
-                get_icon("chevron.down", "")
+                get_text_icon("chevron.down", "")
                 if is_visible
-                else get_icon("chevron.right", "")
+                else get_text_icon("chevron.right", "")
             )
 
     def on_mute_click(self, *_):

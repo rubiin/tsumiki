@@ -7,7 +7,7 @@ from services import audio_service
 from shared.list import ListBox
 from shared.submenu import QuickSubMenu, scrolled_list_content
 from utils.i18n import _
-from utils.icons import get_icon, symbolic_icons
+from utils.icons import get_text_icon, symbolic_icons
 from widgets.quick_settings.sliders.audio import AudioSlider
 
 
@@ -33,7 +33,7 @@ class AudioSubMenu(QuickSubMenu):
         # Initialize parent with our components
         super().__init__(
             title=_("widget.quick_settings.audio.title"),
-            title_icon=get_icon("volume.high", "󰕾"),
+            title_icon=get_text_icon("volume.high", "󰕾"),
             scan_button=self.scan_button,
             child=Box(orientation="v", children=[self.child]),
             h_expand=True,

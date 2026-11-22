@@ -12,7 +12,7 @@ from services import (
 from services.network import NetworkService
 from utils.config import tsumiki_config
 from utils.i18n import _
-from utils.icons import get_icon
+from utils.icons import get_text_icon
 from widgets.quick_settings.toggle_base import QuickSettingToggle
 
 
@@ -41,7 +41,7 @@ class HyprIdleQuickSetting(QuickSettingToggle):
     def __init__(self, popup, **kwargs):
         super().__init__(
             popup,
-            icon=get_icon("idle.enabled", ""),
+            icon=get_text_icon("idle.enabled", ""),
             title=_("widget.quick_settings.caffeine.title"),
             subtitle=_("common.off"),
             **kwargs,
@@ -67,7 +67,7 @@ class HyprIdleQuickSetting(QuickSettingToggle):
         active = bool(caffeine_service.active)
         self.toggle_css_class("active", active)
         self.caffeine_icon.set_label(
-            get_icon("idle.enabled" if active else "idle.disabled")
+            get_text_icon("idle.enabled" if active else "idle.disabled")
         )
         self.caffeine_status.set_label(
             _("widget.quick_settings.caffeine.awake") if active else _("common.off")
@@ -80,7 +80,7 @@ class NotificationQuickSetting(QuickSettingToggle):
     def __init__(self, popup, **kwargs):
         super().__init__(
             popup,
-            icon=get_icon("notifications.noisy", "󰂜"),
+            icon=get_text_icon("notifications.noisy", "󰂜"),
             title=_("widget.quick_settings.notifications.title"),
             subtitle=_("common.off"),
             **kwargs,
@@ -109,10 +109,10 @@ class NotificationQuickSetting(QuickSettingToggle):
 
         if value:
             self.notification_status.set_label(_("common.on"))
-            self.notification_icon.set_label(get_icon("notifications.silent", "󰪑"))
+            self.notification_icon.set_label(get_text_icon("notifications.silent", "󰪑"))
         else:
             self.notification_status.set_label(_("common.off"))
-            self.notification_icon.set_label(get_icon("notifications.noisy", "󰂜"))
+            self.notification_icon.set_label(get_text_icon("notifications.noisy", "󰂜"))
 
 
 class FlightModeToggle(QuickSettingToggle):
@@ -121,7 +121,7 @@ class FlightModeToggle(QuickSettingToggle):
     def __init__(self, popup, **kwargs):
         super().__init__(
             popup,
-            icon=get_icon("flight.disabled", "󰗔"),
+            icon=get_text_icon("flight.disabled", "󰗔"),
             title=_("widget.quick_settings.flightmode.title"),
             subtitle=_("common.off"),
             **kwargs,
@@ -166,7 +166,7 @@ class ScreenshotQuickSetting(QuickSettingToggle):
     def __init__(self, popup, config=None, **kwargs):
         super().__init__(
             popup,
-            icon=get_icon("screenshot", "󰆈"),
+            icon=get_text_icon("screenshot", "󰆈"),
             title=_("widget.quick_settings.screenshot.label"),
             subtitle=_("widget.quick_settings.screenshot.hint"),
             **kwargs,
@@ -187,7 +187,7 @@ class RecorderQuickSetting(QuickSettingToggle):
     def __init__(self, popup, **kwargs):
         super().__init__(
             popup,
-            icon=get_icon("recorder", "󰻂"),
+            icon=get_text_icon("recorder", "󰻂"),
             title=_("widget.quick_settings.recording.title"),
             subtitle=_("widget.quick_settings.recording.idle"),
             **kwargs,
@@ -211,7 +211,7 @@ class RecorderQuickSetting(QuickSettingToggle):
     def update_state(self, *_args):
         recording = recorder_service.is_recording
         self.toggle_css_class("active", recording)
-        self.icon_label.set_label(get_icon("recorder", "󰻂"))
+        self.icon_label.set_label(get_text_icon("recorder", "󰻂"))
         if recording:
             self.status_label.set_label(_("widget.quick_settings.recording.recording"))
         else:
@@ -224,7 +224,7 @@ class DarkModeToggle(QuickSettingToggle):
     def __init__(self, popup, **kwargs):
         super().__init__(
             popup,
-            icon=get_icon("color.dark", "󰖔"),
+            icon=get_text_icon("color.dark", "󰖔"),
             title=_("widget.quick_settings.dark_mode.title"),
             subtitle=_("common.off"),
             **kwargs,
@@ -244,7 +244,7 @@ class DarkModeToggle(QuickSettingToggle):
     def update_state(self, *_args):
         light = style_service.mode != "dark"
         self.toggle_css_class("active", light)
-        self.icon_label.set_label(get_icon("color.light" if light else "color.dark"))
+        self.icon_label.set_label(get_text_icon("color.light" if light else "color.dark"))
         self.status_label.set_label(_("common.on") if light else _("common.off"))
 
 

@@ -17,7 +17,7 @@ from fabric.widgets.widget import Widget
 from .config import tsumiki_config
 from .constants import NOTIFICATION_IMAGE_SIZE
 from .icon_resolver import IconResolver
-from .icons import get_icon, symbolic_icons
+from .icons import get_text_icon, symbolic_icons
 from .pixbuf import load_file_pixbuf
 
 storage_config = tsumiki_config.get("widgets", {}).get("storage", {})
@@ -215,7 +215,7 @@ def get_notification_image_pixbuf(
         return IconResolver().scale_pixbuf_to_size(pixbuf, size)
 
     # Not a file path - try resolving it as a themed icon name
-    return IconResolver().get_icon_theme_icon(image_file, size - 5)
+    return IconResolver().get_text_icon_theme_icon(image_file, size - 5)
 
 
 def resolve_notification_icon(
@@ -313,22 +313,22 @@ def get_level_icon(level: Number, icons: list[str]) -> str | None:
 def get_brightness_icon_name(level: int) -> dict[Literal["icon_text", "icon"], str]:
     if level <= 0:
         return {
-            "icon_text": get_icon("brightness.off", "󰃞"),
+            "icon_text": get_text_icon("brightness.off", "󰃞"),
             "icon": symbolic_icons["brightness"]["off"],
         }
 
     if level <= 32:
         return {
-            "icon_text": get_icon("brightness.low", "󰃝"),
+            "icon_text": get_text_icon("brightness.low", "󰃝"),
             "icon": symbolic_icons["brightness"]["low"],
         }
     if level <= 66:
         return {
-            "icon_text": get_icon("brightness.medium", "󰃟"),
+            "icon_text": get_text_icon("brightness.medium", "󰃟"),
             "icon": symbolic_icons["brightness"]["medium"],
         }
     return {
-        "icon_text": get_icon("brightness.high", "󰃠"),
+        "icon_text": get_text_icon("brightness.high", "󰃠"),
         "icon": symbolic_icons["brightness"]["high"],
     }
 
@@ -381,11 +381,11 @@ def get_audio_icon_name(
     def pick(index: int, fallback_level: str) -> str:
         if icons:
             return icons[min(index, len(icons) - 1)]
-        return get_icon(f"volume.{fallback_level}")
+        return get_text_icon(f"volume.{fallback_level}")
 
     if is_muted or volume == 0:
         level = "muted"
-        icon_text = muted_icon or get_icon("volume.muted")
+        icon_text = muted_icon or get_text_icon("volume.muted")
     elif volume <= 32:
         level = "low"
         icon_text = pick(0, "low")
