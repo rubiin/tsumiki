@@ -2,7 +2,7 @@ from services import recorder_service
 from shared.widget_container import ButtonWidget
 from utils.constants import ASSETS_DIR
 from utils.i18n import _
-from utils.icons import get_text_icon
+from utils.icons import get_icon
 from utils.widget_utils import nerd_font_icon
 
 
@@ -14,7 +14,7 @@ class RecorderWidget(ButtonWidget):
 
         # Initial UI setup
         self.recording_idle_image = nerd_font_icon(
-            icon=get_text_icon("recorder", "󰻂"),
+            icon=get_icon("recorder", "󰻂"),
             props={"style_classes": ["panel-font-icon"]},
         )
         self.container_box.add(self.recording_idle_image)

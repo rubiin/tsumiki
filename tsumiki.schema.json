@@ -3482,7 +3482,7 @@
               "description": "Size of the app launcher icon",
               "minimum": 16,
               "maximum": 128,
-              "default": 16
+              "default": 32
             },
             "ignored": {
               "type": "array",

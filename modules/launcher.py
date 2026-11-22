@@ -24,8 +24,9 @@ from fabric.widgets.scrolledwindow import ScrolledWindow
 
 from shared.popup import PopupWindow
 from utils.app import AppUtils
+from utils.constants import LAUNCHER_USAGE_FILE, PINNED_APPS_FILE
 from utils.decorators import blocking_thread
-from utils.functions import ttl_lru_cache
+from utils.functions import read_json_file, ttl_lru_cache, write_json_file
 from utils.icon_resolver import IconResolver
 from utils.plugin_manager import (
     PluginResult,
@@ -88,12 +89,14 @@ class LauncherConfig:
 
     DEFAULT_WIDTH = 280
     DEFAULT_HEIGHT = 320
-    DEFAULT_ICON_SIZE = 24
+    DEFAULT_ICON_SIZE = 32
     DEFAULT_GRID_COLUMNS = 3
     DEFAULT_GRID_SPACING = 12
     MIN_GRID_ITEM_SIZE = 84
     DEFAULT_ANCHOR = "center"
     DEFAULT_LAYOUT = "list"
+    FREQUENT_LIMIT = 5
+    PINNED_LIMIT = 6
 
     def __init__(self, config: BarConfig):
         self.raw_config = config.get("modules", {}).get("launcher", {})
@@ -170,10 +173,10 @@ class AppWidgetFactory:
             child_widget = AppWidgetFactory._create_list_layout(app, icon_size)
 
         return Button(
-            style_classes="launcher-button",
+            style_classes=["launcher-button", f"launcher-{layout_mode}-button"],
             child=child_widget,
             tooltip_text=(app.description if config.show_tooltips else None),
-            h_expand=layout_mode == "grid",
+            h_expand=True,
             v_expand=False,
             size_request=(config.grid_item_size, config.grid_item_size)
             if layout_mode == "grid"
@@ -222,7 +225,30 @@ class AppWidgetFactory:
         app: DesktopApp,
         icon_size: int,
     ) -> Box:
-        """Create horizontal layout for list mode."""
+        """Create horizontal layout for list mode: icon, title and subtitle."""
+        subtitle = app.description or app.generic_name or ""
+        text_children = [
+            Label(
+                label=app.display_name or "Unknown",
+                v_align="center",
+                h_align="start",
+                justification="left",
+                ellipsization="end",
+                style_classes="launcher-item-title",
+            )
+        ]
+        if subtitle:
+            text_children.append(
+                Label(
+                    label=subtitle,
+                    v_align="center",
+                    h_align="start",
+                    justification="left",
+                    ellipsization="end",
+                    style_classes="launcher-item-subtitle",
+                )
+            )
+
         return Box(
             name="list-item",
             orientation="h",
@@ -232,15 +258,28 @@ class AppWidgetFactory:
                 Image(
                     pixbuf=AppWidgetFactory._icon(app, icon_size),
                     h_align="start",
-                    name="icon",
-                ),
-                Label(
-                    label=app.display_name or "Unknown",
                     v_align="center",
-                    h_align="center",
+                    name="icon",
+                    style_classes="launcher-item-icon",
+                ),
+                Box(
+                    orientation="v",
+                    spacing=1,
+                    h_expand=True,
+                    v_align="center",
+                    children=text_children,
                 ),
             ],
         )
+
+
+class _SectionHeader:
+    """Sentinel yielded by the default view to interleave a list header."""
+
+    __slots__ = ("title",)
+
+    def __init__(self, title: str):
+        self.title = title
 
 
 class HandlerManager:
@@ -283,6 +322,7 @@ class Launcher(PopupWindow):
         self._arranger_handler: int = 0
         self.app_util = AppUtils()
         self._all_apps = self._load_apps()
+        self._usage = self._load_usage()
         self._grid_position = 0
         self._first_app = None  # First app matching the current query (Enter)
         # Rendered app results: (widget, app) pairs in display order.
@@ -318,11 +358,10 @@ class Launcher(PopupWindow):
             self.viewport = Box(spacing=2, orientation="v")
         self.search_entry = Entry(
             name="launcher-prompt",
-            placeholder="Search Applications...",
+            placeholder="",
             h_expand=True,
             primary_icon_name="system-search",
-            secondary_icon_name="edit-clear",
-            notify_text=lambda entry, *_: self.arrange_viewport(entry.get_text()),
+            notify_text=self._on_search_changed,
         )
 
         self.search_entry.props.xalign = 0.1
@@ -338,15 +377,24 @@ class Launcher(PopupWindow):
         with suppress(AttributeError):
             self.scrolled_window.set_kinetic_scrolling(True)
 
+        content_children = [self.search_entry, self.scrolled_window]
+        footer_hints = self._footer_hints()
+        if footer_hints:
+            self.footer = Box(
+                name="launcher-footer",
+                orientation="h",
+                spacing=14,
+                style_classes="launcher-footer",
+                children=footer_hints,
+            )
+            content_children.append(self.footer)
+
         launcher_content = Box(
             name="launcher-contents",
             spacing=2,
             orientation="v",
             size_request=(self.config.width, self.config.height),
-            children=[
-                self.search_entry,
-                self.scrolled_window,
-            ],
+            children=content_children,
         )
 
         transition = (
@@ -371,6 +419,101 @@ class Launcher(PopupWindow):
     def on_icon_press(self, entry, icon_pos, event):
         if icon_pos == Gtk.EntryIconPosition.SECONDARY:
             self.search_entry.set_text("")
+
+    def _on_search_changed(self, entry, *_):
+        """Keep the clear affordance in sync and re-render the results."""
+        entry.set_icon_from_icon_name(
+            Gtk.EntryIconPosition.SECONDARY,
+            "edit-clear" if entry.get_text() else None,
+        )
+        self.arrange_viewport(entry.get_text())
+
+    def _footer_hints(self) -> list[Label]:
+        """Short plugin-command hints shown along the bottom of the launcher."""
+        if self.plugin_manager is None:
+            return []
+        return [
+            Label(
+                label=f"/ {plugin.name}",
+                style_classes="launcher-footer-hint",
+                v_align="center",
+            )
+            for plugin in self.plugin_manager.all()[:7]
+        ]
+
+    def _load_usage(self) -> dict[str, int]:
+        """Launch counts used to build the Frequent section, keyed by app name."""
+        data = read_json_file(LAUNCHER_USAGE_FILE)
+        if not isinstance(data, dict):
+            return {}
+        return {
+            str(key): int(value)
+            for key, value in data.items()
+            if isinstance(value, (int, float)) and int(value) > 0
+        }
+
+    def _record_launch(self, app: DesktopApp):
+        """Increment *app*'s launch count and persist it for the next session."""
+        key = app.name or app.display_name
+        if not key:
+            return
+        self._usage[key] = self._usage.get(key, 0) + 1
+        with suppress(OSError):
+            os.makedirs(os.path.dirname(LAUNCHER_USAGE_FILE), exist_ok=True)
+        write_json_file(LAUNCHER_USAGE_FILE, self._usage)
+
+    def _pinned_apps(self) -> list[DesktopApp]:
+        """Resolve the dock's pinned app ids to desktop apps."""
+        ids = read_json_file(PINNED_APPS_FILE)
+        if not isinstance(ids, list):
+            return []
+        apps: list[DesktopApp] = []
+        seen: set[str] = set()
+        for app_id in ids:
+            if len(apps) >= self.config.PINNED_LIMIT:
+                break
+            app = self.app_util.find_app(str(app_id))
+            if app is None or not app.name or app.name in seen:
+                continue
+            seen.add(app.name)
+            apps.append(app)
+        return apps
+
+    def _frequent_apps(self, excluded: set[str]) -> list[DesktopApp]:
+        """Most-launched apps, skipping names already shown elsewhere."""
+        apps: list[DesktopApp] = []
+        seen = set(excluded)
+        for name, count in sorted(
+            self._usage.items(), key=lambda item: item[1], reverse=True
+        ):
+            if count <= 0 or len(apps) >= self.config.FREQUENT_LIMIT:
+                break
+            app = self.app_util.find_app(name)
+            if app is None or not app.name or app.name in seen:
+                continue
+            seen.add(app.name)
+            apps.append(app)
+        return apps
+
+    def _default_view(self) -> Iterator[DesktopApp | _SectionHeader]:
+        """Empty-query view: Pinned, Frequent, then every app under All apps."""
+        pinned = self._pinned_apps()
+        pinned_names = {app.name for app in pinned if app.name}
+        frequent = self._frequent_apps(pinned_names)
+        frequent_names = {app.name for app in frequent if app.name}
+        shown = pinned_names | frequent_names
+        rest = [app for app in self._all_apps if app.name not in shown]
+
+        self._first_app = (pinned or frequent or rest or [None])[0]
+
+        if pinned:
+            yield _SectionHeader("Pinned")
+            yield from pinned
+        if frequent:
+            yield _SectionHeader("Frequent")
+            yield from frequent
+        yield _SectionHeader("All apps")
+        yield from rest
 
     def close_launcher(self):
         """Close the launcher."""
@@ -488,12 +631,7 @@ class Launcher(PopupWindow):
             app = self._first_app
         if app is None:
             return
-        try:
-            app.launch()
-        except Exception as exc:
-            logger.warning(f"[Launcher] Failed to launch app: {exc}")
-            return
-        self.close_launcher()
+        self._launch_app(app)
 
     def _reset_plugin_state(self):
         """Invalidate pending plugin queries and clear selection state."""
@@ -578,14 +716,14 @@ class Launcher(PopupWindow):
 
     def _render_step(
         self,
-        apps_iter: Iterator[DesktopApp],
+        apps_iter: Iterator[DesktopApp | _SectionHeader],
     ) -> bool:
         """Lazy renderer callback used by GLib idle loop."""
         return bool(self.add_next_application(apps_iter))
 
     def _schedule_viewport_render(
         self,
-        apps_iter: Iterator[DesktopApp],
+        apps_iter: Iterator[DesktopApp | _SectionHeader],
     ) -> int:
         """Schedule lazy viewport render and return handler id."""
         return idle_add(
@@ -611,9 +749,11 @@ class Launcher(PopupWindow):
                     )
                     handler_id = 0
                 else:
-                    handler_id = self._schedule_viewport_render(
-                        self._filter_applications(query)
-                    )
+                    if not query and self.config.layout_mode == "list":
+                        items = self._default_view()
+                    else:
+                        items = self._filter_applications(query)
+                    handler_id = self._schedule_viewport_render(items)
 
             handler_mgr.set_new_handler(handler_id)
 
@@ -950,21 +1090,48 @@ class Launcher(PopupWindow):
         if not keep_open:
             self.close_launcher()
 
-    def add_next_application(self, apps_iter: Iterator[DesktopApp]):
-        """Add the next application widget to the viewport."""
-        if not (app := next(apps_iter, None)):
+    def _add_section_header(self, title: str):
+        """Insert a non-selectable list section label."""
+        self.viewport.add(
+            Label(
+                label=title,
+                style_classes="launcher-section-header",
+                h_align="start",
+                v_align="center",
+            )
+        )
+
+    def _launch_app(self, app: DesktopApp):
+        """Record the launch, start the app and close the launcher."""
+        self._record_launch(app)
+        try:
+            app.launch()
+        except Exception as exc:
+            logger.warning(f"[Launcher] Failed to launch app: {exc}")
+            return
+        self.close_launcher()
+
+    def add_next_application(self, apps_iter: Iterator[DesktopApp | _SectionHeader]):
+        """Add the next application or section header to the viewport."""
+        item = next(apps_iter, None)
+        if item is None:
             # Done rendering — highlight the first result by default.
             if self._app_rows and self._app_selected == -1:
                 self._app_rows[0][0].add_style_class("selected")
                 self._app_selected = 0
             return False
 
+        if isinstance(item, _SectionHeader):
+            self._add_section_header(item.title)
+            return True
+
+        app = item
         app_widget = AppWidgetFactory.create_widget(
             app, self.config.layout_mode, self.config.icon_size, self.config
         )
         self._app_rows.append((app_widget, app))
         # on_clicked is a constructor kwarg only, so connect the signal explicitly.
-        app_widget.connect("clicked", lambda *_: (app.launch(), self.close_launcher()))
+        app_widget.connect("clicked", lambda *_: self._launch_app(app))
 
         if self.config.layout_mode == "grid":
             app_widget.set_hexpand(True)

@@ -27,7 +27,7 @@ from shared.list import ListBox, near_list_end, next_batch_size
 from shared.mixins import PopoverMixin
 from shared.widget_container import ButtonWidget, TeardownMixin
 from utils.i18n import _
-from utils.widget_utils import get_text_icon
+from utils.widget_utils import get_icon
 
 
 class ClipHistoryMenu(Box, TeardownMixin):
@@ -136,13 +136,13 @@ class ClipHistoryMenu(Box, TeardownMixin):
                 self.search_entry,
                 Button(
                     name="sync-button",
-                    label=get_text_icon("ui.refresh", ""),
+                    label=get_icon("ui.refresh", ""),
                     tooltip_text=_("widget.clipboard.sync"),
                     on_clicked=self._load_clipboard_items_async,
                 ),
                 Button(
                     name="clear-button",
-                    label=get_text_icon("trash.empty", ""),
+                    label=get_icon("trash.empty", ""),
                     tooltip_text=_("widget.clipboard.clear"),
                     on_clicked=self.clear_history,
                 ),

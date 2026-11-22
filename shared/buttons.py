@@ -8,7 +8,7 @@ from fabric.widgets.image import Image
 from fabric.widgets.label import Label
 
 from utils.constants import ASSETS_DIR
-from utils.icons import get_text_icon, symbolic_icons
+from utils.icons import get_icon, symbolic_icons
 from utils.widget_utils import nerd_font_icon, setup_cursor_hover
 
 from .animator import cubic_bezier
@@ -74,7 +74,7 @@ class QSToggleButton(Box, BaseWidget):
     def __init__(
         self,
         action_label: str = "My Label",
-        action_icon: str = get_text_icon("ui.package", ""),
+        action_icon: str = get_icon("ui.package", ""),
         action_title: str | None = None,
         pixel_size: int = 20,
         **kwargs,

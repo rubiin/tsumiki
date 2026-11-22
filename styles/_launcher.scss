@@ -7,6 +7,17 @@ $launcher-transition:
   background-color variable.$duration-fast variable.$ease-standard,
   color variable.$duration-fast variable.$ease-standard;
 
+$compact-transition:
+  background-color variable.$duration-normal variable.$ease-standard,
+  border-color variable.$duration-normal variable.$ease-standard,
+  box-shadow variable.$duration-normal variable.$ease-standard,
+  color variable.$duration-normal variable.$ease-standard;
+
+$row-hover: color.adjust(theme.$surface-neutral, $alpha: -0.78);
+$row-press: color.adjust(theme.$surface-neutral, $alpha: -0.62);
+$search-bg: color.mix(theme.$surface-disabled, theme.$background-alt, 55%);
+$search-bg-focus: color.mix(theme.$surface-disabled, theme.$background-alt, 80%);
+
 /// The accent state machine shared by the bar button and the in-popup plugin
 /// rows. They differ only in which child nodes get recoloured, so the selector
 /// list is the parameter and the states themselves are written once.
@@ -31,14 +42,21 @@ $launcher-transition:
   }
 }
 
+/************** GRID TILES **************/
+
 .launcher-button {
   border-radius: variable.$radius-lg;
-  transition: $launcher-transition;
+  padding: 6px 8px;
+  transition: $compact-transition;
+}
+
+.launcher-grid-button {
   padding: 5px 20px;
 
   #icon {
     -gtk-icon-effect: highlight;
   }
+
   @include launcher-selection-state("label");
 
   #grid-item {
@@ -58,7 +76,45 @@ $launcher-transition:
   }
 }
 
+/************** LIST ROWS **************/
+
+.launcher-list-button {
+  padding: 6px 8px;
+
+  &:hover,
+  &:focus {
+    background-color: $row-hover;
+  }
+
+  &.selected {
+    background-color: color.adjust(theme.$accent-purple, $alpha: -0.78);
+    box-shadow: inset 0 0 0 1px color.adjust(theme.$accent-purple, $alpha: -0.6);
+  }
+
+  &:active {
+    background-color: $row-press;
+  }
+
+  .launcher-item-title {
+    font-size: variable.$font-size-lg;
+    font-weight: 600;
+    color: theme.$text-main;
+  }
+
+  .launcher-item-subtitle {
+    font-size: variable.$font-size-base;
+    color: theme.$text-muted;
+  }
+
+  .launcher-item-icon {
+    border-radius: variable.$radius-md;
+    -gtk-icon-effect: none;
+  }
+}
+
 #launcher {
+  background-color: transparent;
+
   @include common.widget-border(
     variable.$modules-launcher-border-radius,
     variable.$modules-launcher-border-enabled,
@@ -73,33 +129,44 @@ $launcher-transition:
     variable.$modules-launcher-shadow-opacity
   );
 
+  &-contents {
+    border-radius: variable.$radius-3xl;
+    border: 1px solid
+      color.adjust(theme.$surface-neutral, $alpha: -0.7);
+    background-color: theme.$background-alt;
+    padding: 14px 16px 10px;
+  }
+
   &-prompt {
     @extend %entry-default;
-    border-bottom: 1px solid theme.$surface-disabled;
-    font-size: variable.$font-size-xl;
-    margin-bottom: 10px;
-    padding: 10px 0;
-    transition:
-      border-color variable.$duration-fast variable.$ease-standard,
-      background-color variable.$duration-fast variable.$ease-standard;
+    font-weight: 500;
+    font-size: variable.$font-size-lg;
+    color: theme.$text-main;
+    background-color: $search-bg;
+    border: 1px solid
+      color.adjust(theme.$surface-neutral, $alpha: -0.6);
+    border-radius: variable.$radius-large;
+    min-height: 38px;
+    padding: 0 12px;
+    margin: 2px 2px 12px;
     caret-color: theme.$accent-purple;
+    transition: $compact-transition;
 
     &:focus {
-      background-color: theme.$surface-neutral;
-      border-bottom-color: theme.$accent-purple;
-    }
-
-    placeholder {
-      color: theme.$text-muted;
+      background-color: $search-bg-focus;
+      border-color: color.adjust(theme.$accent-purple, $alpha: -0.45);
+      box-shadow: inset 0 0 0 1px
+        color.adjust(theme.$accent-purple, $alpha: -0.55);
     }
 
     image.left {
-      padding-left: 10px;
+      padding: 0 8px 0 2px;
       color: theme.$text-muted;
+      -gtk-icon-style: regular;
     }
 
     image.right {
-      padding-right: 10px;
+      padding-right: 6px;
       color: theme.$text-muted;
 
       &:hover {
@@ -108,12 +175,30 @@ $launcher-transition:
     }
   }
 
-  &-contents {
-    border-radius: variable.$radius-3xl;
-    border: variable.$border;
-    background-color: theme.$background-alt;
-    padding: 10px;
-    min-width: 600px;
+  .launcher-section-header {
+    font-size: variable.$font-size-sm;
+    font-weight: 700;
+    color: theme.$text-muted;
+    letter-spacing: 0.02em;
+    margin: 12px 8px 2px;
+  }
+
+  &-footer {
+    border-top: 1px solid
+      color.adjust(theme.$surface-neutral, $alpha: -0.72);
+    margin-top: 8px;
+    padding: 8px 6px 2px;
+
+    .launcher-footer-hint {
+      font-family: "JetBrainsMono Nerd Font", monospace;
+      font-size: variable.$font-size-sm;
+      color: theme.$text-disabled;
+      transition: color variable.$duration-fast variable.$ease-standard;
+
+      &:hover {
+        color: theme.$text-muted;
+      }
+    }
   }
 
   .launcher-plugin-button {
@@ -144,5 +229,19 @@ $launcher-transition:
     border-radius: variable.$radius-lg;
     background-color: color.mix(theme.$surface-neutral, transparent, 50%);
     opacity: variable.$opacity-faint;
+  }
+
+  scrolledwindow {
+    border-radius: variable.$radius-lg;
+
+    scrollbar {
+      min-width: 4px;
+
+      slider {
+        min-width: 4px;
+        border-radius: variable.$radius-large;
+        background-color: color.adjust(theme.$surface-neutral, $alpha: -0.35);
+      }
+    }
   }
 }

@@ -8,7 +8,7 @@ import utils.functions as helpers
 from services import networkspeed_service
 from shared.mixins import StatDisplayMixin
 from shared.widget_container import ButtonWidget
-from utils.icons import get_text_icon
+from utils.icons import get_icon
 from utils.widget_utils import (
     connect_util_fabricator_changed,
     disconnect_util_fabricator_changed,
@@ -98,9 +98,9 @@ class CpuWidget(FabricatorBoundWidget, StatDisplayMixin):
 
             tooltip_text = (
                 f"{self.cpu_name}\n"
-                f"{get_text_icon('thermometer')} Temperature: {temp}\n"
-                f"{get_text_icon('powerprofiles.performance')} Utilization: {usage}\n"
-                f"{get_text_icon('cpu')} Clock Speed: {freq_text}"
+                f"{get_icon('thermometer')} Temperature: {temp}\n"
+                f"{get_icon('powerprofiles.performance')} Utilization: {usage}\n"
+                f"{get_icon('cpu')} Clock Speed: {freq_text}"
             )
 
             self.set_tooltip_if_enabled(tooltip_text)
@@ -231,7 +231,7 @@ class MemoryWidget(FabricatorBoundWidget, StatDisplayMixin):
 
         # Update the tooltip with the memory usage details if enabled
         self.set_tooltip_if_enabled(
-            f"󰾆 {self.percent_used}%\n{get_text_icon('memory')} {self.ratio()}",
+            f"󰾆 {self.percent_used}%\n{get_icon('memory')} {self.ratio()}",
         )
 
         return True
@@ -275,7 +275,7 @@ class StorageWidget(FabricatorBoundWidget, StatDisplayMixin):
 
         # Update the tooltip with the storage usage details if enabled
         self.set_tooltip_if_enabled(
-            f"󰾆 {percent}%\n{get_text_icon('storage')} {self.ratio()}"
+            f"󰾆 {percent}%\n{get_icon('storage')} {self.ratio()}"
         )
 
         return True

@@ -36,7 +36,7 @@ from shared.notification_card import (
 )
 from shared.widget_container import BaseWindow, TeardownMixin
 from utils.colors import Colors
-from utils.icons import get_text_icon
+from utils.icons import get_icon
 from utils.pixbuf import load_file_pixbuf
 from utils.widget_settings import BarConfig
 from utils.widget_utils import (
@@ -321,7 +321,7 @@ class NotificationWidget(EventBox, TeardownMixin):
             self.expand_button = Button(
                 style_classes="expand-button",
                 child=nerd_font_icon(
-                    icon=get_text_icon("chevron.down", ""),
+                    icon=get_icon("chevron.down", ""),
                     props={"style_classes": ["panel-font-icon", "expand-icon"]},
                 ),
                 on_clicked=lambda *_: self._toggle_expand(
@@ -457,10 +457,10 @@ class NotificationWidget(EventBox, TeardownMixin):
         self._is_expanded = not self._is_expanded
         if self._is_expanded:
             self.body_label.set_lines(expanded_lines)
-            self.expand_button.get_child().set_label(get_text_icon("chevron.up", ""))
+            self.expand_button.get_child().set_label(get_icon("chevron.up", ""))
         else:
             self.body_label.set_lines(collapsed_lines)
-            self.expand_button.get_child().set_label(get_text_icon("chevron.down", ""))
+            self.expand_button.get_child().set_label(get_icon("chevron.down", ""))
 
     def on_close_button_clicked(self, *_):
         self._notification.close("dismissed-by-user")

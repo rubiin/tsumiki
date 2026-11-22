@@ -3,7 +3,7 @@ from fabric.utils import cooldown
 from services import audio_service
 from shared.scrollable_progress import ScrollableProgressWidget
 from utils.functions import safe_disconnect
-from utils.icons import get_text_icon
+from utils.icons import get_icon
 from utils.widget_utils import get_audio_icon_name
 
 
@@ -25,9 +25,7 @@ class VolumeWidget(ScrollableProgressWidget):
         self._speaker_volume_handler_id = None
 
         self.level_icons = self.config.get("level_icons") or []
-        self.icon_muted = self.config.get("icon_muted") or get_text_icon(
-            "volume.muted", "󰝟"
-        )
+        self.icon_muted = self.config.get("icon_muted") or get_icon("volume.muted", "󰝟")
 
         # Initialize the audio service
         self.audio = audio_service

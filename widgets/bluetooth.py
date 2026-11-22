@@ -2,7 +2,7 @@ from fabric.bluetooth import BluetoothClient
 
 from shared.widget_container import ButtonWidget
 from utils.i18n import _
-from utils.icons import get_text_icon
+from utils.icons import get_icon
 
 
 class BlueToothWidget(ButtonWidget):
@@ -28,9 +28,9 @@ class BlueToothWidget(ButtonWidget):
         """Resolve the on/off glyphs, preferring configured overrides."""
         self.icons = {
             "enabled": self.config.get("enabled_icon")
-            or get_text_icon("bluetooth.enabled", "󰂱"),
+            or get_icon("bluetooth.enabled", "󰂱"),
             "disabled": self.config.get("disabled_icon")
-            or get_text_icon("bluetooth.disabled", "󰂲"),
+            or get_icon("bluetooth.disabled", "󰂲"),
         }
 
     def update_bluetooth_status(self, *_args):

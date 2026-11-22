@@ -14,12 +14,12 @@ from fabric.widgets.stack import Stack
 
 from shared.buttons import HoverButton
 from shared.popup import PopupWindow
-from utils.icons import get_text_icon
+from utils.icons import get_icon
 from utils.widget_settings import BarConfig
 from utils.widget_utils import nerd_font_icon
 
 DEFAULT_TITLE = "Hyprland Keymap"
-DEFAULT_ICON = get_text_icon("ui.keyboard")
+DEFAULT_ICON = get_icon("ui.keyboard")
 
 # Layout constants, sized to the reference look: the key column takes about
 # two thirds of a column, the rest is left to the description.
@@ -200,7 +200,7 @@ class CheatSheetWindow(PopupWindow):
             children=(
                 self._build_action(
                     "cheatsheet-refresh",
-                    self.module_config.get("refresh_icon", get_text_icon("ui.refresh")),
+                    self.module_config.get("refresh_icon", get_icon("ui.refresh")),
                     self.refresh,
                 ),
                 self._build_action(

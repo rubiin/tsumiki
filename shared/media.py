@@ -15,7 +15,7 @@ from utils.constants import APP_DATA_DIRECTORY, ASSETS_DIR, NEWLINE_RE
 from utils.functions import ensure_directory, get_http_client
 from utils.i18n import _
 from utils.icon_resolver import IconResolver
-from utils.icons import get_text_icon
+from utils.icons import get_icon
 from utils.pixbuf import load_file_pixbuf
 from utils.widget_utils import nerd_font_icon
 
@@ -309,7 +309,7 @@ class PlayerBox(Box, TeardownMixin):
 
         # ─── Bottom Controls Row ───
         prev_icon = nerd_font_icon(
-            icon=get_text_icon("mpris.previous", ""),
+            icon=get_icon("mpris.previous", ""),
             props={"style_classes": ["player-icon-sm"]},
         )
         self.prev_btn = HoverButton(
@@ -320,7 +320,7 @@ class PlayerBox(Box, TeardownMixin):
         self.player.bind_property("can_go_previous", self.prev_btn, "sensitive")
 
         next_icon = nerd_font_icon(
-            icon=get_text_icon("mpris.next", ""),
+            icon=get_icon("mpris.next", ""),
             props={"style_classes": ["player-icon-sm"]},
         )
         self.next_btn = HoverButton(
@@ -331,7 +331,7 @@ class PlayerBox(Box, TeardownMixin):
         self.player.bind_property("can_go_next", self.next_btn, "sensitive")
 
         shuffle_icon = nerd_font_icon(
-            icon=get_text_icon("mpris.shuffle", ""),
+            icon=get_icon("mpris.shuffle", ""),
             props={"style_classes": ["player-icon-sm"]},
         )
         self.shuffle_btn = HoverButton(
@@ -370,7 +370,7 @@ class PlayerBox(Box, TeardownMixin):
 
         # ─── Play/Pause Button ───
         self.play_pause_icon = nerd_font_icon(
-            icon=get_text_icon("mpris.paused", ""),
+            icon=get_icon("mpris.paused", ""),
             props={"style_classes": ["player-icon-lg"]},
         )
         self.play_pause_btn = HoverButton(
@@ -552,10 +552,10 @@ class PlayerBox(Box, TeardownMixin):
     def on_playback_change(self, player, _status):
         status = player.get_property("playback-status")
         if status == "paused":
-            self.play_pause_icon.set_label(get_text_icon("mpris.playing", ""))
+            self.play_pause_icon.set_label(get_icon("mpris.playing", ""))
             self.progress_bar.set_active(False)
         elif status == "playing":
-            self.play_pause_icon.set_label(get_text_icon("mpris.paused", ""))
+            self.play_pause_icon.set_label(get_icon("mpris.paused", ""))
             self.progress_bar.set_active(True)
 
         # Only a running player advances the position, so only then tick.

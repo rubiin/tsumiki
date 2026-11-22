@@ -14,7 +14,7 @@ from fabric.widgets.label import Label
 from services import note_service
 from shared.widget_container import BaseWindow, tooltips_enabled
 from utils.constants import NOTE_COLORS
-from utils.icons import get_text_icon
+from utils.icons import get_icon
 from utils.widget_settings import BarConfig
 
 NOTE_HEIGHT = 180
@@ -78,7 +78,7 @@ class NoteWidget(Box):
 
         add = Button(
             name="note-add",
-            child=Label(name="note-add-icon", label=get_text_icon("ui.plus")),
+            child=Label(name="note-add-icon", label=get_icon("ui.plus")),
             on_clicked=lambda *_: on_add(self),
         )
         # The drag strip doubles as the spacer that pushes the controls right.
@@ -88,7 +88,7 @@ class NoteWidget(Box):
             events=["button-press", "button-release", "pointer-motion"],
             child=Label(
                 name="note-grip",
-                label=get_text_icon("ui.drag"),
+                label=get_icon("ui.drag"),
                 h_align="end",
                 v_align="center",
             ),
@@ -98,7 +98,7 @@ class NoteWidget(Box):
         self.handle.connect("motion-notify-event", self._on_motion)
         self.lock_button = Button(
             name="note-lock",
-            child=Label(name="note-lock-icon", label=get_text_icon("ui.unlock")),
+            child=Label(name="note-lock-icon", label=get_icon("ui.unlock")),
             on_clicked=lambda *_: self._toggle_lock(),
         )
         color_dot = Button(
@@ -107,9 +107,7 @@ class NoteWidget(Box):
         )
         delete = Button(
             name="note-delete",
-            child=Label(
-                name="note-delete-icon", label=get_text_icon("ui.window_close")
-            ),
+            child=Label(name="note-delete-icon", label=get_icon("ui.window_close")),
             on_clicked=lambda *_: on_delete(self),
         )
 
@@ -153,7 +151,7 @@ class NoteWidget(Box):
         icon = self.lock_button.get_child()
         if icon is not None:
             icon.set_label(
-                get_text_icon("ui.lock") if self._locked else get_text_icon("ui.unlock")
+                get_icon("ui.lock") if self._locked else get_icon("ui.unlock")
             )
         if self._locked:
             self.handle.add_style_class("locked")
