@@ -100,7 +100,7 @@ enabled = false
 message = ""
 [widgets.quick_settings]
 hover_reveal = false
-toggles = ["wifi", "bluetooth", "power_profiles", "nightlight", "hypridle", "notification", "recorder", "screenshot"]
+toggles = ["wifi", "bluetooth", "power_profiles", "nightlight", "hypridle", "notification"]
 
 [widgets.quick_settings.user]
 avatar = "~/.face"

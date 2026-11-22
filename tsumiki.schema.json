@@ -670,17 +670,16 @@
                   "recorder"
                 ]
               },
+              "maxItems": 6,
               "default": [
                 "wifi",
                 "bluetooth",
                 "power_profiles",
                 "nightlight",
                 "hypridle",
-                "notification",
-                "recorder",
-                "screenshot"
+                "notification"
               ],
-              "description": "The list of toggles to display in the quick settings. Toggles flow two per row; an empty list hides the toggle section entirely. screenshot and recorder match the standalone Screenshot and Screen Recording widgets."
+              "description": "The list of toggles to display in the quick settings, up to six. Toggles flow two per row; an empty list hides the toggle section entirely. screenshot and recorder match the standalone Screenshot and Screen Recording widgets."
             },
             "user": {
               "type": "object",
