@@ -104,26 +104,30 @@ class WorkspaceEventTest(unittest.TestCase):
 
 
 class UrgentSignalTest(unittest.TestCase):
-    """``show_urgent`` only gates Fabric's urgent signal, not the event."""
+    """``show_urgent`` gates the urgent event before Fabric handles it."""
 
-    def test_fabric_handles_urgent_events(self):
-        self.assertIs(_HyprlandWorkspaces.on_urgent, HyprlandWorkspaces.on_urgent)
-
-    def test_the_urgent_signal_reaches_fabric_when_enabled(self):
+    def _probe(self, show_urgent: bool) -> _HyprlandWorkspaces:
         probe = _HyprlandWorkspaces.__new__(_HyprlandWorkspaces)
-        probe._show_urgent = True
+        probe._show_urgent = show_urgent
+        return probe
 
-        with mock.patch.object(HyprlandWorkspaces, "urgent") as base:
-            probe.urgent(3)
+    @staticmethod
+    def _urgent_event() -> HyprlandEvent:
+        return HyprlandEvent(name="urgent", data=["0xabc"], raw_data=b"")
 
-        base.assert_called_once_with(3)
+    def test_the_urgent_event_reaches_fabric_when_enabled(self):
+        probe = self._probe(True)
 
-    def test_the_urgent_signal_is_dropped_when_disabled(self):
-        probe = _HyprlandWorkspaces.__new__(_HyprlandWorkspaces)
-        probe._show_urgent = False
+        with mock.patch.object(HyprlandWorkspaces, "on_urgent") as base:
+            _HyprlandWorkspaces.on_urgent(probe, None, self._urgent_event())
 
-        with mock.patch.object(HyprlandWorkspaces, "urgent") as base:
-            probe.urgent(3)
+        base.assert_called_once()
+
+    def test_the_urgent_event_is_dropped_when_disabled(self):
+        probe = self._probe(False)
+
+        with mock.patch.object(HyprlandWorkspaces, "on_urgent") as base:
+            _HyprlandWorkspaces.on_urgent(probe, None, self._urgent_event())
 
         base.assert_not_called()
 

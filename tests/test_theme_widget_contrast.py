@@ -22,6 +22,7 @@ ROOT = os.path.dirname(os.path.dirname(__file__))
 THEMES_DIR = os.path.join(ROOT, "themes")
 SCHEMA_PATH = os.path.join(ROOT, "tsumiki.schema.json")
 WIDGETS_SCSS = os.path.join(ROOT, "styles", "common", "_widgets.scss")
+SETTINGS_SCSS = os.path.join(ROOT, "styles", "_settings.scss")
 MAIN_SCSS = os.path.join(ROOT, "styles", "main.scss")
 MODES = ("dark", "light")
 STATES = ("normal", "hover", "active")
@@ -112,6 +113,14 @@ def _scss_widget_types():
     return set(re.findall(r'"([a-z0-9_]+)"', block))
 
 
+def _bar_monochrome_enabled() -> bool:
+    """Whether the bar intentionally drops per-widget fills."""
+    with open(SETTINGS_SCSS, encoding="utf-8") as handle:
+        source = handle.read()
+    match = re.search(r"\$bar-monochrome:\s*(true|false)", source)
+    return bool(match and match.group(1) == "true")
+
+
 class ThemeWidgetColorTest(unittest.TestCase):
     """Every widget must be vivid when idle and readable in every state."""
 
@@ -184,15 +193,27 @@ class ThemeWidgetColorTest(unittest.TestCase):
             for selector, body in re.findall(r"([^{}]+)\{([^{}]*)\}", css)
             if "background-color" in body
         ]
-        missing = [
+        backgrounded = {
             name
-            for name in sorted(_scss_widget_types())
-            if not any(
+            for name in _scss_widget_types()
+            if any(
                 re.search(rf"#{re.escape(name)}(?![\w-])", selector)
                 for selector in backgrounds
             )
-        ]
-        self.assertEqual(missing, [], "widgets without a background rule")
+        }
+
+        if _bar_monochrome_enabled():
+            # Monochrome deliberately leaves most widgets transparent, so
+            # "every widget has a fill" does not apply. The always-coloured
+            # battery must still get one.
+            self.assertIn("battery", backgrounded)
+            return
+
+        self.assertEqual(
+            set(_scss_widget_types()) - backgrounded,
+            set(),
+            "widgets without a background rule",
+        )
 
 
 if __name__ == "__main__":

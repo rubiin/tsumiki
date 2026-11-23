@@ -51,7 +51,7 @@ BAR_COLOR = (1.0, 0.36, 0.36)  # RGB for the progress bar color
 
 # The progress bar is a 2px sliver, so a 60 Hz vsync tick bought nothing visible.
 _EXPIRY_TIMER = "expiry"
-_EXPIRY_INTERVAL_MS = 80  # ~30 Hz
+_EXPIRY_INTERVAL_MS = 80  # ~12.5 Hz
 
 
 class NotificationPopup(BaseWindow):

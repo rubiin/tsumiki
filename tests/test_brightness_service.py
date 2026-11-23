@@ -29,6 +29,9 @@ def _make_service(cache: int, max_screen: int = 400) -> BrightnessService:
     service.max_screen = max_screen
     service.screen_device = "intel_backlight"
     service.screen_backlight_path = "/sys/class/backlight/intel_backlight"
+    # Fabric signals need an initialized GObject; stub emit so the handlers
+    # can be exercised on a bare instance.
+    service.emit = mock.Mock()
     return service
 
 
@@ -40,7 +43,7 @@ class ScreenBrightnessHandlerTest(unittest.TestCase):
 
         service._on_screen_file_changed(None, _StubFile(b"150"))
 
-        service.screen_brightness_changed.emit.assert_called_once_with()
+        service.emit.assert_called_once_with("screen_brightness_changed")
         self.assertEqual(service._screen_brightness_cache, 150)
 
     def test_same_value_is_silent(self):
@@ -48,7 +51,7 @@ class ScreenBrightnessHandlerTest(unittest.TestCase):
 
         service._on_screen_file_changed(None, _StubFile(b"150"))
 
-        service.screen_brightness_changed.assert_not_called()
+        service.emit.assert_not_called()
         self.assertEqual(service._screen_brightness_cache, 150)
 
     def test_unreadable_value_is_silent(self):
@@ -56,7 +59,7 @@ class ScreenBrightnessHandlerTest(unittest.TestCase):
 
         service._on_screen_file_changed(None, _StubFile(b"not-a-number"))
 
-        service.screen_brightness_changed.assert_not_called()
+        service.emit.assert_not_called()
         self.assertEqual(service._screen_brightness_cache, 100)
 
 
@@ -74,15 +77,18 @@ class BrightnessUnitTest(unittest.TestCase):
         with mock.patch("services.brightness.exec_brightnessctl_async") as run:
             setter = _make_service(cache=0)
             set_brightness(setter, 150)
-            emitted_by_setter = setter.emit.call_args[0][1]
 
             monitor = _make_service(cache=0)
             monitor._on_screen_file_changed(None, _StubFile(b"150"))
-            emitted_by_monitor = monitor.emit.call_args[0][1]
 
         run.assert_called_once()
-        self.assertEqual(emitted_by_setter, 37)
-        self.assertEqual(emitted_by_setter, emitted_by_monitor)
+        setter.emit.assert_called_once_with("screen_brightness_changed")
+        monitor.emit.assert_called_once_with("screen_brightness_changed")
+        self.assertEqual(setter.screen_brightness_percentage, 37)
+        self.assertEqual(
+            setter.screen_brightness_percentage,
+            monitor.screen_brightness_percentage,
+        )
 
     def test_the_percentage_property_uses_the_same_scale(self):
         service = _make_service(cache=150)

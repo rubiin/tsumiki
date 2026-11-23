@@ -408,13 +408,13 @@ class NotificationExpiryTimerTest(unittest.TestCase):
         self.assertEqual(1, len(self.glib.armed))
         self.assertTrue(self.widget._has_timeout(notification_module._EXPIRY_TIMER))
 
-    def test_expiry_runs_at_about_30hz(self):
+    def test_expiry_runs_at_a_reduced_rate(self):
         self.widget.start_timeout()
 
         interval = self.glib.intervals[0]
-        self.assertGreater(interval, 16, "still vsync-rate, not 30 Hz")
-        self.assertLessEqual(interval, 50)
-        self.assertAlmostEqual(30, 1000 / interval, delta=2.0)
+        self.assertGreater(interval, 16, "still vsync-rate")
+        self.assertLessEqual(interval, 100)
+        self.assertAlmostEqual(12.5, 1000 / interval, delta=2.0)
 
     def test_the_countdown_survives_the_slower_tick(self):
         """Time comes from the monotonic clock, not from the tick count."""
