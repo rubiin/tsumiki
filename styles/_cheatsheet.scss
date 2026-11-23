@@ -7,7 +7,7 @@
 // the overlay lives here. CheatSheetWindow is its own layer-shell window named
 // "cheatsheet-window", so it is not a descendant of #cheatsheet.
 #cheatsheet {
-  @include common.widget_border(
+  @include common.widget-border(
     variable.$bar-widgets-cheatsheet-border-radius,
     variable.$bar-widgets-cheatsheet-border-enabled,
     variable.$bar-widgets-cheatsheet-border-width

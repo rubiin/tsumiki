@@ -3,7 +3,7 @@
 @use "variable";
 
 #ip_monitor {
-  @include common.widget_border(
+  @include common.widget-border(
     variable.$bar-widgets-ip_monitor-border-radius,
     variable.$bar-widgets-ip_monitor-border-enabled,
     variable.$bar-widgets-ip_monitor-border-width

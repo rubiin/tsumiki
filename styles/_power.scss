@@ -4,7 +4,7 @@
 @use "variable";
 
 #power {
-  @include common.widget_border(
+  @include common.widget-border(
     variable.$bar-widgets-power-border-radius,
     variable.$bar-widgets-power-border-enabled,
     variable.$bar-widgets-power-border-width

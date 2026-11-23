@@ -4,7 +4,7 @@
 @use "variable";
 
 #pomodoro {
-  @include common.widget_border(
+  @include common.widget-border(
     variable.$bar-widgets-pomodoro-border-radius,
     variable.$bar-widgets-pomodoro-border-enabled,
     variable.$bar-widgets-pomodoro-border-width

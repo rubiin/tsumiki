@@ -21,7 +21,7 @@
 }
 
 #emoji_picker {
-  @include common.widget_border(
+  @include common.widget-border(
     variable.$bar-widgets-emoji_picker-border-radius,
     variable.$bar-widgets-emoji_picker-border-enabled,
     variable.$bar-widgets-emoji_picker-border-width

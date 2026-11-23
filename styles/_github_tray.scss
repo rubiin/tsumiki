@@ -13,7 +13,7 @@
 }
 
 #github_tray {
-  @include common.widget_border(
+  @include common.widget-border(
     variable.$bar-widgets-github_tray-border-radius,
     variable.$bar-widgets-github_tray-border-enabled,
     variable.$bar-widgets-github_tray-border-width

@@ -4,7 +4,7 @@
 @use "variable";
 
 #usb_manager {
-  @include common.widget_border(
+  @include common.widget-border(
     variable.$bar-widgets-usb_manager-border-radius,
     variable.$bar-widgets-usb_manager-border-enabled,
     variable.$bar-widgets-usb_manager-border-width

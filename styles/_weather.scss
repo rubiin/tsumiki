@@ -6,7 +6,7 @@
 $base_margin: common.toEm(4);
 
 #weather {
-  @include common.widget_border(
+  @include common.widget-border(
     variable.$bar-widgets-weather-border-radius,
     variable.$bar-widgets-weather-border-enabled,
     variable.$bar-widgets-weather-border-width

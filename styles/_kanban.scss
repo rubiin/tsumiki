@@ -4,7 +4,7 @@
 @use "variable";
 
 #kanban {
-  @include common.widget_border(
+  @include common.widget-border(
     variable.$bar-widgets-kanban-border-radius,
     variable.$bar-widgets-kanban-border-enabled,
     variable.$bar-widgets-kanban-border-width

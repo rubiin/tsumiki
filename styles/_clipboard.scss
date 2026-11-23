@@ -21,7 +21,7 @@
 }
 
 #clipboard {
-  @include common.widget_border(
+  @include common.widget-border(
     variable.$bar-widgets-clipboard-border-radius,
     variable.$bar-widgets-clipboard-border-enabled,
     variable.$bar-widgets-clipboard-border-width
