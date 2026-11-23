@@ -1,16 +1,8 @@
 @use "sass:color";
 @use "theme";
-@use "common";
 @use "variable";
 
 #pomodoro {
-  @include common.widget-border(
-    variable.$bar-widgets-pomodoro-border-radius,
-    variable.$bar-widgets-pomodoro-border-enabled,
-    variable.$bar-widgets-pomodoro-border-width
-  );
-  @include common.nerd-icon(variable.$bar-widgets-pomodoro-icon_size, null);
-
   &-menu {
     padding: 16px;
 

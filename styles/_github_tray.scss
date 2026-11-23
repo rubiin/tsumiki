@@ -1,6 +1,5 @@
 @use "sass:color";
 @use "theme";
-@use "common";
 @use "variable";
 
 /// The raised panel surface shared by every tray element: a card, a chip, the
@@ -10,16 +9,6 @@
   background-color: theme.$background-alt;
   border: 1px solid theme.$surface-disabled;
   border-radius: $radius;
-}
-
-#github_tray {
-  @include common.widget-border(
-    variable.$bar-widgets-github_tray-border-radius,
-    variable.$bar-widgets-github_tray-border-enabled,
-    variable.$bar-widgets-github_tray-border-width
-  );
-
-  @include common.nerd-icon(variable.$bar-widgets-github_tray-icon_size, null);
 }
 
 /* Popover shell */

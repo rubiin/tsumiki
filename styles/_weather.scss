@@ -6,17 +6,6 @@
 $base_margin: common.toEm(4);
 
 #weather {
-  @include common.widget-border(
-    variable.$bar-widgets-weather-border-radius,
-    variable.$bar-widgets-weather-border-enabled,
-    variable.$bar-widgets-weather-border-width
-  );
-
-  @include common.nerd-icon(
-    variable.$bar-widgets-weather-icon_size,
-    variable.$bar-widgets-weather-spacing
-  );
-
   &-menu {
     padding: variable.$padding;
 

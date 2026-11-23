@@ -1,16 +1,5 @@
 @use "theme";
-@use "common";
 @use "variable";
-
-#ip_monitor {
-  @include common.widget-border(
-    variable.$bar-widgets-ip_monitor-border-radius,
-    variable.$bar-widgets-ip_monitor-border-enabled,
-    variable.$bar-widgets-ip_monitor-border-width
-  );
-
-  @include common.nerd-icon(variable.$bar-widgets-ip_monitor-icon_size, null);
-}
 
 #ip-monitor-window {
   min-width: 340px;

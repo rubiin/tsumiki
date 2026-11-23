@@ -1,23 +1,11 @@
 @use "sass:color";
 @use "theme";
-@use "common";
 @use "variable";
 
-// The panel button keeps its generated shell from common/_widgets.scss; only
-// the overlay lives here. CheatSheetWindow is its own layer-shell window named
-// "cheatsheet-window", so it is not a descendant of #cheatsheet.
-#cheatsheet {
-  @include common.widget-border(
-    variable.$bar-widgets-cheatsheet-border-radius,
-    variable.$bar-widgets-cheatsheet-border-enabled,
-    variable.$bar-widgets-cheatsheet-border-width
-  );
-
-  @include common.nerd-icon(
-    variable.$bar-widgets-cheatsheet-icon_size,
-    variable.$bar-widgets-cheatsheet-spacing
-  );
-}
+// The panel button keeps its generated shell (border + icon) from
+// common/_widgets.scss; only the overlay lives here. CheatSheetWindow is its
+// own layer-shell window named "cheatsheet-window", so it is not a descendant
+// of #cheatsheet.
 
 // The overlay paints no scrim: the window, its padding and the revealer all
 // share this name, so any background here would dim the whole desktop.

@@ -1,20 +1,8 @@
 @use "sass:color";
 @use "theme";
-@use "common";
 @use "variable";
 
 #kanban {
-  @include common.widget-border(
-    variable.$bar-widgets-kanban-border-radius,
-    variable.$bar-widgets-kanban-border-enabled,
-    variable.$bar-widgets-kanban-border-width
-  );
-
-  @include common.nerd-icon(
-    variable.$bar-widgets-kanban-icon_size,
-    variable.$bar-widgets-kanban-spacing
-  );
-
   &-board {
     border: 4px solid theme.$surface-disabled;
     min-height: 400px;

@@ -3,16 +3,6 @@
 @use "common";
 @use "variable";
 
-#usb_manager {
-  @include common.widget-border(
-    variable.$bar-widgets-usb_manager-border-radius,
-    variable.$bar-widgets-usb_manager-border-enabled,
-    variable.$bar-widgets-usb_manager-border-width
-  );
-
-  @include common.nerd-icon(variable.$bar-widgets-usb_manager-icon_size, null);
-}
-
 #usb-manager-menu {
   min-width: 300px;
   min-height: 350px;

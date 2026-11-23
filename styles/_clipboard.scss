@@ -21,17 +21,6 @@
 }
 
 #clipboard {
-  @include common.widget-border(
-    variable.$bar-widgets-clipboard-border-radius,
-    variable.$bar-widgets-clipboard-border-enabled,
-    variable.$bar-widgets-clipboard-border-width
-  );
-
-  @include common.nerd-icon(
-    variable.$bar-widgets-clipboard-icon_size,
-    variable.$bar-widgets-clipboard-spacing
-  );
-
   @keyframes loadSlot {
     0% {
       opacity: 0;

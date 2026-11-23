@@ -21,17 +21,6 @@
 }
 
 #emoji_picker {
-  @include common.widget-border(
-    variable.$bar-widgets-emoji_picker-border-radius,
-    variable.$bar-widgets-emoji_picker-border-enabled,
-    variable.$bar-widgets-emoji_picker-border-width
-  );
-
-  @include common.nerd-icon(
-    variable.$bar-widgets-emoji_picker-icon_size,
-    variable.$bar-widgets-emoji_picker-spacing
-  );
-
   // Animations
   @keyframes loadEmojiSlot {
     0% {

@@ -4,14 +4,6 @@
 @use "variable";
 
 #power {
-  @include common.widget-border(
-    variable.$bar-widgets-power-border-radius,
-    variable.$bar-widgets-power-border-enabled,
-    variable.$bar-widgets-power-border-width
-  );
-
-  @include common.nerd-icon(variable.$bar-widgets-power-icon_size, null);
-
   &-menu-overlay {
     background: color.adjust(theme.$general-shadow-color, $alpha: -0.2);
   }
