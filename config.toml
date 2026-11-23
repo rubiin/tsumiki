@@ -831,7 +831,7 @@ osds = ["brightness", "volume"]
 [modules.launcher]
 enabled = true
 tooltip = true
-icon_size = 35
+icon_size = 32
 ignored = []
 anchor = "center"
 width = 280

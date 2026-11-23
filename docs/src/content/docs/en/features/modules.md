@@ -148,12 +148,12 @@ Keyboard-driven application launcher with search, grid/list layout, and drag-to-
 [modules.launcher]
 enabled = false
 tooltip = true
-icon_size = 35
+icon_size = 32
 ignored = []
 anchor = "center"
-width = 280
-height = 320
-layout = "grid" # "grid" | "list"
+width = 420
+height = 620
+layout = "list" # "grid" | "list"
 grid_columns = 3
 grid_spacing = 12
 plugins_enabled = true # slash-command plugins (/calc, /translate)
@@ -161,7 +161,9 @@ plugins_dir = "" # default: <config>/plugins
 plugins = ["calc", "emoji"] # allowlist of plugins to load (empty = none)
 ```
 
-- **`layout`**: `grid` shows app icons in a grid; `list` shows them as a list with names.
+- **`layout`**: `grid` shows app icons in a grid; `list` shows each app with its
+  name and description. The default list view groups results under **Pinned**
+  (the dock's pinned apps), **Frequent** (apps you launch most) and **All apps**.
 - **`anchor`**: Position on screen (`center`, `top`, `bottom`, etc.).
 - **`ignored`**: List of desktop file names to exclude from search results.
 - **`plugins_enabled`**: Enables slash-command plugins (`/calc`, `/translate`, ...).

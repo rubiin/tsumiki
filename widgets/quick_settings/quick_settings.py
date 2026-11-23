@@ -444,7 +444,6 @@ class QuickSettingsMenu(Box, TeardownMixin):
 
     def show_dialog(self, title: str, body: str, command: str):
         """Show a dialog with the given title and body."""
-        self.get_parent().set_visible(False)
         self.popup.hide_popover()
 
         Dialog().add_content(

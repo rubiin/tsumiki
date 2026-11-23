@@ -163,6 +163,7 @@ def _write_cache(payload: dict) -> None:
 def load_rates(cancelled=None) -> dict:
     """Return daily rates, downloading at most once a day; falls back to a snapshot."""
     global _DOWNLOAD_COOLDOWN_UNTIL
+    attempted_download = False
     for attempt in range(_RETRY_ATTEMPTS):
         delay = 0.0
         with _RATES_LOCK:
@@ -171,13 +172,15 @@ def load_rates(cancelled=None) -> dict:
                 return cached
 
             now = time.monotonic()
-            if now < _DOWNLOAD_COOLDOWN_UNTIL:
-                # A cold-cache attempt recently failed; don't duplicate the request.
+            # The cooldown deduplicates *other* cold-cache callers; a caller
+            # that already tried and is retrying must not be blocked by it.
+            if now < _DOWNLOAD_COOLDOWN_UNTIL and not attempted_download:
                 if cached:
                     return cached
                 delay = max(delay, _DOWNLOAD_COOLDOWN_UNTIL - now)
 
             if delay == 0.0:
+                attempted_download = True
                 try:
                     fx_date, rates = _download_rates(cancelled=cancelled)
                 except _DownloadCancelledError:
