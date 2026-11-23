@@ -131,8 +131,7 @@ $search-bg-focus: color.mix(theme.$surface-disabled, theme.$background-alt, 80%)
 
   &-contents {
     border-radius: variable.$radius-3xl;
-    border: 1px solid
-      color.adjust(theme.$surface-neutral, $alpha: -0.7);
+    border: 1px solid color.adjust(theme.$surface-neutral, $alpha: -0.7);
     background-color: theme.$background-alt;
     padding: 14px 16px 10px;
   }
@@ -143,8 +142,7 @@ $search-bg-focus: color.mix(theme.$surface-disabled, theme.$background-alt, 80%)
     font-size: variable.$font-size-lg;
     color: theme.$text-main;
     background-color: $search-bg;
-    border: 1px solid
-      color.adjust(theme.$surface-neutral, $alpha: -0.6);
+    border: 1px solid color.adjust(theme.$surface-neutral, $alpha: -0.6);
     border-radius: variable.$radius-large;
     min-height: 38px;
     padding: 0 12px;
@@ -155,8 +153,7 @@ $search-bg-focus: color.mix(theme.$surface-disabled, theme.$background-alt, 80%)
     &:focus {
       background-color: $search-bg-focus;
       border-color: color.adjust(theme.$accent-purple, $alpha: -0.45);
-      box-shadow: inset 0 0 0 1px
-        color.adjust(theme.$accent-purple, $alpha: -0.55);
+      box-shadow: inset 0 0 0 1px color.adjust(theme.$accent-purple, $alpha: -0.55);
     }
 
     image.left {
@@ -184,8 +181,7 @@ $search-bg-focus: color.mix(theme.$surface-disabled, theme.$background-alt, 80%)
   }
 
   &-footer {
-    border-top: 1px solid
-      color.adjust(theme.$surface-neutral, $alpha: -0.72);
+    border-top: 1px solid color.adjust(theme.$surface-neutral, $alpha: -0.72);
     margin-top: 8px;
     padding: 8px 6px 2px;
 
