@@ -3,7 +3,7 @@
 @use "variable";
 
 #cloudflare_warp {
-  @include common.widget-border(
+  @include common.widget-shell(
     variable.$bar-widgets-cloudflare_warp-border-radius,
     variable.$bar-widgets-cloudflare_warp-border-enabled,
     variable.$bar-widgets-cloudflare_warp-border-width

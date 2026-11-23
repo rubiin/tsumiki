@@ -13,7 +13,7 @@
     border-radius variable.$duration-normal variable.$ease-standard,
     border-color variable.$duration-normal variable.$ease-standard;
 
-  @include common.widget-border(
+  @include common.widget-shell(
     variable.$modules-dock-border-radius,
     variable.$modules-dock-border-enabled,
     variable.$modules-dock-border-width

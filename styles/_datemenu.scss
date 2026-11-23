@@ -32,7 +32,7 @@
 // Bar widget (max 2 levels deep)
 // ──────────────────────────────────────────────
 #date_time {
-  @include common.widget-border(
+  @include common.widget-shell(
     variable.$bar-widgets-date_time-border-radius,
     variable.$bar-widgets-date_time-border-enabled,
     variable.$bar-widgets-date_time-border-width

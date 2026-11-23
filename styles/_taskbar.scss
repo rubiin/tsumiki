@@ -12,7 +12,7 @@
 
   @include common.bar-background(variable.$bar-opacity);
 
-  @include common.widget-border(
+  @include common.widget-shell(
     variable.$bar-widgets-taskbar-border-radius,
     variable.$bar-widgets-taskbar-border-enabled,
     variable.$bar-widgets-taskbar-border-width

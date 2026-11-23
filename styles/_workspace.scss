@@ -43,7 +43,7 @@ $workspace-transition:
   &_widget {
     font-weight: 700;
 
-    @include common.widget-border(
+    @include common.widget-shell(
       variable.$bar-widgets-workspaces-border-radius,
       variable.$bar-widgets-workspaces-border-enabled,
       variable.$bar-widgets-workspaces-border-width

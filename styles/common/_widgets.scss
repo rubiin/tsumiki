@@ -173,25 +173,19 @@ $widget-shell-widgets: (
     "window_count", // 3-param widgets (no icon/spacing)
     variable.$bar-widgets-window_count-border-radius,
     variable.$bar-widgets-window_count-border-enabled,
-    variable.$bar-widgets-window_count-border-width,
-    null,
-    null
+    variable.$bar-widgets-window_count-border-width
   ),
   (
     "cava",
     variable.$bar-widgets-cava-border-radius,
     variable.$bar-widgets-cava-border-enabled,
-    variable.$bar-widgets-cava-border-width,
-    null,
-    null
+    variable.$bar-widgets-cava-border-width
   ),
   (
     "desktop_clock",
     variable.$modules-desktop_clock-border-radius,
     variable.$modules-desktop_clock-border-enabled,
-    variable.$modules-desktop_clock-border-width,
-    null,
-    null
+    variable.$modules-desktop_clock-border-width
   ),
   (
     "cpu", // 5-param widgets (border + icon + spacing)
@@ -438,40 +432,35 @@ $widget-shell-widgets: (
     variable.$bar-widgets-power-border-radius,
     variable.$bar-widgets-power-border-enabled,
     variable.$bar-widgets-power-border-width,
-    variable.$bar-widgets-power-icon_size,
-    null
+    variable.$bar-widgets-power-icon_size
   ),
   (
     "pomodoro",
     variable.$bar-widgets-pomodoro-border-radius,
     variable.$bar-widgets-pomodoro-border-enabled,
     variable.$bar-widgets-pomodoro-border-width,
-    variable.$bar-widgets-pomodoro-icon_size,
-    null
+    variable.$bar-widgets-pomodoro-icon_size
   ),
   (
     "github_tray",
     variable.$bar-widgets-github_tray-border-radius,
     variable.$bar-widgets-github_tray-border-enabled,
     variable.$bar-widgets-github_tray-border-width,
-    variable.$bar-widgets-github_tray-icon_size,
-    null
+    variable.$bar-widgets-github_tray-icon_size
   ),
   (
     "ip_monitor",
     variable.$bar-widgets-ip_monitor-border-radius,
     variable.$bar-widgets-ip_monitor-border-enabled,
     variable.$bar-widgets-ip_monitor-border-width,
-    variable.$bar-widgets-ip_monitor-icon_size,
-    null
+    variable.$bar-widgets-ip_monitor-icon_size
   ),
   (
     "usb_manager",
     variable.$bar-widgets-usb_manager-border-radius,
     variable.$bar-widgets-usb_manager-border-enabled,
     variable.$bar-widgets-usb_manager-border-width,
-    variable.$bar-widgets-usb_manager-icon_size,
-    null
+    variable.$bar-widgets-usb_manager-icon_size
   ),
   (
     "quick_settings",
@@ -590,7 +579,7 @@ $widget-shell-widgets: (
 }
 
 #activate_linux {
-  @include mixins.widget-border(
+  @include widget-shell(
     variable.$modules-activate_linux-border-radius,
     variable.$modules-activate_linux-border-enabled,
     variable.$modules-activate_linux-border-width
@@ -618,7 +607,7 @@ $widget-shell-widgets: (
 }
 
 #desktop_quotes {
-  @include mixins.widget-border(
+  @include widget-shell(
     variable.$modules-desktop_quotes-border-radius,
     variable.$modules-desktop_quotes-border-enabled,
     variable.$modules-desktop_quotes-border-width

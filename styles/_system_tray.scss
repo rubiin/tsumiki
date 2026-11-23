@@ -5,7 +5,7 @@
 
 /* system tray widget*/
 #system_tray {
-  @include common.widget-border(
+  @include common.widget-shell(
     variable.$bar-widgets-system_tray-border-radius,
     variable.$bar-widgets-system_tray-border-enabled,
     variable.$bar-widgets-system_tray-border-width

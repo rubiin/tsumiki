@@ -15,7 +15,7 @@ $hover-transition: background 0.15s ease-in-out;
   background-color: theme.$background-alt;
   transition: border variable.$duration-fast variable.$ease-standard;
 
-  @include common.widget-border(
+  @include common.widget-shell(
     variable.$modules-notification-border-radius,
     variable.$modules-notification-border-enabled,
     variable.$modules-notification-border-width

@@ -115,7 +115,7 @@ $search-bg-focus: color.mix(theme.$surface-disabled, theme.$background-alt, 80%)
 #launcher {
   background-color: transparent;
 
-  @include common.widget-border(
+  @include common.widget-shell(
     variable.$modules-launcher-border-radius,
     variable.$modules-launcher-border-enabled,
     variable.$modules-launcher-border-width

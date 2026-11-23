@@ -12,7 +12,7 @@
   margin: 0 variable.$modules-osd-margin_x variable.$modules-osd-margin_y 0;
   opacity: variable.$modules-osd-opacity * 0.01;
 
-  @include common.widget-border(
+  @include common.widget-shell(
     variable.$modules-osd-border-radius,
     variable.$modules-osd-border-enabled,
     variable.$modules-osd-border-width
