@@ -34,6 +34,8 @@ MENU_CACHE_FILE = f"{APP_DATA_DIRECTORY}/github_tray_menu_cache.json"
 STATE_INFO_FILE = f"{APP_DATA_DIRECTORY}/github_tray_state_info.json"
 # In-memory throttle used when the disk cache is disabled (``cache_ttl = 0``).
 REPOS_REFRESH_SECONDS = 300
+BADGE_APPEAR_MS = 260
+BADGE_PULSE_MS = 520
 DEFAULT_CACHE_TTL = 3600
 MIN_NOTIFY_INTERVAL = 30
 
@@ -75,6 +77,7 @@ class GitHubTrayWidget(ButtonWidget, PopoverMixin):
         self.loading: bool = False
         self.loaded_once: bool = False
         self._notify_primed = False
+        self._badge_count = 0
         self._last_repos_at = 0.0
         self._last_notify_at = 0.0
         self.avatar_pixbuf = None
@@ -567,15 +570,37 @@ class GitHubTrayWidget(ButtonWidget, PopoverMixin):
             capped = "99+" if count > 99 else str(count)
             self.badge_label.set_label(capped)
             self.badge_label.set_visible(True)
+            self._animate_badge(count)
             self.refresh_formatted_label(unread=capped)
             # Routed through the per-widget flag, and restorable when the count
             # drops back to zero.
             self.set_tooltip_if_enabled(f"GitHub Tray — {count} unread", default=True)
         else:
+            self._badge_count = 0
             self.badge_label.set_visible(False)
             self.badge_label.set_label("")
             self.refresh_formatted_label(unread="")
             self.set_tooltip_if_enabled(self._base_tooltip, default=True)
+
+    def _animate_badge(self, count: int) -> None:
+        """Fade the badge in on appear; ring-pulse it when the count grows."""
+        previous = self._badge_count
+        self._badge_count = count
+        if previous == 0:
+            self._play_badge_class("badge-appear", BADGE_APPEAR_MS)
+        elif count > previous:
+            self._play_badge_class("badge-pulse", BADGE_PULSE_MS)
+
+    def _play_badge_class(self, style_class: str, duration_ms: int) -> None:
+        badge = self.badge_label
+        badge.remove_style_class(style_class)
+        badge.add_style_class(style_class)
+        GLib.timeout_add(duration_ms, self._clear_badge_class, badge, style_class)
+
+    @staticmethod
+    def _clear_badge_class(badge, style_class: str) -> bool:
+        badge.remove_style_class(style_class)
+        return False
 
     def _popover_content(self):
         popup = self.popup

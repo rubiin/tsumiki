@@ -520,6 +520,7 @@ class _RenderHarness(GitHubTrayWidget):
         self.config = {} if config is None else config
         self._base_tooltip = "GitHub Tray"
         self.notifications = []
+        self._badge_count = 0
 
 
 class PopoverRenderGatingTests(unittest.TestCase):
@@ -596,6 +597,58 @@ class PopoverRenderGatingTests(unittest.TestCase):
         self.assertEqual(self.widget.unread_count, 0)
         self.widget.badge_label.set_label.assert_called_once_with("")
         self.widget.badge_label.set_visible.assert_called_once_with(False)
+
+
+class BadgeAnimationTests(unittest.TestCase):
+    """The badge fades in on appear and pulses only when the count grows."""
+
+    def setUp(self):
+        self.widget = _RenderHarness(_StubContent())
+        patcher = mock.patch.object(tray_module, "GLib")
+        self.glib = patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def _played(self, count: int) -> list[str]:
+        self.widget.badge_label.reset_mock()
+        self.widget.notifications = [{"id": str(index)} for index in range(count)]
+        self.widget._update_badge()
+        return [
+            call.args[0]
+            for call in self.widget.badge_label.add_style_class.call_args_list
+        ]
+
+    def test_the_first_badge_fades_in(self):
+        self.assertEqual(self._played(2), ["badge-appear"])
+
+    def test_a_growing_count_pulses(self):
+        self._played(2)
+
+        self.assertEqual(self._played(3), ["badge-pulse"])
+
+    def test_an_unchanged_or_shrinking_count_stays_still(self):
+        self._played(3)
+
+        self.assertEqual(self._played(3), [])
+        self.assertEqual(self._played(2), [])
+
+    def test_a_cleared_badge_fades_in_again(self):
+        self._played(2)
+        self.widget.notifications = []
+        self.widget._update_badge()
+
+        self.assertEqual(self._played(1), ["badge-appear"])
+
+    def test_the_animation_class_is_removed_after_it_plays(self):
+        self._played(1)
+
+        delay, callback, badge, style_class = self.glib.timeout_add.call_args.args
+        self.assertEqual(style_class, "badge-appear")
+        self.assertEqual(delay, tray_module.BADGE_APPEAR_MS)
+        badge.remove_style_class.reset_mock()
+
+        self.assertFalse(callback(badge, style_class))
+
+        badge.remove_style_class.assert_called_once_with("badge-appear")
 
 
 class BadgeTooltipTests(unittest.TestCase):

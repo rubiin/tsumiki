@@ -338,6 +338,30 @@ switch {
   }
 }
 
+/* GTK3 has no `transform` for widgets, so badge motion uses only the
+   animatable opacity and box-shadow ring. */
+@keyframes badgeAppear {
+  from {
+    opacity: 0;
+    box-shadow: 0 0 0 3px color.adjust(theme.$accent-purple, $alpha: -0.55);
+  }
+
+  to {
+    opacity: 1;
+    box-shadow: 0 0 0 0 color.adjust(theme.$accent-purple, $alpha: -1);
+  }
+}
+
+@keyframes badgePulse {
+  from {
+    box-shadow: 0 0 0 0 color.adjust(theme.$accent-purple, $alpha: -0.35);
+  }
+
+  to {
+    box-shadow: 0 0 0 5px color.adjust(theme.$accent-purple, $alpha: -1);
+  }
+}
+
 expander {
   arrow {
     min-width: 16px;
