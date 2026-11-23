@@ -32,7 +32,7 @@
 
 #panel {
   &-inner {
-    @include mixins.bar-background(variable.$bar-opacity);
+    background-color: theme.$background-alt;
     padding: variable.$bar-padding_y variable.$bar-padding_x;
 
     @include mixins.module-shadow(
@@ -78,8 +78,20 @@
 #popover-content {
   @include mixins.floating-widget;
   @include mixins.spacing;
-  margin-top: 0;
-  margin-bottom: 0;
+  margin: 0;
+  // The bar-facing edge is square so the corner fillets continue it.
+  border-radius: 0 0 variable.$bar-menus-popover-border-radius
+    variable.$bar-menus-popover-border-radius;
+
+  &.popover-attached-bottom {
+    border-radius: variable.$bar-menus-popover-border-radius
+      variable.$bar-menus-popover-border-radius 0 0;
+  }
+}
+
+#popover-corner,
+#popover-content {
+  background-color: theme.$background-alt;
 }
 
 .panel-box {

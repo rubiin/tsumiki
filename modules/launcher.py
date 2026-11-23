@@ -515,7 +515,6 @@ class Launcher(PopupWindow):
         yield _SectionHeader("All apps")
         yield from rest
 
-
     def close_launcher(self):
         """Close the launcher."""
         self.popup_visible = False
@@ -1112,9 +1111,7 @@ class Launcher(PopupWindow):
             return
         self.close_launcher()
 
-    def add_next_application(
-        self, apps_iter: Iterator[DesktopApp | _SectionHeader]
-    ):
+    def add_next_application(self, apps_iter: Iterator[DesktopApp | _SectionHeader]):
         """Add the next application or section header to the viewport."""
         item = next(apps_iter, None)
         if item is None:

@@ -89,7 +89,7 @@ class MicrophoneSlider(SettingSlider):
         """Get the appropriate icon name based on mute state."""
         if not self.audio_stream:
             return get_text_icon("microphone.high", "")
-        state = 'muted' if self.audio_stream.muted else 'high'
+        state = "muted" if self.audio_stream.muted else "high"
         return get_text_icon(f"microphone.{state}")
 
     def on_click(self, *_):

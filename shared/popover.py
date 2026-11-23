@@ -2,9 +2,10 @@ import contextlib
 from typing import ClassVar
 
 from fabric import Signal
-from fabric.utils import Gdk, GLib, GObject, bulk_connect, logger
+from fabric.utils import Gdk, GLib, GObject, Gtk, bulk_connect, logger
 from fabric.widgets.box import Box
 from fabric.widgets.revealer import Revealer
+from fabric.widgets.shapes import Corner
 from fabric.widgets.widget import Widget
 from gi.repository import GtkLayerShell
 
@@ -14,6 +15,7 @@ from utils.hyprland import hyprland_service
 
 POPOVER_BAR_GAP = -70
 POPOVER_WINDOW_POOL_SIZE = 4
+POPOVER_CORNER_SIZE = 20
 
 
 class PopoverManager:
@@ -94,6 +96,9 @@ class PopoverManager:
             all_visible=False,
         )
         GtkLayerShell.set_keyboard_mode(window, GtkLayerShell.KeyboardMode.ON_DEMAND)
+        # Ignore other surfaces' exclusive zones: the bar already offsets the
+        # compositor's usable area, which would push the popup away from it.
+        GtkLayerShell.set_exclusive_zone(window, -1)
         window.set_keep_above(True)
         return window
 
@@ -293,21 +298,73 @@ class Popover(Widget):
 
         return widget_x, widget_y, allocation, monitor_geometry
 
+    @staticmethod
+    def _find_bar_inner(widget: Gtk.Widget) -> Gtk.Widget | None:
+        if widget.get_name() == "panel-inner":
+            return widget
+        if isinstance(widget, Gtk.Container):
+            for child in widget.get_children():
+                found = Popover._find_bar_inner(child)
+                if found is not None:
+                    return found
+        return None
+
+    def _bar_edges(
+        self, monitor_geometry, opens_upward: bool
+    ) -> tuple[int, int] | None:
+        """Screen-space top and bottom of the bar, if the anchor sits in one."""
+        toplevel = self._point_to.get_toplevel()
+        if toplevel is None:
+            return None
+        with contextlib.suppress(Exception):
+            if (
+                GtkLayerShell.is_layer_window(toplevel)
+                and toplevel.get_name() == "panel"
+            ):
+                inner = self._find_bar_inner(toplevel)
+                if inner is None:
+                    return None
+                translated = inner.translate_coordinates(toplevel, 0, 0)
+                if translated is None:
+                    return None
+                window_top = (
+                    monitor_geometry.height - toplevel.get_allocation().height
+                    if opens_upward
+                    else 0
+                )
+                top = window_top + translated[1]
+                return top, top + inner.get_allocation().height
+        return None
+
     def _calculate_margins(self):
         widget_x, widget_y, widget_allocation, monitor_geometry = (
             self._get_widget_monitor_coordinates()
         )
         # The window tracks the reveal animation (1px tall while collapsed),
         # so measure the content requisition instead of the live window size.
-        _, natural = self._content_box.get_preferred_size()
+        _, natural = self._shell.get_preferred_size()
         popover_width, popover_height = natural.width, natural.height
 
         x = widget_x + (widget_allocation.width / 2) - (popover_width / 2)
-        y = widget_y + widget_allocation.height + POPOVER_BAR_GAP
 
         opens_upward = widget_y >= monitor_geometry.height / 2
+        self._set_attachment(opens_upward)
+
+        # Sit against the bar so the corner fillets join it, and fall back to
+        # the old offset when the anchor is not inside the bar.
+        bar_edges = self._bar_edges(monitor_geometry, opens_upward)
         if opens_upward:
-            y = widget_y - popover_height + POPOVER_BAR_GAP * 0.2
+            y = (
+                bar_edges[0] - popover_height
+                if bar_edges is not None
+                else widget_y - popover_height + POPOVER_BAR_GAP * 0.2
+            )
+        else:
+            y = (
+                bar_edges[1]
+                if bar_edges is not None
+                else widget_y + widget_allocation.height + POPOVER_BAR_GAP
+            )
 
         if self._enable_boundary_checking:
             if x <= 0:
@@ -380,15 +437,48 @@ class Popover(Widget):
             self._revealer.set_reveal_child(True)
         self._visible = True
 
+    def _set_attachment(self, opens_upward: bool) -> None:
+        """Square the popup edge that meets the bar and add its side fillets."""
+        if opens_upward:
+            left, right, valign = "bottom-right", "bottom-left", Gtk.Align.END
+            self._content_box.add_style_class("popover-attached-bottom")
+            self._content_box.remove_style_class("popover-attached-top")
+        else:
+            left, right, valign = "top-right", "top-left", Gtk.Align.START
+            self._content_box.add_style_class("popover-attached-top")
+            self._content_box.remove_style_class("popover-attached-bottom")
+
+        self._corner_left.orientation = left
+        self._corner_right.orientation = right
+        self._corner_left.set_valign(valign)
+        self._corner_right.set_valign(valign)
+
     def _create_popover(self):
         if not self._resolve_content():
             return False
 
         self._content_window = self._manager.get_popover_window()
         self._content_box = Box(name="popover-content", children=self._content)
+        self._corner_left = Corner(
+            name="popover-corner",
+            orientation="top-right",
+            size=POPOVER_CORNER_SIZE,
+            v_align=Gtk.Align.START,
+        )
+        self._corner_right = Corner(
+            name="popover-corner",
+            orientation="top-left",
+            size=POPOVER_CORNER_SIZE,
+            v_align=Gtk.Align.START,
+        )
+        self._shell = Box(
+            name="popover-shell",
+            orientation="h",
+            children=[self._corner_left, self._content_box, self._corner_right],
+        )
         self._revealer = Revealer(
             name="popover-revealer",
-            child=self._content_box,
+            child=self._shell,
             transition_type=self._transition_type or "slide-down",
             transition_duration=self._transition_duration,
         )

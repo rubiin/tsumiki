@@ -28,8 +28,8 @@ class RevealTimingTest(unittest.TestCase):
         submenu = TrackingSubMenu()
         submenu.revealer = mock.Mock()
         submenu.revealer.get_reveal_child.return_value = revealed
-        submenu.revealer.set_reveal_child.side_effect = (
-            lambda value: submenu.order.append(("reveal", value))
+        submenu.revealer.set_reveal_child.side_effect = lambda value: (
+            submenu.order.append(("reveal", value))
         )
         return submenu
 

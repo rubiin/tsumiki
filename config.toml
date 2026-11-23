@@ -98,6 +98,7 @@ message = ""
 [widgets.battery.notifications.unplugged]
 enabled = false
 message = ""
+
 [widgets.quick_settings]
 hover_reveal = false
 toggles = ["wifi", "bluetooth", "power_profiles", "nightlight", "hypridle", "notification"]
@@ -983,7 +984,7 @@ wallpaper = "~/2.jpg"
 monochrome = true
 margin_x = "0"
 margin_y = "1.25em"
-opacity = 90
+opacity = 100
 padding_x = "0.8em"
 padding_y = "0.6em"
 scaling = 100

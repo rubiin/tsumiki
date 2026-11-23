@@ -225,9 +225,7 @@ class QSChevronButton(QSToggleButton):
         """
         if self.submenu is None:
             return
-        self.toggle_css_class(
-            "submenu-open", self.submenu.revealer.get_reveal_child()
-        )
+        self.toggle_css_class("submenu-open", self.submenu.revealer.get_reveal_child())
 
     def _reveal_toggle(self, *_):
         if self.ensure_submenu() is None:

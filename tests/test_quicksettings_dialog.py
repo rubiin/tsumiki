@@ -24,9 +24,7 @@ class QuickSettingsDialogTest(unittest.TestCase):
     def test_power_dialog_does_not_hide_the_cached_menu(self):
         menu = FakeMenu()
 
-        with mock.patch(
-            "widgets.quick_settings.quick_settings.Dialog"
-        ) as dialog_cls:
+        with mock.patch("widgets.quick_settings.quick_settings.Dialog") as dialog_cls:
             QuickSettingsMenu.show_dialog(menu, "Reboot", "Are you sure?", "reboot")
 
         menu.popup.hide_popover.assert_called_once_with()
