@@ -289,7 +289,7 @@ class QuickSettingsMenu(Box, TeardownMixin):
 
         button_box = Box(
             orientation="h",
-            h_align="start",
+            h_align="end",
             v_align="center",
             name="button-box",
             h_expand=True,

@@ -67,14 +67,17 @@ $qs-press-bg: color.adjust(theme.$surface-neutral, $alpha: -0.85);
       margin-bottom: 10px;
 
       #button-box {
-        min-width: 240px;
-        min-height: 50px;
+        min-height: 30px;
 
         button {
-          margin: 0 5px;
-          background-color: theme.$surface-neutral;
-          border-radius: $toggler-radius;
-          padding: common.toEm(4) common.toEm(8);
+          margin: 0 4px;
+          min-width: 30px;
+          min-height: 30px;
+          padding: 0;
+          background-color: theme.$background-main;
+          border: variable.$border-width solid
+            color.mix(theme.$surface-disabled, white, 90%);
+          border-radius: variable.$radius-large;
           font-weight: 600;
           transition:
             background-color variable.$duration-normal variable.$ease-standard,
@@ -93,7 +96,7 @@ $qs-press-bg: color.adjust(theme.$surface-neutral, $alpha: -0.85);
           }
 
           &:last-child {
-            margin-right: 20px;
+            margin-right: 0;
           }
         }
       }
