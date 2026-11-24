@@ -79,6 +79,10 @@
   @include mixins.floating-widget;
   @include mixins.spacing;
   margin: 0;
+
+  &.popover-content-reveal {
+    animation: popoverContentReveal 220ms ease-out both;
+  }
   // The bar-facing edge is square so the corner fillets continue it.
   border-radius: 0 0 variable.$bar-menus-popover-border-radius
     variable.$bar-menus-popover-border-radius;
@@ -359,6 +363,16 @@ switch {
 
   to {
     box-shadow: 0 0 0 5px color.adjust(theme.$accent-purple, $alpha: -1);
+  }
+}
+
+@keyframes popoverContentReveal {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
   }
 }
 

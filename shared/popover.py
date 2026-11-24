@@ -222,6 +222,9 @@ class Popover(Widget):
             self._manager.activate_popover(self)
             self.set_position()
             self._content_window.show()
+            if self._content_box is not None:
+                self._content_box.remove_style_class("popover-content-reveal")
+                self._content_box.add_style_class("popover-content-reveal")
             if self._revealer is not None:
                 self._revealer.set_reveal_child(True)
             self._visible = True
@@ -433,6 +436,9 @@ class Popover(Widget):
         self._manager.activate_popover(self)
         self.set_position()
         self._content_window.show()
+        if self._content_box is not None:
+            self._content_box.remove_style_class("popover-content-reveal")
+            self._content_box.add_style_class("popover-content-reveal")
         if self._revealer is not None:
             self._revealer.set_reveal_child(True)
         self._visible = True
@@ -508,6 +514,9 @@ class Popover(Widget):
             self._focus_out_timeout_id = None
 
         self._visible = False
+
+        if self._content_box is not None:
+            self._content_box.remove_style_class("popover-content-reveal")
 
         if self._revealer is not None:
             self._revealer.set_reveal_child(False)
