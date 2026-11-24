@@ -150,6 +150,10 @@
       }
 
       #usb-manager-action-eject {
+        transition:
+          background-color variable.$duration-fast variable.$ease-standard,
+          color variable.$duration-fast variable.$ease-standard;
+
         &:hover {
           background-color: theme.$accent-red;
         }
@@ -159,6 +163,9 @@
 
   #usb-manager-refresh {
     padding: 3px 4px;
+    transition:
+      background-color variable.$duration-fast variable.$ease-standard,
+      color variable.$duration-fast variable.$ease-standard;
   }
 
   #usb-manager-footer {
