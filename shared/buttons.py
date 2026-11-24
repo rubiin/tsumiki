@@ -134,6 +134,9 @@ class QSToggleButton(Box, BaseWidget):
             child=self._action_content,
             h_expand=True,
         )
+        # Keep the focus ring for keyboard navigation only; a pointer click
+        # would otherwise draw it inside the tile and read as a thick border.
+        self.action_button.set_focus_on_click(False)
 
         self.action_button.set_size_request(170, 20)
         if self.action_title:

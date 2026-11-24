@@ -147,6 +147,8 @@ class PowerProfileToggle(QSChevronButton):
 
         self.update_action_button()
         self.set_active_style(True)
+        # Informational tile: only the chevron is interactive.
+        self.action_button.add_style_class("informational")
         self.action_button.set_sensitive(False)
 
         self._register_handlers(

@@ -464,6 +464,15 @@ $qs-press-bg: color.adjust(theme.$surface-neutral, $alpha: -0.85);
         &:disabled {
           color: theme.$text-disabled;
         }
+
+        /* Informational tiles disable their action so only the chevron clicks;
+           keep the copy at full contrast instead of the global disabled fade. */
+        &.informational:disabled {
+          color: theme.$text-main;
+          opacity: 1;
+
+          @include common.image-label-colors(theme.$text-main);
+        }
       }
 
       &.active {
@@ -473,6 +482,10 @@ $qs-press-bg: color.adjust(theme.$surface-neutral, $alpha: -0.85);
           padding-right: common.toEm(4);
 
           @include common.image-label-colors($qs-active-fg);
+
+          &.informational:disabled {
+            opacity: 1;
+          }
         }
       }
     }

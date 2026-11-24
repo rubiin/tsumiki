@@ -244,6 +244,7 @@ class DisplaysToggle(QSChevronButton):
         self.connect("destroy", self._on_destroy)
 
         # Purely informational tile; the chevron opens the picker.
+        self.action_button.add_style_class("informational")
         self.action_button.set_sensitive(False)
         hyprland_service.on_ready(self.refresh)
 
