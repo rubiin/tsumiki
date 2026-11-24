@@ -1,6 +1,7 @@
+from time import monotonic
 from typing import Literal
 
-from fabric.utils import idle_add
+from fabric.utils import GLib, idle_add
 from fabric.widgets.box import Box
 from fabric.widgets.image import Image
 from fabric.widgets.label import Label
@@ -13,6 +14,9 @@ from utils.widget_settings import BarConfig
 from utils.widget_utils import (
     create_scale,
 )
+
+OSD_SWAP_MS = 150
+OSD_SWAP_FRAME_MS = 16
 
 #: Elements each OSD style leaves out; roles are matched by ``styled_children``.
 _STYLE_HIDDEN = {
@@ -176,10 +180,15 @@ class OSDContainer(BaseWindow):
         else:
             child_to_show = self.lockkeys_container
 
-        if self.revealer.get_child() != child_to_show:
+        swapped = self.revealer.get_child() != child_to_show
+        if swapped:
             if self.revealer.get_child():
                 self.revealer.remove(self.revealer.get_child())
             self.revealer.add(child_to_show)
+            child_to_show.set_opacity(0.0)
+            self._osd_fade_child = child_to_show
+            self._osd_fade_started = monotonic()
+            GLib.timeout_add(OSD_SWAP_FRAME_MS, self._advance_osd_fade)
 
         # First make the window visible
         self.set_visible(True)
@@ -192,6 +201,19 @@ class OSDContainer(BaseWindow):
         idle_add(lambda: self.revealer.set_reveal_child(True))
 
         self._schedule_timeout(self._HIDE_TIMER, self.timeout, self._hide)
+
+    def _advance_osd_fade(self) -> bool:
+        child = getattr(self, "_osd_fade_child", None)
+        elapsed_ms = (monotonic() - self._osd_fade_started) * 1000
+        progress = min(1.0, elapsed_ms / OSD_SWAP_MS)
+        alpha = 1 - (1 - progress) ** 2
+        if child is not None:
+            child.set_opacity(alpha)
+        if progress < 1.0:
+            return True
+        if child is not None:
+            child.set_opacity(1.0)
+        return False
 
     def _hide(self):
         self.revealer.set_reveal_child(False)  # Trigger hide animation
