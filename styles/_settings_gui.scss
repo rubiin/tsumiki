@@ -17,6 +17,9 @@
     border-radius: variable.$radius;
     background-color: transparent;
     margin-bottom: 4px;
+    transition:
+      background-color variable.$duration-fast variable.$ease-standard,
+      color variable.$duration-fast variable.$ease-standard;
 
     &:hover {
       background-color: theme.$surface-highlight;
@@ -104,6 +107,9 @@ grid {
   font-weight: 500;
   background-color: transparent;
   color: theme.$text-main;
+  transition:
+    background-color variable.$duration-fast variable.$ease-standard,
+    color variable.$duration-fast variable.$ease-standard;
 
   &:hover {
     background-color: theme.$surface-highlight;
@@ -117,6 +123,9 @@ grid {
   font-weight: 500;
   background-color: theme.$accent-blue;
   color: theme.$background-main;
+  transition:
+    background-color variable.$duration-fast variable.$ease-standard,
+    color variable.$duration-fast variable.$ease-standard;
 
   &:hover {
     background-color: theme.$accent-purple;
@@ -171,6 +180,9 @@ spinbutton {
     background-color: transparent;
     border: none;
     color: theme.$text-main;
+    transition:
+      background-color variable.$duration-fast variable.$ease-standard,
+      color variable.$duration-fast variable.$ease-standard;
 
     &:hover {
       background-color: theme.$surface-highlight;
@@ -184,6 +196,9 @@ combobox {
   border: 1px solid theme.$surface-disabled;
   color: theme.$text-main;
   min-width: 120px;
+  transition:
+    background-color variable.$duration-fast variable.$ease-standard,
+    border-color variable.$duration-fast variable.$ease-standard;
 
   button {
     padding: 4px 10px;
@@ -201,6 +216,9 @@ entry {
   background-color: theme.$surface-neutral;
   border: 1px solid theme.$surface-disabled;
   color: theme.$text-main;
+  transition:
+    border-color variable.$duration-fast variable.$ease-standard,
+    background-color variable.$duration-fast variable.$ease-standard;
 
   &:focus {
     border-color: theme.$accent-blue;
