@@ -2,6 +2,7 @@ from fabric.utils import GLib, logger
 from fabric.widgets.button import Button
 from fabric.widgets.image import Image
 
+from shared.buttons import HoverButton
 from shared.widget_container import BoxWidget
 from utils.functions import normalize_address, parse_hyprland_reply
 from utils.hyprland import HyprlandClient, hyprland_service
@@ -253,7 +254,7 @@ class TaskBarWidget(BoxWidget):
             )
         )
 
-        client_button = Button(
+        client_button = HoverButton(
             style_classes=list(_BUTTON_BASE_CLASSES),
             image=client_image,
             on_button_press_event=lambda _, event, addr=address: self._activate_client(
