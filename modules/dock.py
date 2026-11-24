@@ -15,6 +15,7 @@ from utils.app import AppUtils
 from utils.config import tsumiki_config
 from utils.constants import PINNED_APPS_FILE
 from utils.functions import (
+    is_special_workspace,
     normalize_address,
     parse_hyprland_reply,
     read_json_file,
@@ -27,17 +28,6 @@ from utils.widget_settings import BarConfig
 # DnD target for dock app reordering
 DOCK_DND_TARGET = [Gtk.TargetEntry.new("dock-app", Gtk.TargetFlags.SAME_APP, 0)]
 DOCK_SYNC_DEBOUNCE_MS = 60
-
-
-def is_special_workspace(workspace: dict) -> bool:
-    """Detect a scratchpad; newer Hyprland omits the numeric id entirely."""
-    if workspace.get("type") == "special":
-        return True
-    ws_id = workspace.get("id")
-    if isinstance(ws_id, int) and ws_id < 0:
-        return True
-    name = workspace.get("name") or ""
-    return name == "special" or name.startswith("special:")
 
 
 class MultiDotIndicator(Gtk.DrawingArea):

@@ -6,7 +6,11 @@ from fabric.widgets.image import Image
 
 from shared.buttons import HoverButton
 from shared.widget_container import BoxWidget
-from utils.functions import normalize_address, parse_hyprland_reply
+from utils.functions import (
+    is_special_workspace,
+    normalize_address,
+    parse_hyprland_reply,
+)
 from utils.hyprland import HyprlandClient, hyprland_service
 from utils.icon_resolver import IconResolver
 
@@ -29,6 +33,9 @@ class TaskBarWidget(BoxWidget):
         self._hyprland_connection = self._service.connection
         self._show_current_workspace_only = self.config.get(
             "show_current_workspace_only", False
+        )
+        self._hide_special_workspace_apps = self.config.get(
+            "hide_special_workspace_apps", False
         )
 
         self._clients_by_address: dict[str, HyprlandClient] = {}
@@ -91,7 +98,7 @@ class TaskBarWidget(BoxWidget):
         try:
             parsed = parse_hyprland_reply(reply)
             ws_id = parsed.get("id")
-            if isinstance(ws_id, int) and ws_id > 0:
+            if isinstance(ws_id, int) and ws_id != 0:
                 self._current_workspace_id = ws_id
         except Exception as e:
             logger.warning(f"[Taskbar] Failed to parse workspace reply: {e}")
@@ -194,12 +201,15 @@ class TaskBarWidget(BoxWidget):
         try:
             clients = []
             for item in raw_clients:
-                ws_id = item.get("workspace", {}).get("id", -1)
-                if ws_id <= 0:
+                workspace = item.get("workspace") or {}
+                if not workspace or (
+                    self._hide_special_workspace_apps
+                    and is_special_workspace(workspace)
+                ):
                     continue
                 if (
                     self._show_current_workspace_only
-                    and ws_id != self._current_workspace_id
+                    and workspace.get("id") != self._current_workspace_id
                 ):
                     continue
                 client = HyprlandClient(item, active_address)

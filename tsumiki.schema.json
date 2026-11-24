@@ -900,6 +900,11 @@
               "type": "boolean",
               "default": false,
               "description": "When true, only show applications that are on the current workspace."
+            },
+            "hide_special_workspace_apps": {
+              "type": "boolean",
+              "default": false,
+              "description": "When true, hide applications that live on a special workspace (scratchpad)."
             }
           },
           "required": ["icon_size", "ignored", "tooltip"]

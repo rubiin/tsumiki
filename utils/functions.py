@@ -322,6 +322,17 @@ def ttl_lru_cache(seconds_to_live: int, maxsize: int = 128):
     return wrapper
 
 
+def is_special_workspace(workspace: dict) -> bool:
+    """Detect a scratchpad; newer Hyprland omits the numeric id entirely."""
+    if workspace.get("type") == "special":
+        return True
+    ws_id = workspace.get("id")
+    if isinstance(ws_id, int) and ws_id < 0:
+        return True
+    name = workspace.get("name") or ""
+    return name == "special" or name.startswith("special:")
+
+
 def parse_hyprland_reply(reply: HyprlandReply) -> dict:
     try:
         return json.loads(reply.reply.decode().strip("\n"))

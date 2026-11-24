@@ -408,6 +408,7 @@ icon_size = 22
 ignored = []
 tooltip = true
 show_current_workspace_only = false
+hide_special_workspace_apps = false
 ```
 
 ---

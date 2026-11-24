@@ -88,6 +88,7 @@ TaskBar = TypedDict(
         "ignored": list[str],
         "tooltip": bool,
         "show_current_workspace_only": bool,
+        "hide_special_workspace_apps": bool,
     },
 )
 

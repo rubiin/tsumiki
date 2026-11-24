@@ -398,6 +398,7 @@ DEFAULT_CONFIG = {
             "ignored": [],
             "tooltip": True,
             "show_current_workspace_only": False,
+            "hide_special_workspace_apps": False,
         },
         "theme_switcher": {
             "label_format": "",

@@ -513,6 +513,7 @@ icon_size = 22
 tooltip = true
 ignored = []
 show_current_workspace_only = false
+hide_special_workspace_apps = false
 
 # --- Workspace Overview Button ---
 [widgets.overview_button]
