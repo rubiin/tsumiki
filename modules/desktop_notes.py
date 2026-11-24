@@ -4,8 +4,9 @@ its top strip, type straight into it. Saved per monitor between restarts.
 
 import warnings
 from collections.abc import Callable
+from time import monotonic
 
-from fabric.utils import Gdk, Gtk
+from fabric.utils import Gdk, GLib, Gtk
 from fabric.widgets.box import Box
 from fabric.widgets.button import Button
 from fabric.widgets.eventbox import EventBox
@@ -18,6 +19,8 @@ from utils.icons import get_text_icon
 from utils.widget_settings import BarConfig
 
 NOTE_HEIGHT = 180
+_FADE_FRAME_MS = 16
+_FADE_MS = 150
 
 
 def _monitor_name(window: Gtk.Window | None = None) -> str:
@@ -279,11 +282,25 @@ class NotesLayer:
         self.hint.set_valign(Gtk.Align.START)
         self.hint.set_margin_start(max(0, x - 2))
         self.hint.set_margin_top(y - 26 if y >= 28 else y + 28)
+        was_visible = self.hint.get_visible()
         self.hint.set_visible(True)
+        if not was_visible:
+            self.hint.set_opacity(0.0)
+            self._fade_hint()
         self.overlay.reorder_overlay(self.hint, -1)
 
     def hide_hint(self) -> None:
         self.hint.set_visible(False)
+
+    def _fade_hint(self) -> None:
+        started = monotonic()
+
+        def step() -> bool:
+            progress = min(1.0, (monotonic() - started) * 1000 / _FADE_MS)
+            self.hint.set_opacity(progress)
+            return progress < 1.0
+
+        GLib.timeout_add(_FADE_FRAME_MS, step)
 
     def add_note(self, x: int, y: int) -> None:
         widget = self._add_widget(self.store.add(self.monitor, x, y))
