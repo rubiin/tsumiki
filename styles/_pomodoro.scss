@@ -56,6 +56,9 @@
       font-weight: 500;
       border: none;
       min-width: 100px;
+      transition:
+        background-color variable.$duration-fast variable.$ease-standard,
+        color variable.$duration-fast variable.$ease-standard;
 
       &:hover {
         background-color: theme.$accent-pink;

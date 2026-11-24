@@ -50,6 +50,9 @@
       background-color: theme.$surface-disabled;
       border-radius: variable.$radius-md;
       padding: 4px;
+      transition:
+        background-color variable.$duration-fast variable.$ease-standard,
+        color variable.$duration-fast variable.$ease-standard;
 
       &:hover {
         background-color: theme.$surface-highlight;
