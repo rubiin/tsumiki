@@ -182,7 +182,8 @@ class WifiSubMenu(QuickSubMenu):
         ssid = ap.get("ssid")
         icon_name = ap.get("icon-name")
         is_secured = ap.get("secured")
-        security_label = get_text_icon("ui.lock", "") if is_secured else ""
+        security_label = ""
+
 
         ap_container = CenterBox(
             orientation="h",
@@ -196,7 +197,7 @@ class WifiSubMenu(QuickSubMenu):
                 get_text_icon("wifi.generic", "󰤬"),
             ),
             label=ssid,
-            icon_size=16,
+            icon_size=18,
             row_classes=["wifi-ap-main"],
         )
 
@@ -208,8 +209,14 @@ class WifiSubMenu(QuickSubMenu):
             self.wifi_device.state == "activated"
             and self.wifi_device.is_active_ap(ap_bssid)
         )
-        if is_active:
-            security_label = f"{get_text_icon('ui.tick')} {security_label}"
+
+
+
+        if is_secured:
+            security_label = get_text_icon("wifi.secured", "󰒘")
+
+        if is_secured and is_active:
+            security_label = get_text_icon("wifi.connected_secured", "󰕥")
             ap_row.add_style_class("active")
 
         wifi_item = Gtk.ListBoxRow(visible=True)

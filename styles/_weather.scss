@@ -7,6 +7,10 @@ $base_margin: common.toEm(4);
 
 #weather {
   &-menu {
+    // The popover supplies the surface; the panel-box default would paint
+    // a second rounded card inside it.
+    background-color: transparent;
+    border-radius: 0;
     padding: variable.$padding;
 
     #weather-expander {

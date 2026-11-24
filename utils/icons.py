@@ -197,6 +197,8 @@ text_nerd_icons = {
         "strength_2": "󰤢",
         "strength_3": "󰤥",
         "strength_4": "󰤨",
+        "secured": "󰒘",
+        "connected_secured": "󰕥"
     },
     "idle": {
         "enabled": "",
