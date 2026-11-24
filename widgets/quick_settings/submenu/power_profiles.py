@@ -6,11 +6,11 @@ from fabric.widgets.label import Label
 
 from services import power_profile_service
 from shared.buttons import QSChevronButton
-from shared.list import ListBox, add_list_row
+from shared.list import ListBox, SubmenuRowMixin, add_list_row
 from shared.submenu import QuickSubMenu
 from utils.i18n import _
 from utils.icons import get_text_icon
-from utils.widget_utils import nerd_font_icon, setup_cursor_hover
+from utils.widget_utils import nerd_font_icon
 
 _ICON_MAP = {"power-saver": "󰌪", "performance": "󰓅", "balanced": "󰒂"}
 
@@ -20,7 +20,7 @@ def icon_name_to_icon(icon_name: str) -> str:
     return _ICON_MAP.get(icon_name, "󰌪")
 
 
-class PowerProfileItem(Gtk.ListBoxRow):
+class PowerProfileItem(Gtk.ListBoxRow, SubmenuRowMixin):
     """A row to display the power profile."""
 
     def __init__(
@@ -50,22 +50,14 @@ class PowerProfileItem(Gtk.ListBoxRow):
         )
 
         super().__init__(visible=True, **kwargs)
-        style_context = self.get_style_context()
-        style_context.add_class("submenu-button")
-        style_context.add_class("power-profile")
-        self.add(self._content_box)
-        self.set_can_focus(True)
-        setup_cursor_hover(self)
+        self.setup_submenu_row(self._content_box, "power-profile")
         self.set_active(active)
 
     def select(self):
         power_profile_service.active_profile = self.profile
 
     def set_active(self, active: str):
-        if self.profile == active:
-            self._content_box.add_style_class("active")
-        else:
-            self._content_box.remove_style_class("active")
+        self.set_row_active(self.profile == active)
 
 
 class PowerProfileSubMenu(QuickSubMenu):

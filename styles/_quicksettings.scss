@@ -286,24 +286,6 @@ $qs-press-bg: color.adjust(theme.$surface-neutral, $alpha: -0.85);
         }
       }
 
-
-
-      #bluetooth-device-box {
-        &.submenu-button {
-          padding: common.toEm(6);
-          background-color: theme.$surface-neutral;
-
-          label {
-            font-size: variable.$font-size-sm;
-            font-weight: 600;
-          }
-
-          &:hover {
-            color: theme.$accent-purple;
-          }
-        }
-      }
-
       #scan-button {
         &:active {
           background-color: transparent;

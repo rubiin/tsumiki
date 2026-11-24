@@ -8,12 +8,17 @@ from fabric.widgets.label import Label
 
 from services.network import NetworkService, Wifi
 from shared.buttons import QSChevronButton, ScanButton
-from shared.list import ListBox, add_list_row, near_list_end, next_batch_size
+from shared.list import (
+    ListBox,
+    SubmenuRowMixin,
+    add_list_row,
+    near_list_end,
+    next_batch_size,
+)
 from shared.submenu import QuickSubMenu, scrolled_list_content
 from utils.exceptions import NetworkManagerNotFoundError
 from utils.i18n import _
 from utils.icons import get_text_icon, network_icon_to_text_icons
-from utils.widget_utils import setup_cursor_hover
 from widgets.quick_settings.components import QuickSettingsIconLabelRow
 
 try:
@@ -21,6 +26,16 @@ try:
     from gi.repository import NM
 except ValueError:
     raise NetworkManagerNotFoundError()
+
+
+class WifiAccessPointRow(Gtk.ListBoxRow, SubmenuRowMixin):
+    """A network row in the wifi submenu."""
+
+    def __init__(self, content: Gtk.Widget, ap: NM.AccessPoint, is_active: bool):
+        super().__init__(visible=True)
+        self._ap = ap
+        self._is_active = is_active
+        self.setup_submenu_row(content)
 
 
 class WifiSubMenu(QuickSubMenu):
@@ -219,20 +234,13 @@ class WifiSubMenu(QuickSubMenu):
             security_label = get_text_icon("wifi.connected_secured", "󰕥")
             ap_row.add_style_class("active")
 
-        wifi_item = Gtk.ListBoxRow(visible=True)
-        wifi_item.get_style_context().add_class("submenu-button")
-        wifi_item._ap = ap
-        wifi_item._is_active = is_active
-        setup_cursor_hover(wifi_item)
-
         ap_container.end_children = Label(
             markup=f"<b>{security_label}</b>",
             style_classes="wifi-ap-status-label",
             v_align="center",
         )
 
-        wifi_item.add(ap_container)
-        return wifi_item
+        return WifiAccessPointRow(ap_container, ap, is_active)
 
     def _on_row_activated(self, _listbox: ListBox, row: Gtk.ListBoxRow):
         ap = getattr(row, "_ap", None)

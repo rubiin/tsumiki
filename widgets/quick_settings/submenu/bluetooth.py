@@ -9,7 +9,7 @@ from fabric.widgets.label import Label
 
 from services import bluetooth_service
 from shared.buttons import HoverButton, QSChevronButton, ScanButton
-from shared.list import ListBox
+from shared.list import ListBox, SubmenuRowMixin
 from shared.submenu import QuickSubMenu, scrolled_list_content
 from utils.i18n import _
 from utils.icons import get_text_icon
@@ -22,7 +22,6 @@ class BluetoothDeviceBox(CenterBox):
     def __init__(self, device: BluetoothDevice, **kwargs):
         super().__init__(
             spacing=2,
-            style_classes="submenu-button",
             h_expand=True,
             name="bluetooth-device-box",
             **kwargs,
@@ -100,6 +99,15 @@ class BluetoothDeviceBox(CenterBox):
             self.connect_button.set_label(
                 _("widget.bluetooth.connect"),
             )
+
+
+class BluetoothDeviceRow(Gtk.ListBoxRow, SubmenuRowMixin):
+    """A Bluetooth device row with the shared submenu styling."""
+
+    def __init__(self, device: BluetoothDevice):
+        super().__init__(visible=True)
+        self.set_name("bluetooth-device-row")
+        self.setup_submenu_row(BluetoothDeviceBox(device))
 
 
 class BluetoothSubMenu(QuickSubMenu):
@@ -200,8 +208,7 @@ class BluetoothSubMenu(QuickSubMenu):
             row, listbox = self.device_rows[device.address]
             listbox.remove(row)
             row.destroy()
-        bt_item = Gtk.ListBoxRow(visible=True, name="bluetooth-device-row")
-        bt_item.add(BluetoothDeviceBox(device))
+        bt_item = BluetoothDeviceRow(device)
         if device.paired:
             self.paired_devices_listbox.add(bt_item)
             self.device_rows[device.address] = (bt_item, self.paired_devices_listbox)

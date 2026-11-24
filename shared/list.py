@@ -4,6 +4,8 @@ from typing import Literal
 from fabric.utils import Gtk
 from fabric.widgets.widget import Widget
 
+from utils.widget_utils import setup_cursor_hover
+
 
 def next_batch_size(loaded: int, total: int, batch_size: int) -> int:
     """How many more items a batched list can take this pass."""
@@ -30,6 +32,36 @@ def near_list_end(adjustment: Gtk.Adjustment, threshold: int = 50) -> bool:
         adjustment.get_value() + adjustment.get_page_size()
         >= adjustment.get_upper() - threshold
     )
+
+
+class SubmenuRowMixin:
+    """Shared styling for quick-settings submenu list rows.
+
+    ``Gtk.ListBoxRow`` has no ``style_classes`` kwarg, so the classes go
+    straight onto its style context.
+    """
+
+    def setup_submenu_row(
+        self,
+        content: Gtk.Widget,
+        style_class: str | None = None,
+    ) -> None:
+        """Apply the shared row style, add *content* and make it focusable."""
+        style_context = self.get_style_context()
+        style_context.add_class("submenu-button")
+        if style_class:
+            style_context.add_class(style_class)
+        self.add(content)
+        self.set_can_focus(True)
+        setup_cursor_hover(self)
+        self._submenu_row_content = content
+
+    def set_row_active(self, active: bool) -> None:
+        """Toggle the ``active`` class on the row content."""
+        if active:
+            self._submenu_row_content.add_style_class("active")
+        else:
+            self._submenu_row_content.remove_style_class("active")
 
 
 class ListBox(Gtk.ListBox, Widget):

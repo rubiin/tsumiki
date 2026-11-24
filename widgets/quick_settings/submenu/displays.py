@@ -6,13 +6,13 @@ from fabric.widgets.box import Box
 from fabric.widgets.label import Label
 
 from shared.buttons import QSChevronButton, ScanButton
-from shared.list import ListBox, add_list_row
+from shared.list import ListBox, SubmenuRowMixin, add_list_row
 from shared.submenu import QuickSubMenu, scrolled_list_content
 from utils.functions import safe_disconnect
 from utils.hyprland import hyprland_service
 from utils.i18n import _
 from utils.icons import get_text_icon
-from utils.widget_utils import nerd_font_icon, setup_cursor_hover
+from utils.widget_utils import nerd_font_icon
 
 _MONITOR_ICON = get_text_icon("ui.monitor", "󰍹")
 _FOCUSED_ICON = get_text_icon("ui.tick", "")
@@ -34,7 +34,7 @@ def monitor_summary(monitor: dict) -> str:
     return summary
 
 
-class DisplayItem(Gtk.ListBoxRow):
+class DisplayItem(Gtk.ListBoxRow, SubmenuRowMixin):
     """One monitor row; activating it moves focus to that output."""
 
     def __init__(
@@ -86,12 +86,7 @@ class DisplayItem(Gtk.ListBoxRow):
 
         super().__init__(visible=True, **kwargs)
         self.set_name("display-item")
-        style_context = self.get_style_context()
-        style_context.add_class("submenu-button")
-        style_context.add_class("display-item")
-        self.add(self._content_box)
-        self.set_can_focus(True)
-        setup_cursor_hover(self)
+        self.setup_submenu_row(self._content_box, "display-item")
         self.set_active(bool(monitor.get("focused", False)))
 
     def select(self):
@@ -99,10 +94,7 @@ class DisplayItem(Gtk.ListBoxRow):
 
     def set_active(self, active: bool):
         self._set_focus_icon(active)
-        if active:
-            self._content_box.add_style_class("active")
-        else:
-            self._content_box.remove_style_class("active")
+        self.set_row_active(active)
 
     def _set_focus_icon(self, visible: bool):
         if visible == self._focus_icon_shown:
