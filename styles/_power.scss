@@ -43,6 +43,12 @@
       font-size: variable.$font-size-lg;
     }
 
+    border: 2px solid transparent;
+    transition:
+      border-color variable.$duration-fast variable.$ease-standard,
+      background-color variable.$duration-fast variable.$ease-standard,
+      color variable.$duration-fast variable.$ease-standard;
+
     &:focus,
     &:active,
     &:hover {
