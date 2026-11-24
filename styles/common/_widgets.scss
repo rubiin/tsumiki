@@ -152,8 +152,7 @@
 }
 
 @mixin widget-colors($name) {
-  $always-colored: $name == "battery" or $name == "weather";
-  @if not _bar-monochrome-enabled() or $always-colored {
+  @if not _bar-monochrome-enabled(){
     $bg: _widget-color-var($name, "colors-background");
     $fg: _widget-color-var($name, "colors-foreground");
     $hbg: _widget-color-var($name, "colors-hover-background");
