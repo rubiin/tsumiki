@@ -1,6 +1,15 @@
 from datetime import datetime
+from time import monotonic
 
-from fabric.utils import Gtk, bulk_connect, cooldown, invoke_repeater, logger, time
+from fabric.utils import (
+    GLib,
+    Gtk,
+    bulk_connect,
+    cooldown,
+    invoke_repeater,
+    logger,
+    time,
+)
 from fabric.widgets.box import Box
 from fabric.widgets.grid import Grid
 from fabric.widgets.label import Label
@@ -248,6 +257,19 @@ class WeatherMenu(BoxWidget, BaseWeatherWidget):
 
         self.update_widget(forced=True)
 
+    def _start_weather_fade(self):
+        self._weather_fade_started = monotonic()
+        GLib.timeout_add(16, self._advance_weather_fade)
+
+    def _advance_weather_fade(self) -> bool:
+        elapsed_ms = (monotonic() - self._weather_fade_started) * 1000
+        progress = min(1.0, elapsed_ms / 200.0)
+        self.title_box.set_opacity(progress)
+        if progress < 1.0:
+            return True
+        self.title_box.set_opacity(1.0)
+        return False
+
     def update_widget(self, *args, **kwargs):
         forced = kwargs.get("forced", False)
 
@@ -268,6 +290,7 @@ class WeatherMenu(BoxWidget, BaseWeatherWidget):
         current_time = int(time.strftime("%H00"))
 
         if forced:
+            self.title_box.set_opacity(0.0)
             self.current_weather_image.set_from_file(
                 self.get_weather_asset(self.current_weather["weatherCode"]),
             )
@@ -278,6 +301,7 @@ class WeatherMenu(BoxWidget, BaseWeatherWidget):
             self.humidity.set_label(f"󰖎 {self.get_humidity()}")
             self.temperature.set_label(f"  {self.get_temperature()}")
             self.wind_speed.set_label(f" {self.get_wind_speed()}")
+            self._start_weather_fade()
 
         self.next_values = self.hourly_forecast[:4]
 
@@ -403,6 +427,10 @@ class WeatherWidget(ButtonWidget, BaseWeatherWidget, PopoverMixin):
             self.set_tooltip_if_enabled(_("widget.weather.error"))
             return
 
+        # Fade out before swapping icon/label, then fade back in.
+        self.weather_icon.set_opacity(0.0)
+        self.weather_label.set_opacity(0.0)
+
         # Get the current weather
         self.update_app_data(data)
 
@@ -437,6 +465,23 @@ class WeatherWidget(ButtonWidget, BaseWeatherWidget, PopoverMixin):
 
         self.set_tooltip_if_enabled(tool_tip)
 
+        self._start_panel_weather_fade()
+
+        return False
+
+    def _start_panel_weather_fade(self):
+        self._panel_weather_fade_started = monotonic()
+        GLib.timeout_add(16, self._advance_panel_weather_fade)
+
+    def _advance_panel_weather_fade(self) -> bool:
+        elapsed_ms = (monotonic() - self._panel_weather_fade_started) * 1000
+        progress = min(1.0, elapsed_ms / 200.0)
+        self.weather_icon.set_opacity(progress)
+        self.weather_label.set_opacity(progress)
+        if progress < 1.0:
+            return True
+        self.weather_icon.set_opacity(1.0)
+        self.weather_label.set_opacity(1.0)
         return False
 
     def _on_hover_enter(self, *_args):
