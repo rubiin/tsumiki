@@ -1,0 +1,41 @@
+@use "theme";
+@use "variable";
+
+.graph-container {
+  border-radius: variable.$radius-md;
+  background-color: theme.$background-alt;
+}
+
+.graph {
+  min-width: 308px;
+  color: theme.$accent-blue;
+
+  &.overlayed {
+    color: theme.$accent-purple;
+  }
+}
+
+.graph-label {
+  font-size: variable.$font-size-sm;
+
+  &.secondary {
+    color: theme.$text-muted;
+    margin-top: 2px;
+  }
+}
+
+.graph-box {
+  min-width: 308px;
+  min-height: 112px;
+  padding: 8px;
+}
+
+.graph-dot {
+  padding: 3px;
+  background-color: theme.$accent-blue;
+  border-radius: 10px;
+
+  &.overlayed {
+    background-color: theme.$accent-purple;
+  }
+}

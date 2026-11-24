@@ -152,7 +152,10 @@
 }
 
 @mixin widget-colors($name) {
-  @if not _bar-monochrome-enabled(){
+  // Monochrome drops per-widget fills, except battery's identity color.
+  $monochrome: _bar-monochrome-enabled() and $name != "battery";
+
+  @if not $monochrome {
     $bg: _widget-color-var($name, "colors-background");
     $fg: _widget-color-var($name, "colors-foreground");
     $hbg: _widget-color-var($name, "colors-hover-background");
