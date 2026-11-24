@@ -1,4 +1,5 @@
 import math
+from time import monotonic
 
 from fabric.utils import GLib, Gtk
 from fabric.widgets.box import Box
@@ -14,16 +15,52 @@ from utils.i18n import _
 class CircularProgressWidget(Gtk.DrawingArea):
     """Circular progress ring for pomodoro timer."""
 
+    RING_ANIM_MS = 400
+
     def __init__(self, size=160):
         super().__init__(visible=True)
         self.size = size
         self.progress = 0.0
+        self._target_progress = 0.0
+        self._anim_from = 0.0
+        self._animating = False
+        self._anim_timer = None
         self.set_size_request(size, size)
         self.connect("draw", self.on_draw)
+        self.connect("destroy", self._on_destroy)
 
     def set_progress(self, progress: float):
-        self.progress = min(1.0, max(0.0, progress))
+        progress = min(1.0, max(0.0, progress))
+        if abs(progress - self._target_progress) < 1e-9:
+            return
+        self._anim_from = self.progress
+        self._target_progress = progress
+        self._anim_started = monotonic()
+        if not self._animating:
+            self._animating = True
+            self._anim_timer = GLib.timeout_add(16, self._advance_ring)
+
+    def _advance_ring(self) -> bool:
+        elapsed_ms = (monotonic() - self._anim_started) * 1000
+        t = min(1.0, elapsed_ms / self.RING_ANIM_MS)
+        eased = 1 - (1 - t) ** 3
+        self.progress = (
+            self._anim_from + (self._target_progress - self._anim_from) * eased
+        )
         self.queue_draw()
+        if t < 1.0:
+            return True
+        self.progress = self._target_progress
+        self._animating = False
+        self._anim_timer = None
+        self.queue_draw()
+        return False
+
+    def _on_destroy(self, *_):
+        if self._anim_timer is not None:
+            GLib.source_remove(self._anim_timer)
+            self._anim_timer = None
+            self._animating = False
 
     def on_draw(self, area, cr):
         alloc = self.get_allocation()
