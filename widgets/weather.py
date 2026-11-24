@@ -404,7 +404,7 @@ class WeatherWidget(ButtonWidget, BaseWeatherWidget, PopoverMixin):
         self.container_box.add(self.revealer)
 
         self._weather_color = None
-        self._hover_color = "#080808"
+        self._hover_color = "#FAFAFA"
 
         bulk_connect(
             self,

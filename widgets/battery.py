@@ -66,7 +66,7 @@ class BatteryWidget(ButtonWidget):
         self.client = battery_service
 
         self._battery_color: str | None = None
-        self._hover_color = "#080808"
+        self._hover_color = "#FAFAFA"
         self._hovered = False
         self._last_state: dict | None = None
 
