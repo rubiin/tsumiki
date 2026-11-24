@@ -7,7 +7,9 @@ the "how many more" arithmetic and the "am I near the end" check.
 import unittest
 from unittest import mock
 
-from shared.list import ListBox, near_list_end, next_batch_size
+from fabric.utils import Gtk
+
+from shared.list import ListBox, add_list_row, near_list_end, next_batch_size
 
 
 class NextBatchSizeTest(unittest.TestCase):
@@ -70,6 +72,39 @@ class ListBoxTest(unittest.TestCase):
 
     def test_listbox_still_builds(self):
         self.assertIsNotNone(ListBox(name="test-list"))
+
+
+class AddListRowTest(unittest.TestCase):
+    """Rows get a gap above them, never above the first."""
+
+    def test_first_row_has_no_gap(self):
+        listbox = ListBox(name="test-list")
+        row = Gtk.ListBoxRow()
+
+        add_list_row(listbox, row)
+
+        self.assertEqual(row.get_margin_top(), 0)
+
+    def test_later_rows_share_the_default_gap(self):
+        listbox = ListBox(name="test-list")
+        first = Gtk.ListBoxRow()
+        second = Gtk.ListBoxRow()
+
+        add_list_row(listbox, first)
+        add_list_row(listbox, second)
+
+        self.assertEqual(first.get_margin_top(), 0)
+        self.assertEqual(second.get_margin_top(), 4)
+
+    def test_custom_spacing(self):
+        listbox = ListBox(name="test-list")
+        first = Gtk.ListBoxRow()
+        second = Gtk.ListBoxRow()
+
+        add_list_row(listbox, first, spacing=8)
+        add_list_row(listbox, second, spacing=8)
+
+        self.assertEqual(second.get_margin_top(), 8)
 
 
 if __name__ == "__main__":

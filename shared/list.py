@@ -10,6 +10,17 @@ def next_batch_size(loaded: int, total: int, batch_size: int) -> int:
     return max(0, min(batch_size, total - loaded))
 
 
+def add_list_row(
+    listbox: Gtk.ListBox,
+    row: Gtk.Widget,
+    spacing: int = 4,
+) -> None:
+    """Append *row* with a consistent gap between list items."""
+    if listbox.get_children():
+        row.set_margin_top(spacing)
+    listbox.add(row)
+
+
 def near_list_end(adjustment: Gtk.Adjustment, threshold: int = 50) -> bool:
     """Whether a vertical adjustment is within *threshold* px of its end.
 

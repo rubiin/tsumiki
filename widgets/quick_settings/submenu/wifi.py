@@ -3,17 +3,17 @@ from collections.abc import Callable
 
 import gi
 from fabric.utils import GObject, Gtk, bulk_connect, logger
-from fabric.widgets.button import Button
 from fabric.widgets.centerbox import CenterBox
 from fabric.widgets.label import Label
 
 from services.network import NetworkService, Wifi
 from shared.buttons import QSChevronButton, ScanButton
-from shared.list import ListBox, near_list_end, next_batch_size
+from shared.list import ListBox, add_list_row, near_list_end, next_batch_size
 from shared.submenu import QuickSubMenu, scrolled_list_content
 from utils.exceptions import NetworkManagerNotFoundError
 from utils.i18n import _
 from utils.icons import get_text_icon, network_icon_to_text_icons
+from utils.widget_utils import setup_cursor_hover
 from widgets.quick_settings.components import QuickSettingsIconLabelRow
 
 try:
@@ -32,8 +32,11 @@ class WifiSubMenu(QuickSubMenu):
         self._wifi_connected = None
 
         self.available_networks_listbox = ListBox(
-            visible=True, name="available-networks-listbox"
+            visible=True,
+            name="available-networks-listbox",
+            selection_mode="none",
         )
+        self.available_networks_listbox.connect("row-activated", self._on_row_activated)
         self.client.connect("device-ready", self.on_device_ready)
 
         self.scan_button = ScanButton(
@@ -89,7 +92,7 @@ class WifiSubMenu(QuickSubMenu):
 
         for i in range(self.items_loaded, self.items_loaded + items_to_add):
             notification_item = self.make_button_from_ap(aps[i])
-            self.available_networks_listbox.add(notification_item)
+            add_list_row(self.available_networks_listbox, notification_item)
 
         self.items_loaded += items_to_add
         self.loading = False
@@ -178,7 +181,7 @@ class WifiSubMenu(QuickSubMenu):
         dialog.connect("response", on_response)
         dialog.show_all()
 
-    def make_button_from_ap(self, ap: NM.AccessPoint) -> Button:
+    def make_button_from_ap(self, ap: NM.AccessPoint) -> Gtk.ListBoxRow:
         ssid = ap.get("ssid")
         icon_name = ap.get("icon-name")
         is_secured = ap.get("secured")
@@ -217,6 +220,10 @@ class WifiSubMenu(QuickSubMenu):
             ap_row.add_style_class("active")
 
         wifi_item = Gtk.ListBoxRow(visible=True)
+        wifi_item.get_style_context().add_class("submenu-button")
+        wifi_item._ap = ap
+        wifi_item._is_active = is_active
+        setup_cursor_hover(wifi_item)
 
         ap_container.end_children = Label(
             markup=f"<b>{security_label}</b>",
@@ -224,19 +231,17 @@ class WifiSubMenu(QuickSubMenu):
             v_align="center",
         )
 
-        ap_btn_container = Button(
-            child=ap_container,
-            h_expand=True,
-            style_classes="wifi-ap-button",
-            on_clicked=lambda *_: (
-                self.on_disconnect_clicked(ap)
-                if is_active
-                else self.on_connect_clicked(ap)
-            ),
-        )
-
-        wifi_item.add(ap_btn_container)
+        wifi_item.add(ap_container)
         return wifi_item
+
+    def _on_row_activated(self, _listbox: ListBox, row: Gtk.ListBoxRow):
+        ap = getattr(row, "_ap", None)
+        if ap is None:
+            return
+        if getattr(row, "_is_active", False):
+            self.on_disconnect_clicked(ap)
+        else:
+            self.on_connect_clicked(ap)
 
     def on_disconnect_clicked(self, ap: NM.AccessPoint):
         ssid = ap.get("ssid")

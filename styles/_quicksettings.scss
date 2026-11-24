@@ -15,18 +15,12 @@ $qs-active-bg-hover: color.mix(theme.$accent-purple, theme.$background-main, 30%
 $qs-active-fg: theme.$accent-purple;
 $qs-hover-bg: color.adjust(theme.$surface-neutral, $alpha: -0.7);
 $qs-press-bg: color.adjust(theme.$surface-neutral, $alpha: -0.85);
-// Filled list rows (wifi networks): a faint text veil reads as elevation on
-// every theme without hardcoding a surface colour.
-$qs-row-bg: color.adjust(theme.$text-main, $alpha: -0.91);
-$qs-row-bg-hover: color.adjust(theme.$text-main, $alpha: -0.86);
 
 @mixin setting-slider($min-length) {
-  @include common.slider(
-    $highlight-color: theme.$accent-blue,
+  @include common.slider($highlight-color: theme.$accent-blue,
     $knob: variable.$bar-widgets-quick_settings-sliders-knob,
     $min-length: $min-length,
-    $height: variable.$bar-widgets-quick_settings-sliders-height
-  );
+    $height: variable.$bar-widgets-quick_settings-sliders-height );
 
   @include common.slider-states(true);
 }
@@ -262,58 +256,37 @@ $qs-row-bg-hover: color.adjust(theme.$text-main, $alpha: -0.86);
           border-bottom-color: color.adjust(theme.$text-main, $alpha: -0.5);
         }
 
+        .wifi-ap-main .quicksettings-row-label {
+          margin-left: 2px;
+          font-size: variable.$font-size-md;
+          font-weight: 500;
+        }
+
+        .wifi-ap-status-label {
+          color: color.adjust(theme.$accent-purple, $alpha: -0.15);
+        }
+
         // The hover fill is a solid accent, so the lift reads as a shade
         // settling under the row rather than a second rail.
         &:hover {
           @include common.widget-hover;
           box-shadow: inset 0 -2px 0 0 color.adjust(theme.$background-dark, $alpha: -0.55);
+
+          .wifi-ap-status-label {
+            color: theme.$background-dark;
+          }
         }
 
         &:active {
           background-color: theme.$text-main;
 
-          & > * {
+          &>* {
             color: theme.$background-main;
           }
         }
       }
 
-      #available-networks-listbox {
-        background-color: transparent;
 
-        > row {
-          background-color: transparent;
-          padding: 0;
-        }
-      }
-
-      .wifi-ap-main .quicksettings-row-label {
-        margin-left: 2px;
-        font-size: variable.$font-size-md;
-        font-weight: 500;
-      }
-
-      .wifi-ap-status-label {
-        color: color.adjust(theme.$accent-purple, $alpha: -0.15);
-      }
-
-      .wifi-ap-button {
-        margin: 2px 0;
-        padding: common.toEm(8) common.toEm(14) common.toEm(8) common.toEm(10);
-        border-radius: variable.$radius-lg;
-        transition:
-          background-color variable.$duration-normal variable.$ease-standard,
-          color variable.$duration-normal variable.$ease-standard;
-
-        &:hover {
-          background-color: $qs-row-bg-hover;
-        }
-
-        &:active {
-          background-color: $qs-press-bg;
-          color: theme.$text-main;
-        }
-      }
 
       #bluetooth-device-box {
         &.submenu-button {
@@ -405,6 +378,7 @@ $qs-row-bg-hover: color.adjust(theme.$text-main, $alpha: -0.86);
 
       &.active,
       &.submenu-open {
+
         /* Edge fills must follow the rounder tile or hover/focus shows two
            curves at the corners. */
         .quicksettings-toggle-action {
@@ -539,12 +513,10 @@ $qs-row-bg-hover: color.adjust(theme.$text-main, $alpha: -0.86);
 }
 
 #nightlight-sub-menu {
-  @include common.slider(
-    $highlight-color: theme.$accent-blue,
+  @include common.slider($highlight-color: theme.$accent-blue,
     $knob: variable.$bar-widgets-quick_settings-sliders-knob,
     $min-length: 320px,
-    $height: variable.$bar-widgets-quick_settings-sliders-height
-  );
+    $height: variable.$bar-widgets-quick_settings-sliders-height );
 }
 
 #quicksettings-menu #app-list {

@@ -1,17 +1,18 @@
 from collections.abc import Callable
 from time import monotonic
 
-from fabric.utils import GLib, logger
+from fabric.utils import GLib, Gtk, logger
 from fabric.widgets.box import Box
 from fabric.widgets.label import Label
 
-from shared.buttons import HoverButton, QSChevronButton, ScanButton
+from shared.buttons import QSChevronButton, ScanButton
+from shared.list import ListBox, add_list_row
 from shared.submenu import QuickSubMenu, scrolled_list_content
 from utils.functions import safe_disconnect
 from utils.hyprland import hyprland_service
 from utils.i18n import _
 from utils.icons import get_text_icon
-from utils.widget_utils import nerd_font_icon
+from utils.widget_utils import nerd_font_icon, setup_cursor_hover
 
 _MONITOR_ICON = get_text_icon("ui.monitor", "󰍹")
 _FOCUSED_ICON = get_text_icon("ui.tick", "")
@@ -33,8 +34,8 @@ def monitor_summary(monitor: dict) -> str:
     return summary
 
 
-class DisplayItem(HoverButton):
-    """One monitor row; clicking it moves focus to that output."""
+class DisplayItem(Gtk.ListBoxRow):
+    """One monitor row; activating it moves focus to that output."""
 
     def __init__(
         self,
@@ -83,19 +84,18 @@ class DisplayItem(HoverButton):
             ],
         )
 
-        super().__init__(
-            name="display-item",
-            style_classes=["submenu-button", "display-item"],
-            child=self._content_box,
-            **kwargs,
-        )
-
-        self.connect("clicked", self._handle_click)
+        super().__init__(visible=True, **kwargs)
+        self.set_name("display-item")
+        style_context = self.get_style_context()
+        style_context.add_class("submenu-button")
+        style_context.add_class("display-item")
+        self.add(self._content_box)
+        self.set_can_focus(True)
+        setup_cursor_hover(self)
         self.set_active(bool(monitor.get("focused", False)))
 
-    def _handle_click(self, *_):
+    def select(self):
         self._on_selected(self)
-        return True
 
     def set_active(self, active: bool):
         self._set_focus_icon(active)
@@ -131,10 +131,10 @@ class DisplaysSubMenu(QuickSubMenu):
         self.scan_button = ScanButton()
         self.scan_button.connect("clicked", lambda *_: self.refresh())
 
-        self.monitor_list = Box(
-            orientation="v",
+        self.monitor_list = ListBox(
             name="display-list",
-            spacing=4,
+            visible=True,
+            selection_mode="none",
         )
 
         super().__init__(
@@ -148,6 +148,8 @@ class DisplaysSubMenu(QuickSubMenu):
         self._items: list[DisplayItem] = []
         self._loading = False
         self._handler_ids: list[int] = []
+
+        self.monitor_list.connect("row-activated", self._on_row_activated)
 
         for event, callback in (
             ("event::focusedmonv2", self._on_focus_changed),
@@ -187,16 +189,25 @@ class DisplaysSubMenu(QuickSubMenu):
             for monitor in monitors
             if not monitor.get("disabled", False)
         ]
+        self.monitor_list.remove_all()
         if not self._items:
-            self.monitor_list.children = [
+            row = Gtk.ListBoxRow(visible=True)
+            row.add(
                 Label(
                     label=_("widget.quick_settings.displays.none"),
                     style_classes="panel-text",
                     h_align="start",
                 )
-            ]
-        else:
-            self.monitor_list.children = self._items
+            )
+            add_list_row(self.monitor_list, row)
+            return
+
+        for item in self._items:
+            add_list_row(self.monitor_list, item)
+
+    def _on_row_activated(self, _listbox: ListBox, row: Gtk.ListBoxRow):
+        if isinstance(row, DisplayItem):
+            row.select()
 
     def _on_item_selected(self, item: DisplayItem):
         for other in self._items:

@@ -1,14 +1,16 @@
 from collections.abc import Callable
 
+from fabric.utils import Gtk
 from fabric.widgets.box import Box
 from fabric.widgets.label import Label
 
 from services import power_profile_service
-from shared.buttons import HoverButton, QSChevronButton
+from shared.buttons import QSChevronButton
+from shared.list import ListBox, add_list_row
 from shared.submenu import QuickSubMenu
 from utils.i18n import _
 from utils.icons import get_text_icon
-from utils.widget_utils import nerd_font_icon
+from utils.widget_utils import nerd_font_icon, setup_cursor_hover
 
 _ICON_MAP = {"power-saver": "󰌪", "performance": "󰓅", "balanced": "󰒂"}
 
@@ -18,8 +20,8 @@ def icon_name_to_icon(icon_name: str) -> str:
     return _ICON_MAP.get(icon_name, "󰌪")
 
 
-class PowerProfileItem(HoverButton):
-    """A button to display the power profile."""
+class PowerProfileItem(Gtk.ListBoxRow):
+    """A row to display the power profile."""
 
     def __init__(
         self,
@@ -47,21 +49,17 @@ class PowerProfileItem(HoverButton):
             ),
         )
 
-        super().__init__(
-            style_classes=["submenu-button", "power-profile"],
-            child=self._content_box,
-            **kwargs,
-        )
-
-        self.connect(
-            "button-press-event",
-            self._handle_click,
-        )
+        super().__init__(visible=True, **kwargs)
+        style_context = self.get_style_context()
+        style_context.add_class("submenu-button")
+        style_context.add_class("power-profile")
+        self.add(self._content_box)
+        self.set_can_focus(True)
+        setup_cursor_hover(self)
         self.set_active(active)
 
-    def _handle_click(self, *_):
+    def select(self):
         power_profile_service.active_profile = self.profile
-        return True
 
     def set_active(self, active: str):
         if self.profile == active:
@@ -81,10 +79,10 @@ class PowerProfileSubMenu(QuickSubMenu):
         self.profile_items = None
         self.scan_button = None
 
-        self.profile_box = Box(
-            orientation="v",
+        self.profile_box = ListBox(
             name="power-profile-container",
-            spacing=8,
+            visible=True,
+            selection_mode="none",
             style_classes="power-profile-container",
         )
 
@@ -99,6 +97,7 @@ class PowerProfileSubMenu(QuickSubMenu):
         self._profile_changed_handler = power_profile_service.connect(
             "changed", self.on_profile_changed
         )
+        self.profile_box.connect("row-activated", self._on_row_activated)
         self.connect("destroy", self._on_destroy)
 
     def _on_destroy(self, *_):
@@ -118,10 +117,15 @@ class PowerProfileSubMenu(QuickSubMenu):
                 for profile in self.profiles
             ]
 
-            self.profile_box.children = self.profile_items
+            for item in self.profile_items:
+                add_list_row(self.profile_box, item)
         else:
             # Keep the items in sync with the current profile.
             self.on_profile_changed()
+
+    def _on_row_activated(self, _listbox: ListBox, row: Gtk.ListBoxRow):
+        if isinstance(row, PowerProfileItem):
+            row.select()
 
     def on_profile_changed(self, *_):
         if self.profile_items is None:
