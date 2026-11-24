@@ -138,7 +138,6 @@ class QSToggleButton(Box, BaseWidget):
         # would otherwise draw it inside the tile and read as a thick border.
         self.action_button.set_focus_on_click(False)
 
-        self.action_button.set_size_request(170, 20)
         if self.action_title:
             self.action_button.set_tooltip_text(self.action_title.get_label())
 

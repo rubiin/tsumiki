@@ -279,8 +279,6 @@ class QuickSettingsMenu(Box, TeardownMixin):
             size=65,
         )
 
-        avatar.set_size_request(65, 65)
-
         self.user_box.attach(
             avatar,
             0,
