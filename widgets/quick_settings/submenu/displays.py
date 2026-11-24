@@ -1,6 +1,7 @@
 from collections.abc import Callable
+from time import monotonic
 
-from fabric.utils import logger
+from fabric.utils import GLib, logger
 from fabric.widgets.box import Box
 from fabric.widgets.label import Label
 
@@ -14,6 +15,9 @@ from utils.widget_utils import nerd_font_icon
 
 _MONITOR_ICON = get_text_icon("ui.monitor", "󰍹")
 _FOCUSED_ICON = get_text_icon("ui.tick", "")
+
+_FADE_FRAME_MS = 16
+_FADE_MS = 150
 
 
 def monitor_summary(monitor: dict) -> str:
@@ -46,6 +50,7 @@ class DisplayItem(HoverButton):
             props={"style_classes": ["panel-font-icon"]},
         )
         self._focus_icon.set_visible(False)
+        self._focus_icon_shown = False
 
         self._content_box = Box(
             orientation="h",
@@ -93,11 +98,30 @@ class DisplayItem(HoverButton):
         return True
 
     def set_active(self, active: bool):
-        self._focus_icon.set_visible(active)
+        self._set_focus_icon(active)
         if active:
             self._content_box.add_style_class("active")
         else:
             self._content_box.remove_style_class("active")
+
+    def _set_focus_icon(self, visible: bool):
+        if visible == self._focus_icon_shown:
+            return
+        self._focus_icon_shown = visible
+        if not visible:
+            self._focus_icon.set_visible(False)
+            return
+
+        self._focus_icon.set_opacity(0.0)
+        self._focus_icon.set_visible(True)
+        started = monotonic()
+
+        def step() -> bool:
+            progress = min(1.0, (monotonic() - started) * 1000 / _FADE_MS)
+            self._focus_icon.set_opacity(progress)
+            return progress < 1.0
+
+        GLib.timeout_add(_FADE_FRAME_MS, step)
 
 
 class DisplaysSubMenu(QuickSubMenu):
