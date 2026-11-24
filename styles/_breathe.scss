@@ -55,6 +55,10 @@
     border: 1px solid theme.$surface-disabled;
     color: theme.$text-main;
     padding: 0;
+    transition:
+      background-color variable.$duration-fast variable.$ease-standard,
+      border-color variable.$duration-fast variable.$ease-standard,
+      color variable.$duration-fast variable.$ease-standard;
   }
 
   .exercise-btn:hover {
@@ -64,7 +68,7 @@
 
   .exercise-btn.active {
     background-color: color.mix(theme.$accent-blue, theme.$background-dark, 25%);
-    border-color: theme.$accent-blue;
+    border-color: theme.$accent-purple;
   }
 
   .exercise-name {
