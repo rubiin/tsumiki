@@ -70,9 +70,20 @@
     }
   }
 
+  @keyframes usbItemFade {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
   #usb-manager-item {
     padding: 8px;
     border-radius: variable.$radius-xl;
+    animation: usbItemFade 200ms ease-out both;
     background-color: color.adjust(theme.$text-main, $alpha: -0.955);
     margin-top: 8px;
     border: 1px solid color.adjust(theme.$text-main, $alpha: -0.92);

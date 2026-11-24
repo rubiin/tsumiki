@@ -1,3 +1,7 @@
+from time import monotonic
+
+from fabric.utils import GLib
+
 from services import recorder_service
 from shared.widget_container import ButtonWidget
 from utils.constants import ASSETS_DIR
@@ -67,6 +71,7 @@ class RecorderWidget(ButtonWidget):
             self.recorder_service.screenrecord_start(config=self.config)
 
     def _update_ui(self, _sender, is_recording: bool):
+        self.container_box.set_opacity(0.0)
         current_children = self.container_box.get_children()
 
         if is_recording:
@@ -88,3 +93,18 @@ class RecorderWidget(ButtonWidget):
                 self.recording_ongoing_lottie.stop_play()
 
             self.set_tooltip_if_enabled(_("widget.recorder.stopped"))
+
+        self._start_recorder_fade()
+
+    def _start_recorder_fade(self):
+        self._recorder_fade_started = monotonic()
+        GLib.timeout_add(16, self._advance_recorder_fade)
+
+    def _advance_recorder_fade(self) -> bool:
+        elapsed_ms = (monotonic() - self._recorder_fade_started) * 1000
+        progress = min(1.0, elapsed_ms / 160.0)
+        self.container_box.set_opacity(progress)
+        if progress < 1.0:
+            return True
+        self.container_box.set_opacity(1.0)
+        return False
