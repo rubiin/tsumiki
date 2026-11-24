@@ -27,6 +27,9 @@
   .panel-font-icon {
     margin: 0;
     padding: 0;
+    transition:
+      background-color variable.$duration-fast variable.$ease-standard,
+      box-shadow variable.$duration-fast variable.$ease-standard;
 
     &.active {
       background-color: theme.$background-alt;
@@ -47,6 +50,9 @@
         margin: 0 0.1em;
         padding: 0 0.15em;
         border-radius: variable.$radius-large;
+        transition:
+          background-color variable.$duration-fast variable.$ease-standard,
+          box-shadow variable.$duration-fast variable.$ease-standard;
 
         &:hover {
           background-color: theme.$surface-disabled;
