@@ -6,6 +6,9 @@
 $slider-height: 12px;
 
 $toggler-radius: variable.$radius * 1.4;
+// An "on" tile rounds off a little; a radius change repaints without reflow,
+// which is the shape cue GTK3 can give (it has no transform).
+$toggler-radius-active: $toggler-radius * 1.25;
 
 $qs-active-bg: color.mix(theme.$accent-purple, theme.$background-main, 18%);
 $qs-active-bg-hover: color.mix(theme.$accent-purple, theme.$background-main, 30%);
@@ -241,8 +244,10 @@ $qs-press-bg: color.adjust(theme.$surface-neutral, $alpha: -0.85);
         margin: 0 common.toEm(2);
         padding: 0.35em common.toEm(5);
         border-radius: variable.$radius;
+        box-shadow: inset 0 -2px 0 0 transparent;
         transition:
           background-color variable.$duration-normal variable.$ease-standard,
+          box-shadow variable.$duration-normal variable.$ease-standard,
           color variable.$duration-normal variable.$ease-standard;
 
         &.activated {
@@ -253,8 +258,11 @@ $qs-press-bg: color.adjust(theme.$surface-neutral, $alpha: -0.85);
           border-bottom-color: color.adjust(theme.$text-main, $alpha: -0.5);
         }
 
+        // The hover fill is a solid accent, so the lift reads as a shade
+        // settling under the row rather than a second rail.
         &:hover {
           @include common.widget-hover;
+          box-shadow: inset 0 -2px 0 0 color.adjust(theme.$background-dark, $alpha: -0.55);
         }
 
         &:active {
@@ -269,12 +277,15 @@ $qs-press-bg: color.adjust(theme.$surface-neutral, $alpha: -0.85);
       .wifi-ap-button {
         padding: common.toEm(7) common.toEm(20) common.toEm(7) common.toEm(5);
         border-radius: variable.$radius;
+        box-shadow: inset 0 -2px 0 0 transparent;
         transition:
           background-color variable.$duration-normal variable.$ease-standard,
+          box-shadow variable.$duration-normal variable.$ease-standard,
           color variable.$duration-normal variable.$ease-standard;
 
         &:hover {
           @include common.widget-hover;
+          box-shadow: inset 0 -2px 0 0 color.adjust(theme.$background-dark, $alpha: -0.55);
         }
 
         &:active {
@@ -316,6 +327,7 @@ $qs-press-bg: color.adjust(theme.$surface-neutral, $alpha: -0.85);
       transition:
         background-color variable.$duration-normal variable.$ease-standard,
         border-color variable.$duration-normal variable.$ease-standard,
+        border-radius variable.$duration-normal variable.$ease-standard,
         color variable.$duration-normal variable.$ease-standard,
         box-shadow variable.$duration-normal variable.$ease-standard;
 
@@ -348,6 +360,7 @@ $qs-press-bg: color.adjust(theme.$surface-neutral, $alpha: -0.85);
       &.active {
         background-color: $qs-active-bg;
         border-color: color.adjust($qs-active-fg, $alpha: -0.35);
+        border-radius: $toggler-radius-active;
 
         label,
         image,
@@ -361,6 +374,7 @@ $qs-press-bg: color.adjust(theme.$surface-neutral, $alpha: -0.85);
          the filled "on" look, so an active tile keeps its own state. */
       &.submenu-open {
         border-color: $qs-active-fg;
+        border-radius: $toggler-radius-active;
 
         .toggle-revealer image {
           color: $qs-active-fg;
@@ -378,7 +392,8 @@ $qs-press-bg: color.adjust(theme.$surface-neutral, $alpha: -0.85);
       }
 
       &.quicksettings-toggler {
-        border-radius: $toggler-radius;
+        // No radius here: the base rule above owns it, so `.active` can round
+        // the tile without a later duplicate resetting it.
         @extend %caption_heading;
         padding: common.toEm(5) 0;
         padding-left: common.toEm(10);
@@ -508,10 +523,15 @@ $qs-press-bg: color.adjust(theme.$surface-neutral, $alpha: -0.85);
   row {
     padding: 2px 0;
     border-radius: variable.$radius-sm;
-    transition: background-color variable.$duration-normal variable.$ease-standard;
+    // Accent rail stands in for a translate: GTK3 rejects `transform`.
+    box-shadow: inset 2px 0 0 0 transparent;
+    transition:
+      background-color variable.$duration-normal variable.$ease-standard,
+      box-shadow variable.$duration-normal variable.$ease-standard;
 
     &:hover {
       background-color: $qs-hover-bg;
+      box-shadow: inset 2px 0 0 0 color.adjust(theme.$accent-purple, $alpha: -0.55);
     }
 
     &:active {

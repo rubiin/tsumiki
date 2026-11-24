@@ -217,7 +217,22 @@
       }
 
       #date_time-menu #notification-group-deck {
-        transition: opacity 200ms ease-in-out;
+        transition:
+          opacity 200ms ease-in-out,
+          background-color 200ms ease-in-out,
+          box-shadow 200ms ease-in-out;
+        border-radius: variable.$modules-notification-border-radius;
+        background-color: transparent;
+        box-shadow: 0 0 0 0 transparent;
+
+        // Expanded deck reads as a raised panel rather than a flat list;
+        // collapse returns it to the plain surface via the same transition.
+        &.group-expanded {
+          background-color: color.adjust(theme.$background-main, $alpha: -0.35);
+          box-shadow:
+            0 0 0 1px color.adjust(theme.$accent-purple, $alpha: -0.72),
+            0 10px 22px -14px color.adjust(theme.$background-dark, $alpha: -0.25);
+        }
 
         #datemenu-notification-box {
           transition: background-color 150ms ease-in-out;
@@ -234,6 +249,18 @@
             background-color: theme.$accent-red;
           }
         }
+      }
+
+      // Entry motion for each side of the toggle: the class flips, so the
+      // matching selector starts its animation exactly once.
+      #date_time-menu #notification-group-deck.group-expanded #notification-group-header {
+        animation: groupHeaderEnter 220ms ease-out both;
+      }
+
+      #date_time-menu
+        #notification-group-deck:not(.group-expanded)
+        #notification-group-collapsed-stack {
+        animation: groupStackEnter 200ms ease-out both;
       }
 
       #date_time-menu #notification-group-badge-label {

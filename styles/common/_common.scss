@@ -362,6 +362,32 @@ switch {
   }
 }
 
+/* Group deck expand/collapse. GTK3-safe motion: the header's accent rail grows
+   from nothing and the collapsed stack settles with an inset shadow. */
+@keyframes groupHeaderEnter {
+  from {
+    opacity: 0;
+    box-shadow: inset 0 -1px 0 0 color.adjust(theme.$accent-purple, $alpha: -1);
+  }
+
+  to {
+    opacity: 1;
+    box-shadow: inset 0 -1px 0 0 color.adjust(theme.$accent-purple, $alpha: -0.3);
+  }
+}
+
+@keyframes groupStackEnter {
+  from {
+    opacity: 0.55;
+    box-shadow: inset 0 2px 0 -1px color.adjust(theme.$accent-purple, $alpha: -0.35);
+  }
+
+  to {
+    opacity: 1;
+    box-shadow: inset 0 2px 0 -1px color.adjust(theme.$accent-purple, $alpha: -1);
+  }
+}
+
 expander {
   arrow {
     min-width: 16px;

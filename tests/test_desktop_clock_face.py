@@ -1,7 +1,8 @@
 """The cookie clock face redraws its silhouette on every tick.
 
 The outline is a pure function of the radius, so it is built once and cached;
-these tests keep the cache honest and the rendered pixels unchanged.
+these tests keep the cache honest and the rendered pixels unchanged. The date
+bubbles fade in on first map, so the fade ramp is covered without a display.
 """
 
 import math
@@ -114,6 +115,58 @@ class CookiePathCacheTests(unittest.TestCase):
             _reference_surface(130.0, 130.0, radius, sides=6),
             _cached_surface(probe, 130.0, 130.0, radius),
         )
+
+
+class _BadgeProbe:
+    """The fade ramp on a plain object; no display, no Gtk init."""
+
+    _draw_badge = CookieClockFace._draw_badge
+    _advance_badge_fade = CookieClockFace._advance_badge_fade
+
+    def __init__(self, alpha=1.0):
+        self._badge_alpha = alpha
+        self._badge_fade_started = 0.0
+        self._badge_fading = True
+        self.draws = 0
+
+    def queue_draw(self):
+        self.draws += 1
+
+
+class BadgeFadeTests(unittest.TestCase):
+    """The bubbles fade in, and the ramp stops at full opacity."""
+
+    def test_bubble_and_glyph_alpha_follow_the_fade(self):
+        probe = _BadgeProbe(alpha=0.25)
+        cr = mock.Mock()
+        cr.text_extents.return_value = mock.Mock(
+            width=6.0, height=8.0, x_bearing=0.0, y_bearing=0.0
+        )
+
+        probe._draw_badge(cr, 10.0, 10.0, 5.0, (0.2, 0.3, 0.4, 0.8), "7", 12)
+
+        cr.set_source_rgba.assert_any_call(0.2, 0.3, 0.4, 0.2)
+        cr.set_source_rgba.assert_any_call(1, 1, 1, 0.25)
+
+    def test_the_ramp_keeps_ticking_halfway(self):
+        probe = _BadgeProbe(alpha=0.0)
+
+        with mock.patch("modules.desktop_clock.monotonic", return_value=0.05):
+            self.assertTrue(probe._advance_badge_fade())
+
+        self.assertTrue(0.0 < probe._badge_alpha < 1.0)
+        self.assertTrue(probe._badge_fading)
+        self.assertEqual(1, probe.draws)
+
+    def test_the_ramp_settles_at_full_opacity_and_stops(self):
+        probe = _BadgeProbe(alpha=0.0)
+
+        with mock.patch("modules.desktop_clock.monotonic", return_value=1.0):
+            self.assertFalse(probe._advance_badge_fade())
+
+        self.assertEqual(1.0, probe._badge_alpha)
+        self.assertFalse(probe._badge_fading)
+        self.assertEqual(1, probe.draws)
 
 
 class DialMarkLineCapTests(unittest.TestCase):

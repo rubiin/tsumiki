@@ -3,10 +3,14 @@
 @use "variable";
 @use "sass:color";
 
+// Radius belongs in the shared list: an active pill morphs from the fully
+// round base to its own radius, and that corner change is the shape cue GTK3
+// can animate without a transform.
 $workspace-transition:
   padding variable.$duration-slow variable.$ease-standard,
   background-color variable.$duration-slow variable.$ease-standard,
-  border-color variable.$duration-slow variable.$ease-standard;
+  border-color variable.$duration-slow variable.$ease-standard,
+  border-radius variable.$duration-slow variable.$ease-standard;
 
 @keyframes urgentPulse {
   0% {

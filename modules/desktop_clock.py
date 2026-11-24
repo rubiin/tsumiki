@@ -1,5 +1,6 @@
 import math
 from datetime import datetime
+from time import monotonic
 
 import cairo
 from fabric.utils import GLib, Gtk
@@ -8,6 +9,9 @@ from fabric.widgets.datetime import DateTime
 
 from shared.widget_container import BaseWindow, TeardownMixin
 from utils.widget_settings import BarConfig
+
+BADGE_FADE_MS = 240
+BADGE_FADE_FRAME_MS = 16
 
 
 class CookieClockFace(Gtk.DrawingArea, TeardownMixin):
@@ -30,6 +34,12 @@ class CookieClockFace(Gtk.DrawingArea, TeardownMixin):
         self._pad = round(30 * self.widget_scale)
         self._scaled_clock_size = round(self.clock_size * self.widget_scale)
         self._cookie_paths: dict = {}
+        # Full opacity until the face is mapped, so an unmapped draw still shows
+        # the date bubbles.
+        self._badge_alpha = 1.0
+        self._badge_fade_started = 0.0
+        self._badge_fading = False
+        self._badge_faded = False
 
         self.col_background = (0.12, 0.07, 0.13, 1.0)
         self.col_on_background = (0.84, 0.82, 0.86, 0.95)
@@ -53,20 +63,40 @@ class CookieClockFace(Gtk.DrawingArea, TeardownMixin):
             self._scaled_clock_size + self._pad,
             self._scaled_clock_size + self._pad,
         )
+        self.connect("map", self._start_badge_fade)
         self.connect("draw", self._on_draw)
+
+    def _start_badge_fade(self, *_):
+        """Fade the date bubbles in the first time the face reaches the screen."""
+        if self._badge_fading or self._badge_faded:
+            return
+        self._badge_faded = True
+        self._badge_fading = True
+        self._badge_alpha = 0.0
+        self._badge_fade_started = monotonic()
+        self._add_repeater(BADGE_FADE_FRAME_MS, self._advance_badge_fade)
+
+    def _advance_badge_fade(self) -> bool:
+        elapsed_ms = (monotonic() - self._badge_fade_started) * 1000
+        progress = min(1.0, elapsed_ms / BADGE_FADE_MS)
+        # Ease-out so the bubbles settle instead of stopping dead.
+        self._badge_alpha = 1 - (1 - progress) ** 3
+        self.queue_draw()
+        self._badge_fading = progress < 1.0
+        return self._badge_fading
 
     def _tick(self) -> bool:
         self.now = datetime.now()
         self.queue_draw()
         return True
 
-    @staticmethod
-    def _draw_badge(cr, x, y, radius, fill, text, font_size):
-        cr.set_source_rgba(*fill)
+    def _draw_badge(self, cr, x, y, radius, fill, text, font_size):
+        alpha = self._badge_alpha
+        cr.set_source_rgba(fill[0], fill[1], fill[2], fill[3] * alpha)
         cr.arc(x, y, radius, 0, 2 * math.pi)
         cr.fill()
 
-        cr.set_source_rgba(1, 1, 1, 1)
+        cr.set_source_rgba(1, 1, 1, alpha)
         cr.select_font_face("Sans", 0, 1)
         cr.set_font_size(font_size)
         ext = cr.text_extents(text)
