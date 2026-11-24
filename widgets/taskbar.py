@@ -1,3 +1,5 @@
+from time import monotonic
+
 from fabric.utils import GLib, logger
 from fabric.widgets.button import Button
 from fabric.widgets.image import Image
@@ -9,6 +11,8 @@ from utils.hyprland import HyprlandClient, hyprland_service
 from utils.icon_resolver import IconResolver
 
 SYNC_DEBOUNCE_MS = 60
+_FADE_FRAME_MS = 16
+_FADE_MS = 150
 
 _BUTTON_BASE_CLASSES = ["buttons-basic", "buttons-transition"]
 
@@ -33,6 +37,7 @@ class TaskBarWidget(BoxWidget):
         self._current_workspace_id: int | None = None
         self._sync_scheduled_id: int | None = None
         self._sync_in_progress = False
+        self._fade_sources: dict[object, int] = {}
         self._icon_resolver = IconResolver()
 
         events = {
@@ -60,6 +65,9 @@ class TaskBarWidget(BoxWidget):
         if self._sync_scheduled_id is not None:
             GLib.source_remove(self._sync_scheduled_id)
             self._sync_scheduled_id = None
+        for source_id in self._fade_sources.values():
+            GLib.source_remove(source_id)
+        self._fade_sources.clear()
 
     # ── Event handlers ────────────────────────────────────────────
 
@@ -207,10 +215,7 @@ class TaskBarWidget(BoxWidget):
             # Remove stale buttons
             for address in list(self._client_buttons):
                 if address not in self._clients_by_address:
-                    entry = self._client_buttons.pop(address)
-                    self.remove(entry["button"])
-                    entry["button"].destroy()
-                    entry["image"].destroy()
+                    self._remove_button(self._client_buttons.pop(address))
 
             # Add/update buttons
             for address, client in self._clients_by_address.items():
@@ -271,6 +276,39 @@ class TaskBarWidget(BoxWidget):
             "client": client,
         }
         self.add(client_button)
+        self._animate_opacity(client_button, 0.0, 1.0)
+
+    def _remove_button(self, entry: dict):
+        """Fade the entry out, then detach and destroy it."""
+        self._animate_opacity(
+            entry["button"], 1.0, 0.0, lambda: self._destroy_button(entry)
+        )
+
+    def _destroy_button(self, entry: dict):
+        self.remove(entry["button"])
+        entry["button"].destroy()
+        entry["image"].destroy()
+
+    def _animate_opacity(self, widget, start: float, end: float, on_done=None):
+        self._cancel_fade(widget)
+        started = monotonic()
+
+        def step() -> bool:
+            progress = min(1.0, (monotonic() - started) * 1000 / _FADE_MS)
+            widget.set_opacity(start + (end - start) * progress)
+            if progress < 1.0:
+                return True
+            self._fade_sources.pop(widget, None)
+            if on_done is not None:
+                on_done()
+            return False
+
+        self._fade_sources[widget] = GLib.timeout_add(_FADE_FRAME_MS, step)
+
+    def _cancel_fade(self, widget) -> None:
+        source_id = self._fade_sources.pop(widget, None)
+        if source_id is not None:
+            GLib.source_remove(source_id)
 
     def _activate_client(self, address: str):
         """Activate a client by address at click time (avoids stale closure)."""
