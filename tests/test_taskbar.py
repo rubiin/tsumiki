@@ -79,9 +79,7 @@ class SpecialWorkspaceTest(unittest.TestCase):
     def test_client_without_workspace_info_is_skipped(self):
         widget = make_taskbar({"ignored": []})
 
-        widget._process_clients(
-            [NORMAL, {"address": "0x3000", "class": "obs"}], None
-        )
+        widget._process_clients([NORMAL, {"address": "0x3000", "class": "obs"}], None)
 
         self.assertEqual({"0x1000"}, self.addresses(widget))
 

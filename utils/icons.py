@@ -44,7 +44,7 @@ symbolic_icons = {
             "left": "draw-arrow-back-symbolic",
             "down": "draw-arrow-down-symbolic",
             "up": "draw-arrow-up-symbolic",
-        }
+        },
     },
     "audio": {
         "mic": {
@@ -198,7 +198,7 @@ text_nerd_icons = {
         "strength_3": "󰤥",
         "strength_4": "󰤨",
         "secured": "󰒘",
-        "connected_secured": "󰕥"
+        "connected_secured": "󰕥",
     },
     "idle": {
         "enabled": "",

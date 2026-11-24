@@ -499,7 +499,6 @@ class WeatherWidget(ButtonWidget, BaseWeatherWidget, PopoverMixin):
             f'<span foreground="{color}">{self._label_text}</span>'
         )
 
-
     @cooldown(1)
     def on_button_press(self, _, event):
         if event.button == 1:

@@ -184,7 +184,6 @@ class WifiSubMenu(QuickSubMenu):
         is_secured = ap.get("secured")
         security_label = ""
 
-
         ap_container = CenterBox(
             orientation="h",
             spacing=10,
@@ -209,8 +208,6 @@ class WifiSubMenu(QuickSubMenu):
             self.wifi_device.state == "activated"
             and self.wifi_device.is_active_ap(ap_bssid)
         )
-
-
 
         if is_secured:
             security_label = get_text_icon("wifi.secured", "󰒘")
