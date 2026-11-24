@@ -3,6 +3,7 @@ from fabric.widgets.box import Box
 from fabric.widgets.button import Button
 from fabric.widgets.entry import Entry
 from fabric.widgets.label import Label
+from fabric.widgets.revealer import Revealer
 from fabric.widgets.scrolledwindow import ScrolledWindow
 
 from services import dns_switcher_service
@@ -108,11 +109,9 @@ class DnsSwitcherPopover(Box):
             on_clicked=lambda *_: self._on_save_custom(),
         )
 
-        self._add_form = Box(
-            name="dns-add-form",
+        self._add_form_inner = Box(
             orientation="v",
             spacing=6,
-            visible=False,
             children=[
                 Box(
                     spacing=6,
@@ -120,6 +119,13 @@ class DnsSwitcherPopover(Box):
                 ),
                 self._save_btn,
             ],
+        )
+        self._add_form = Revealer(
+            name="dns-add-form",
+            child=self._add_form_inner,
+            reveal_child=False,
+            transition_type="slide_down",
+            transition_duration=200,
         )
 
         # ── Reset button ──
@@ -232,7 +238,7 @@ class DnsSwitcherPopover(Box):
 
     def _toggle_add_section(self):
         self._is_adding = not self._is_adding
-        self._add_form.set_visible(self._is_adding)
+        self._add_form.set_reveal_child(self._is_adding)
         if self._is_adding:
             self._add_btn_label.set_label(_("common.cancel"))
             self._add_btn.set_style_classes(["dns-cancel-btn"])
@@ -250,7 +256,7 @@ class DnsSwitcherPopover(Box):
             primary = ip.split()[0]
             self._service.set_dns(primary, " ".join(ip.split()[1:]))
             self._is_adding = False
-            self._add_form.set_visible(False)
+            self._add_form.set_reveal_child(False)
             self._add_btn_label.set_label(_("widget.dns_switcher.add_custom"))
             self._add_btn.set_style_classes([])
             self._name_entry.set_text("")
