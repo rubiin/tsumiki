@@ -33,12 +33,18 @@ symbolic_icons = {
         "avatar": "avatar-default-symbolic",
         "camera": "camera-photo-symbolic",
         "camera-video": "camera-video-symbolic",
-        "arrow": {
+        "chevron": {
             "right": "pan-end-symbolic",
             "left": "pan-start-symbolic",
             "down": "pan-down-symbolic",
             "up": "pan-up-symbolic",
         },
+        "arrow": {
+            "right": "draw-arrow-forward-symbolic",
+            "left": "draw-arrow-back-symbolic",
+            "down": "draw-arrow-down-symbolic",
+            "up": "draw-arrow-up-symbolic",
+        }
     },
     "audio": {
         "mic": {

@@ -182,7 +182,7 @@ class QSChevronButton(QSToggleButton):
         self._submenu_factory = submenu_factory
 
         self.button_image = Image(
-            icon_name=get_symbolic_icon("ui.arrow.right"), icon_size=20
+            icon_name=get_symbolic_icon("ui.arrow.right"), icon_size=16
         )
 
         self.reveal_button = HoverButton(
