@@ -189,8 +189,15 @@ class QuickSettingsButtonBox(Box):
 
         children = [self.grid] if built_toggles else []
         children.extend(
-            Box(orientation="v", spacing=10, h_expand=True, children=[toggle])
-            for toggle in self.footer_toggles
+            Box(
+                orientation="v",
+                spacing=10,
+                h_expand=True,
+                # Only the group's first tile needs the section gap above it.
+                style_classes=["quicksettings-footer"] if index == 0 else [],
+                children=[toggle],
+            )
+            for index, toggle in enumerate(self.footer_toggles)
         )
         self.children = tuple(children)
 

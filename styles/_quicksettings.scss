@@ -17,10 +17,12 @@ $qs-hover-bg: color.adjust(theme.$surface-neutral, $alpha: -0.7);
 $qs-press-bg: color.adjust(theme.$surface-neutral, $alpha: -0.85);
 
 @mixin setting-slider($min-length) {
-  @include common.slider($highlight-color: theme.$accent-blue,
+  @include common.slider(
+    $highlight-color: theme.$accent-blue,
     $knob: variable.$bar-widgets-quick_settings-sliders-knob,
     $min-length: $min-length,
-    $height: variable.$bar-widgets-quick_settings-sliders-height );
+    $height: variable.$bar-widgets-quick_settings-sliders-height
+  );
 
   @include common.slider-states(true);
 }
@@ -75,8 +77,7 @@ $qs-press-bg: color.adjust(theme.$surface-neutral, $alpha: -0.85);
           min-height: 30px;
           padding: 0;
           background-color: theme.$background-main;
-          border: variable.$border-width solid
-            color.mix(theme.$surface-disabled, white, 90%);
+          border: variable.$border-width solid color.mix(theme.$surface-disabled, white, 90%);
           border-radius: variable.$radius-large;
           font-weight: 600;
           transition:
@@ -123,6 +124,12 @@ $qs-press-bg: color.adjust(theme.$surface-neutral, $alpha: -0.85);
       &:last-child {
         margin-bottom: 0.1rem;
       }
+    }
+
+    /* Footer tiles live inside the toggles section, so match the 1rem gap
+       the next section adds below them; otherwise the gap above is smaller. */
+    .quicksettings-footer {
+      margin-top: 10px;
     }
 
     .quicksettings-toggle-action {
@@ -283,7 +290,7 @@ $qs-press-bg: color.adjust(theme.$surface-neutral, $alpha: -0.85);
         &:active {
           background-color: theme.$text-main;
 
-          &>* {
+          & > * {
             color: theme.$background-main;
           }
         }
@@ -363,7 +370,6 @@ $qs-press-bg: color.adjust(theme.$surface-neutral, $alpha: -0.85);
 
       &.active,
       &.submenu-open {
-
         /* Edge fills must follow the rounder tile or hover/focus shows two
            curves at the corners. */
         .quicksettings-toggle-action {
@@ -511,10 +517,12 @@ $qs-press-bg: color.adjust(theme.$surface-neutral, $alpha: -0.85);
 }
 
 #nightlight-sub-menu {
-  @include common.slider($highlight-color: theme.$accent-blue,
+  @include common.slider(
+    $highlight-color: theme.$accent-blue,
     $knob: variable.$bar-widgets-quick_settings-sliders-knob,
     $min-length: 320px,
-    $height: variable.$bar-widgets-quick_settings-sliders-height );
+    $height: variable.$bar-widgets-quick_settings-sliders-height
+  );
 }
 
 #quicksettings-menu #app-list {
