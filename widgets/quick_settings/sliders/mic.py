@@ -83,6 +83,7 @@ class MicrophoneSlider(SettingSlider):
 
         self.scale.set_value(volume)
         self.set_scale_tooltip(f"{volume}%")
+        self.set_value_label(volume)
         self.icon.set_label(self._get_text_icon_name())
 
     def _get_text_icon_name(self):

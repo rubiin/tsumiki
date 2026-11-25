@@ -59,6 +59,7 @@ class BrightnessSlider(SettingSlider):
 
         self.scale.set_value(brightness_percent)
         self.set_scale_tooltip(f"{brightness_percent}%")
+        self.set_value_label(brightness_percent)
 
         self.update_icon(int(brightness_percent))
 

@@ -1,4 +1,5 @@
 from fabric.widgets.box import Box
+from fabric.widgets.label import Label
 
 from utils.icons import get_text_icon
 from utils.widget_utils import create_scale, nerd_font_icon
@@ -43,11 +44,19 @@ class SettingSlider(Box, BaseWidget):
             curve=(0.34, 1.56, 0.64, 1.0),
             value=start_value,
             increments=(1, 1),
-            tooltip_text=str(start_value),
             min_value=min,
             max_value=max,
         )
-        self.children = (self.icon_button, self.scale)
+        self.value_label = Label(
+            name="setting-slider-value",
+            label=f"{round(start_value)}%",
+            v_align="center",
+        )
+        self.children = (self.icon_button, self.scale, self.value_label)
+
+    def set_value_label(self, value: float) -> None:
+        """Show *value* as a percentage after the scale."""
+        self.value_label.set_label(f"{round(value)}%")
 
     def set_scale_tooltip(self, text: str) -> None:
         """Set the scale's value tooltip, honouring the global tooltip switch.

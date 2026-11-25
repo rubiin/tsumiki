@@ -212,7 +212,7 @@ $qs-press-bg: color.adjust(theme.$surface-neutral, $alpha: -0.85);
     }
 
     .slider-box-long {
-      @include slider-box(variable.$slider-long);
+      @include slider-box(variable.$slider-medium);
     }
 
     #submenu {
@@ -516,6 +516,14 @@ $qs-press-bg: color.adjust(theme.$surface-neutral, $alpha: -0.85);
   }
 }
 
+#quicksettings-menu #setting-slider-value {
+  margin-left: 8px;
+  min-width: 2.6em;
+  font-size: 12.5px;
+  font-weight: 700;
+  opacity: 0.72;
+}
+
 #nightlight-sub-menu {
   @include common.slider(
     $highlight-color: theme.$accent-blue,
@@ -552,8 +560,7 @@ $qs-press-bg: color.adjust(theme.$surface-neutral, $alpha: -0.85);
     }
 
     #setting-slider-scale {
-      min-width: 150px;
-      @include setting-slider(100px);
+      @include setting-slider(80px);
     }
   }
 }

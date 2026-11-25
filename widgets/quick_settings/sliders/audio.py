@@ -89,6 +89,7 @@ class AudioSlider(SettingSlider):
 
         self.scale.set_value(volume)
         self.set_scale_tooltip(f"{volume}%")
+        self.set_value_label(volume)
         self.update_icon(volume)
 
     def update_icon(self, volume=0):

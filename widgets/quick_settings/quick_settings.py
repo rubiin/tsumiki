@@ -347,6 +347,7 @@ class QuickSettingsMenu(Box, TeardownMixin):
             orientation="v",
             spacing=10,
             h_expand=True,
+            style_classes="slider-box-long",
         )
 
         slider_factory = {
@@ -379,8 +380,6 @@ class QuickSettingsMenu(Box, TeardownMixin):
             self.audio_submenu = AudioSubMenu()
             sliders_box.audio_submenu = self.audio_submenu
             sliders_box.add(self.audio_submenu)
-
-        sliders_box.add_style_class("slider-box-long")
 
         main_box = Box(
             orientation="v",
