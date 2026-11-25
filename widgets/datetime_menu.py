@@ -35,6 +35,14 @@ from utils.widget_utils import (
 from widgets.extended_datetime import ExtendedDateTime
 
 
+def dropdown_clock_format(config: dict) -> str:
+    """strftime pattern for the clock inside the date menu popover."""
+    clock_format = "%H:%M" if config.get("clock_format", "24h") == "24h" else "%I:%M"
+    if config.get("dropdown_show_seconds", False):
+        clock_format += ":%S"
+    return clock_format
+
+
 class DateMenuNotification(Box):
     """A widget to display a notification."""
 
@@ -278,9 +286,7 @@ class DateNotificationMenu(Box):
                 orientation="v",
                 children=(
                     DateTime(
-                        "%H:%M"
-                        if self.config.get("clock_format", "24h") == "24h"
-                        else "%I:%M",
+                        dropdown_clock_format(self.config),
                         name="clock",
                     ),
                     Box(

@@ -9,7 +9,7 @@ import unittest
 from unittest import mock
 
 try:
-    from widgets.datetime_menu import DateTimeWidget
+    from widgets.datetime_menu import DateTimeWidget, dropdown_clock_format
     from widgets.extended_datetime import ExtendedDateTime
 
     HAS_WIDGETS = True
@@ -40,6 +40,11 @@ class CalendarDefaultTest(unittest.TestCase):
 
     def test_the_desktop_clock_config_has_no_calendar_toggle(self):
         self.assertNotIn("nepali_date", DEFAULT_CONFIG["modules"]["desktop_clock"])
+
+    def test_dropdown_seconds_are_disabled_by_default(self):
+        self.assertFalse(
+            DEFAULT_CONFIG["widgets"]["date_time"]["dropdown_show_seconds"]
+        )
 
 
 def make_widget() -> "DateTimeWidget":
@@ -99,3 +104,30 @@ class CalendarToggleTest(unittest.TestCase):
 
         widget.show_popover.assert_not_called()
         widget.date_label.toggle_calendar.assert_not_called()
+
+
+@unittest.skipUnless(HAS_WIDGETS, "GTK / fabric widgets unavailable")
+class DropdownClockFormatTest(unittest.TestCase):
+    """The popover clock follows clock_format, with optional seconds."""
+
+    def test_24h_defaults_to_no_seconds(self):
+        self.assertEqual(dropdown_clock_format({}), "%H:%M")
+
+    def test_12h_uses_a_12_hour_clock(self):
+        self.assertEqual(dropdown_clock_format({"clock_format": "12h"}), "%I:%M")
+
+    def test_seconds_are_appended_when_enabled(self):
+        self.assertEqual(
+            dropdown_clock_format(
+                {"clock_format": "24h", "dropdown_show_seconds": True}
+            ),
+            "%H:%M:%S",
+        )
+
+    def test_12h_with_seconds(self):
+        self.assertEqual(
+            dropdown_clock_format(
+                {"clock_format": "12h", "dropdown_show_seconds": True}
+            ),
+            "%I:%M:%S",
+        )

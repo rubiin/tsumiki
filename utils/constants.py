@@ -213,6 +213,7 @@ DEFAULT_CONFIG = {
             "date_format": "%b %d",
             "calendar": True,
             "clock_format": "12h",
+            "dropdown_show_seconds": False,
             "hover_reveal": False,
             "reveal_duration": 500,
             "notification": {

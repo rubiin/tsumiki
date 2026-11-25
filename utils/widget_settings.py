@@ -679,6 +679,7 @@ DateTimeMenu = TypedDict(
         "calendar": bool,
         "hover_reveal": bool,
         "clock_format": str,
+        "dropdown_show_seconds": bool,
         "reveal_duration": int,
     },
 )

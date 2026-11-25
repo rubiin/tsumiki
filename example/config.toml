@@ -267,6 +267,7 @@ fallback_icon = "󰣆"   # Glyph for the fallback title; "" drops it
 date_format = "%b %d %H:%M"
 calendar = true
 clock_format = "12h"              # "12h" | "24h"
+dropdown_show_seconds = false     # Show seconds in the dropdown clock
 hover_reveal = false
 reveal_duration = 500
 

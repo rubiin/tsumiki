@@ -205,6 +205,7 @@ tooltip = true
 date_format = " %a %b %d,"
 calendar = true
 clock_format = "12h"
+dropdown_show_seconds = false
 hover_reveal = false
 reveal_duration = 500
 

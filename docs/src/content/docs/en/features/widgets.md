@@ -424,6 +424,7 @@ Shows the current date/time with a calendar popover and event notifications.
 date_format = " %a %b %d,"
 calendar = true
 clock_format = "12h" # "12h" | "24h"
+dropdown_show_seconds = false # Show seconds in the dropdown clock
 hover_reveal = false
 reveal_duration = 500
 

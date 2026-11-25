@@ -1516,6 +1516,11 @@
               "default": "12h",
               "description": "Clock format (12h or 24h)."
             },
+            "dropdown_show_seconds": {
+              "type": "boolean",
+              "default": false,
+              "description": "Show seconds in the clock inside the date/time dropdown menu."
+            },
             "hover_reveal": {
               "type": "boolean",
               "default": false,
