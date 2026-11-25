@@ -178,6 +178,14 @@ $widget-shell-widgets: (
     variable.$bar-widgets-window_count-border-width
   ),
   (
+    "breathe",
+    variable.$bar-widgets-breathe-border-radius,
+    variable.$bar-widgets-breathe-border-enabled,
+    variable.$bar-widgets-breathe-border-width,
+    variable.$bar-widgets-breathe-icon_size,
+    variable.$bar-widgets-breathe-spacing
+  ),
+  (
     "cava",
     variable.$bar-widgets-cava-border-radius,
     variable.$bar-widgets-cava-border-enabled,
@@ -196,6 +204,14 @@ $widget-shell-widgets: (
     variable.$bar-widgets-cpu-border-width,
     variable.$bar-widgets-cpu-icon_size,
     variable.$bar-widgets-cpu-spacing
+  ),
+  (
+    "gpu",
+    variable.$bar-widgets-gpu-border-radius,
+    variable.$bar-widgets-gpu-border-enabled,
+    variable.$bar-widgets-gpu-border-width,
+    variable.$bar-widgets-gpu-icon_size,
+    variable.$bar-widgets-gpu-spacing
   ),
   (
     "memory",

@@ -722,6 +722,12 @@ DEFAULT_CONFIG = {
                     "spacing": "0.25em",
                     "colors": {},
                 },
+                "breathe": {
+                    "border": {"enabled": False, "radius": "16px", "width": "1px"},
+                    "icon_size": "14px",
+                    "spacing": "0.125em",
+                    "colors": {},
+                },
                 "cava": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "spacing": "0.125em",
@@ -790,6 +796,12 @@ DEFAULT_CONFIG = {
                 },
                 "gap": "2px",
                 "github_tray": {
+                    "border": {"enabled": False, "radius": "16px", "width": "1px"},
+                    "icon_size": "12px",
+                    "spacing": "0.125em",
+                    "colors": {},
+                },
+                "gpu": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "12px",
                     "spacing": "0.125em",

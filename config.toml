@@ -1177,6 +1177,15 @@ enabled = false
 radius = "16px"
 width = "1px"
 
+[styling.bar.widgets.gpu]
+icon_size = "12px"
+spacing = "0.125em"
+
+[styling.bar.widgets.gpu.border]
+enabled = false
+radius = "16px"
+width = "1px"
+
 [styling.bar.widgets.pomodoro]
 icon_size = "12px"
 spacing = "0.125em"
@@ -1204,6 +1213,15 @@ icon_size = "12px"
 spacing = "0.25em"
 
 [styling.bar.widgets.brightness.border]
+enabled = false
+radius = "16px"
+width = "1px"
+
+[styling.bar.widgets.breathe]
+icon_size = "14px"
+spacing = "0.125em"
+
+[styling.bar.widgets.breathe.border]
 enabled = false
 radius = "16px"
 width = "1px"
@@ -1426,11 +1444,11 @@ height = "5px"
 knob = true
 knob_height = "8px"
 
-[styling.bar.widgets.radio_player]
+[styling.bar.widgets.settings]
 icon_size = "12px"
 spacing = "0.125em"
 
-[styling.bar.widgets.radio_player.border]
+[styling.bar.widgets.settings.border]
 enabled = false
 radius = "16px"
 width = "1px"
@@ -1470,6 +1488,25 @@ icon_size = "14px"
 spacing = "0.125em"
 
 [styling.bar.widgets.storage.border]
+enabled = false
+radius = "16px"
+width = "1px"
+
+
+[styling.bar.widgets.breathe]
+icon_size = "14px"
+spacing = "0.125em"
+
+[styling.bar.widgets.breathe.border]
+enabled = false
+radius = "16px"
+width = "1px"
+
+[styling.bar.widgets.gpu]
+icon_size = "14px"
+spacing = "0.125em"
+
+[styling.bar.widgets.gpu.border]
 enabled = false
 radius = "16px"
 width = "1px"
