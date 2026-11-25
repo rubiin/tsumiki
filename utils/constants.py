@@ -803,7 +803,7 @@ DEFAULT_CONFIG = {
                 },
                 "gpu": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
-                    "icon_size": "12px",
+                    "icon_size": "14px",
                     "spacing": "0.125em",
                     "colors": {},
                 },
