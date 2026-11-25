@@ -23,7 +23,6 @@ class BrightnessOSDContainer(GenericOSDContainer):
             **kwargs,
         )
         self.brightness_service = brightness_service
-        self.config = config
 
         self.update_brightness()
         self._watch_brightness()
@@ -42,8 +41,7 @@ class BrightnessOSDContainer(GenericOSDContainer):
         self.update_icon(int(brightness_percent))
 
     def update_icon(self, current_brightness: int):
-        icon_name = get_brightness_icon_name(current_brightness)["icon"]
-        self.icon.set_from_icon_name(icon_name, self.icon_size)
+        self.set_icon(get_brightness_icon_name(current_brightness)["icon"])
 
     def on_brightness_changed(self, *_):
         self.update_brightness()

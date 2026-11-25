@@ -1,4 +1,5 @@
 from fabric.widgets.box import Box
+from fabric.widgets.centerbox import CenterBox
 from fabric.widgets.label import Label
 
 from utils.icons import get_text_icon
@@ -38,6 +39,8 @@ class SettingSlider(Box, BaseWidget):
 
         self.icon_button = HoverButton(image=self.icon, name="setting-slider-button")
 
+        # Non-expanding scale: CSS min-width is the single source of truth for
+        # track length, so every row's track is identical regardless of extras.
         self.scale = create_scale(
             name="setting-slider-scale",
             duration=0.8,
@@ -46,13 +49,19 @@ class SettingSlider(Box, BaseWidget):
             increments=(1, 1),
             min_value=min,
             max_value=max,
+            h_expand=False,
+            h_align="start",
         )
         self.value_label = Label(
             name="setting-slider-value",
             label=f"{round(start_value)}%",
             v_align="center",
         )
-        self.children = (self.icon_button, self.scale, self.value_label)
+        self.center_box = CenterBox(
+            start_children=self.icon_button,
+            center_children=Box(children=(self.scale, self.value_label)),
+        )
+        self.children = (self.center_box,)
 
     def set_value_label(self, value: float) -> None:
         """Show *value* as a percentage after the scale."""

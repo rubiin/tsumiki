@@ -194,7 +194,7 @@ $qs-press-bg: color.adjust(theme.$surface-neutral, $alpha: -0.85);
 
       #setting-slider {
         &-scale {
-          margin: 10px;
+          margin: 10px 0 10px 8px;
         }
 
         &-label {
@@ -205,6 +205,7 @@ $qs-press-bg: color.adjust(theme.$surface-neutral, $alpha: -0.85);
         &-button {
           background-color: transparent;
           padding: 0 common.toEm(2);
+          min-width: 26px;
         }
 
         @include setting-slider($slider-length);
@@ -501,6 +502,8 @@ $qs-press-bg: color.adjust(theme.$surface-neutral, $alpha: -0.85);
 
     .audio-chevron-button {
       border-radius: variable.$radius-large;
+      min-width: 30px;
+      min-height: 26px;
 
       background-color: transparent;
       transition: background-color variable.$duration-normal variable.$ease-standard;

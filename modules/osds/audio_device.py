@@ -24,6 +24,7 @@ class AudioDeviceOSDContainer(GenericOSDContainer):
 
     def _icon_for(self, volume: int, muted: bool) -> str:
         """Return the icon name for a level and mute state."""
+        # No @abstractmethod: ABCMeta conflicts with the GObject metaclass.
         raise NotImplementedError
 
     def __init__(self, config: dict, **kwargs):
@@ -38,8 +39,6 @@ class AudioDeviceOSDContainer(GenericOSDContainer):
         self.previous_volume = None
         self.previous_muted = None
         self._effective_muted = None
-
-        self.config = config
 
         self._register_handlers(
             self.audio_service,
@@ -119,5 +118,4 @@ class AudioDeviceOSDContainer(GenericOSDContainer):
             self.emit(self.changed_signal)
 
     def update_icon(self, volume=0):
-        icon_name = self._icon_for(volume, self._current_device().muted)
-        self.icon.set_from_icon_name(icon_name, self.icon_size)
+        self.set_icon(self._icon_for(volume, self._current_device().muted))

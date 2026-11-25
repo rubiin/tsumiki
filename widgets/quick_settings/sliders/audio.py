@@ -41,7 +41,7 @@ class AudioSlider(SettingSlider):
                 child=self.chevron_icon,
                 on_clicked=self.on_button_click,
             )
-            self.children = (*self.children, self.chevron_btn)
+            self.center_box.end_children = self.chevron_btn
 
         self._stream_handler = None
         self._destroyed = False

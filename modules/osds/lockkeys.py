@@ -20,7 +20,6 @@ class LockkeysOSDContainer(GenericOSDContainer):
             config=config,
             **kwargs,
         )
-        self.config = config
         self.previous_capslock = None
         self.previous_numlock = None
         self._seeded = False
@@ -93,7 +92,7 @@ class LockkeysOSDContainer(GenericOSDContainer):
         else:
             icon_name = "input-keyboard-symbolic"
 
-        self.icon.set_from_icon_name(icon_name, self.icon_size)
+        self.set_icon(icon_name)
 
         # Update label
         status_parts = []

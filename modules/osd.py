@@ -1,3 +1,5 @@
+from functools import partial
+from importlib import import_module
 from time import monotonic
 from typing import Literal
 
@@ -17,6 +19,20 @@ from utils.widget_utils import (
 
 OSD_SWAP_MS = 150
 OSD_SWAP_FRAME_MS = 16
+
+#: config ``osds`` entry -> (attribute name, module, container class, signal)
+_OSD_TYPES = (
+    ("volume", "audio", "audio", "AudioOSDContainer", "volume-changed"),
+    (
+        "brightness",
+        "brightness",
+        "brightness",
+        "BrightnessOSDContainer",
+        "screen-brightness-changed",
+    ),
+    ("microphone", "microphone", "microphone", "MicrophoneOSDContainer", "mic-changed"),
+    ("lockkeys", "lockkeys", "lockkeys", "LockkeysOSDContainer", "locks-changed"),
+)
 
 #: Elements each OSD style leaves out; roles are matched by ``styled_children``.
 _STYLE_HIDDEN = {
@@ -54,6 +70,7 @@ class GenericOSDContainer(Box, BaseWidget):
             style_classes=style_classes,
             **kwargs,
         )
+        self.config = config
 
         self.icon_size = config.get("icon_size", 28)
 
@@ -87,6 +104,10 @@ class GenericOSDContainer(Box, BaseWidget):
             self.level = Label(name="osd-level", h_align="center", h_expand=True)
             self.add(self.level)
 
+    def set_icon(self, icon_name: str) -> None:
+        """Swap the OSD icon at the configured size."""
+        self.icon.set_from_icon_name(icon_name, self.icon_size)
+
     def update_values(self, value):
         """Update the value."""
         round_value = round(value)
@@ -110,32 +131,17 @@ class OSDContainer(BaseWindow):
     ):
         self.config = config.get("modules", {}).get("osd", {})
 
+        self.timeout = self.config.get("timeout", 1500)
+
         osds = self.config.get("osds", ["brightness", "volume"])
 
-        if "volume" in osds:
-            from .osds.audio import AudioOSDContainer
-
-            self.audio_container = AudioOSDContainer(config=self.config)
-            self.audio_container.connect("volume-changed", self.show_audio)
-        if "brightness" in osds:
-            from .osds.brightness import BrightnessOSDContainer
-
-            self.brightness_container = BrightnessOSDContainer(config=self.config)
-            self.brightness_container.connect(
-                "screen_brightness_changed", self.show_brightness
-            )
-        if "microphone" in osds:
-            from .osds.microphone import MicrophoneOSDContainer
-
-            self.microphone_container = MicrophoneOSDContainer(config=self.config)
-            self.microphone_container.connect("mic-changed", self.show_microphone)
-        if "lockkeys" in osds:
-            from .osds.lockkeys import LockkeysOSDContainer
-
-            self.lockkeys_container = LockkeysOSDContainer(config=self.config)
-            self.lockkeys_container.connect("locks-changed", self.show_lockkeys)
-
-        self.timeout = self.config.get("timeout", 1500)
+        for config_name, attr, module_name, class_name, signal in _OSD_TYPES:
+            if config_name not in osds:
+                continue
+            module = import_module(f".osds.{module_name}", package=__package__)
+            container = getattr(module, class_name)(config=self.config)
+            container.connect(signal, partial(self.show_box, box_to_show=attr))
+            setattr(self, f"{attr}_container", container)
 
         self.revealer = Revealer(
             name="osd-revealer",
@@ -156,29 +162,10 @@ class OSDContainer(BaseWindow):
             **kwargs,
         )
 
-    def show_audio(self, *_):
-        self.show_box(box_to_show="audio")
-
-    def show_brightness(self, *_):
-        self.show_box(box_to_show="brightness")
-
-    def show_microphone(self, *_):
-        self.show_box(box_to_show="microphone")
-
-    def show_lockkeys(self, *_):
-        self.show_box(box_to_show="lockkeys")
-
     def show_box(
         self, box_to_show: Literal["audio", "brightness", "microphone", "lockkeys"]
     ):
-        if box_to_show == "audio":
-            child_to_show = self.audio_container
-        elif box_to_show == "brightness":
-            child_to_show = self.brightness_container
-        elif box_to_show == "microphone":
-            child_to_show = self.microphone_container
-        else:
-            child_to_show = self.lockkeys_container
+        child_to_show = getattr(self, f"{box_to_show}_container")
 
         swapped = self.revealer.get_child() != child_to_show
         if swapped:
