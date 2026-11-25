@@ -682,12 +682,17 @@ hide_when_empty = false
 
 ### Wallpaper Button
 
-Opens the wallpaper selection popup.
+Opens the wallpaper selection popup. The daemon it applies wallpapers with is set in `[modules.wallpaper]`: `hyprpaper` (default) or `awww` (the renamed swww).
 
 ```toml
 [widgets.wallpaper]
 label_format = ""
 tooltip = true
+
+[modules.wallpaper]
+backend = "hyprpaper" # or "awww"
+directory = "~/Pictures/Wallpapers" # ~ and env vars are expanded
+sort = "date" # or "name" (A-Z)
 ```
 
 ### Settings Button

@@ -1,0 +1,122 @@
+@use "sass:color";
+@use "theme";
+@use "common";
+@use "variable";
+
+#wallpaper-picker-content {
+  @include common.floating-widget(variable.$radius-3xl);
+  padding: 20px;
+}
+
+#wallpaper-picker-header {
+  padding: 0 4px;
+}
+
+#wallpaper-picker-title {
+  font-size: variable.$font-size-5xl;
+  font-weight: 700;
+  color: theme.$text-main;
+}
+
+#wallpaper-picker-subtitle {
+  font-size: variable.$font-size-base;
+  color: theme.$text-muted;
+}
+
+#wallpaper-picker-folder {
+  min-width: 34px;
+  min-height: 34px;
+  border-radius: variable.$radius-md;
+  background-color: color.adjust(theme.$text-main, $alpha: -0.94);
+  color: theme.$text-main;
+  transition: background-color variable.$duration-normal variable.$ease-standard;
+
+  &:hover {
+    background-color: color.adjust(theme.$text-main, $alpha: -0.88);
+  }
+}
+
+#wallpaper-grid flowboxchild {
+  padding: 0;
+  outline: none;
+  background-color: transparent;
+}
+
+/* Each card: a ring around the tile (radius = tile radius + padding) */
+#wallpaper-card {
+  padding: 4px;
+  border-radius: variable.$radius-xl;
+  border: 2px solid transparent;
+  transition:
+    background-color variable.$duration-normal variable.$ease-standard,
+    border-color variable.$duration-normal variable.$ease-standard;
+
+  &:hover,
+  &:focus {
+    background-color: color.adjust(theme.$text-main, $alpha: -0.94);
+    border-color: color.adjust(theme.$text-main, $alpha: -0.82);
+  }
+
+  &.current {
+    border-color: theme.$accent-blue;
+    background-color: color.adjust(theme.$accent-blue, $alpha: -0.88);
+  }
+}
+
+/* keyboard focus is on the flowboxchild around the card */
+#wallpaper-grid flowboxchild:focus #wallpaper-card {
+  background-color: color.adjust(theme.$text-main, $alpha: -0.9);
+  border-color: color.adjust(theme.$text-main, $alpha: -0.2);
+
+  &.current {
+    border-color: theme.$text-main;
+  }
+}
+
+#wallpaper-monitor-chips {
+  margin: 8px;
+}
+
+#wallpaper-monitor-chip {
+  min-height: 20px;
+  border-radius: variable.$radius-large;
+  background-color: theme.$accent-blue;
+
+  label {
+    font-size: variable.$font-size-sm;
+    font-weight: 700;
+    color: theme.$background-dark;
+    padding: 0 8px;
+  }
+}
+
+#wallpaper-empty {
+  padding: 40px;
+  color: theme.$text-muted;
+}
+
+/* right-click monitor menu on a card */
+.wallpaper-monitor-menu {
+  background-color: theme.$background-dark;
+  border: 1px solid variable.$popover-border-color;
+  border-radius: variable.$radius-lg;
+  padding: 4px;
+
+  menuitem {
+    padding: 6px 12px;
+    border-radius: variable.$radius-sm;
+    color: theme.$text-main;
+    font-size: variable.$font-size-base;
+
+    &:hover,
+    &:focus {
+      background-color: theme.$surface-highlight;
+    }
+  }
+
+  separator {
+    min-height: 1px;
+    margin: 4px 0;
+    background-color: theme.$surface-disabled;
+  }
+}

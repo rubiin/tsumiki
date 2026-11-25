@@ -477,6 +477,11 @@ DEFAULT_CONFIG = {
         "right_section": ["system_tray"],
     },
     "modules": {
+        "wallpaper": {
+            "backend": "hyprpaper",
+            "directory": WALLPAPER_DIR,
+            "sort": "date",
+        },
         "bar": {
             "layer": "top",
             "auto_hide": False,

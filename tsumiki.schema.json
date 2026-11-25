@@ -2623,6 +2623,28 @@
     "modules": {
       "type": "object",
       "properties": {
+        "wallpaper": {
+          "type": "object",
+          "properties": {
+            "backend": {
+              "type": "string",
+              "enum": ["hyprpaper", "awww"],
+              "default": "hyprpaper",
+              "description": "Wallpaper daemon used by the picker: hyprpaper or awww."
+            },
+            "directory": {
+              "type": "string",
+              "default": "~/Pictures/Wallpapers",
+              "description": "Folder the picker lists wallpapers from. Supports ~ and environment variables."
+            },
+            "sort": {
+              "type": "string",
+              "enum": ["date", "name"],
+              "default": "date",
+              "description": "Grid order: date (newest first) or name (A-Z)."
+            }
+          }
+        },
         "bar": {
           "type": "object",
           "properties": {

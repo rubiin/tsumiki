@@ -326,6 +326,14 @@ $widget-shell-widgets: (
     variable.$bar-widgets-stopwatch-spacing
   ),
   (
+    "wallpaper",
+    variable.$bar-widgets-wallpaper-border-radius,
+    variable.$bar-widgets-wallpaper-border-enabled,
+    variable.$bar-widgets-wallpaper-border-width,
+    variable.$bar-widgets-wallpaper-icon_size,
+    variable.$bar-widgets-wallpaper-spacing
+  ),
+  (
     "submap",
     variable.$bar-widgets-submap-border-radius,
     variable.$bar-widgets-submap-border-enabled,

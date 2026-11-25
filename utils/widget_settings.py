@@ -38,6 +38,12 @@ WallPaper = TypedDict(
     },
 )
 
+# Wallpaper module configuration
+WallPaperModule = TypedDict(
+    "WallPaperModule",
+    {"backend": str, "directory": str, "sort": str},
+)
+
 # Settings button configuration
 Settings = TypedDict(
     "Settings",
@@ -377,6 +383,7 @@ Bar = TypedDict(
 Modules = TypedDict(
     "Modules",
     {
+        "wallpaper": WallPaperModule,
         "dock": Dock,
         "bar": Bar,
         "desktop_quotes": DesktopQuotes,

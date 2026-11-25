@@ -444,6 +444,8 @@ class SettingsGUI(Window):
             "temperature_unit": get_literal_values(Temperature_Unit),
             "unit": get_literal_values(Data_Unit),
             "provider": get_literal_values(Weather_Provider),
+            "backend": ["hyprpaper", "awww"],
+            "sort": ["date", "name"],
         }
         return enums.get(key)
 

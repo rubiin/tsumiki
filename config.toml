@@ -496,6 +496,14 @@ label_format = "󰍽"  # the toggle button's whole label
 tooltip = "Utility Tools"
 style_classes = ["utility-tools"]
 
+[modules.wallpaper]
+# Wallpaper daemon the picker applies with: "hyprpaper" or "awww"
+backend = "hyprpaper"
+# Folder the picker lists wallpapers from (~ and env vars are expanded)
+directory = "~/Pictures/Wallpapers"
+# Grid order: "date" (newest first) or "name" (A-Z)
+sort = "date"
+
 [modules.bar]
 layer = "background"
 auto_hide = false
@@ -947,7 +955,8 @@ layer = "bottom"
 left_section = ["@group:workspaces-group"]
 middle_section = [
     "date_time",
-    "weather"
+    "weather",
+    "wallpaper"
 ]
 right_section = ["@group:sys-group", "@group:utils-group", "system_tray", "power"]
 
@@ -1145,6 +1154,16 @@ icon_size = "14px"
 spacing = "0.125em"
 
 [styling.bar.widgets.ip_monitor.border]
+enabled = false
+radius = "16px"
+width = "1px"
+
+
+[styling.bar.widgets.wallpaper]
+icon_size = "14px"
+spacing = "0.125em"
+
+[styling.bar.widgets.wallpaper.border]
 enabled = false
 radius = "16px"
 width = "1px"

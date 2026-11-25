@@ -49,6 +49,14 @@ style_classes = ["utility-tools"]
 
 # ── Modules ──────────────────────────────────────────
 
+[modules.wallpaper]
+# Wallpaper daemon the picker applies with: "hyprpaper" or "awww"
+backend = "hyprpaper"
+# Folder the picker lists wallpapers from (~ and env vars are expanded)
+directory = "~/Pictures/Wallpapers"
+# Grid order: "date" (newest first) or "name" (A-Z)
+sort = "date"
+
 [modules.bar]
 layer = "top"                     # "top" | "overlay" | "bottom" | "background"
 location = "top"                  # "top" | "bottom"
