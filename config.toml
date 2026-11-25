@@ -1492,25 +1492,6 @@ enabled = false
 radius = "16px"
 width = "1px"
 
-
-[styling.bar.widgets.breathe]
-icon_size = "14px"
-spacing = "0.125em"
-
-[styling.bar.widgets.breathe.border]
-enabled = false
-radius = "16px"
-width = "1px"
-
-[styling.bar.widgets.gpu]
-icon_size = "14px"
-spacing = "0.125em"
-
-[styling.bar.widgets.gpu.border]
-enabled = false
-radius = "16px"
-width = "1px"
-
 [styling.bar.widgets.submap]
 icon_size = "14px"
 spacing = "0.125em"
