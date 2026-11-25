@@ -498,7 +498,7 @@ style_classes = ["utility-tools"]
 
 [modules.wallpaper]
 # Wallpaper daemon the picker applies with: "hyprpaper" or "awww"
-backend = "hyprpaper"
+backend = "awww"
 # Folder the picker lists wallpapers from (~ and env vars are expanded)
 directory = "~/Pictures/Wallpapers"
 # Grid order: "date" (newest first) or "name" (A-Z)
