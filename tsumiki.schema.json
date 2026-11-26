@@ -3576,6 +3576,53 @@
           "description": "The language code for the user interface (e.g., 'en', 'es', 'fr', 'de').",
           "default": "en",
           "enum": ["en", "es", "fr", "de", "ar", "zh", "ja", "ko", "pt", "ru", "tr", "nl"]
+        },
+        "popover": {
+          "type": "object",
+          "description": "Appearance and behavior of the popovers opened by bar widgets.",
+          "properties": {
+            "transition_type": {
+              "type": "string",
+              "description": "Reveal animation for popovers. 'auto' slides out of the bar edge the popover opens from.",
+              "enum": [
+                "auto",
+                "none",
+                "crossfade",
+                "slide-left",
+                "slide-right",
+                "slide-up",
+                "slide-down"
+              ],
+              "default": "auto"
+            },
+            "animation": {
+              "type": "boolean",
+              "description": "Whether popovers animate open and closed. When false, they appear and disappear instantly.",
+              "default": true
+            },
+            "close_on_escape": {
+              "type": "boolean",
+              "description": "Whether the Escape key dismisses an open popover.",
+              "default": true
+            },
+            "close_delay": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 200,
+              "description": "Delay in milliseconds before a popover closes after losing keyboard focus. Raise it for popovers with text inputs."
+            },
+            "bezel": {
+              "type": "boolean",
+              "description": "Whether curved bezels join the popover to the bar, like the dock bezels.",
+              "default": true
+            },
+            "bezel_size": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 20,
+              "description": "Size of the popover bezel curves in pixels. Match it to the popover border radius for a seamless curve."
+            }
+          }
         }
       }
     },

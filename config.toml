@@ -972,6 +972,14 @@ multi_monitor = false
 tooltips = true
 language = "en"
 
+[general.popover]
+transition_type = "auto"
+animation = true
+close_on_escape = true
+close_delay = 200
+bezel = true
+bezel_size = 20
+
 [styling]
 border-radius = "10px"
 border-width = "1px"

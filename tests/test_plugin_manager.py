@@ -558,9 +558,12 @@ class CurrencyPluginTest(unittest.TestCase):
     def test_cold_cache_burst_does_not_duplicate_first_download(self):
         import threading
 
-        backing_off = threading.Event()
-        release = threading.Event()
+        first_sleeping = threading.Event()
+        second_sleeping = threading.Event()
+        first_release = threading.Event()
+        second_release = threading.Event()
         calls = {"n": 0}
+        sleeps = {"n": 0}
         results: dict = {}
 
         def fake_download(cancelled=None):
@@ -570,8 +573,16 @@ class CurrencyPluginTest(unittest.TestCase):
             return "2026-08-12", {"EUR": 1.0, "USD": 1.2}
 
         def blocking_sleep(_seconds):
-            backing_off.set()
-            release.wait(5)
+            # Gate the caller that is retrying separately from the burst query:
+            # waking both at once lets the burst query burn its retry attempts
+            # before the refresh has written the cache.
+            sleeps["n"] += 1
+            if sleeps["n"] == 1:
+                first_sleeping.set()
+                first_release.wait(5)
+            else:
+                second_sleeping.set()
+                second_release.wait(5)
 
         def read_rates(key):
             results[key] = self.load_rates()
@@ -586,19 +597,21 @@ class CurrencyPluginTest(unittest.TestCase):
         ):
             first = threading.Thread(target=read_rates, args=("first",))
             first.start()
-            self.assertTrue(backing_off.wait(5))
+            self.assertTrue(first_sleeping.wait(5))
 
             second = threading.Thread(target=read_rates, args=("second",))
             second.start()
-            second.join(timeout=0.2)
             # A burst query must not fire a duplicate request during backoff.
+            self.assertTrue(second_sleeping.wait(5))
             self.assertEqual(calls["n"], 1)
 
-            release.set()
+            first_release.set()
             first.join(timeout=5)
+            self.assertFalse(first.is_alive())
+
+            second_release.set()
             second.join(timeout=5)
 
-        self.assertFalse(first.is_alive())
         self.assertFalse(second.is_alive())
         self.assertEqual(results["first"]["rates"]["USD"], 1.2)
         self.assertEqual(results["second"]["rates"]["USD"], 1.2)

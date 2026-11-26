@@ -79,6 +79,30 @@ Global behavior such as debug mode, auto reload, and multi-monitor controls.
 | `tooltips`       | bool | `true`  | Enable widget tooltips         |
 | `check_updates`  | bool | `false` | Check for Tsumiki updates      |
 | `monitor_styles` | bool | `true`  | Watch and reload SCSS changes  |
+| `language`       | str  | `"en"`  | UI language code               |
+
+### `general.popover`
+
+Controls the popovers opened by bar widgets.
+
+| Key               | Type | Default  | Description                                                       |
+| ----------------- | ---- | -------- | ----------------------------------------------------------------- |
+| `transition_type` | str  | `"auto"` | Reveal direction; `auto` slides out of the bar edge it opens from |
+| `animation`       | bool | `true`   | Animate popovers open and closed                                  |
+| `close_on_escape` | bool | `true`   | Escape dismisses the open popover                                 |
+| `close_delay`     | int  | `200`    | Delay before closing after losing focus, in milliseconds          |
+| `bezel`           | bool | `true`   | Curved corners joining the popover to the bar                     |
+| `bezel_size`      | int  | `20`     | Bezel corner size in pixels                                       |
+
+```toml
+[general.popover]
+transition_type = "auto" # auto | none | crossfade | slide-left | slide-right | slide-up | slide-down
+animation = true
+close_on_escape = true
+close_delay = 200
+bezel = true
+bezel_size = 20
+```
 
 ### `layout`
 

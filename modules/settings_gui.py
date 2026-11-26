@@ -29,6 +29,7 @@ from utils.types import (
     Dock_Behavior,
     Layer,
     Orientation,
+    Popover_Transition,
     Reveal_Animations,
     Temperature_Unit,
     Theme_Mode,
@@ -250,6 +251,10 @@ class SettingsGUI(Window):
         vbox.add(grid)
 
         for row, (key, value) in enumerate(general.items()):
+            if isinstance(value, dict):
+                self._create_nested_section(vbox, key, value, "config.general")
+                continue
+
             grid.attach(self._create_label(key), 0, row, 1, 1)
 
             if isinstance(value, bool):
@@ -413,7 +418,7 @@ class SettingsGUI(Window):
                 ),
             )
         elif isinstance(value, str):
-            enum_options = self._get_enum_options(key)
+            enum_options = self._get_enum_options(key, path)
             if enum_options:
                 return self._create_combo(
                     enum_options,
@@ -431,8 +436,12 @@ class SettingsGUI(Window):
             return entry
         return Label(label=str(value), h_align="start")
 
-    def _get_enum_options(self, key: str) -> list | None:
+    def _get_enum_options(self, key: str, path: str = "") -> list | None:
         """Get enum options for known keys."""
+        # Popover transitions accept "auto" on top of the reveal animations.
+        if key == "transition_type" and path.endswith(".popover"):
+            return get_literal_values(Popover_Transition)
+
         enums = {
             "layer": get_literal_values(Layer),
             "anchor": get_literal_values(Anchor),

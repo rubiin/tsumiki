@@ -38,6 +38,17 @@ Reveal_Animations = Literal[
     "none", "crossfade", "slide-right", "slide-left", "slide-up", "slide-down"
 ]
 
+# "auto" opens from the bar edge the popover is anchored to.
+Popover_Transition = Literal[
+    "auto",
+    "none",
+    "crossfade",
+    "slide-right",
+    "slide-left",
+    "slide-up",
+    "slide-down",
+]
+
 Orientation = Literal["vertical", "horizontal"]
 
 Dock_Behavior = Literal["always_show", "intellihide"]

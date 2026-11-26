@@ -11,6 +11,15 @@ check_updates = false             # Check for Tsumiki updates
 monitor_styles = true             # Watch and reload SCSS changes
 language = "en"                   # UI language: en, es, fr, de, ar, zh, ja, ko, pt, ru, tr, nl
 
+# Popover menus opened by bar widgets.
+[general.popover]
+transition_type = "auto"          # auto | none | crossfade | slide-left | slide-right | slide-up | slide-down
+animation = true                  # Animate popovers open and closed
+close_on_escape = true            # Escape dismisses the open popover
+close_delay = 200                 # Delay before closing after losing focus (ms)
+bezel = true                      # Curved corners joining the popover to the bar
+bezel_size = 20                   # Bezel corner size in pixels (match the popover border radius)
+
 # ── Layout ────────────────────────────────────────────
 # Widget placement in the bar. Reference widgets by name,
 # or use @group:N / @collapsible:N for groups (zero-based index).

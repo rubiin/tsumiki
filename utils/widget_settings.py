@@ -8,6 +8,7 @@ from .types import (
     Layer,
     Orientation,
     Osd_Type,
+    Popover_Transition,
     Power_Options,
     Return_Type,
     Reveal_Animations,
@@ -402,6 +403,18 @@ Modules = TypedDict(
 )
 
 
+Popover = TypedDict(
+    "Popover",
+    {
+        "transition_type": Popover_Transition,
+        "animation": bool,
+        "close_on_escape": bool,
+        "close_delay": int,
+        "bezel": bool,
+        "bezel_size": int,
+    },
+)
+
 # Bar configuration
 General = TypedDict(
     "General",
@@ -413,6 +426,8 @@ General = TypedDict(
         "restart_delay": int,
         "multi_monitor": bool,
         "tooltips": bool,
+        "language": str,
+        "popover": Popover,
     },
 )
 

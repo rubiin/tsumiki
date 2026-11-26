@@ -632,6 +632,14 @@ DEFAULT_CONFIG = {
         "multi_monitor": False,
         "tooltips": True,
         "language": "en",
+        "popover": {
+            "transition_type": "auto",
+            "animation": True,
+            "close_on_escape": True,
+            "close_delay": 200,
+            "bezel": True,
+            "bezel_size": 20,
+        },
     },
     "styling": {
         "bar": {

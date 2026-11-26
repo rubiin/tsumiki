@@ -411,10 +411,11 @@
   }
 }
 
-/// Semi-transparent bar/dock background derived from an opacity percentage.
-/// @param {Number} $opacity - Bar opacity percentage (0-100)
-@mixin bar-background($opacity) {
+/// Semi-transparent surface background derived from an opacity percentage.
+/// @param {Number} $opacity - Surface opacity percentage (0-100)
+/// @param {Color} $color - Base color, defaults to the bar background
+@mixin bar-background($opacity, $color: theme.$general-bar-background) {
   // The setting is an opacity percentage: 10 -> 10% opaque, 90 -> 90% opaque.
   $alpha: math.clamp(0, $opacity * 0.01, 1);
-  background-color: color.change(theme.$general-bar-background, $alpha: $alpha);
+  background-color: color.change($color, $alpha: $alpha);
 }

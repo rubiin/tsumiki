@@ -16,6 +16,47 @@ from utils.hyprland import hyprland_service
 POPOVER_BAR_GAP = -70
 POPOVER_WINDOW_POOL_SIZE = 4
 POPOVER_CORNER_SIZE = 20
+POPOVER_FOCUS_OUT_DELAY = 200
+
+# Defaults for ``[general.popover]``; the loaded config merges over these.
+POPOVER_OPTION_DEFAULTS = {
+    "transition_type": "auto",
+    "animation": True,
+    "close_on_escape": True,
+    "close_delay": POPOVER_FOCUS_OUT_DELAY,
+    "bezel": True,
+    "bezel_size": POPOVER_CORNER_SIZE,
+}
+
+
+def popover_options() -> dict:
+    """Return ``[general.popover]`` merged over the built-in defaults."""
+    from utils.config import tsumiki_config
+
+    options = dict(POPOVER_OPTION_DEFAULTS)
+    configured = (tsumiki_config.get("general") or {}).get("popover")
+    if isinstance(configured, dict):
+        options.update(
+            {key: value for key, value in configured.items() if key in options}
+        )
+    return options
+
+
+def resolve_transition(configured, animation: bool) -> str | None:
+    """Map the configured transition; *None* derives it from the opening edge."""
+    if not animation:
+        return "none"
+    if configured in (None, "", "auto"):
+        return None
+    return configured
+
+
+def coerce_non_negative(value, default: int) -> int:
+    """Numeric option in pixels or milliseconds; garbage falls back to *default*."""
+    try:
+        return max(0, int(value))
+    except (TypeError, ValueError):
+        return default
 
 
 class PopoverManager:
@@ -172,6 +213,7 @@ class Popover(Widget):
         self._content_factory = content_factory
         self._point_to = point_to
         self._content_window = None
+        options = popover_options()
         self._content = content
         self._content_box = None
         self._enable_boundary_checking = enable_boundary_checking
@@ -179,9 +221,24 @@ class Popover(Widget):
         self._draw_handler_id = None
         self._focus_out_timeout_id = None
         self._revealer = None
+        self._animate = bool(options["animation"])
+        self._close_on_escape = bool(options["close_on_escape"])
+        self._bezel = bool(options["bezel"])
+        self._bezel_size = coerce_non_negative(
+            options["bezel_size"], POPOVER_CORNER_SIZE
+        )
+        self._close_delay = coerce_non_negative(
+            options["close_delay"], POPOVER_FOCUS_OUT_DELAY
+        )
+        self._corner_left = None
+        self._corner_right = None
         # None derives the slide direction from the edge the popover opens from.
-        self._transition_type = transition_type
-        self._transition_duration = transition_duration
+        self._transition_type = (
+            transition_type
+            if transition_type is not None
+            else resolve_transition(options["transition_type"], self._animate)
+        )
+        self._transition_duration = transition_duration if self._animate else 0
 
         self._manager = PopoverManager()
 
@@ -203,7 +260,11 @@ class Popover(Widget):
         self._point_to = widget
 
     def on_key_press(self, widget, event):
-        if event.keyval == Gdk.KEY_Escape and self._manager.active_popover:
+        if (
+            event.keyval == Gdk.KEY_Escape
+            and self._close_on_escape
+            and self._manager.active_popover
+        ):
             self._manager.active_popover.hide_popover()
             return True
         return False
@@ -222,9 +283,7 @@ class Popover(Widget):
             self._manager.activate_popover(self)
             self.set_position()
             self._content_window.show()
-            if self._content_box is not None:
-                self._content_box.remove_style_class("popover-content-reveal")
-                self._content_box.add_style_class("popover-content-reveal")
+            self._reveal_content()
             if self._revealer is not None:
                 self._revealer.set_reveal_child(True)
             self._visible = True
@@ -392,7 +451,11 @@ class Popover(Widget):
             # Anchor the edge the popover grows from, with a matching slide
             # direction, so the content unrolls out of the bar (Ax-Shell style).
             self._content_window.anchor = "left bottom" if opens_upward else "left top"
-            if self._transition_type is None and self._revealer is not None:
+            if (
+                self._animate
+                and self._transition_type is None
+                and self._revealer is not None
+            ):
                 self._revealer.transition_type = (
                     "slide-up" if opens_upward else "slide-down"
                 )
@@ -431,20 +494,33 @@ class Popover(Widget):
             },
         )
 
+    def _reveal_content(self):
+        """Restart the content reveal animation, unless animation is disabled."""
+        if not self._animate or self._content_box is None:
+            return
+        self._content_box.remove_style_class("popover-content-reveal")
+        self._content_box.add_style_class("popover-content-reveal")
+
     def _activate_popover(self):
         """Register with manager, position, show window, mark visible."""
         self._manager.activate_popover(self)
         self.set_position()
         self._content_window.show()
-        if self._content_box is not None:
-            self._content_box.remove_style_class("popover-content-reveal")
-            self._content_box.add_style_class("popover-content-reveal")
+        self._reveal_content()
         if self._revealer is not None:
             self._revealer.set_reveal_child(True)
         self._visible = True
 
     def _set_attachment(self, opens_upward: bool) -> None:
         """Square the popup edge that meets the bar and add its side fillets."""
+        if not self._bezel:
+            # No fillets to continue, so every corner stays round.
+            self._content_box.remove_style_class("popover-attached-top")
+            self._content_box.remove_style_class("popover-attached-bottom")
+            self._content_box.add_style_class("popover-no-bezel")
+            return
+
+        self._content_box.remove_style_class("popover-no-bezel")
         if opens_upward:
             left, right, valign = "bottom-right", "bottom-left", Gtk.Align.END
             self._content_box.add_style_class("popover-attached-bottom")
@@ -465,22 +541,29 @@ class Popover(Widget):
 
         self._content_window = self._manager.get_popover_window()
         self._content_box = Box(name="popover-content", children=self._content)
-        self._corner_left = Corner(
-            name="popover-corner",
-            orientation="top-right",
-            size=POPOVER_CORNER_SIZE,
-            v_align=Gtk.Align.START,
-        )
-        self._corner_right = Corner(
-            name="popover-corner",
-            orientation="top-left",
-            size=POPOVER_CORNER_SIZE,
-            v_align=Gtk.Align.START,
-        )
+        shell_children = [self._content_box]
+        if self._bezel:
+            self._corner_left = Corner(
+                name="popover-corner",
+                orientation="top-right",
+                size=self._bezel_size,
+                v_align=Gtk.Align.START,
+            )
+            self._corner_right = Corner(
+                name="popover-corner",
+                orientation="top-left",
+                size=self._bezel_size,
+                v_align=Gtk.Align.START,
+            )
+            shell_children = [
+                self._corner_left,
+                self._content_box,
+                self._corner_right,
+            ]
         self._shell = Box(
             name="popover-shell",
             orientation="h",
-            children=[self._corner_left, self._content_box, self._corner_right],
+            children=shell_children,
         )
         self._revealer = Revealer(
             name="popover-revealer",
@@ -498,7 +581,9 @@ class Popover(Widget):
         # This helps with keyboard focus issues
         if self._focus_out_timeout_id is not None:
             GLib.source_remove(self._focus_out_timeout_id)
-        self._focus_out_timeout_id = GLib.timeout_add(200, self._hide_after_focus_out)
+        self._focus_out_timeout_id = GLib.timeout_add(
+            self._close_delay, self._hide_after_focus_out
+        )
         return False
 
     def _hide_after_focus_out(self):

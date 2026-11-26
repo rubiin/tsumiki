@@ -91,11 +91,17 @@
     border-radius: variable.$bar-menus-popover-border-radius
       variable.$bar-menus-popover-border-radius 0 0;
   }
+
+  // Without bezels there is no fillet to continue, so every corner stays round.
+  &.popover-no-bezel {
+    border-radius: variable.$bar-menus-popover-border-radius;
+  }
 }
 
 #popover-corner,
 #popover-content {
-  background-color: theme.$background-alt;
+  // Background alpha only, so popover content stays fully opaque.
+  @include mixins.bar-background(variable.$bar-menus-popover-opacity, theme.$background-alt);
 }
 
 .panel-box {

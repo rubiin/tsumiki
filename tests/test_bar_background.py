@@ -13,13 +13,14 @@ STYLES = os.path.join(ROOT, "styles")
 class BarBackgroundTest(unittest.TestCase):
     """Bar/dock background alpha must follow the configured opacity percentage."""
 
-    def _compile(self, opacity):
+    def _compile(self, opacity, color=None):
         if shutil.which("sass") is None:
             self.skipTest("sass binary not available")
 
+        args = str(opacity) if color is None else f"{opacity}, {color}"
         source = (
             '@use "common/mixins" as mixins;\n'
-            f".probe {{ @include mixins.bar-background({opacity}); }}\n"
+            f".probe {{ @include mixins.bar-background({args}); }}\n"
         )
         with tempfile.NamedTemporaryFile(
             "w", dir=STYLES, suffix=".scss", delete=False
@@ -47,6 +48,10 @@ class BarBackgroundTest(unittest.TestCase):
         # Alpha 1 compresses to the opaque hex colour.
         self.assertIn("#242323", self._compile(150))
         self.assertIn("rgba(36, 35, 35, 0)", self._compile(-10))
+
+    def test_custom_base_color_shares_the_alpha(self):
+        # Popovers pass the surface color through the same opacity mapping.
+        self.assertIn("rgba(24, 24, 37, 0.6)", self._compile(60, color="#181825"))
 
 
 if __name__ == "__main__":
