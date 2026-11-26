@@ -27,6 +27,10 @@ try:
 except ValueError:
     raise NetworkManagerNotFoundError()
 
+# Fixed viewport: the popover sizes itself when it opens and does not relayout
+# for content that grows later (scan results), which used to crop its top.
+_LIST_VIEWPORT_HEIGHT = 260
+
 
 class WifiAccessPointRow(Gtk.ListBoxRow, SubmenuRowMixin):
     """A network row in the wifi submenu."""
@@ -60,7 +64,10 @@ class WifiSubMenu(QuickSubMenu):
         )
 
         self.child = scrolled_list_content(
-            self.available_networks_listbox, min_height=120, v_expand=True
+            self.available_networks_listbox,
+            min_height=_LIST_VIEWPORT_HEIGHT,
+            max_height=_LIST_VIEWPORT_HEIGHT,
+            v_expand=True,
         )
 
         super().__init__(
