@@ -107,6 +107,8 @@ ignored = []                      # Application class names to drop
 group_apps = true                 # Merge windows of the same app into one icon
 truncation_size = 20              # Window title length before truncation
 orientation = "horizontal"        # "horizontal" | "vertical"
+bezels = false                     # Curved corners joining the dock to the screen edge
+bezel_size = 20                    # Size of the bezel curves in pixels
 show_launcher = true
 launcher_position = "first"       # "first" | "last"
 

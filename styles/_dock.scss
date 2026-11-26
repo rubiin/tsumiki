@@ -76,4 +76,22 @@
       margin-left: 0;
     }
   }
+
+  // Bezels attach the dock to the screen edge: the outer margin collapses and
+  // the edge-facing corners square off so the curves below are continuous.
+  &.dock-bezels {
+    margin: 0;
+  }
+
+  &.dock-bezels.dock-horizontal {
+    border-radius: variable.$modules-dock-border-radius variable.$modules-dock-border-radius 0 0;
+  }
+
+  &.dock-bezels.dock-vertical {
+    border-radius: 0 variable.$modules-dock-border-radius variable.$modules-dock-border-radius 0;
+  }
+}
+
+#dock-bezel {
+  @include common.bar-background(variable.$modules-dock-opacity);
 }

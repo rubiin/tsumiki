@@ -2929,6 +2929,17 @@
               "default": "horizontal",
               "description": "Specifies the orientation of the dock."
             },
+            "bezels": {
+              "type": "boolean",
+              "default": false,
+              "description": "Determines whether curved bezels join the dock to the screen edge."
+            },
+            "bezel_size": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 20,
+              "description": "Specifies the size of the dock bezel curves in pixels."
+            },
             "launcher_position": {
               "type": "string",
               "enum": ["first", "last"],

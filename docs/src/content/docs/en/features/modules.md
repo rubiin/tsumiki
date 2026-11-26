@@ -97,6 +97,8 @@ show_when_no_windows = false
 group_apps = true
 truncation_size = 20
 orientation = "horizontal"
+bezels = false
+bezel_size = 20
 always_show_focused = true
 hide_special_workspace_apps = false
 show_launcher = true
@@ -104,6 +106,7 @@ launcher_position = "last" # "first" | "last"
 ignored = []
 ```
 
+- **`bezels`**: Adds curved corners that join the dock to the screen edge (the bottom edge for a horizontal dock, the left edge for a vertical one). The outer margin and the edge-facing corner radius collapse while enabled, so match `bezel_size` to the dock's border radius for a seamless curve.
 - **`behavior`**: `intellihide` hides the dock when a window overlaps it; `always_show` keeps it visible.
 - **`s`**: Shows window preview thumbnails on hover.
 - **`group_apps`**: Groups multiple windows from the same application.

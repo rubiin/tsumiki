@@ -340,6 +340,8 @@ Dock = TypedDict(
         "hide_special_workspace_apps": bool,
         "group_apps": bool,
         "truncation_size": int,
+        "bezels": bool,
+        "bezel_size": int,
         "ignored": list[str],
         "layer": Layer,
     },

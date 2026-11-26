@@ -202,6 +202,77 @@ class DockEntryTest(unittest.TestCase):
         bar.add.assert_not_called()
 
 
+class BezelRowTest(unittest.TestCase):
+    """Bezels flank the dock with corners that hug the attached screen edge."""
+
+    def setUp(self):
+        for name in ("Box", "Corner"):
+            patcher = mock.patch.object(dock_module, name)
+            setattr(self, f"{name}_mock", patcher.start())
+            self.addCleanup(patcher.stop)
+        self.Corner_mock.side_effect = lambda **kwargs: mock.Mock(name="corner")
+
+    def build(self, is_vertical: bool = False, size: int = 20):
+        dock_box = mock.Mock(name="dock-box")
+        row = dock_module.build_bezel_row(
+            dock_box, is_vertical=is_vertical, size=size
+        )
+        return dock_box, row
+
+    def corners(self) -> list[dict]:
+        return [call.kwargs for call in self.Corner_mock.call_args_list]
+
+    def test_a_horizontal_dock_gets_bottom_corners_on_the_edge(self):
+        self.build()
+
+        corners = self.corners()
+        self.assertEqual(
+            ["bottom-right", "bottom-left"], [c["orientation"] for c in corners]
+        )
+        self.assertEqual(["end", "end"], [c["v_align"] for c in corners])
+        self.assertEqual("h", self.Box_mock.call_args.kwargs["orientation"])
+
+    def test_a_vertical_dock_gets_left_corners_on_the_edge(self):
+        self.build(is_vertical=True)
+
+        corners = self.corners()
+        self.assertEqual(
+            ["bottom-left", "top-left"], [c["orientation"] for c in corners]
+        )
+        self.assertEqual(["start", "start"], [c["h_align"] for c in corners])
+        self.assertEqual("v", self.Box_mock.call_args.kwargs["orientation"])
+
+    def test_the_dock_sits_between_the_two_corners(self):
+        dock_box, _ = self.build()
+
+        children = self.Box_mock.call_args.kwargs["children"]
+        self.assertIs(dock_box, children[1])
+        self.assertEqual(3, len(children))
+
+    def test_the_configured_size_reaches_every_corner(self):
+        self.build(size=32)
+
+        self.assertEqual([32, 32], [c["size"] for c in self.corners()])
+
+    def test_bezel_padding_leaves_no_gap_between_corners_and_the_dock(self):
+        """The corners sit outside the padded wrapper, so its bezel axis is 0."""
+        horizontal = dock_module.dock_padding(is_vertical=False, bezels=True)
+        vertical = dock_module.dock_padding(is_vertical=True, bezels=True)
+
+        self.assertEqual("padding: 20px 0 0 0;", horizontal)
+        self.assertEqual("padding: 0 5px 0 0;", vertical)
+
+    def test_padding_is_unchanged_without_bezels(self):
+        self.assertEqual(
+            "padding: 20px 50px 5px 50px;",
+            dock_module.dock_padding(is_vertical=False, bezels=False),
+        )
+        self.assertEqual(
+            "padding: 50px 5px 50px 20px;",
+            dock_module.dock_padding(is_vertical=True, bezels=False),
+        )
+
+
 class SyncSchedulingTest(unittest.TestCase):
     """A pending debounce must win over an immediate sync request."""
 

@@ -29,7 +29,7 @@ except ValueError:
 
 # Fixed viewport: the popover sizes itself when it opens and does not relayout
 # for content that grows later (scan results), which used to crop its top.
-_LIST_VIEWPORT_HEIGHT = 260
+_LIST_VIEWPORT_HEIGHT = 200
 
 
 class WifiAccessPointRow(Gtk.ListBoxRow, SubmenuRowMixin):

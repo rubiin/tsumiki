@@ -9,6 +9,7 @@ from fabric.widgets.centerbox import CenterBox
 from fabric.widgets.eventbox import EventBox
 from fabric.widgets.image import Image
 from fabric.widgets.revealer import Revealer
+from fabric.widgets.shapes import Corner
 
 from shared.widget_container import BaseWindow, BoxWidget, tooltips_enabled
 from utils.app import AppUtils
@@ -28,6 +29,7 @@ from utils.widget_settings import BarConfig
 # DnD target for dock app reordering
 DOCK_DND_TARGET = [Gtk.TargetEntry.new("dock-app", Gtk.TargetFlags.SAME_APP, 0)]
 DOCK_SYNC_DEBOUNCE_MS = 60
+DOCK_BEZEL_SIZE = 20
 
 
 class MultiDotIndicator(Gtk.DrawingArea):
@@ -94,6 +96,49 @@ class DotIndicator(Gtk.DrawingArea):
         cr.fill()
 
 
+def dock_padding(*, is_vertical: bool, bezels: bool) -> str:
+    """Content padding for the dock wrapper.
+
+    Bezels sit outside this box, so their axis keeps no padding and the
+    corners stay flush against the dock bar.
+    """
+    if is_vertical:
+        return "padding: 0 5px 0 0;" if bezels else "padding: 50px 5px 50px 20px;"
+    return "padding: 20px 0 0 0;" if bezels else "padding: 20px 50px 5px 50px;"
+
+
+def _bezel_corner(orientation: str, size: int, align: dict) -> Corner:
+    """One concave corner, drawn with the dock's own background."""
+    return Corner(name="dock-bezel", orientation=orientation, size=size, **align)
+
+
+def build_bezel_row(dock_box: Box, *, is_vertical: bool, size: int) -> Box:
+    """Flank *dock_box* with corners that flow into the attached screen edge.
+
+    A horizontal dock attaches to the bottom edge and a vertical one to the
+    left, so each corner hugs that edge and the dock's matching side.
+    """
+    if is_vertical:
+        align = {"h_align": "start"}
+        orientations = ("bottom-left", "top-left")
+        row_orientation = "v"
+    else:
+        align = {"v_align": "end"}
+        orientations = ("bottom-right", "bottom-left")
+        row_orientation = "h"
+
+    return Box(
+        name="dock-bezels",
+        orientation=row_orientation,
+        spacing=0,
+        children=[
+            _bezel_corner(orientations[0], size, align),
+            dock_box,
+            _bezel_corner(orientations[1], size, align),
+        ],
+    )
+
+
 class AppBar(BoxWidget):
     """A simple app bar widget for the dock."""
 
@@ -155,7 +200,12 @@ class AppBar(BoxWidget):
             spacing=10,
             orientation=box_orientation,
             name="dock-bar",
-            style_classes=["window-basic", "sleek-border", f"dock-{self.orientation}"],
+            style_classes=[
+                "window-basic",
+                "sleek-border",
+                f"dock-{self.orientation}",
+                *(["dock-bezels"] if self.config.get("bezels", False) else []),
+            ],
         )
 
         if self.show_launcher:
@@ -882,17 +932,21 @@ class Dock(BaseWindow):
         # Determine orientation and set appropriate styles
         orientation = self.config.get("orientation", "horizontal")
         is_vertical = orientation == "vertical"
+        self.bezels = self.config.get("bezels", False)
 
-        # Set padding and transition based on orientation
-        if is_vertical:
-            padding_style = "padding: 50px 5px 50px 20px;"
-            transition_type = "slide-right"
-        else:
-            padding_style = "padding: 20px 50px 5px 50px;"
-            transition_type = "slide-up"
+        transition_type = "slide-right" if is_vertical else "slide-up"
+        padding_style = dock_padding(is_vertical=is_vertical, bezels=self.bezels)
+
+        dock_box = Box(children=[self._app_bar], style=padding_style)
+        if self.bezels:
+            dock_box = build_bezel_row(
+                dock_box,
+                is_vertical=is_vertical,
+                size=self.config.get("bezel_size", DOCK_BEZEL_SIZE),
+            )
 
         self.revealer = Revealer(
-            child=Box(children=[self._app_bar], style=padding_style),
+            child=dock_box,
             transition_duration=500,
             transition_type=transition_type,
         )
