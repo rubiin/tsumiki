@@ -105,6 +105,112 @@ Common examples:
 | `$bar-widgets-bluetooth-icon_size` | `14px`  | Bluetooth            |
 | `$bar-widgets-weather-icon_size`   | `14px`  | Weather              |
 
+### Collapsible Group Variables
+
+Each `[[collapsible_groups]]` entry renders one toggle button in the bar, and its
+styling lives under the `collapsible_group` widget type:
+
+```toml
+[styling.bar.widgets.collapsible_group]
+icon_size = "12px"
+spacing = "0.125em"
+
+[styling.bar.widgets.collapsible_group.border]
+enabled = false
+radius = "16px"
+width = "1px"
+```
+
+| Variable                                        | Default   | Description                     |
+| ----------------------------------------------- | --------- | ------------------------------- |
+| `$bar-widgets-collapsible_group-icon_size`      | `12px`    | Toggle glyph font size          |
+| `$bar-widgets-collapsible_group-spacing`        | `0.125em` | Space after the toggle glyph    |
+| `$bar-widgets-collapsible_group-border-radius`  | `16px`    | Button corner radius            |
+| `$bar-widgets-collapsible_group-border-enabled` | `false`   | Draw a border around the button |
+| `$bar-widgets-collapsible_group-border-width`   | `1px`     | Border thickness                |
+
+Colors follow the same pattern as the other bar widgets:
+
+```toml
+[styling.bar.widgets.collapsible_group.colors]
+background = "surface-neutral"
+foreground = "text-main"
+
+[styling.bar.widgets.collapsible_group.colors.hover]
+background = "surface-highlight"
+
+[styling.bar.widgets.collapsible_group.colors.active]
+background = "accent-blue"
+foreground = "background-dark"
+```
+
+Type-level colors are dropped when `[styling.bar] monochrome = true`. The popover
+the button expands (`.panel-collapsible-group`) is styled in
+`styles/_collapsible_group.scss`; its row spacing comes from the `spacing` field
+of the `[[collapsible_groups]]` entry, not from `[styling]`.
+
+### Custom Widget Variables
+
+Every `[[widgets.custom_widget]]` entry renders as the same `custom_widget`
+type, so shared styling lives under that type:
+
+```toml
+[styling.bar.widgets.custom_widget]
+icon_size = "12px"
+spacing = "0.125em"
+
+[styling.bar.widgets.custom_widget.border]
+enabled = false
+radius = "16px"
+width = "1px"
+```
+
+| Variable                                    | Default   | Description           |
+| ------------------------------------------- | --------- | --------------------- |
+| `$bar-widgets-custom_widget-icon_size`      | `12px`    | Glyph font size       |
+| `$bar-widgets-custom_widget-spacing`        | `0.125em` | Space after the glyph |
+| `$bar-widgets-custom_widget-border-radius`  | `16px`    | Button corner radius  |
+| `$bar-widgets-custom_widget-border-enabled` | `false`   | Draw a border         |
+| `$bar-widgets-custom_widget-border-width`   | `1px`     | Border thickness      |
+
+Type-level colors apply to every custom widget:
+
+```toml
+[styling.bar.widgets.custom_widget.colors]
+background = "surface-neutral"
+foreground = "text-main"
+
+[styling.bar.widgets.custom_widget.colors.hover]
+background = "surface-highlight"
+```
+
+#### Per-Instance Color Overrides
+
+To color a single entry, key the override by its `id` and set only the fields
+that should differ; anything omitted inherits the type-level rule above:
+
+```toml
+[[widgets.custom_widget]]
+id = "volume"
+exec = "pamixer --get-volume"
+label_format = "󰕾 {value}%"
+
+[styling.bar.widgets.custom_widget.overrides."volume".colors]
+background = "accent-blue"
+foreground = "background-dark"
+
+[styling.bar.widgets.custom_widget.overrides."volume".colors.hover]
+background = "accent-red"
+```
+
+The override is applied as a scoped rule targeting that instance (the widget
+carries an `instance-<id>` style class, so the selector is
+`#custom_widget.instance-volume`). Theme tokens are resolved against the active
+theme at runtime and re-applied when the theme or CSS changes, so overrides
+follow theme switches. When `[styling.bar] monochrome = true`, both type-level
+colors and instance overrides are dropped, along with every other widget's
+colors except battery and weather.
+
 ### Layout Variables
 
 | Variable               | Default       | Description                         |

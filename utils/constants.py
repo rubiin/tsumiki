@@ -766,6 +766,12 @@ DEFAULT_CONFIG = {
                     "spacing": "0.125em",
                     "colors": {},
                 },
+                "collapsible_group": {
+                    "border": {"enabled": False, "radius": "16px", "width": "1px"},
+                    "icon_size": "12px",
+                    "spacing": "0.125em",
+                    "colors": {},
+                },
                 "cpu": {
                     "border": {"enabled": False, "radius": "16px", "width": "1px"},
                     "icon_size": "12px",

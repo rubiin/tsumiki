@@ -254,6 +254,14 @@ $widget-shell-widgets: (
     variable.$bar-widgets-brightness-spacing
   ),
   (
+    "collapsible_group",
+    variable.$bar-widgets-collapsible_group-border-radius,
+    variable.$bar-widgets-collapsible_group-border-enabled,
+    variable.$bar-widgets-collapsible_group-border-width,
+    variable.$bar-widgets-collapsible_group-icon_size,
+    variable.$bar-widgets-collapsible_group-spacing
+  ),
+  (
     "custom_widget",
     variable.$bar-widgets-custom_widget-border-radius,
     variable.$bar-widgets-custom_widget-border-enabled,
@@ -662,6 +670,7 @@ $widget-color-types: (
   "click_counter",
   "clipboard",
   "cloudflare_warp",
+  "collapsible_group",
   "cpu",
   "custom_widget",
   "date_time",

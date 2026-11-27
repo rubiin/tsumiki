@@ -6,6 +6,7 @@ import unittest
 from unittest.mock import patch
 
 from services.style import StyleService
+from utils.constants import DEFAULT_CONFIG
 from utils.widget_colors import format_settings_color_value, parse_scss_theme_variables
 
 
@@ -147,6 +148,19 @@ class StyleServiceThemeMapAndSettingsTest(unittest.TestCase):
         self.assertNotIn("$bar-widgets-clock-colors-", content)
         self.assertNotIn("$bar-widgets-custom_widget-colors-", content)
         self.assertNotIn("$bar-widgets-custom_widget-overrides-volume-colors-", content)
+
+
+class CollapsibleGroupStyleDefaultsTest(unittest.TestCase):
+    """The collapsible group is a bar widget, so it needs style defaults.
+
+    ``styles/common/_widgets.scss`` reads its ``$bar-widgets-collapsible_group-*``
+    variables unconditionally, so a missing default breaks the CSS compile.
+    """
+
+    def test_default_styling_covers_the_collapsible_group(self):
+        style = DEFAULT_CONFIG["styling"]["bar"]["widgets"]["collapsible_group"]
+
+        self.assertEqual(set(style), {"border", "icon_size", "spacing", "colors"})
 
 
 if __name__ == "__main__":

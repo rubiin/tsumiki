@@ -3676,6 +3676,22 @@
                       "type": "string"
                     }
                   ]
+                },
+                "collapsible_group": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "colors": {
+                          "$ref": "#/$defs/widgetColors"
+                        }
+                      },
+                      "additionalProperties": true
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ]
                 }
               }
             }

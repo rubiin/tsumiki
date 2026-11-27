@@ -1140,6 +1140,25 @@ enabled = false
 radius = "16px"
 width = "1px"
 
+[styling.bar.widgets.collapsible_group]
+icon_size = "12px"
+spacing = "0.125em"
+# Per-widget colors (optional). Values: theme token names or literal colors (#hex/rgb(a)/hsl(a)).
+# [styling.bar.widgets.collapsible_group.colors]
+# background = "surface-neutral"
+# foreground = "text-main"
+# [styling.bar.widgets.collapsible_group.colors.hover]
+# background = "surface-highlight"
+# foreground = "text-main"
+# [styling.bar.widgets.collapsible_group.colors.active]
+# background = "accent-blue"
+# foreground = "background-dark"
+
+[styling.bar.widgets.collapsible_group.border]
+enabled = false
+radius = "16px"
+width = "1px"
+
 
 [styling.bar.widgets.cheatsheet]
 icon_size = "12px"
@@ -1208,6 +1227,10 @@ width = "1px"
 [styling.bar.widgets.custom_widget]
 icon_size = "12px"
 spacing = "0.125em"
+# Per-widget colors (optional). Values: theme token names or literal colors (#hex/rgb(a)/hsl(a)).
+# [styling.bar.widgets.custom_widget.colors]
+# background = "surface-neutral"
+# foreground = "text-main"
 # Per-instance color overrides by widget id (e.g. [[widgets.custom_widget]] id = "volume").
 # [styling.bar.widgets.custom_widget.overrides."volume".colors]
 # background = "#1e66f5"
