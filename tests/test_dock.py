@@ -9,8 +9,10 @@ import unittest
 from unittest import mock
 
 from modules import dock as dock_module
-from modules.dock import AppBar, is_special_workspace
+from modules.dock import AppBar
 from shared import widget_container as container
+from utils.functions import is_special_workspace
+from utils.hyprland import hyprland_service
 
 
 class FakeClient:
@@ -202,6 +204,39 @@ class DockEntryTest(unittest.TestCase):
         bar.add.assert_not_called()
 
 
+class WorkspaceRevealTest(unittest.TestCase):
+    """Intellihide follows the active workspace's window count."""
+
+    def make_dock(self) -> dock_module.Dock:
+        dock = dock_module.Dock.__new__(dock_module.Dock)
+        dock.revealer = mock.Mock()
+        return dock
+
+    def test_an_empty_workspace_reveals_the_dock(self):
+        dock = self.make_dock()
+
+        dock._handle_workspace_response({"windows": 0})
+
+        dock.revealer.set_reveal_child.assert_called_once_with(True)
+
+    def test_a_occupied_workspace_hides_the_dock(self):
+        dock = self.make_dock()
+
+        dock._handle_workspace_response({"windows": 3})
+
+        dock.revealer.set_reveal_child.assert_called_once_with(False)
+
+    def test_a_failed_fetch_leaves_the_state_alone(self):
+        # A malformed reply parses to {} and a dropped one to None.
+        for bad in (None, {}):
+            with self.subTest(data=bad):
+                dock = self.make_dock()
+
+                dock._handle_workspace_response(bad)
+
+                dock.revealer.set_reveal_child.assert_not_called()
+
+
 class BezelRowTest(unittest.TestCase):
     """Bezels flank the dock with corners that hug the attached screen edge."""
 
@@ -349,6 +384,7 @@ class SpecialWorkspaceFilterTest(unittest.TestCase):
     def make_bar(self, config: dict) -> AppBar:
         bar = AppBar.__new__(AppBar)
         bar.config = config
+        bar._service = hyprland_service
         bar._group_apps = False
         bar._clients_by_address = {}
         bar._active_address = None

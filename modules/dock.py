@@ -1,7 +1,5 @@
-import json
 from functools import partial
 
-from fabric.hyprland import HyprlandReply
 from fabric.utils import Gdk, Gtk, bulk_connect, logger, truncate
 from fabric.widgets.box import Box
 from fabric.widgets.button import Button
@@ -15,13 +13,7 @@ from shared.widget_container import BaseWindow, BoxWidget, tooltips_enabled
 from utils.app import AppUtils
 from utils.config import tsumiki_config
 from utils.constants import PINNED_APPS_FILE
-from utils.functions import (
-    is_special_workspace,
-    normalize_address,
-    parse_hyprland_reply,
-    read_json_file,
-    write_json_file,
-)
+from utils.functions import normalize_address, read_json_file, write_json_file
 from utils.hyprland import HyprlandClient, hyprland_service
 from utils.icon_resolver import IconResolver
 from utils.widget_settings import BarConfig
@@ -349,20 +341,9 @@ class AppBar(BoxWidget):
     def _get_active_address(self, callback):
         """Fetch active window address asynchronously."""
         try:
-            self._hyprland_connection.send_command_async(
-                "j/activewindow",
-                lambda reply: self._handle_active_address_reply(reply, callback),
-            )
+            self._service.get_active_window_address_async(callback)
         except Exception as e:
             logger.warning(f"[Dock] Failed to request active window address: {e}")
-            callback(None)
-
-    def _handle_active_address_reply(self, reply, callback):
-        try:
-            parsed = parse_hyprland_reply(reply)
-            callback(normalize_address(parsed.get("address")))
-        except Exception as e:
-            logger.warning(f"[Dock] Failed to parse active window address: {e}")
             callback(None)
 
     def _sync_clients(self):
@@ -376,19 +357,14 @@ class AppBar(BoxWidget):
     def _fetch_clients_async(self):
         """Fetch Hyprland clients asynchronously."""
         try:
-            self._hyprland_connection.send_command_async(
-                "j/clients",
-                self._on_raw_clients_reply,
-            )
+            self._service.get_clients_async(self._on_raw_clients_reply)
         except Exception as e:
             logger.exception(f"[Dock] Failed to request clients: {e}")
             self._sync_in_progress = False
 
-    def _on_raw_clients_reply(self, reply):
-        try:
-            raw_clients = parse_hyprland_reply(reply)
-        except Exception as e:
-            logger.exception(f"[Dock] Failed to parse clients: {e}")
+    def _on_raw_clients_reply(self, raw_clients):
+        if raw_clients is None:
+            logger.error("[Dock] Failed to parse clients")
             self._sync_in_progress = False
             return
 
@@ -402,22 +378,13 @@ class AppBar(BoxWidget):
     def _process_clients(self, raw_clients, active_address):
         self._active_address = active_address
         try:
-            clients = []
-            hide_special = self.config.get("hide_special_workspace_apps", False)
-            for item in raw_clients:
-                workspace = item.get("workspace") or {}
-                if not workspace or (hide_special and is_special_workspace(workspace)):
-                    continue
-
-                client = HyprlandClient(item, active_address)
-                app_id = client.get_app_id()
-                if not app_id or app_id in self.config.get("ignored", []):
-                    continue
-                clients.append(client)
-
-            self._clients_by_address = {
-                c.get_address_str(): c for c in clients if c.get_address_str()
-            }
+            clients = self._service.get_wm_clients(
+                raw_clients,
+                active_address,
+                ignored=self.config.get("ignored", []),
+                hide_special=self.config.get("hide_special_workspace_apps", False),
+            )
+            self._clients_by_address = self._service.index_clients(clients)
             if self._group_apps:
                 self._sync_grouped_clients(clients)
             else:
@@ -1004,20 +971,18 @@ class Dock(BaseWindow):
         if not self._app_bar._is_dragging:
             self.revealer.set_reveal_child(False)
 
-    def _handle_workspace_response(self, res: HyprlandReply, *_) -> None:
-        try:
-            parsed = parse_hyprland_reply(res)
-            if parsed.get("windows", 0) == 0:
-                self.revealer.set_reveal_child(True)
-            else:
-                self.revealer.set_reveal_child(False)
-        except (json.JSONDecodeError, AttributeError) as e:
-            logger.exception(f"[Dock] Failed to parse workspace response: {e}")
+    def _handle_workspace_response(self, data, *_) -> None:
+        """Reveal the dock while the active workspace has no windows."""
+        # A malformed reply parses to {}, so treat empty data as a failed fetch.
+        if not data:
+            logger.error("[Dock] Failed to parse workspace response")
+            return
+        self.revealer.set_reveal_child(data.get("windows", 0) == 0)
 
     def _check_for_windows(self, *_):
         try:
-            self._hyprland_connection.send_command_async(
-                "j/activeworkspace", self._handle_workspace_response
+            hyprland_service.get_active_workspace_async(
+                self._handle_workspace_response
             )
         except Exception as e:
             logger.exception(f"[Dock] Failed to get active workspace: {e}")

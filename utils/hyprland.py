@@ -1,9 +1,14 @@
 import re
+from collections.abc import Iterable
 
 from fabric.hyprland.widgets import get_hyprland_connection
 from fabric.utils import logger
 
-from utils.functions import normalize_address, parse_hyprland_reply
+from utils.functions import (
+    is_special_workspace,
+    normalize_address,
+    parse_hyprland_reply,
+)
 from utils.singleton import SingletonMixin
 
 # /dispatch is Lua in 0.55+: a bare window address matches nothing, so use a selector.
@@ -103,6 +108,14 @@ class HyprlandService(SingletonMixin):
             lambda reply: self._parse_and_callback(reply, callback),
         )
 
+    def get_active_window_address_async(self, callback):
+        """Pass the active window's normalized address, or None, to *callback*."""
+
+        def _deliver(data):
+            callback(normalize_address(data.get("address")) if data else None)
+
+        self.get_active_window_async(_deliver)
+
     def get_devices_async(self, callback):
         """Fetch ``j/devices`` and pass the parsed dict to *callback*."""
         self._connection.send_command_async(
@@ -128,6 +141,41 @@ class HyprlandService(SingletonMixin):
         except Exception as e:
             logger.exception(f"[HyprlandService] Failed to parse submap reply: {e}")
             callback(None)
+
+    # ── Window (client) helpers ───────────────────────────────────
+
+    def get_wm_clients(
+        self,
+        raw_clients,
+        active_address: str | None = None,
+        *,
+        ignored: Iterable[str] = (),
+        hide_special: bool = False,
+        workspace_id: int | None = None,
+    ) -> list["HyprlandClient"]:
+        """Wrap usable ``j/clients`` entries, dropping hidden, ignored or
+        out-of-*workspace_id* windows."""
+        clients = []
+        for item in raw_clients or []:
+            workspace = item.get("workspace") or {}
+            if not workspace or (hide_special and is_special_workspace(workspace)):
+                continue
+            if workspace_id is not None and workspace.get("id") != workspace_id:
+                continue
+
+            client = HyprlandClient(item, active_address)
+            app_id = client.get_app_id()
+            if not app_id or app_id in ignored:
+                continue
+            clients.append(client)
+        return clients
+
+    @staticmethod
+    def index_clients(
+        clients: Iterable["HyprlandClient"],
+    ) -> dict[str, "HyprlandClient"]:
+        """Map address -> client, dropping entries without an address."""
+        return {addr: c for c in clients if (addr := c.get_address_str())}
 
     # ── Dispatch helpers ──────────────────────────────────────────
 

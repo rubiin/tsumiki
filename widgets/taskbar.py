@@ -6,11 +6,7 @@ from fabric.widgets.image import Image
 
 from shared.buttons import HoverButton
 from shared.widget_container import BoxWidget
-from utils.functions import (
-    is_special_workspace,
-    normalize_address,
-    parse_hyprland_reply,
-)
+from utils.functions import normalize_address
 from utils.hyprland import HyprlandClient, hyprland_service
 from utils.icon_resolver import IconResolver
 
@@ -86,22 +82,21 @@ class TaskBarWidget(BoxWidget):
 
     def _fetch_current_workspace(self, callback):
         try:
-            self._hyprland_connection.send_command_async(
-                "j/activeworkspace",
-                lambda reply: self._handle_workspace_reply(reply, callback),
+            self._service.get_active_workspace_async(
+                lambda data: self._on_workspace_data(data, callback)
             )
         except Exception as e:
             logger.warning(f"[Taskbar] Failed to request active workspace: {e}")
             callback(None)
 
-    def _handle_workspace_reply(self, reply, callback):
-        try:
-            parsed = parse_hyprland_reply(reply)
-            ws_id = parsed.get("id")
+    def _on_workspace_data(self, data, callback):
+        """Track the active workspace id, ignoring id 0 and failed fetches."""
+        if not data:
+            logger.warning("[Taskbar] Failed to parse workspace reply")
+        else:
+            ws_id = data.get("id")
             if isinstance(ws_id, int) and ws_id != 0:
                 self._current_workspace_id = ws_id
-        except Exception as e:
-            logger.warning(f"[Taskbar] Failed to parse workspace reply: {e}")
         callback(self._current_workspace_id)
 
     def _on_active_window_event(self, *_):
@@ -149,19 +144,14 @@ class TaskBarWidget(BoxWidget):
 
     def _fetch_clients_async(self):
         try:
-            self._hyprland_connection.send_command_async(
-                "j/clients",
-                self._on_raw_clients_reply,
-            )
+            self._service.get_clients_async(self._on_raw_clients_reply)
         except Exception as e:
             logger.exception(f"[Taskbar] Failed to request clients: {e}")
             self._sync_in_progress = False
 
-    def _on_raw_clients_reply(self, reply):
-        try:
-            raw_clients = parse_hyprland_reply(reply)
-        except Exception as e:
-            logger.exception(f"[Taskbar] Failed to parse clients: {e}")
+    def _on_raw_clients_reply(self, raw_clients):
+        if raw_clients is None:
+            logger.error("[Taskbar] Failed to parse clients")
             self._sync_in_progress = False
             return
 
@@ -174,20 +164,9 @@ class TaskBarWidget(BoxWidget):
 
     def _fetch_active_address(self, callback):
         try:
-            self._hyprland_connection.send_command_async(
-                "j/activewindow",
-                lambda reply: self._handle_active_address_reply(reply, callback),
-            )
+            self._service.get_active_window_address_async(callback)
         except Exception as e:
             logger.warning(f"[Taskbar] Failed to request active window address: {e}")
-            callback(None)
-
-    def _handle_active_address_reply(self, reply, callback):
-        try:
-            parsed = parse_hyprland_reply(reply)
-            callback(normalize_address(parsed.get("address")))
-        except Exception as e:
-            logger.warning(f"[Taskbar] Failed to parse active window address: {e}")
             callback(None)
 
     def _process_clients(self, raw_clients, active_address):
@@ -199,28 +178,18 @@ class TaskBarWidget(BoxWidget):
             return
 
         try:
-            clients = []
-            for item in raw_clients:
-                workspace = item.get("workspace") or {}
-                if not workspace or (
-                    self._hide_special_workspace_apps
-                    and is_special_workspace(workspace)
-                ):
-                    continue
-                if (
-                    self._show_current_workspace_only
-                    and workspace.get("id") != self._current_workspace_id
-                ):
-                    continue
-                client = HyprlandClient(item, active_address)
-                app_id = client.get_app_id()
-                if not app_id or app_id in self.config.get("ignored", []):
-                    continue
-                clients.append(client)
-
-            self._clients_by_address = {
-                c.get_address_str(): c for c in clients if c.get_address_str()
-            }
+            clients = self._service.get_wm_clients(
+                raw_clients,
+                active_address,
+                ignored=self.config.get("ignored", []),
+                hide_special=self._hide_special_workspace_apps,
+                workspace_id=(
+                    self._current_workspace_id
+                    if self._show_current_workspace_only
+                    else None
+                ),
+            )
+            self._clients_by_address = self._service.index_clients(clients)
 
             # Remove stale buttons
             for address in list(self._client_buttons):

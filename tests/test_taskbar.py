@@ -8,6 +8,7 @@ special-workspace logic, keyed on ``hide_special_workspace_apps``.
 import unittest
 from unittest import mock
 
+from utils.hyprland import hyprland_service
 from widgets.taskbar import TaskBarWidget
 
 NORMAL = {"address": "0x1000", "class": "firefox", "workspace": {"id": 2}}
@@ -27,6 +28,7 @@ SPECIAL_MODERN = {
 def make_taskbar(config: dict, current_only: bool = False) -> TaskBarWidget:
     widget = TaskBarWidget.__new__(TaskBarWidget)
     widget.config = config
+    widget._service = hyprland_service
     widget._hide_special_workspace_apps = config.get(
         "hide_special_workspace_apps", False
     )
@@ -85,15 +87,26 @@ class SpecialWorkspaceTest(unittest.TestCase):
 
     def test_current_workspace_only_filters_special_when_unfocused(self):
         widget = make_taskbar({"ignored": []}, current_only=True)
-        widget._handle_workspace_reply(mock.Mock(reply=b'{"id": 2}'), lambda _: None)
+        widget._on_workspace_data({"id": 2}, lambda _: None)
 
         widget._process_clients([NORMAL, SPECIAL], None)
 
         self.assertEqual({"0x1000"}, self.addresses(widget))
 
+    def test_a_failed_workspace_fetch_keeps_the_tracked_id(self):
+        widget = make_taskbar({"ignored": []}, current_only=True)
+        widget._current_workspace_id = 2
+        seen = []
+
+        widget._on_workspace_data(None, seen.append)
+        widget._on_workspace_data({}, seen.append)
+
+        self.assertEqual([2, 2], seen)
+        self.assertEqual(2, widget._current_workspace_id)
+
     def test_current_special_workspace_is_tracked(self):
         widget = make_taskbar({"ignored": []}, current_only=True)
-        widget._handle_workspace_reply(mock.Mock(reply=b'{"id": -98}'), lambda _: None)
+        widget._on_workspace_data({"id": -98}, lambda _: None)
 
         widget._process_clients([NORMAL, SPECIAL], None)
 
