@@ -288,7 +288,6 @@ class ConfigWatcherSelfWriteTest(unittest.TestCase):
         from utils import functions as functions_module
 
         self._functions = functions_module
-        self._cwd = cw
 
         self._tmpdir = tempfile.TemporaryDirectory()
         self.addCleanup(self._tmpdir.cleanup)

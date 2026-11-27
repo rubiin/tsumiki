@@ -80,7 +80,6 @@ class CircularImage(Gtk.DrawingArea, BaseWidget):
             size=size,
             **kwargs,
         )
-        self._image_file = image_file
         self._angle = 0
         self.size = size
         self._image: GdkPixbuf.Pixbuf | None = (

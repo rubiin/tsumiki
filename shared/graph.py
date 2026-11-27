@@ -79,7 +79,6 @@ class Graph(Gtk.DrawingArea, BaseWidget):
         self._fill = fill
         self._smooth = smooth
         self._dynamic = dynamic
-        self._animate_duration = animate_duration
         self._scroll_start_time = None
         self._pending: list[float] = []
 

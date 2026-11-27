@@ -14,7 +14,6 @@ from fabric.utils import (
     logger,
     os,
     re,
-    time,
 )
 from fabric.widgets.box import Box
 from fabric.widgets.button import Button
@@ -84,9 +83,6 @@ class ClipHistoryMenu(Box, TeardownMixin):
         self.loading = False
         self.max_items = 0  # Will be set when items are loaded
 
-        self._cache_loaded_at: float | None = (
-            None  # Timestamp of last clipboard list load
-        )
         self._search_timer_id = None  # Timer ID for search text change
         self._item_widgets: dict[str, Button] = {}  # Cache of item_id -> button widget
 
@@ -282,7 +278,6 @@ class ClipHistoryMenu(Box, TeardownMixin):
     def _update_items(self, new_items):
         """Update the items list from main thread"""
         self.clipboard_items = new_items
-        self._cache_loaded_at = time.time()
         available_ids = {
             item.split("\t", 1)[0] if "\t" in item else item for item in new_items
         }

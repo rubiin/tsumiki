@@ -127,8 +127,6 @@ class GpuWidget(FabricatorBoundWidget, StatDisplayMixin):
         # Set up a fabricator to call the update_label method when the CPU usage changes
         self._bind_fabricator_changed(self._update_ui)
 
-        # Cache for GPU stats to avoid blocking main thread
-        self._gpu_stats = None
         self._gpu_request_in_flight = False
         self._last_gpu_poll = 0.0
         self._gpu_poll_interval = float(self.config.get("poll_interval", 2.5))

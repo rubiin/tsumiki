@@ -369,7 +369,6 @@ class CustomWidget(ButtonWidget):
         "_exec_on_event",
         "_executor",
         "_presenter",
-        "_signal_handler_id",
         "icon",
         "module_config",
         "text_label",
@@ -387,7 +386,6 @@ class CustomWidget(ButtonWidget):
 
         # Use passed config or get from widget_config
         self.module_config = config or self.config
-        self._signal_handler_id: int | None = None
 
         self.widget_type = "custom_widget"
         instance_id = (
@@ -478,7 +476,6 @@ class CustomWidget(ButtonWidget):
     def _register_signal(self, sig_num: int):
         """Register a Unix signal handler to trigger updates."""
         self._executor.register_signal(sig_num)
-        self._signal_handler_id = sig_num
 
     def _start_execution(self):
         """Start command execution via executor."""

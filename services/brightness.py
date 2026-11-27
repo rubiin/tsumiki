@@ -40,9 +40,6 @@ class BrightnessService(Service):
         self.max_screen = -1
         self._screen_brightness_cache = -1
 
-        self._pending_screen_value: int | None = None
-        self._screen_throttle_id: int | None = None
-
         if os.path.exists(self.screen_backlight_path + "/max_brightness"):
             with open(self.screen_backlight_path + "/max_brightness") as f:
                 self.max_screen = int(f.read())

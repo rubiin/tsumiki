@@ -56,9 +56,7 @@ class CookieClockFace(Gtk.DrawingArea, TeardownMixin):
 
         self.now = datetime.now()
         tick_interval_ms = 1000 if self.show_seconds else 60000
-        self._tick_id = self._register_repeater(
-            GLib.timeout_add(tick_interval_ms, self._tick)
-        )
+        self._register_repeater(GLib.timeout_add(tick_interval_ms, self._tick))
         self.set_size_request(
             self._scaled_clock_size + self._pad,
             self._scaled_clock_size + self._pad,
