@@ -1,6 +1,5 @@
 """Tests for the Hyprland-backed keyboard service."""
 
-import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -32,10 +31,10 @@ def _service(devices: dict | None = None) -> KeyboardService:
     service._caps_leds = []
     service._num_leds = []
     service._polls = 0
-    service._connection = mock.Mock()
-    service._connection.send_command.return_value.reply = json.dumps(
+    service._service = mock.Mock()
+    service._service.get_devices_async.side_effect = lambda callback: callback(
         devices if devices is not None else DEVICES
-    ).encode()
+    )
     service.notify = mock.Mock()
     return service
 

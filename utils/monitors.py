@@ -8,7 +8,6 @@ from utils.hyprland import hyprland_service
 from utils.singleton import SingletonMixin
 
 from .constants import MONITOR_HOTPLUG_DELAY_MS
-from .functions import parse_hyprland_reply
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
@@ -22,15 +21,13 @@ class HyprlandWithMonitors(SingletonMixin, Hyprland):
 
     def get_all_monitors(self, callback):
         """Fetch all monitors, calling back with {monitor_id: monitor_name}."""
-        self.send_command_async(
-            "j/monitors",
-            lambda reply: self._handle_all_monitors_reply(reply, callback),
+        hyprland_service.get_monitors_async(
+            lambda data: self._on_monitors_data(data, callback)
         )
 
-    def _handle_all_monitors_reply(self, reply, callback):
+    def _on_monitors_data(self, monitors_data, callback):
         try:
-            monitors_data = parse_hyprland_reply(reply)
-            callback({monitor["id"]: monitor["name"] for monitor in monitors_data})
+            callback({m["id"]: m["name"] for m in monitors_data or []})
         except Exception as e:
             logger.exception(f"[Monitors] Error parsing monitors reply: {e}")
             callback(None)
@@ -53,34 +50,26 @@ class HyprlandWithMonitors(SingletonMixin, Hyprland):
 
     def get_current_gdk_monitor_id(self, callback):
         """Get current GDK monitor ID asynchronously."""
-        self.send_command_async(
-            "j/activeworkspace",
-            lambda reply: self._handle_current_monitor_reply(reply, callback),
+        hyprland_service.get_active_workspace_async(
+            lambda data: self._on_current_monitor_data(data, callback)
         )
 
-    def _handle_current_monitor_reply(self, reply, callback):
-        try:
-            active_workspace = parse_hyprland_reply(reply)
-            monitor_name = active_workspace.get("monitor")
-            if monitor_name:
-                callback(self.get_gdk_monitor_id_from_name(monitor_name))
-            else:
-                callback(None)
-        except Exception as e:
-            logger.exception(f"[Monitors] Error parsing active workspace reply: {e}")
+    def _on_current_monitor_data(self, active_workspace, callback):
+        monitor_name = (active_workspace or {}).get("monitor")
+        if monitor_name:
+            callback(self.get_gdk_monitor_id_from_name(monitor_name))
+        else:
             callback(None)
 
     def get_monitor_names(self, callback):
         """Get list of all connected monitor names asynchronously."""
-        self.send_command_async(
-            "j/monitors",
-            lambda reply: self._handle_monitor_names_reply(reply, callback),
+        hyprland_service.get_monitors_async(
+            lambda data: self._on_monitor_names_data(data, callback)
         )
 
-    def _handle_monitor_names_reply(self, reply, callback):
+    def _on_monitor_names_data(self, monitors_data, callback):
         try:
-            monitors_data = parse_hyprland_reply(reply)
-            callback([monitor["name"] for monitor in monitors_data])
+            callback([monitor["name"] for monitor in monitors_data or []])
         except Exception as e:
             logger.exception(f"[Monitors] Error parsing monitor names: {e}")
             callback([])

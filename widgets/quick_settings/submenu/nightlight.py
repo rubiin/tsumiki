@@ -1,6 +1,5 @@
 from collections.abc import Callable
 
-from fabric.hyprland.widgets import get_hyprland_connection
 from fabric.utils import (
     cooldown,
     exec_shell_command_async,
@@ -25,8 +24,6 @@ class NightLightSubMenu(QuickSubMenu):
 
     def __init__(self, **kwargs):
         self.scan_button = None
-
-        self._hyprland_connection = get_hyprland_connection()
 
         self.scale = create_scale(
             name="nightlight-scale",

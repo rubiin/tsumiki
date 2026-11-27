@@ -87,6 +87,13 @@ class HyprlandService(SingletonMixin):
             lambda reply: self._parse_and_callback(reply, callback),
         )
 
+    def get_workspaces_async(self, callback):
+        """Fetch ``j/workspaces`` and pass the parsed list to *callback*."""
+        self._connection.send_command_async(
+            "j/workspaces",
+            lambda reply: self._parse_and_callback(reply, callback),
+        )
+
     def get_monitors_async(self, callback):
         """Fetch ``j/monitors`` and pass the parsed list to *callback*."""
         self._connection.send_command_async(

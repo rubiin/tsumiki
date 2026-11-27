@@ -1,9 +1,7 @@
 import glob
-import json
 
 from fabric.core.service import Property, Service
 from gi.repository import GLib
-from loguru import logger
 
 from utils.hyprland import hyprland_service
 
@@ -42,11 +40,11 @@ class KeyboardService(Service):
         self._polls = 0
         super().__init__(**kwargs)
 
-        self._connection = hyprland_service
-        self._connection.connect("event::activelayout", lambda *_: self.refresh())
+        self._service = hyprland_service
+        self._service.connect("event::activelayout", lambda *_: self.refresh())
         # keyboards come and go (and Hyprland reloads its config)
-        self._connection.connect("event::configreloaded", lambda *_: self.refresh())
-        self._connection.on_ready(self.refresh)
+        self._service.connect("event::configreloaded", lambda *_: self.refresh())
+        self._service.on_ready(self.refresh)
         GLib.timeout_add(POLL_MS, self._poll_locks)
 
     @Property(list, "readable")
@@ -78,22 +76,21 @@ class KeyboardService(Service):
         return self._num_lock
 
     def next_layout(self):
-        self._connection.send_command("switchxkblayout current next")
+        self._service.send_command_async("switchxkblayout current next")
 
-    def _main_keyboard(self) -> dict | None:
-        try:
-            keyboards = json.loads(self._connection.send_command("j/devices").reply)[
-                "keyboards"
-            ]
-        except Exception as e:
-            logger.error(f"[Keyboard] Couldn't read devices: {e}")
-            return None
+    @staticmethod
+    def _main_keyboard(devices: dict | None) -> dict | None:
+        """The keyboard marked main, or the first one when none is marked."""
+        keyboards = (devices or {}).get("keyboards") or []
         return next((k for k in keyboards if k.get("main")), None) or (
             keyboards[0] if keyboards else None
         )
 
     def refresh(self):
-        keyboard = self._main_keyboard()
+        self._service.get_devices_async(self._apply_devices)
+
+    def _apply_devices(self, devices):
+        keyboard = self._main_keyboard(devices)
         if keyboard is None:
             return
         layouts = [code for code in keyboard.get("layout", "").split(",") if code]
@@ -124,6 +121,11 @@ class KeyboardService(Service):
         )
         self._set_locks(caps, num)
 
+    def _sync_locks_from_devices(self, devices):
+        keyboard = self._main_keyboard(devices)
+        if keyboard is not None:
+            self._sync_locks(keyboard)
+
     def _poll_locks(self) -> bool:
         self._polls += 1
         if self._polls % RESCAN_EVERY == 0:
@@ -132,9 +134,7 @@ class KeyboardService(Service):
 
         needs_devices = not self._caps_leds or not self._num_leds
         if needs_devices and self._polls % DEVICES_POLL_EVERY == 0:
-            keyboard = self._main_keyboard()
-            if keyboard is not None:
-                self._sync_locks(keyboard)
+            self._service.get_devices_async(self._sync_locks_from_devices)
             return True
 
         caps = _led_state(self._caps_leds) if self._caps_leds else self._caps_lock

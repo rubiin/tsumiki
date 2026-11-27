@@ -5,13 +5,13 @@ the id slot of create/destroy events with ``int()``; both raise for a
 scratchpad, and the first one took the bar down at startup.
 """
 
-import json
 import unittest
 from unittest import mock
 
 from fabric.hyprland.service import HyprlandEvent
 from fabric.hyprland.widgets import HyprlandWorkspaces
 
+from widgets import workspaces as workspaces_module
 from widgets.workspaces import _HyprlandWorkspaces
 
 SPECIAL = {
@@ -28,15 +28,7 @@ def _event(*data: str) -> HyprlandEvent:
 class _Probe(_HyprlandWorkspaces):
     """The workspace handlers, driven without GTK or a Hyprland socket."""
 
-    def __init__(self, workspaces: list[dict], active: dict):
-        replies = {
-            "j/workspaces": json.dumps(workspaces),
-            "j/activeworkspace": json.dumps(active),
-        }
-        self.connection = mock.Mock()
-        self.connection.send_command.side_effect = lambda cmd: mock.Mock(
-            reply=replies[cmd].encode()
-        )
+    def __init__(self):
         self.created: list[int] = []
         self.activated: list[int] = []
         self.destroyed: list[int] = []
@@ -51,21 +43,32 @@ class _Probe(_HyprlandWorkspaces):
         self.destroyed.append(workspace_id)
 
 
+def _stub_service(workspaces: list[dict], active: dict) -> mock.Mock:
+    """A service mock answering the two startup queries synchronously."""
+    service = mock.Mock()
+    service.get_workspaces_async.side_effect = lambda callback: callback(workspaces)
+    service.get_active_workspace_async.side_effect = lambda callback: callback(active)
+    return service
+
+
 class InitialWorkspaceListTest(unittest.TestCase):
     """``on_ready`` must survive a workspace list holding a scratchpad."""
 
-    def test_a_scratchpad_in_the_list_does_not_break_startup(self):
-        probe = _Probe([{"id": 1, "name": "1"}, SPECIAL], {"id": 1, "name": "1"})
+    def _ready(self, workspaces: list[dict], active: dict) -> _Probe:
+        probe = _Probe()
+        service = _stub_service(workspaces, active)
+        with mock.patch.object(workspaces_module, "hyprland_service", service):
+            probe.on_ready()
+        return probe
 
-        probe.on_ready()
+    def test_a_scratchpad_in_the_list_does_not_break_startup(self):
+        probe = self._ready([{"id": 1, "name": "1"}, SPECIAL], {"id": 1, "name": "1"})
 
         self.assertEqual([1], probe.created)
         self.assertEqual([1], probe.activated)
 
     def test_an_idless_active_workspace_does_not_break_startup(self):
-        probe = _Probe([{"id": 1, "name": "1"}, SPECIAL], SPECIAL)
-
-        probe.on_ready()
+        probe = self._ready([{"id": 1, "name": "1"}, SPECIAL], SPECIAL)
 
         self.assertEqual([1], probe.created)
         self.assertEqual([], probe.activated)
@@ -75,28 +78,28 @@ class WorkspaceEventTest(unittest.TestCase):
     """Scratchpads emit their address in the id slot of v2 events."""
 
     def test_creating_a_scratchpad_is_ignored(self):
-        probe = _Probe([], {})
+        probe = _Probe()
 
         probe.on_create_workspace(None, _event("special:zzz", "special:zzz"))
 
         self.assertEqual([], probe.created)
 
     def test_creating_a_numbered_workspace_still_bakes_a_button(self):
-        probe = _Probe([], {})
+        probe = _Probe()
 
         probe.on_create_workspace(None, _event("3", "3"))
 
         self.assertEqual([3], probe.created)
 
     def test_destroying_a_scratchpad_is_ignored(self):
-        probe = _Probe([], {})
+        probe = _Probe()
 
         probe.on_destroy_workspace(None, _event("special:zzz", "special:zzz"))
 
         self.assertEqual([], probe.destroyed)
 
     def test_destroying_a_numbered_workspace_still_removes_it(self):
-        probe = _Probe([], {})
+        probe = _Probe()
 
         probe.on_destroy_workspace(None, _event("3", "3"))
 

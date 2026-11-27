@@ -142,6 +142,41 @@ class ActiveWindowAddressTest(unittest.TestCase):
         self.assertEqual([None], seen)
 
 
+class MonitorsAndWorkspacesDeliveryTest(unittest.TestCase):
+    """The service hands widgets already-parsed lists."""
+
+    def setUp(self):
+        self.service = make_service()
+
+    def deliver(self, payload: bytes):
+        callback = self.service._connection.send_command_async.call_args.args[1]
+        callback(mock.Mock(reply=payload))
+
+    def test_parsed_monitors_are_delivered(self):
+        seen = []
+
+        self.service.get_monitors_async(seen.append)
+        self.deliver(b'[{"id": 0, "name": "DP-1"}]')
+
+        self.assertEqual([[{"id": 0, "name": "DP-1"}]], seen)
+
+    def test_a_failed_monitor_fetch_delivers_an_empty_dict(self):
+        seen = []
+
+        self.service.get_monitors_async(seen.append)
+        self.deliver(b"not json")
+
+        self.assertEqual([{}], seen)
+
+    def test_parsed_workspaces_are_delivered(self):
+        seen = []
+
+        self.service.get_workspaces_async(seen.append)
+        self.deliver(b'[{"id": 1, "name": "1"}]')
+
+        self.assertEqual([[{"id": 1, "name": "1"}]], seen)
+
+
 class ActiveWorkspaceTest(unittest.TestCase):
     """Widgets get the active workspace already parsed."""
 

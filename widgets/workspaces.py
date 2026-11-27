@@ -1,11 +1,10 @@
-import json
-
 from fabric.core.widgets import WorkspaceButton
 from fabric.hyprland.service import HyprlandEvent
 from fabric.hyprland.widgets import HyprlandWorkspaces
 
 from shared.widget_container import BoxWidget
 from utils.functions import unique_list
+from utils.hyprland import hyprland_service
 from utils.widget_utils import setup_cursor_hover
 
 
@@ -102,14 +101,16 @@ class _HyprlandWorkspaces(HyprlandWorkspaces):
 
     def on_ready(self, *_):
         # Fabric indexes workspace["id"], which Hyprland 0.57 drops for scratchpads.
-        workspaces = json.loads(
-            self.connection.send_command("j/workspaces").reply.decode()
-        )
-        active_id = json.loads(
-            self.connection.send_command("j/activeworkspace").reply.decode()
-        ).get("id")
+        hyprland_service.get_workspaces_async(self._on_workspaces_fetched)
 
-        for workspace in workspaces:
+    def _on_workspaces_fetched(self, workspaces):
+        hyprland_service.get_active_workspace_async(
+            lambda active: self._sync_workspaces(workspaces, active)
+        )
+
+    def _sync_workspaces(self, workspaces, active_workspace):
+        active_id = (active_workspace or {}).get("id")
+        for workspace in workspaces or []:
             ws_id = workspace.get("id")
             if ws_id is None:
                 continue
