@@ -75,6 +75,7 @@ $search-bg-focus: color.mix(theme.$surface-disabled, theme.$background-alt, 80%)
 /************** LIST ROWS **************/
 
 .launcher-list-button {
+  border-radius: variable.$radius-lg;
   padding: 6px 8px;
   // GTK3 has no transform, so the row "steps forward" with an inset accent
   // rail that grows in place instead of a translate.
