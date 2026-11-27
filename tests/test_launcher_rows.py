@@ -121,8 +121,35 @@ class SelectableRowTest(unittest.TestCase):
 
         labels = self.recorder.of("Label")
         self.assertEqual("/calc", labels[0]["label"])
-        # absent and None both mean Gtk.EllipsizeMode.NONE
-        self.assertNotEqual("end", labels[0].get("ellipsization"))
+        # None is rejected by Label; "none" maps to Pango.EllipsizeMode.NONE.
+        self.assertEqual("none", labels[0]["ellipsization"])
+
+    def test_a_command_row_uses_the_shared_list_row_styles(self):
+        self.launcher._create_command_row(self.plugin)
+
+        button = self.recorder.of("Button")[0]
+        labels = [kw["style_classes"] for kw in self.recorder.of("Label")]
+
+        self.assertEqual(
+            ["launcher-button", "launcher-list-button"], button["style_classes"]
+        )
+        self.assertEqual(["launcher-item-title", "launcher-item-subtitle"], labels)
+
+    def test_a_status_row_is_a_plain_list_row(self):
+        self.launcher.viewport = mock.Mock()
+        self.launcher.config = mock.Mock(layout_mode="list")
+
+        self.launcher._render_plugin_hint("Running...", "weather")
+
+        hint = next(
+            kw
+            for kw in self.recorder.of("Box")
+            if kw.get("name") == "launcher-plugin-hint"
+        )
+        labels = [kw["style_classes"] for kw in self.recorder.of("Label")]
+
+        self.assertEqual(["launcher-list-item"], hint["style_classes"])
+        self.assertEqual(["launcher-item-title", "launcher-item-subtitle"], labels)
 
     def test_a_result_title_is_ellipsized(self):
         result = PluginResult(title="a very long song title", subtitle=None, icon=None)
@@ -139,20 +166,21 @@ class SelectableRowTest(unittest.TestCase):
         labels = self.recorder.of("Label")
         self.assertEqual(["2 + 2", "4"], [kw["label"] for kw in labels])
 
-    def test_no_subtitle_leaves_the_title_unboxed(self):
+    def test_a_title_only_row_keeps_the_same_text_box(self):
         result = PluginResult(title="2 + 2", subtitle=None, icon=None)
 
         self.launcher._create_plugin_result_row(self.plugin, result)
 
-        # Box 0 is the item itself; a title-only row adds no wrapper box.
-        self.assertEqual(1, len(self.recorder.of("Box")))
+        # Box 0 is the item itself; the text column is always there, as in an
+        # application row.
+        self.assertEqual(2, len(self.recorder.of("Box")))
 
     def test_an_empty_subtitle_is_treated_as_none(self):
         result = PluginResult(title="2 + 2", subtitle="", icon=None)
 
         self.launcher._create_plugin_result_row(self.plugin, result)
 
-        self.assertEqual(1, len(self.recorder.of("Box")))
+        self.assertEqual(["2 + 2"], [kw["label"] for kw in self.recorder.of("Label")])
 
     def test_a_command_row_inserts_its_own_name(self):
         self.launcher._create_command_row(self.plugin)

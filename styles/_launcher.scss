@@ -3,10 +3,6 @@
 @use "variable";
 @use "common";
 
-$launcher-transition:
-  background-color variable.$duration-fast variable.$ease-standard,
-  color variable.$duration-fast variable.$ease-standard;
-
 $compact-transition:
   background-color variable.$duration-normal variable.$ease-standard,
   border-color variable.$duration-normal variable.$ease-standard,
@@ -18,9 +14,9 @@ $row-press: color.adjust(theme.$surface-neutral, $alpha: -0.62);
 $search-bg: color.mix(theme.$surface-disabled, theme.$background-alt, 55%);
 $search-bg-focus: color.mix(theme.$surface-disabled, theme.$background-alt, 80%);
 
-/// The accent state machine shared by the bar button and the in-popup plugin
-/// rows. They differ only in which child nodes get recoloured, so the selector
-/// list is the parameter and the states themselves are written once.
+/// The accent state machine used by the grid tiles. They differ only in which
+/// child nodes get recoloured, so the selector list is the parameter and the
+/// states themselves are written once.
 @mixin launcher-selection-state($children) {
   &:hover,
   &:focus,
@@ -104,22 +100,24 @@ $search-bg-focus: color.mix(theme.$surface-disabled, theme.$background-alt, 80%)
   &:active {
     background-color: $row-press;
   }
+}
 
-  .launcher-item-title {
-    font-size: variable.$font-size-lg;
-    font-weight: 600;
-    color: theme.$text-main;
-  }
+// Row content is styled by class, not by row kind: app rows, command rows and
+// plugin results share one look.
+.launcher-item-title {
+  font-size: variable.$font-size-lg;
+  font-weight: 600;
+  color: theme.$text-main;
+}
 
-  .launcher-item-subtitle {
-    font-size: variable.$font-size-base;
-    color: theme.$text-muted;
-  }
+.launcher-item-subtitle {
+  font-size: variable.$font-size-base;
+  color: theme.$text-muted;
+}
 
-  .launcher-item-icon {
-    border-radius: variable.$radius-md;
-    -gtk-icon-effect: none;
-  }
+.launcher-item-icon {
+  border-radius: variable.$radius-md;
+  -gtk-icon-effect: none;
 }
 
 #launcher {
@@ -207,34 +205,14 @@ $search-bg-focus: color.mix(theme.$surface-disabled, theme.$background-alt, 80%)
     }
   }
 
-  .launcher-plugin-button {
-    border-radius: variable.$radius-lg;
-    padding: 6px 8px;
-    transition: $launcher-transition;
-
-    #launcher-plugin-icon {
-      -gtk-icon-effect: highlight;
-      font-size: variable.$font-size-3xl;
-    }
-
-    #launcher-plugin-title {
-      font-size: variable.$font-size-lg;
-      color: theme.$text-main;
-    }
-
-    #launcher-plugin-subtitle {
-      font-size: variable.$font-size-sm;
-      color: theme.$text-muted;
-    }
-
-    @include launcher-selection-state("#launcher-plugin-title, #launcher-plugin-subtitle");
+  // Glyph icons take the same 16px box as an application icon.
+  #launcher-plugin-icon {
+    font-size: variable.$font-size-2xl;
   }
 
   #launcher-plugin-hint {
-    padding: 8px 10px;
+    padding: 6px 8px;
     border-radius: variable.$radius-lg;
-    background-color: color.mix(theme.$surface-neutral, transparent, 50%);
-    opacity: variable.$opacity-faint;
   }
 
   scrolledwindow {

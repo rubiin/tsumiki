@@ -64,7 +64,7 @@ tooltip = true
 [widgets.emoji_picker]
 label_format = ""
 tooltip = true
-per_row = 9
+per_row = 6
 per_column = 4
 
 [widgets.kanban]
@@ -958,7 +958,8 @@ layer = "bottom"
 left_section = ["@group:workspaces-group"]
 middle_section = [
     "date_time",
-    "weather"
+    "weather",
+    "emoji_picker"
 ]
 right_section = ["@group:sys-group", "@group:utils-group", "system_tray", "power"]
 

@@ -889,7 +889,7 @@ class Launcher(PopupWindow):
                 label=title,
                 h_align="start",
                 v_align="center",
-                style_classes="launcher-plugin-title",
+                style_classes="launcher-item-title",
             )
         ]
         if subtitle:
@@ -898,7 +898,7 @@ class Launcher(PopupWindow):
                     label=subtitle,
                     h_align="start",
                     v_align="center",
-                    style_classes="launcher-plugin-subtitle",
+                    style_classes="launcher-item-subtitle",
                 )
             )
         box = Box(
@@ -935,27 +935,28 @@ class Launcher(PopupWindow):
                 h_align="start",
                 v_align="center",
                 justification="left",
-                ellipsization="end" if ellipsize else None,
+                ellipsization="end" if ellipsize else "none",
                 style_classes=style_class,
             )
 
-        title_label = make_label(title, "launcher-plugin-title")
+        text_children = [make_label(title, "launcher-item-title")]
         if subtitle:
-            children.append(
-                Box(
-                    orientation="v",
-                    spacing=1,
-                    children=[
-                        title_label,
-                        make_label(subtitle, "launcher-plugin-subtitle"),
-                    ],
-                )
+            text_children.append(make_label(subtitle, "launcher-item-subtitle"))
+        # Same tree as an application row so both lists lay out identically.
+        children.append(
+            Box(
+                orientation="v",
+                spacing=1,
+                h_expand=True,
+                v_align="center",
+                children=text_children,
             )
-        else:
-            children.append(title_label)
+        )
 
         button = Button(
-            style_classes=["launcher-plugin-button"],
+            style_classes=["launcher-button", "launcher-list-button"],
+            h_expand=True,
+            v_expand=False,
             child=Box(
                 name=item_name,
                 orientation="h",
@@ -997,13 +998,17 @@ class Launcher(PopupWindow):
             return Label(
                 label=icon,
                 name="launcher-plugin-icon",
-                style_classes=["launcher-plugin-icon-glyph"],
+                style_classes=["launcher-item-icon", "launcher-plugin-icon-glyph"],
+                h_align="start",
                 v_align="center",
             )
         return Image(
             icon_name=icon,
             icon_size=self.config.icon_size,
             name="launcher-plugin-icon",
+            style_classes=["launcher-item-icon"],
+            h_align="start",
+            v_align="center",
         )
 
     def _append_plugin_row(self, button: Button):
