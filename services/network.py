@@ -116,15 +116,25 @@ class Wifi(Service):
             self.notify(sn)
 
     def _activate_ap(self, *_):
-        if self._ap:
+        previous_ap = self._ap
+        if self._ap and self._ap_signal is not None:
             self._ap.disconnect(self._ap_signal)
+            self._ap_signal = None
+
         self._ap = self._device.get_active_access_point()
         if not self._ap:
+            if previous_ap is not None:
+                self._queue_ap_update()
             return
 
         self._ap_signal = self._ap.connect(
             "notify::strength", lambda *_: self._queue_ap_update()
         )  # type: ignore
+
+        # Roaming changes the AP while the device stays activated, so no
+        # state-changed arrives; refresh the ssid/strength/active highlight here.
+        if self._ap is not previous_ap:
+            self._queue_ap_update()
 
     def toggle_wifi(self):
         self._client.wireless_set_enabled(not self._client.wireless_get_enabled())
@@ -143,8 +153,35 @@ class Wifi(Service):
 
             self._device.request_scan_async(None, _on_scan_done)
 
-    def is_active_ap(self, name) -> bool:
-        return self._ap.get_bssid() == name if self._ap else False
+    @staticmethod
+    def _ap_ssid(ap: NM.AccessPoint) -> str | None:
+        ssid_data = ap.get_ssid()
+        return NM.utils_ssid_to_utf8(ssid_data.get_data()) if ssid_data else None
+
+    def is_active_ap(self, ap) -> bool:
+        """Return whether *ap* is the access point the device is connected to.
+
+        *ap* is an access-point dict from :attr:`access_points`, or a BSSID.
+        SSID is a fallback because one SSID is often broadcast on several
+        BSSIDs (2.4/5 GHz, mesh) and the list keeps a single entry for it.
+        """
+        if not self._ap:
+            return False
+
+        if isinstance(ap, str):
+            active_bssid = self._ap.get_bssid()
+            return bool(active_bssid) and active_bssid == ap
+
+        active_bssid = self._ap.get_bssid()
+        if active_bssid and ap.get("bssid") == active_bssid:
+            return True
+
+        active_path = self._ap.get_path()
+        if active_path and ap.get("path") == active_path:
+            return True
+
+        active_ssid = self._ap_ssid(self._ap)
+        return bool(active_ssid) and ap.get("ssid") == active_ssid
 
     def notifier(self, name: str, *_):
         self.notify(name)
@@ -233,8 +270,8 @@ class Wifi(Service):
     def frequency(self):
         return self._ap.get_frequency() if self._ap else -1
 
-    @Property(int, "readable")
-    def internet(self):
+    @Property(str, "readable")
+    def internet(self) -> str:
         active_connection = self._device.get_active_connection()
         if not active_connection:
             return "disconnected"
@@ -251,6 +288,7 @@ class Wifi(Service):
 
         return {
             "bssid": ap.get_bssid(),
+            "path": ap.get_path(),
             "last_seen": ap.get_last_seen(),
             "wpa_flags": ap.get_wpa_flags(),
             "ssid": ssid,
@@ -330,11 +368,10 @@ class Wifi(Service):
     def ssid(self):
         if not self._ap:
             return "Disconnected"
-        ssid = self._ap.get_ssid().get_data()
-        return NM.utils_ssid_to_utf8(ssid) if ssid else "Unknown"
+        return self._ap_ssid(self._ap) or "Unknown"
 
-    @Property(int, "readable")
-    def state(self):
+    @Property(str, "readable")
+    def state(self) -> str:
         return _DEVICE_STATE_MAP.get(self._device.get_state(), "unknown")
 
 

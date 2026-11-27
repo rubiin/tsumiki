@@ -23,10 +23,19 @@ class _FakeGObject:
 
     def __init__(self):
         self.handlers: dict[str, list] = {}
+        self._handlers_by_id: dict[int, tuple[str, object]] = {}
+        self._next_handler_id = 0
 
     def connect(self, signal, callback):
+        self._next_handler_id += 1
         self.handlers.setdefault(signal, []).append(callback)
-        return len(self.handlers)
+        self._handlers_by_id[self._next_handler_id] = (signal, callback)
+        return self._next_handler_id
+
+    def disconnect(self, handler_id):
+        signal, callback = self._handlers_by_id.pop(handler_id, (None, None))
+        if callback is not None and callback in self.handlers.get(signal, []):
+            self.handlers[signal].remove(callback)
 
     def fire(self, signal, *args):
         for callback in list(self.handlers.get(signal, [])):
@@ -138,6 +147,36 @@ class WifiApUpdateCoalescingTest(unittest.TestCase):
 
         self.assertEqual(1, len(self.rebuilds))
 
+    def test_switching_active_access_point_refreshes_once(self):
+        first_ap = _FakeGObject()
+        second_ap = _FakeGObject()
+        self.device.get_active_access_point = lambda: first_ap
+        self.device.fire("notify::active-access-point")
+        self.glib.run_pending()
+        self.rebuilds.clear()
+
+        self.device.get_active_access_point = lambda: second_ap
+        self.device.fire("notify::active-access-point")
+
+        self.assertEqual(1, len(self.glib.timers), "roam should schedule one rebuild")
+        self.glib.run_pending()
+
+        self.assertEqual(1, len(self.rebuilds))
+        self.assertIs(second_ap, self.wifi._ap)
+
+    def test_losing_the_active_access_point_refreshes(self):
+        self.device.get_active_access_point = lambda: _FakeGObject()
+        self.device.fire("notify::active-access-point")
+        self.glib.run_pending()
+        self.rebuilds.clear()
+
+        self.device.get_active_access_point = lambda: None
+        self.device.fire("notify::active-access-point")
+        self.glib.run_pending()
+
+        self.assertEqual(1, len(self.rebuilds))
+        self.assertIsNone(self.wifi._ap)
+
     def test_the_rebuild_notifies_every_rendered_property(self):
         self.device.fire("access-point-added")
         self.glib.run_pending()
@@ -148,6 +187,53 @@ class WifiApUpdateCoalescingTest(unittest.TestCase):
 
         for prop in ("enabled", "internet", "strength", "ssid", "access-points"):
             self.assertIn(prop, notified)
+
+
+class WifiIsActiveApTest(unittest.TestCase):
+    """The active row is matched by BSSID/path, with SSID as a fallback."""
+
+    def setUp(self):
+        self.wifi = Wifi(_FakeGObject(), _FakeGObject())
+
+        self.active = mock.Mock()
+        self.active.get_bssid.return_value = "AA:BB:CC:DD:EE:FF"
+        self.active.get_path.return_value = (
+            "/org/freedesktop/NetworkManager/AccessPoint/1"
+        )
+        self.active.get_ssid.return_value = mock.Mock(get_data=lambda: b"Home")
+        self.wifi._ap = self.active
+
+    def entry(self, bssid="AA:BB:CC:DD:EE:FF", ssid="Home", path=None):
+        return {"bssid": bssid, "ssid": ssid, "path": path}
+
+    def test_matching_bssid_is_active(self):
+        self.assertTrue(self.wifi.is_active_ap(self.entry()))
+
+    def test_matching_path_is_active(self):
+        path = self.active.get_path.return_value
+        self.assertTrue(
+            self.wifi.is_active_ap(
+                self.entry(bssid="11:22:33:44:55:66", ssid="Other", path=path)
+            )
+        )
+
+    def test_sibling_bssid_with_the_same_ssid_is_active(self):
+        # One SSID on 2.4/5 GHz: the list keeps the strongest, not the joined BSSID.
+        self.assertTrue(self.wifi.is_active_ap(self.entry(bssid="11:22:33:44:55:66")))
+
+    def test_a_different_ssid_is_not_active(self):
+        self.assertFalse(
+            self.wifi.is_active_ap(self.entry(bssid="11:22:33:44:55:66", ssid="Guest"))
+        )
+
+    def test_a_bssid_string_still_works(self):
+        self.assertTrue(self.wifi.is_active_ap("AA:BB:CC:DD:EE:FF"))
+        self.assertFalse(self.wifi.is_active_ap("11:22:33:44:55:66"))
+
+    def test_no_active_access_point_matches_nothing(self):
+        self.wifi._ap = None
+        self.assertFalse(self.wifi.is_active_ap(self.entry()))
+        self.assertFalse(self.wifi.is_active_ap("AA:BB:CC:DD:EE:FF"))
 
 
 if __name__ == "__main__":

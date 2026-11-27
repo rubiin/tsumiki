@@ -227,11 +227,9 @@ class WifiSubMenu(QuickSubMenu):
 
         ap_container.start_children = (ap_row,)
 
-        # Use BSSID for active AP check, fallback to SSID if needed
-        ap_bssid = ap.get("bssid")
+        # Compare the whole entry: BSSID/path, then SSID as a fallback.
         is_active = (
-            self.wifi_device.state == "activated"
-            and self.wifi_device.is_active_ap(ap_bssid)
+            self.wifi_device.state == "activated" and self.wifi_device.is_active_ap(ap)
         )
 
         if is_secured:

@@ -192,9 +192,7 @@ class ApplyWallpaperBackendTest(unittest.TestCase):
         ):
             apply_wallpaper("/tmp/a.png", ["DP-1", "HDMI-A-1"])
 
-        self.assertEqual(
-            calls, [["awww", "img", "-o", "DP-1,HDMI-A-1", "/tmp/a.png"]]
-        )
+        self.assertEqual(calls, [["awww", "img", "-o", "DP-1,HDMI-A-1", "/tmp/a.png"]])
 
     def test_hyprpaper_sets_each_monitor(self):
         calls = []

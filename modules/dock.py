@@ -981,8 +981,6 @@ class Dock(BaseWindow):
 
     def _check_for_windows(self, *_):
         try:
-            hyprland_service.get_active_workspace_async(
-                self._handle_workspace_response
-            )
+            hyprland_service.get_active_workspace_async(self._handle_workspace_response)
         except Exception as e:
             logger.exception(f"[Dock] Failed to get active workspace: {e}")

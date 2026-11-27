@@ -249,9 +249,7 @@ class BezelRowTest(unittest.TestCase):
 
     def build(self, is_vertical: bool = False, size: int = 20):
         dock_box = mock.Mock(name="dock-box")
-        row = dock_module.build_bezel_row(
-            dock_box, is_vertical=is_vertical, size=size
-        )
+        row = dock_module.build_bezel_row(dock_box, is_vertical=is_vertical, size=size)
         return dock_box, row
 
     def corners(self) -> list[dict]:
